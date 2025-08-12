@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, RotateCcw, Eye } from "lucide-react";
+import { Loader2, Save, RotateCcw, Eye, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface HomePageContent {
@@ -33,6 +34,7 @@ interface ContentData {
 export function CmsManager() {
   const [contentData, setContentData] = useState<ContentData>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: content, isLoading } = useQuery<HomePageContent[]>({
@@ -192,7 +194,7 @@ export function CmsManager() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
-            onClick={() => window.open('/', '_blank')}
+            onClick={() => setShowPreview(true)}
             variant="outline"
             size="sm"
             className="w-full sm:w-auto"
@@ -238,12 +240,12 @@ export function CmsManager() {
       )}
 
       <Tabs defaultValue={sections[0]} className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-1">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
           {sections.map((section) => (
             <TabsTrigger 
               key={section} 
               value={section} 
-              className="capitalize text-xs sm:text-sm px-2 sm:px-4 py-2"
+              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200"
             >
               {section === 'hero' ? 'Inicio' : 
                section === 'about' ? 'Acerca' :
@@ -303,6 +305,32 @@ export function CmsManager() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="font-serif text-xl">Vista Previa de la Página Principal</DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            <iframe
+              src="/"
+              className="w-full h-[70vh] border-0"
+              title="Vista Previa"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
