@@ -38,11 +38,33 @@ export function generateBackgroundStyle(bgValue: string, isDark: boolean = false
   
   switch (bgData.type) {
     case 'color':
+      // Handle dual-mode colors for "Ambos modos"
+      if (bgData.mode === 'both' && (bgData.lightValue || bgData.darkValue)) {
+        const color = isDark 
+          ? (bgData.darkValue || bgData.value || '#000000') 
+          : (bgData.lightValue || bgData.value || '#ffffff');
+        return { backgroundColor: color };
+      }
       return { backgroundColor: bgData.value };
       
     case 'gradient':
       if (!bgData.gradient) return {};
-      const { from, to, direction } = bgData.gradient;
+      
+      // Handle dual-mode gradients for "Ambos modos"
+      let gradient;
+      if (bgData.mode === 'both') {
+        if (isDark && bgData.darkGradient) {
+          gradient = bgData.darkGradient;
+        } else if (!isDark && bgData.lightGradient) {
+          gradient = bgData.lightGradient;
+        } else {
+          gradient = bgData.gradient;
+        }
+      } else {
+        gradient = bgData.gradient;
+      }
+      
+      const { from, to, direction } = gradient;
       if (direction === 'radial') {
         return { background: `radial-gradient(circle, ${from}, ${to})` };
       } else {

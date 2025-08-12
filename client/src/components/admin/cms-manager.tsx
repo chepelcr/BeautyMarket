@@ -207,103 +207,293 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
               </div>
             </div>
             {(() => {
-              const bgData = JSON.parse(value || '{"type":"color","value":"#ffffff"}');
+              const bgData = JSON.parse(value || '{"type":"color","value":"#ffffff","mode":"both"}');
               if (bgData.type === 'color') {
-                return (
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      type="color"
-                      value={bgData.value || '#ffffff'}
-                      onChange={(e) => {
-                        bgData.value = e.target.value;
-                        handleInputChange(section, item.key, JSON.stringify(bgData));
-                      }}
-                      className="w-16 h-10 p-1 border rounded cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={bgData.value || '#ffffff'}
-                      onChange={(e) => {
-                        bgData.value = e.target.value;
-                        handleInputChange(section, item.key, JSON.stringify(bgData));
-                      }}
-                      placeholder="#ffffff"
-                      className="flex-1"
-                    />
-                  </div>
-                );
-              } else if (bgData.type === 'gradient') {
-                return (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="color"
-                          value={bgData.gradient?.from || '#ffffff'}
-                          onChange={(e) => {
-                            bgData.gradient = bgData.gradient || {};
-                            bgData.gradient.from = e.target.value;
-                            handleInputChange(section, item.key, JSON.stringify(bgData));
-                          }}
-                          className="w-10 h-8 p-1 border rounded cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={bgData.gradient?.from || '#ffffff'}
-                          onChange={(e) => {
-                            bgData.gradient = bgData.gradient || {};
-                            bgData.gradient.from = e.target.value;
-                            handleInputChange(section, item.key, JSON.stringify(bgData));
-                          }}
-                          placeholder="Desde"
-                          className="flex-1 text-xs"
-                        />
+                const mode = bgData.mode || 'both';
+                if (mode === 'both') {
+                  // Show two color pickers for light and dark modes
+                  return (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Color Modo Claro</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={bgData.lightValue || bgData.value || '#ffffff'}
+                            onChange={(e) => {
+                              bgData.lightValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            className="w-16 h-10 p-1 border rounded cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={bgData.lightValue || bgData.value || '#ffffff'}
+                            onChange={(e) => {
+                              bgData.lightValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            placeholder="#ffffff"
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="color"
-                          value={bgData.gradient?.to || '#000000'}
-                          onChange={(e) => {
-                            bgData.gradient = bgData.gradient || {};
-                            bgData.gradient.to = e.target.value;
-                            handleInputChange(section, item.key, JSON.stringify(bgData));
-                          }}
-                          className="w-10 h-8 p-1 border rounded cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={bgData.gradient?.to || '#000000'}
-                          onChange={(e) => {
-                            bgData.gradient = bgData.gradient || {};
-                            bgData.gradient.to = e.target.value;
-                            handleInputChange(section, item.key, JSON.stringify(bgData));
-                          }}
-                          placeholder="Hasta"
-                          className="flex-1 text-xs"
-                        />
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Color Modo Oscuro</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={bgData.darkValue || '#000000'}
+                            onChange={(e) => {
+                              bgData.darkValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            className="w-16 h-10 p-1 border rounded cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={bgData.darkValue || '#000000'}
+                            onChange={(e) => {
+                              bgData.darkValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <select
-                      className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                      value={bgData.gradient?.direction || 'to-r'}
-                      onChange={(e) => {
-                        bgData.gradient = bgData.gradient || {};
-                        bgData.gradient.direction = e.target.value;
-                        handleInputChange(section, item.key, JSON.stringify(bgData));
-                      }}
-                    >
-                      <option value="to-r">Izquierda → Derecha</option>
-                      <option value="to-l">Derecha → Izquierda</option>
-                      <option value="to-b">Arriba → Abajo</option>
-                      <option value="to-t">Abajo → Arriba</option>
-                      <option value="to-br">Esquina → Esquina ↘</option>
-                      <option value="to-bl">Esquina → Esquina ↙</option>
-                      <option value="to-tr">Esquina → Esquina ↗</option>
-                      <option value="to-tl">Esquina → Esquina ↖</option>
-                      <option value="radial">Radial (centro)</option>
-                    </select>
-                  </div>
-                );
+                  );
+                } else {
+                  // Single color picker for light-only or dark-only
+                  return (
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="color"
+                        value={bgData.value || '#ffffff'}
+                        onChange={(e) => {
+                          bgData.value = e.target.value;
+                          handleInputChange(section, item.key, JSON.stringify(bgData));
+                        }}
+                        className="w-16 h-10 p-1 border rounded cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={bgData.value || '#ffffff'}
+                        onChange={(e) => {
+                          bgData.value = e.target.value;
+                          handleInputChange(section, item.key, JSON.stringify(bgData));
+                        }}
+                        placeholder="#ffffff"
+                        className="flex-1"
+                      />
+                    </div>
+                  );
+                }
+              } else if (bgData.type === 'gradient') {
+                const mode = bgData.mode || 'both';
+                if (mode === 'both') {
+                  return (
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gradiente Modo Claro</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="color"
+                              value={bgData.lightGradient?.from || bgData.gradient?.from || '#ffffff'}
+                              onChange={(e) => {
+                                bgData.lightGradient = bgData.lightGradient || {};
+                                bgData.lightGradient.from = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              className="w-10 h-8 p-1 border rounded cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={bgData.lightGradient?.from || bgData.gradient?.from || '#ffffff'}
+                              onChange={(e) => {
+                                bgData.lightGradient = bgData.lightGradient || {};
+                                bgData.lightGradient.from = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              placeholder="Desde"
+                              className="flex-1 text-xs"
+                            />
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="color"
+                              value={bgData.lightGradient?.to || bgData.gradient?.to || '#f3f4f6'}
+                              onChange={(e) => {
+                                bgData.lightGradient = bgData.lightGradient || {};
+                                bgData.lightGradient.to = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              className="w-10 h-8 p-1 border rounded cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={bgData.lightGradient?.to || bgData.gradient?.to || '#f3f4f6'}
+                              onChange={(e) => {
+                                bgData.lightGradient = bgData.lightGradient || {};
+                                bgData.lightGradient.to = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              placeholder="Hasta"
+                              className="flex-1 text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gradiente Modo Oscuro</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="color"
+                              value={bgData.darkGradient?.from || '#1f2937'}
+                              onChange={(e) => {
+                                bgData.darkGradient = bgData.darkGradient || {};
+                                bgData.darkGradient.from = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              className="w-10 h-8 p-1 border rounded cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={bgData.darkGradient?.from || '#1f2937'}
+                              onChange={(e) => {
+                                bgData.darkGradient = bgData.darkGradient || {};
+                                bgData.darkGradient.from = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              placeholder="Desde"
+                              className="flex-1 text-xs"
+                            />
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="color"
+                              value={bgData.darkGradient?.to || '#000000'}
+                              onChange={(e) => {
+                                bgData.darkGradient = bgData.darkGradient || {};
+                                bgData.darkGradient.to = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              className="w-10 h-8 p-1 border rounded cursor-pointer"
+                            />
+                            <Input
+                              type="text"
+                              value={bgData.darkGradient?.to || '#000000'}
+                              onChange={(e) => {
+                                bgData.darkGradient = bgData.darkGradient || {};
+                                bgData.darkGradient.to = e.target.value;
+                                handleInputChange(section, item.key, JSON.stringify(bgData));
+                              }}
+                              placeholder="Hasta"
+                              className="flex-1 text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <select
+                        className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        value={bgData.gradient?.direction || 'to-r'}
+                        onChange={(e) => {
+                          bgData.gradient = bgData.gradient || {};
+                          bgData.gradient.direction = e.target.value;
+                          // Also update for light/dark variants
+                          if (bgData.lightGradient) bgData.lightGradient.direction = e.target.value;
+                          if (bgData.darkGradient) bgData.darkGradient.direction = e.target.value;
+                          handleInputChange(section, item.key, JSON.stringify(bgData));
+                        }}
+                      >
+                        <option value="to-r">Izquierda → Derecha</option>
+                        <option value="to-l">Derecha → Izquierda</option>
+                        <option value="to-b">Arriba → Abajo</option>
+                        <option value="to-t">Abajo → Arriba</option>
+                        <option value="to-br">Esquina → Esquina ↘</option>
+                        <option value="to-bl">Esquina → Esquina ↙</option>
+                        <option value="to-tr">Esquina → Esquina ↗</option>
+                        <option value="to-tl">Esquina → Esquina ↖</option>
+                        <option value="radial">Radial (centro)</option>
+                      </select>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={bgData.gradient?.from || '#ffffff'}
+                            onChange={(e) => {
+                              bgData.gradient = bgData.gradient || {};
+                              bgData.gradient.from = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            className="w-10 h-8 p-1 border rounded cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={bgData.gradient?.from || '#ffffff'}
+                            onChange={(e) => {
+                              bgData.gradient = bgData.gradient || {};
+                              bgData.gradient.from = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            placeholder="Desde"
+                            className="flex-1 text-xs"
+                          />
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={bgData.gradient?.to || '#000000'}
+                            onChange={(e) => {
+                              bgData.gradient = bgData.gradient || {};
+                              bgData.gradient.to = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            className="w-10 h-8 p-1 border rounded cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={bgData.gradient?.to || '#000000'}
+                            onChange={(e) => {
+                              bgData.gradient = bgData.gradient || {};
+                              bgData.gradient.to = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(bgData));
+                            }}
+                            placeholder="Hasta"
+                            className="flex-1 text-xs"
+                          />
+                        </div>
+                      </div>
+                      <select
+                        className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        value={bgData.gradient?.direction || 'to-r'}
+                        onChange={(e) => {
+                          bgData.gradient = bgData.gradient || {};
+                          bgData.gradient.direction = e.target.value;
+                          handleInputChange(section, item.key, JSON.stringify(bgData));
+                        }}
+                      >
+                        <option value="to-r">Izquierda → Derecha</option>
+                        <option value="to-l">Derecha → Izquierda</option>
+                        <option value="to-b">Arriba → Abajo</option>
+                        <option value="to-t">Abajo → Arriba</option>
+                        <option value="to-br">Esquina → Esquina ↘</option>
+                        <option value="to-bl">Esquina → Esquina ↙</option>
+                        <option value="to-tr">Esquina → Esquina ↗</option>
+                        <option value="to-tl">Esquina → Esquina ↖</option>
+                        <option value="radial">Radial (centro)</option>
+                      </select>
+                    </div>
+                  );
+                }
               } else if (bgData.type === 'image') {
                 return (
                   <div className="space-y-3">

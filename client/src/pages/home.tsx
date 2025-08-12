@@ -9,7 +9,7 @@ import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
-  const { getContent, getSectionStyles, getButtonStyles } = useCmsContent();
+  const { getContent, getSectionStyles, getButtonStyles, getTextStyles } = useCmsContent();
   
   // Set dynamic page title
   useDynamicTitle();
@@ -40,9 +40,15 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <h1 className="font-serif text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
+                <h1 
+                  className="font-serif text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight"
+                  style={getTextStyles('hero', 'title')}
+                >
                   {getContent('hero', 'title', 'Strawberry Essentials')}
-                  <span className="text-pink-primary block">
+                  <span 
+                    className="text-pink-primary block"
+                    style={getTextStyles('hero', 'subtitle')}
+                  >
                     {getContent('hero', 'subtitle', 'Tu belleza natural, potenciada')}
                   </span>
                 </h1>
@@ -116,10 +122,16 @@ export default function Home() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 
+              className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4"
+              style={getTextStyles('categories', 'title')}
+            >
               {getContent('categories', 'title', 'Nuestras Categorías')}
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p 
+              className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
+              style={getTextStyles('categories', 'subtitle')}
+            >
               {getContent('categories', 'description', 'Explora nuestra amplia gama de productos organizados por categorías')}
             </p>
           </div>

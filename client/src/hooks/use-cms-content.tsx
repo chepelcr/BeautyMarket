@@ -55,6 +55,16 @@ export function useCmsContent() {
     };
   };
 
+  const getTextStyles = (section: string, type: 'title' | 'subtitle' = 'title') => {
+    const colorKey = `${type}_color`;
+    const textColor = getContent(section, colorKey);
+    if (!textColor) return {};
+    
+    return {
+      color: textColor,
+    };
+  };
+
   return {
     content,
     isLoading,
@@ -62,6 +72,7 @@ export function useCmsContent() {
     getContent,
     getSectionStyles,
     getButtonStyles,
+    getTextStyles,
     rawContent
   };
 }
