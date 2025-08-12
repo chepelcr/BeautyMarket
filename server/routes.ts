@@ -5,6 +5,7 @@ import { insertProductSchema, insertOrderSchema, insertCategorySchema, insertHom
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { setupAuth, isAuthenticated } from "./auth";
+import { handlePresignedUpload } from "./s3-upload";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -56,6 +57,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ error: "Object not found" });
     }
   });
+
+  // AWS S3 Upload endpoint (protected - admin only)
+  app.post("/api/upload/presigned", isAuthenticated, handlePresignedUpload);
 
   // Upload URL endpoint (protected - admin only)
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
@@ -310,8 +314,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Categories endpoint
-  app.get("/api/categories", (req, res) => {
-    res.json(categories);
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const allCategories = await storage.getCategories();
+      res.json(allCategories);
+    } catch (error) {
+      console.error("Error getting categories:", error);
+      res.status(500).json({ error: "Failed to get categories" });
+    }
   });
 
   // Costa Rica locations API

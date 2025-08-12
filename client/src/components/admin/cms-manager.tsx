@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageUpload } from "@/components/image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Save, RotateCcw, Eye, X } from "lucide-react";
@@ -341,6 +342,15 @@ export function CmsManager() {
             onChange={(e) => handleInputChange(section, item.key, e.target.value)}
           />
         );
+      case "image":
+        return (
+          <ImageUpload
+            value={value}
+            onChange={(url) => handleInputChange(section, item.key, url)}
+            label=""
+            folder={`${section}-images`}
+          />
+        );
       default:
         return (
           <Input
@@ -509,21 +519,11 @@ export function CmsManager() {
           </DialogHeader>
           <div className="flex-1 min-h-0">
             <iframe
-              key={showPreview ? JSON.stringify(contentData) : 'closed'}
+              key={`preview-${Date.now()}`}
               src="/"
               className="w-full h-[70vh] border-0"
               title="Vista Previa"
-              onLoad={() => {
-                // Force refresh on data changes
-                const iframe = document.querySelector('iframe[title="Vista Previa"]') as HTMLIFrameElement;
-                if (iframe && iframe.contentWindow) {
-                  try {
-                    iframe.contentWindow.location.reload();
-                  } catch (e) {
-                    // Cross-origin error is expected, ignore
-                  }
-                }
-              }}
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
             />
           </div>
         </DialogContent>
