@@ -210,35 +210,32 @@ export default function Admin() {
 
             {activeTab === 'products' && (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión de Productos</h2>
-                    <p className="text-gray-600 dark:text-gray-300">Administra tu catálogo de productos de belleza</p>
-                  </div>
-                  <Button 
-                    onClick={() => setShowProductForm(true)}
-                    className="bg-pink-primary hover:bg-pink-600 text-white shrink-0"
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Agregar Producto
-                  </Button>
+                <div>
+                  <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión de Productos</h2>
+                  <p className="text-gray-600 dark:text-gray-300">Administra tu catálogo de productos de belleza</p>
                 </div>
             
-                {products && products.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <i className="fas fa-box-open text-gray-400 text-2xl"></i>
-                    </div>
-                    <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      No hay productos
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      Comienza agregando tu primer producto al catálogo.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {products?.map((product) => (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {/* Add Product Card */}
+                  <Card 
+                    className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 border-2 border-dashed border-pink-200 dark:border-pink-700 hover:border-pink-300 dark:hover:border-pink-600 transition-colors cursor-pointer group"
+                    onClick={() => setShowProductForm(true)}
+                  >
+                    <CardContent className="flex flex-col items-center justify-center p-6 text-center h-full min-h-[300px]">
+                      <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center mb-4 group-hover:bg-pink-200 dark:group-hover:bg-pink-800/40 transition-colors">
+                        <i className="fas fa-plus text-pink-600 dark:text-pink-400 text-2xl"></i>
+                      </div>
+                      <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        Agregar Producto
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        Haz clic para crear un nuevo producto en tu catálogo
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Existing Products */}
+                  {products?.map((product) => (
                       <Card key={product.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
                         <CardHeader className="pb-3">
                           <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 mb-3">
@@ -300,8 +297,7 @@ export default function Admin() {
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-                )}
+                </div>
               </div>
             )}
 
