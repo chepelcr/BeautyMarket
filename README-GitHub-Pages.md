@@ -9,6 +9,7 @@ This is a beauty products marketplace built with React, TypeScript, and Vite. Th
 2. Go to your repository settings → Pages
 3. Select "GitHub Actions" as the source
 4. Push any changes to the `main` branch - the site will automatically build and deploy
+5. Uses latest GitHub Actions v4 for improved performance and security
 
 ### Option 2: Manual Deploy
 1. Build the static site:
