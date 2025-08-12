@@ -360,7 +360,7 @@ export function CmsManager() {
   }
 
   // Define proper section order matching the home page
-  const sectionOrder = ['hero', 'categories', 'about', 'contact'];
+  const sectionOrder = ['hero', 'categories', 'about', 'contact', 'site'];
   const sections = sectionOrder.filter(section => contentData[section]);
 
   return (
@@ -422,7 +422,7 @@ export function CmsManager() {
       )}
 
       <Tabs defaultValue={sections[0]} className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
+        <TabsList className="grid grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
           {sections.map((section) => (
             <TabsTrigger 
               key={section} 
