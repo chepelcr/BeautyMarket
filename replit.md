@@ -2,6 +2,8 @@
 
 This is a full-stack e-commerce application for "Strawberry Essentials," a beauty products catalog and ordering system. The application is built as a single-page application (SPA) with a React frontend and Express.js backend, designed to showcase beauty products across categories like makeup, skincare, and accessories. The system integrates with WhatsApp for order processing and includes comprehensive admin functionality for product management.
 
+**GitHub Pages Compatibility**: The application now supports both dynamic (with backend) and static deployment modes. When deployed to GitHub Pages, it automatically switches to static mode using localStorage and client-side data management while maintaining full functionality.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -61,3 +63,8 @@ The application currently implements a basic admin interface without complex aut
 - **Type Safety**: Full TypeScript support across frontend, backend, and shared schemas
 - **Database Migrations**: Drizzle Kit for database schema management
 - **Environment**: Replit-optimized with specific plugins and configurations
+- **Static Deployment**: GitHub Pages compatible with automatic environment detection
+- **Deployment Options**: 
+  - Dynamic: Replit with full backend functionality
+  - Static: GitHub Pages with client-side data management
+  - GitHub Actions workflow for automatic deployment
