@@ -18,6 +18,7 @@ const profileUpdateSchema = z.object({
   firstName: z.string().min(1, "Nombre es requerido"),
   lastName: z.string().min(1, "Apellido es requerido"),
   email: z.string().email("Email inválido"),
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres").regex(/^[a-zA-Z0-9_]+$/, "Solo letras, números y guiones bajos"),
 });
 
 const changePasswordSchema = z.object({
@@ -60,6 +61,7 @@ export default function Profile() {
       firstName: "",
       lastName: "",
       email: "",
+      username: "",
     },
   });
 
@@ -88,6 +90,7 @@ export default function Profile() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
+        username: user.username || "",
       });
       forgotPasswordForm.setValue("email", user.email || "");
     }
@@ -277,6 +280,20 @@ export default function Profile() {
 
                         <FormField
                           control={profileForm.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nombre de Usuario</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="tu_usuario" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={profileForm.control}
                           name="email"
                           render={({ field }) => (
                             <FormItem>
@@ -306,6 +323,7 @@ export default function Profile() {
                                 firstName: user?.firstName || "",
                                 lastName: user?.lastName || "",
                                 email: user?.email || "",
+                                username: user?.username || "",
                               });
                             }}
                           >

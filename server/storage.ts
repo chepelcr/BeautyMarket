@@ -60,7 +60,7 @@ export interface IStorage {
   cleanupExpiredEmailVerificationTokens(): Promise<void>;
   
   // User Profile Management
-  updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string }): Promise<User>;
+  updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string; username?: string }): Promise<User>;
   changeUserPassword(id: string, hashedPassword: string): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
 }
@@ -632,9 +632,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User Profile Management methods
-  async updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string }): Promise<User> {
+  async updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string; username?: string }): Promise<User> {
+    const updateData: any = { updatedAt: new Date() };
+    
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.username !== undefined) updateData.username = data.username;
+    
     const [user] = await db.update(users)
-      .set({ ...data, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(users.id, id))
       .returning();
     return user;

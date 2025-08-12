@@ -28,7 +28,7 @@ export function setupUserManagement(app: Express) {
   // Update user profile
   app.patch("/api/user/profile", authenticateServerless, async (req, res) => {
     try {
-      const { firstName, lastName, email } = req.body;
+      const { firstName, lastName, email, username } = req.body;
       const userId = req.user?.id;
 
       if (!userId) {
@@ -43,10 +43,19 @@ export function setupUserManagement(app: Express) {
         }
       }
 
+      // Check if username is already taken by another user
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Username already in use" });
+        }
+      }
+
       const updatedUser = await storage.updateUserProfile(userId, {
         firstName,
         lastName,
         email,
+        username,
       });
 
       res.json({
