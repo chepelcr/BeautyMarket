@@ -4,8 +4,24 @@ import { storage } from "./storage";
 import { insertProductSchema, insertOrderSchema, categories } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Auth middleware setup
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   
   // Public file serving endpoint
   app.get("/public-objects/:filePath(*)", async (req, res) => {
@@ -35,8 +51,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload URL endpoint
-  app.post("/api/objects/upload", async (req, res) => {
+  // Upload URL endpoint (protected - admin only)
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
@@ -79,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", async (req, res) => {
+  app.post("/api/products", isAuthenticated, async (req, res) => {
     try {
       const productData = insertProductSchema.parse(req.body);
       
@@ -105,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/products/:id", async (req, res) => {
+  app.put("/api/products/:id", isAuthenticated, async (req, res) => {
     try {
       const updates = insertProductSchema.partial().parse(req.body);
       
@@ -134,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/products/:id", async (req, res) => {
+  app.delete("/api/products/:id", isAuthenticated, async (req, res) => {
     try {
       const deleted = await storage.deleteProduct(req.params.id);
       if (!deleted) {
@@ -147,8 +163,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Orders API
-  app.get("/api/orders", async (req, res) => {
+  // Orders API (protected - admin only)
+  app.get("/api/orders", isAuthenticated, async (req, res) => {
     try {
       const orders = await storage.getOrders();
       res.json(orders);

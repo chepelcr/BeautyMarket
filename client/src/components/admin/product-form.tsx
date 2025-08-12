@@ -12,6 +12,8 @@ import { insertProductSchema, categories, type Product, type InsertProduct } fro
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { UploadResult } from "@uppy/core";
+import { isUnauthorizedError } from "@/lib/authUtils";
+import { useLocation } from "wouter";
 
 interface ProductFormProps {
   product?: Product | null;
@@ -20,6 +22,7 @@ interface ProductFormProps {
 
 export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   const form = useForm<InsertProduct>({
@@ -45,6 +48,17 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       onSuccess();
     },
     onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate("/login");
+        }, 500);
+        return;
+      }
       toast({
         title: "Error",
         description: error.message || "Error al crear el producto",
@@ -64,6 +78,17 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       onSuccess();
     },
     onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate("/login");
+        }, 500);
+        return;
+      }
       toast({
         title: "Error",
         description: error.message || "Error al actualizar el producto",

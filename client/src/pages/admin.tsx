@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,14 +9,48 @@ import type { Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [, navigate] = useLocation();
 
-  const { data: products, isLoading } = useQuery<Product[]>({
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized", 
+        description: "You need to log in to access the admin panel.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        navigate("/login");
+      }, 500);
+    }
+  }, [isAuthenticated, isLoading, toast, navigate]);
+
+  const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+    enabled: isAuthenticated, // Only fetch when authenticated
+    retry: (failureCount, error) => {
+      if (isUnauthorizedError(error as Error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate("/login");
+        }, 500);
+        return false;
+      }
+      return failureCount < 3;
+    }
   });
 
   const handleDeleteProduct = async (productId: string) => {
@@ -32,6 +66,17 @@ export default function Admin() {
         description: "El producto ha sido eliminado exitosamente",
       });
     } catch (error) {
+      if (isUnauthorizedError(error as Error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate("/login");
+        }, 500);
+        return;
+      }
       toast({
         title: "Error",
         description: "Error al eliminar el producto",
@@ -68,14 +113,39 @@ export default function Admin() {
     return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
+  // Show loading while checking authentication
   if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-primary"></div>
+      </div>
+    );
+  }
+
+  // Show nothing if not authenticated (redirect is in useEffect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (productsLoading) {
     return (
       <div className="py-20 bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-pink-primary to-coral p-8">
-              <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
-              <p className="text-pink-100">Gestiona tus productos y categorías</p>
+            <div className="bg-gradient-to-r from-pink-primary to-coral p-8 flex justify-between items-center">
+              <div>
+                <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
+                <p className="text-pink-100">Gestiona tus productos y categorías</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={() => window.location.href = "/api/logout"}
+                  variant="outline"
+                  className="border-white text-white hover:bg-white hover:text-pink-primary"
+                >
+                  Cerrar Sesión
+                </Button>
+              </div>
             </div>
             
             <div className="p-8">
@@ -104,9 +174,20 @@ export default function Admin() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
           {/* Admin Header */}
-          <div className="bg-gradient-to-r from-pink-primary to-coral p-8">
-            <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
-            <p className="text-pink-100">Gestiona tus productos y categorías</p>
+          <div className="bg-gradient-to-r from-pink-primary to-coral p-8 flex justify-between items-center">
+            <div>
+              <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
+              <p className="text-pink-100">Gestiona tus productos y categorías</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={() => window.location.href = "/api/logout"}
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-pink-primary"
+              >
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
           
           {/* Admin Content */}

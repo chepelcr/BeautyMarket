@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Products from "@/pages/products";
 import Admin from "@/pages/admin";
+import Login from "@/pages/login";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import CartSidebar from "@/components/cart/cart-sidebar";
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/products" component={Products} />
       <Route path="/admin" component={Admin} />
+      <Route path="/login" component={Login} />
       <Route>404 - Page not found</Route>
     </Switch>
   );
