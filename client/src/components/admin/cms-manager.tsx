@@ -385,52 +385,52 @@ export function CmsManager() {
             Edita todos los textos, colores y contenido de la página principal
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:flex-wrap lg:flex-nowrap">
           <Button
             onClick={() => setShowPreview(true)}
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto min-w-0 flex-shrink-0"
           >
-            <Eye className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Vista Previa</span>
-            <span className="sm:hidden">Previa</span>
+            <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden md:inline">Vista Previa</span>
+            <span className="md:hidden">Previa</span>
           </Button>
           <Button
             onClick={handleReset}
             variant="outline"
             size="sm"
             disabled={!hasChanges}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto min-w-0 flex-shrink-0"
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Descartar</span>
-            <span className="sm:hidden">Reset</span>
+            <RotateCcw className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden md:inline">Descartar</span>
+            <span className="md:hidden">Reset</span>
           </Button>
           <Button
             onClick={handleSave}
             disabled={!hasChanges || updateMutation.isPending}
             size="sm"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto min-w-0 flex-shrink-0"
           >
             {updateMutation.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
             ) : (
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="w-4 h-4 mr-1 sm:mr-2" />
             )}
-            <span className="hidden sm:inline">Guardar Cambios</span>
-            <span className="sm:hidden">Guardar</span>
+            <span className="hidden md:inline">Guardar Cambios</span>
+            <span className="md:hidden">Guardar</span>
           </Button>
-          <DeployButton disabled={hasChanges} />
-          <Link href="/admin/deployments">
+          <DeployButton disabled={hasChanges} className="w-full sm:w-auto min-w-0 flex-shrink-0" />
+          <Link href="/admin/deployments" className="w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
-              className="w-full sm:w-auto"
+              className="w-full min-w-0 flex-shrink-0"
             >
-              <History className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Historial</span>
-              <span className="sm:hidden">Log</span>
+              <History className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden md:inline">Historial</span>
+              <span className="md:hidden">Log</span>
             </Button>
           </Link>
         </div>

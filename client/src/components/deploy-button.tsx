@@ -24,9 +24,10 @@ interface DeployButtonProps {
   disabled?: boolean;
   onDeployStart?: () => void;
   onDeployComplete?: (success: boolean) => void;
+  className?: string;
 }
 
-export function DeployButton({ disabled, onDeployStart, onDeployComplete }: DeployButtonProps) {
+export function DeployButton({ disabled, onDeployStart, onDeployComplete, className }: DeployButtonProps) {
   const [showStatus, setShowStatus] = useState(false);
   const { toast } = useToast();
 
@@ -141,18 +142,18 @@ export function DeployButton({ disabled, onDeployStart, onDeployComplete }: Depl
         onClick={handleDeploy}
         disabled={disabled || deployMutation.isPending || isDeploying}
         size="sm"
-        className="w-full sm:w-auto"
+        className={className || "w-full sm:w-auto"}
         variant={deploymentStatus?.status === 'success' ? 'default' : 'outline'}
       >
         {deployMutation.isPending || isDeploying ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
         ) : (
-          <Globe className="w-4 h-4 mr-2" />
+          <Globe className="w-4 h-4 mr-1 sm:mr-2" />
         )}
-        <span className="hidden sm:inline">
+        <span className="hidden md:inline">
           {isDeploying ? 'Desplegando...' : 'Publicar Online'}
         </span>
-        <span className="sm:hidden">Publicar</span>
+        <span className="md:hidden">Publicar</span>
       </Button>
 
       {deploymentStatus && deploymentStatus.status !== 'idle' && (
