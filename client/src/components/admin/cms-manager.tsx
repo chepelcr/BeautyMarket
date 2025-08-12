@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ImageUpload } from "@/components/image-upload";
+import { DeployButton } from "@/components/deploy-button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Save, RotateCcw, Eye, X } from "lucide-react";
@@ -419,6 +420,7 @@ export function CmsManager() {
             <span className="hidden sm:inline">Guardar Cambios</span>
             <span className="sm:hidden">Guardar</span>
           </Button>
+          <DeployButton disabled={hasChanges} />
         </div>
       </div>
 

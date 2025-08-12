@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { setupAuth, isAuthenticated } from "./auth";
 import { handlePresignedUpload } from "./s3-upload";
+import { triggerAutoDeployment, getDeploymentStatus } from "./deployment";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -60,6 +61,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // AWS S3 Upload endpoint (protected - admin only)
   app.post("/api/upload/presigned", isAuthenticated, handlePresignedUpload);
+
+  // Auto-deployment endpoints (protected - admin only)
+  app.post("/api/deploy", isAuthenticated, async (req, res) => {
+    try {
+      const result = await triggerAutoDeployment();
+      res.json(result);
+    } catch (error) {
+      console.error("Auto-deployment error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to start deployment" 
+      });
+    }
+  });
+
+  app.get("/api/deploy/status", isAuthenticated, async (req, res) => {
+    try {
+      const status = await getDeploymentStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Deployment status error:", error);
+      res.status(500).json({ error: "Failed to get deployment status" });
+    }
+  });
 
   // Upload URL endpoint (protected - admin only)
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {

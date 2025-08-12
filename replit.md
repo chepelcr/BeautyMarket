@@ -11,11 +11,14 @@ Preferred communication style: Simple, everyday language.
 # Recent Changes (August 12, 2025)
 
 - **✅ AWS S3 Integration**: Implemented complete S3 integration for image uploads
-- **✅ CMS Image Upload**: Replaced URL input fields with S3-powered image upload components
+- **✅ CMS Image Upload**: Replaced URL input fields with S3-powered image upload components  
 - **✅ Background Settings Fix**: Converted "color" type fields to "background" type fields for advanced styling
 - **✅ Preview Modal Fix**: Resolved redirect errors in CMS preview modal
 - **✅ Deployment Target**: Changed from GitHub Pages to AWS S3 bucket hosting
 - **✅ Upload Endpoints**: Added S3 presigned URL generation and file management
+- **✅ Auto-Deploy Feature**: Added one-click deployment button in CMS for non-technical users
+- **✅ Deployment Status**: Real-time deployment tracking with progress indicators
+- **✅ Static Build Pipeline**: Automated build and deploy process to S3 without developer intervention
 
 # System Architecture
 
@@ -64,6 +67,14 @@ The application currently implements a basic admin interface without complex aut
 - **Location System**: Integrated Costa Rican location data (provinces, cantons, districts)
 - **WhatsApp Integration**: Generates formatted WhatsApp messages for order processing
 - **Order Storage**: Orders are stored in the database with full customer and item details
+
+## Auto-Deployment System
+
+- **One-Click Deploy**: CMS includes automated deployment button for non-technical users
+- **Real-time Status**: Live deployment progress tracking with build and upload phases
+- **S3 Integration**: Automatic build and upload to AWS S3 static hosting
+- **No Developer Required**: Complete autonomous deployment workflow from content changes to live site
+- **Build Pipeline**: Automated static site generation optimized for production
 
 ## Development and Deployment
 
