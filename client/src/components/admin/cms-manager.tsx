@@ -138,55 +138,82 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
     }
   };
 
+  // Get the mode from the background style of the section (single source of truth)
+  const getSectionMode = (section: string): string => {
+    const backgroundStyle = contentData[section]?.backgroundStyle?.value || "";
+    try {
+      const bgData = JSON.parse(backgroundStyle);
+      return bgData.mode || 'both';
+    } catch {
+      return 'both'; // Default to 'both' for consistency
+    }
+  };
+
+  // Update all color fields in a section when mode changes
+  const updateSectionMode = (section: string, newMode: string) => {
+    const sectionData = contentData[section];
+    if (!sectionData) return;
+
+    const updates: { [key: string]: string } = {};
+
+    // Update background style mode
+    if (sectionData.backgroundStyle) {
+      try {
+        const bgData = JSON.parse(sectionData.backgroundStyle.value || '{}');
+        bgData.mode = newMode;
+        updates.backgroundStyle = JSON.stringify(bgData);
+      } catch {
+        updates.backgroundStyle = JSON.stringify({ type: 'color', mode: newMode, value: '#ffffff' });
+      }
+    }
+
+    // Update all color fields mode
+    Object.entries(sectionData).forEach(([key, item]) => {
+      if (item.type === 'color') {
+        try {
+          const colorData = JSON.parse(item.value || '{}');
+          colorData.mode = newMode;
+          if (newMode === 'single') {
+            colorData.value = colorData.lightValue || colorData.value || '#000000';
+          } else if (newMode === 'both') {
+            colorData.lightValue = colorData.lightValue || colorData.value || '#000000';
+            colorData.darkValue = colorData.darkValue || '#ffffff';
+          }
+          updates[key] = JSON.stringify(colorData);
+        } catch {
+          // Convert simple color to new format
+          const currentColor = item.value || '#000000';
+          if (newMode === 'single') {
+            updates[key] = JSON.stringify({ mode: 'single', value: currentColor });
+          } else {
+            updates[key] = JSON.stringify({ 
+              mode: 'both', 
+              lightValue: currentColor, 
+              darkValue: currentColor === '#000000' ? '#ffffff' : '#000000' 
+            });
+          }
+        }
+      }
+    });
+
+    // Apply all updates
+    Object.entries(updates).forEach(([key, value]) => {
+      handleInputChange(section, key, value);
+    });
+  };
+
   const renderInput = (item: HomePageContent, section: string) => {
     const value = contentData[section]?.[item.key]?.value || "";
     
     switch (item.type) {
       case "color":
+        const sectionMode = getSectionMode(section);
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Modo</Label>
-              <select 
-                className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                value={(() => {
-                  try {
-                    return JSON.parse(value || '{"mode":"single"}').mode || 'single';
-                  } catch {
-                    return 'single';
-                  }
-                })()}
-                onChange={(e) => {
-                  try {
-                    const colorData = JSON.parse(value || '{}');
-                    colorData.mode = e.target.value;
-                    if (e.target.value === 'single') {
-                      colorData.value = colorData.value || value || '#000000';
-                    } else {
-                      colorData.lightValue = colorData.lightValue || value || '#000000';
-                      colorData.darkValue = colorData.darkValue || '#ffffff';
-                    }
-                    handleInputChange(section, item.key, JSON.stringify(colorData));
-                  } catch {
-                    // If it's not JSON, convert to JSON format
-                    const colorData = {
-                      mode: e.target.value,
-                      value: value || '#000000',
-                      lightValue: value || '#000000',
-                      darkValue: '#ffffff'
-                    };
-                    handleInputChange(section, item.key, JSON.stringify(colorData));
-                  }
-                }}
-              >
-                <option value="single">Color Único</option>
-                <option value="both">Ambos Modos</option>
-              </select>
-            </div>
+          <div className="space-y-3">
             {(() => {
               try {
                 const colorData = JSON.parse(value || '{"mode":"single","value":"#000000"}');
-                if (colorData.mode === 'both') {
+                if (sectionMode === 'both') {
                   // Show two color pickers for light and dark modes
                   return (
                     <div className="space-y-3">
@@ -197,6 +224,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                             type="color"
                             value={colorData.lightValue || colorData.value || '#000000'}
                             onChange={(e) => {
+                              colorData.mode = 'both';
                               colorData.lightValue = e.target.value;
                               handleInputChange(section, item.key, JSON.stringify(colorData));
                             }}
@@ -206,6 +234,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                             type="text"
                             value={colorData.lightValue || colorData.value || '#000000'}
                             onChange={(e) => {
+                              colorData.mode = 'both';
                               colorData.lightValue = e.target.value;
                               handleInputChange(section, item.key, JSON.stringify(colorData));
                             }}
@@ -221,6 +250,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                             type="color"
                             value={colorData.darkValue || '#ffffff'}
                             onChange={(e) => {
+                              colorData.mode = 'both';
                               colorData.darkValue = e.target.value;
                               handleInputChange(section, item.key, JSON.stringify(colorData));
                             }}
@@ -230,6 +260,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                             type="text"
                             value={colorData.darkValue || '#ffffff'}
                             onChange={(e) => {
+                              colorData.mode = 'both';
                               colorData.darkValue = e.target.value;
                               handleInputChange(section, item.key, JSON.stringify(colorData));
                             }}
@@ -248,6 +279,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                         type="color"
                         value={colorData.value || value || '#000000'}
                         onChange={(e) => {
+                          colorData.mode = 'single';
                           colorData.value = e.target.value;
                           handleInputChange(section, item.key, JSON.stringify(colorData));
                         }}
@@ -257,6 +289,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                         type="text"
                         value={colorData.value || value || '#000000'}
                         onChange={(e) => {
+                          colorData.mode = 'single';
                           colorData.value = e.target.value;
                           handleInputChange(section, item.key, JSON.stringify(colorData));
                         }}
@@ -317,19 +350,16 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Modo</Label>
+                <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Modo de Colores</Label>
                 <select 
                   className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                  value={JSON.parse(value || '{"mode":"both"}').mode || 'both'}
+                  value={getSectionMode(section)}
                   onChange={(e) => {
-                    const bgData = JSON.parse(value || '{"type":"color"}');
-                    bgData.mode = e.target.value;
-                    handleInputChange(section, item.key, JSON.stringify(bgData));
+                    updateSectionMode(section, e.target.value);
                   }}
                 >
-                  <option value="both">Ambos Modos</option>
-                  <option value="light">Solo Claro</option>
-                  <option value="dark">Solo Oscuro</option>
+                  <option value="both">Ambos Modos (Claro y Oscuro)</option>
+                  <option value="single">Color Único</option>
                 </select>
               </div>
             </div>

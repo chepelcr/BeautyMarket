@@ -75,11 +75,8 @@ export function useCmsContent() {
         }
         
         // Handle single-mode colors
-        if (colorData.mode === 'light' && !isDark) {
+        if (colorData.mode === 'single') {
           return { color: colorData.value || '#000000' };
-        }
-        if (colorData.mode === 'dark' && isDark) {
-          return { color: colorData.value || '#ffffff' };
         }
         
         // Default single color
