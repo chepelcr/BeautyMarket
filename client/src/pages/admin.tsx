@@ -23,16 +23,9 @@ export default function Admin() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized", 
-        description: "You need to log in to access the admin panel.",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        navigate("/login");
-      }, 500);
+      navigate("/login");
     }
-  }, [isAuthenticated, isLoading, toast, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
