@@ -246,13 +246,18 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+  async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
   }
 }
 
@@ -295,6 +300,24 @@ export class DatabaseStorage implements IStorage {
       ];
       
       await this.bulkUpsertHomePageContent(heroContentData);
+    }
+
+    // Initialize sidebar content
+    const existingSidebar = await this.getHomePageContentBySection('sidebar');
+    if (existingSidebar.length === 0) {
+      const sidebarContentData: InsertHomePageContent[] = [
+        { section: 'sidebar', key: 'background_color', value: '#ffffff', type: 'color', displayName: 'Color de Fondo del Sidebar', sortOrder: 1 },
+        { section: 'sidebar', key: 'background_color_dark', value: '#1f2937', type: 'color', displayName: 'Color de Fondo del Sidebar (Modo Oscuro)', sortOrder: 2 },
+        { section: 'sidebar', key: 'text_color', value: '#374151', type: 'color', displayName: 'Color de Texto del Sidebar', sortOrder: 3 },
+        { section: 'sidebar', key: 'text_color_dark', value: '#f3f4f6', type: 'color', displayName: 'Color de Texto del Sidebar (Modo Oscuro)', sortOrder: 4 },
+        { section: 'sidebar', key: 'border_color', value: '#e5e7eb', type: 'color', displayName: 'Color de Bordes del Sidebar', sortOrder: 5 },
+        { section: 'sidebar', key: 'border_color_dark', value: '#4b5563', type: 'color', displayName: 'Color de Bordes del Sidebar (Modo Oscuro)', sortOrder: 6 },
+        { section: 'sidebar', key: 'hover_color', value: '#f3f4f6', type: 'color', displayName: 'Color de Hover del Sidebar', sortOrder: 7 },
+        { section: 'sidebar', key: 'hover_color_dark', value: '#374151', type: 'color', displayName: 'Color de Hover del Sidebar (Modo Oscuro)', sortOrder: 8 }
+      ];
+      
+      await this.bulkUpsertHomePageContent(sidebarContentData);
+      console.log('✅ Sidebar customization options initialized');
     }
   }
 

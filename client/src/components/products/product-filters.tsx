@@ -41,8 +41,8 @@ export default function ProductFilters({ selectedCategory, onCategoryChange }: P
           variant={selectedCategory === filter.value ? "default" : "outline"}
           className={`px-6 py-2 rounded-full font-medium transition-colors ${
             selectedCategory === filter.value
-              ? "bg-pink-primary text-white hover:bg-pink-600"
-              : "bg-white text-gray-700 hover:bg-pink-primary hover:text-white border-gray-200"
+              ? "bg-pink-primary text-white hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700"
+              : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-pink-primary hover:text-white dark:hover:bg-pink-600 dark:hover:text-white border-gray-200 dark:border-gray-600"
           }`}
         >
           {filter.label}

@@ -15,15 +15,15 @@ export default function CartSidebar() {
 
   return (
     <div
-      className={`fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 overflow-hidden ${
+      className={`fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 overflow-hidden ${
         isOpen ? "translate-x-0" : "translate-x-full"
       }`}
     >
       <div className="h-full flex flex-col">
         {/* Cart Header */}
-        <div className="p-6 border-b bg-pink-light">
+        <div className="p-6 border-b bg-pink-light dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-serif font-semibold text-gray-900">Tu Carrito</h3>
+            <h3 className="text-lg font-serif font-semibold text-gray-900 dark:text-white">Tu Carrito</h3>
             <Button variant="ghost" size="sm" onClick={toggleCart}>
               <i className="fas fa-times"></i>
             </Button>
@@ -34,13 +34,13 @@ export default function CartSidebar() {
         <div className="flex-1 overflow-y-auto p-6">
           {items.length === 0 ? (
             <div className="text-center py-12">
-              <i className="fas fa-shopping-bag text-gray-300 text-4xl mb-4"></i>
-              <p className="text-gray-500">Tu carrito está vacío</p>
+              <i className="fas fa-shopping-bag text-gray-300 dark:text-gray-600 text-4xl mb-4"></i>
+              <p className="text-gray-500 dark:text-gray-400">Tu carrito está vacío</p>
             </div>
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -57,7 +57,7 @@ export default function CartSidebar() {
                     <span className="text-2xl">🍓</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{item.name}</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white">{item.name}</h4>
                     <p className="text-pink-primary font-semibold">₡{item.price.toLocaleString()}</p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -95,11 +95,11 @@ export default function CartSidebar() {
 
         {/* Cart Footer */}
         {items.length > 0 && (
-          <div className="p-6 border-t bg-gray-50">
+          <div className="p-6 border-t bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
             <div className="mb-4">
               <div className="flex justify-between items-center text-lg font-semibold">
-                <span>Total:</span>
-                <span>₡{total.toLocaleString()}</span>
+                <span className="text-gray-900 dark:text-white">Total:</span>
+                <span className="text-gray-900 dark:text-white">₡{total.toLocaleString()}</span>
               </div>
             </div>
             <Button
