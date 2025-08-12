@@ -9,7 +9,7 @@ import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
 import { useQuery } from "@tanstack/react-query";
 import { HomePageContent } from "@shared/schema";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, Shield } from "lucide-react";
 import strawberryLogo from "@assets/image_1755019713048.png";
 
 export default function Navbar() {
@@ -30,15 +30,10 @@ export default function Navbar() {
   const siteTitle = siteContent.find(item => item.key === 'title')?.value || 'Strawberry Essentials';
   const siteLogo = siteContent.find(item => item.key === 'logo')?.value || strawberryLogo;
 
-  const baseNavItems = [
+  const navItems = [
     { href: "/", label: "Inicio", id: "home" },
     { href: "/products", label: "Productos", id: "productos" },
   ];
-
-  // Add admin link if user is authenticated
-  const navItems = isAuthenticated 
-    ? [...baseNavItems, { href: "/admin", label: "Admin", id: "admin" }]
-    : baseNavItems;
 
   const handleLogout = async () => {
     try {
@@ -107,6 +102,12 @@ export default function Navbar() {
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="flex items-center cursor-pointer">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Administración
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400 cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
@@ -173,6 +174,14 @@ export default function Navbar() {
                   >
                     <Settings className="w-4 h-4 mr-2" />
                     Mi Perfil
+                  </Link>
+                  <Link
+                    href="/admin"
+                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Administración
                   </Link>
                   <Button
                     onClick={() => {
