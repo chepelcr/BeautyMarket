@@ -132,6 +132,8 @@ export function setupAuth(app: Express) {
         id: sessionData.user.id,
         username: sessionData.user.username,
         email: sessionData.user.email,
+        firstName: sessionData.user.firstName,
+        lastName: sessionData.user.lastName,
         role: sessionData.user.role
       });
     } catch (error) {

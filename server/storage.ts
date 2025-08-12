@@ -635,6 +635,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string; username?: string }): Promise<User> {
     const updateData: any = { updatedAt: new Date() };
     
+    // Map camelCase to snake_case for database fields
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
     if (data.lastName !== undefined) updateData.lastName = data.lastName;
     if (data.email !== undefined) updateData.email = data.email;

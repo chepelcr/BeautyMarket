@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
 @tailwind base;
@@ -38,7 +38,7 @@
   --sidebar-accent-foreground: hsl(203.8863, 88.2845%, 53.1373%);
   --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
   --sidebar-ring: hsl(202.8169, 89.1213%, 53.1373%);
-  --font-sans: Inter, sans-serif;
+  --font-sans: Poppins, sans-serif;
   --font-serif: 'Playfair Display', serif;
   --font-mono: Menlo, monospace;
   --radius: 1.3rem;
@@ -84,7 +84,7 @@
   --sidebar-accent-foreground: hsl(203.7736, 87.6033%, 52.5490%);
   --sidebar-border: hsl(205.7143, 15.7895%, 26.0784%);
   --sidebar-ring: hsl(202.8169, 89.1213%, 53.1373%);
-  --font-sans: Inter, sans-serif;
+  --font-sans: Poppins, sans-serif;
   --font-serif: 'Playfair Display', serif;
   --font-mono: Menlo, monospace;
   --radius: 1.3rem;
@@ -120,50 +120,42 @@
     background-color: var(--pink-primary);
   }
   
-  .hover\:bg-pink-primary:hover {
-    background-color: var(--pink-primary);
-  }
-  
-  .bg-pink-600 {
-    background-color: hsl(340, 82%, 42%);
+  .border-pink-primary {
+    border-color: var(--pink-primary);
   }
   
   .hover\:bg-pink-600:hover {
     background-color: hsl(340, 82%, 42%);
   }
   
-  .text-pink-600 {
-    color: hsl(340, 82%, 42%);
+  .hover\:bg-pink-50:hover {
+    background-color: hsl(327, 73%, 97%);
   }
   
-  .border-pink-primary {
-    border-color: var(--pink-primary);
+  .dark .hover\:bg-pink-900\/20:hover {
+    background-color: hsl(340, 82%, 10%, 0.2);
   }
-  
-  .bg-pink-soft {
-    background-color: var(--pink-soft);
-  }
-  
-  .bg-pink-light {
-    background-color: var(--pink-light);
-  }
-  
-  .bg-cream {
-    background-color: var(--cream);
-  }
-  
-  .bg-coral {
-    background-color: var(--coral);
-  }
-  
-  .text-coral {
-    color: var(--coral);
-  }
-  
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.7);
+}
+
+/* Smooth transitions for dark mode */
+* {
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
