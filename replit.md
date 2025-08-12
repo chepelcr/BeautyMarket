@@ -33,6 +33,12 @@ Preferred communication style: Simple, everyday language.
 - **✅ Deployment History**: Complete deployment tracking system with database storage and history page
 - **✅ ES Module Migration**: Converted build scripts from CommonJS to ES modules for deployment compatibility
 - **✅ Responsive Button Layout**: Fixed CMS button layout for proper tablet and mobile display
+- **✅ Profile UX Enhancement**: Redesigned profile page with display-first approach and less aggressive security forms
+- **✅ Admin Button Move**: Moved Admin button from navbar to user dropdown for cleaner navigation
+- **✅ Profile Data Fix**: Fixed firstName/lastName mapping in user endpoint for proper profile updates
+- **✅ Username Editing**: Added username editing functionality with uniqueness validation
+- **✅ Comprehensive Font System**: Migrated from Inter to Nunito for rounded, friendly typography across entire application
+- **✅ Font Token Architecture**: Implemented complete font token system with semantic typography classes and CSS variables
 
 # System Architecture
 
