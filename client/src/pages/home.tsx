@@ -89,13 +89,12 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Category Showcase */}
       <section className="py-20 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl font-bold text-gray-900 mb-4">Nueva Colección</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Explora nuestras categorías de productos cuidadosamente curadas para tu rutina de belleza</p>
+            <p className="text-gray-600 max-w-2xl mx-auto">Explora nuestras categorías de productos cuidadosamente seleccionadas para tu rutina de belleza</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -203,7 +202,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* How to Buy Section */}
       <section id="como-comprar" className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
