@@ -1,7 +1,7 @@
-const AWS = require('aws-sdk');
-const fs = require('fs');
-const path = require('path');
-const mime = require('mime-types');
+import AWS from 'aws-sdk';
+import fs from 'fs';
+import path from 'path';
+import mime from 'mime-types';
 
 // Configure AWS
 const s3 = new AWS.S3({

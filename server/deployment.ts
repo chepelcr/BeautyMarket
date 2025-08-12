@@ -103,7 +103,7 @@ export async function deployToS3(buildId: string = Date.now().toString()): Promi
       buildId
     };
 
-    const distFolder = './dist';
+    const distFolder = './dist/public';
     if (!fs.existsSync(distFolder)) {
       throw new Error('Build folder not found. Build may have failed.');
     }
