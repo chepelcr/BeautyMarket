@@ -70,7 +70,9 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 />
               ) : null}
               <div className={`w-full h-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center ${category.image1Url ? 'hidden' : ''}`}>
-                <span className="text-2xl">🍓</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">🍓</span>
+                </div>
               </div>
             </div>
             <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden">
@@ -87,7 +89,9 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 />
               ) : null}
               <div className={`w-full h-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center ${category.image2Url ? 'hidden' : ''}`}>
-                <span className="text-2xl">🍓</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">🍓</span>
+                </div>
               </div>
             </div>
           </div>
