@@ -7,8 +7,12 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-primary to-coral rounded-full flex items-center justify-center">
-                <i className="fas fa-leaf text-white text-lg"></i>
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <img 
+                  src="@assets/image_1755019713048.png" 
+                  alt="Strawberry Essentials Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="font-serif text-xl font-semibold">Strawberry Essentials</span>
             </div>
