@@ -133,9 +133,9 @@ export default function Admin() {
 
   if (productsLoading) {
     return (
-      <div className="py-20 bg-gray-50 min-h-screen">
+      <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
             <div className="bg-gradient-to-r from-pink-primary to-coral p-8 flex justify-between items-center">
               <div>
                 <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
@@ -174,9 +174,9 @@ export default function Admin() {
   }
 
   return (
-    <div className="py-20 bg-gray-50 min-h-screen">
+    <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
           {/* Admin Header */}
           <div className="bg-gradient-to-r from-pink-primary to-coral p-8 flex justify-between items-center">
             <div>
@@ -206,13 +206,13 @@ export default function Admin() {
           {/* Admin Content */}
           <div className="p-8">
             {/* Tabs */}
-            <div className="flex space-x-1 mb-8 bg-gray-100 rounded-lg p-1">
+            <div className="flex space-x-1 mb-8 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab('products')}
                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'products'
-                    ? 'bg-white text-pink-primary shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 <i className="fas fa-box mr-2"></i>
@@ -222,8 +222,8 @@ export default function Admin() {
                 onClick={() => setActiveTab('categories')}
                 className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'categories'
-                    ? 'bg-white text-pink-primary shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 <i className="fas fa-tags mr-2"></i>
@@ -234,7 +234,7 @@ export default function Admin() {
             {activeTab === 'products' && (
               <>
                 <div className="flex justify-between items-center mb-8">
-                  <h2 className="font-serif text-2xl font-semibold text-gray-900">Gestión de Productos</h2>
+                  <h2 className="font-serif text-2xl font-semibold text-gray-900 dark:text-white">Gestión de Productos</h2>
                   <Button 
                     onClick={() => setShowProductForm(true)}
                     className="bg-pink-primary hover:bg-pink-600 text-white"
@@ -245,20 +245,20 @@ export default function Admin() {
                 </div>
             
             {/* Products Table */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="font-medium text-gray-900">Lista de Productos</h3>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="font-medium text-gray-900 dark:text-white">Lista de Productos</h3>
               </div>
               
               {products && products.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i className="fas fa-box-open text-gray-400 text-2xl"></i>
                   </div>
-                  <h3 className="font-serif text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     No hay productos
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Comienza agregando tu primer producto al catálogo.
                   </p>
                   <Button 
@@ -271,28 +271,28 @@ export default function Admin() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Producto
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Categoría
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Precio
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Estado
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           Acciones
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {products?.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50">
+                        <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-16 w-16">
@@ -309,10 +309,10 @@ export default function Admin() {
                                 )}
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">
                                   {product.name}
                                 </div>
-                                <div className="text-sm text-gray-500 max-w-xs truncate">
+                                <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
                                   {product.description}
                                 </div>
                               </div>
