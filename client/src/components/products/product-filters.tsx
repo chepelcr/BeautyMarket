@@ -1,4 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Category } from "@shared/schema";
 
 interface ProductFiltersProps {
   selectedCategory: string;
@@ -6,11 +9,27 @@ interface ProductFiltersProps {
 }
 
 export default function ProductFilters({ selectedCategory, onCategoryChange }: ProductFiltersProps) {
+  const { data: categories, isLoading } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-wrap justify-center gap-4">
+        <Skeleton className="h-10 w-20 rounded-full" />
+        <Skeleton className="h-10 w-24 rounded-full" />
+        <Skeleton className="h-10 w-20 rounded-full" />
+        <Skeleton className="h-10 w-28 rounded-full" />
+      </div>
+    );
+  }
+
   const filters = [
     { value: "all", label: "Todos" },
-    { value: "maquillaje", label: "Maquillaje" },
-    { value: "skincare", label: "Skincare" },
-    { value: "accesorios", label: "Accesorios" },
+    ...(categories || []).map(category => ({
+      value: category.slug,
+      label: category.name
+    }))
   ];
 
   return (

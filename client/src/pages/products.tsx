@@ -20,12 +20,19 @@ export default function Products() {
   }, [activeCategory, clearActiveCategory]);
 
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products", selectedCategory !== "all" ? selectedCategory : undefined].filter(Boolean),
+    queryKey: ["/api/products"],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCategory !== "all") {
+        params.append("category", selectedCategory);
+      }
+      const response = await fetch(`/api/products?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch products");
+      return response.json();
+    }
   });
 
-  const filteredProducts = selectedCategory === "all" 
-    ? products || []
-    : (products || []).filter(product => product.category === selectedCategory);
+  const filteredProducts = products || [];
 
   if (isLoading) {
     return (
