@@ -4,7 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { generateToken } from "./middleware/auth";
+import { createUserSession } from "./middleware/serverless-auth";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
@@ -109,18 +109,25 @@ export function setupAuth(app: Express) {
       if (!user) {
         return res.status(401).json({ message: info.message || "Invalid credentials" });
       }
-      req.login(user, (err) => {
+      req.login(user, async (err) => {
         if (err) {
           return res.status(500).json({ message: "Internal server error" });
         }
         
-        // Generate JWT token
-        const token = generateToken({
-          id: user.id,
-          username: user.username,
-          email: user.email || '',
-          role: user.role,
-        });
+        // Create database session and JWT token
+        const { token, sessionId } = await createUserSession(
+          {
+            id: user.id,
+            username: user.username,
+            email: user.email || '',
+            role: user.role,
+          },
+          req.get('User-Agent'),
+          req.ip || req.connection.remoteAddress
+        );
+
+        // Update user's last login
+        await storage.updateUser(user.id, { lastLogin: new Date() });
 
         // Set secure HTTP-only cookie
         res.cookie('auth_token', token, {
@@ -135,7 +142,8 @@ export function setupAuth(app: Express) {
           username: user.username, 
           email: user.email, 
           role: user.role,
-          token // Also return token for Bearer auth
+          token, // Also return token for Bearer auth
+          sessionId
         });
       });
     })(req, res, next);

@@ -8,21 +8,27 @@ import { setupAuth, isAuthenticated } from "./auth";
 import { handlePresignedUpload } from "./s3-upload";
 import { triggerAutoDeployment, getDeploymentStatus } from "./deployment";
 import { 
-  authenticate, 
-  requireAdmin, 
-  requireApiKey, 
-  rateLimit, 
-  requestLogger,
+  authenticateServerless, 
+  requireAdminServerless, 
+  requireApiKeyServerless, 
+  rateLimitServerless,
+  initializeDefaultApiKey,
+  cleanupExpiredSessions,
   AuthenticatedRequest
-} from "./middleware/auth";
+} from "./middleware/serverless-auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Security middleware
-  app.use(requestLogger);
-  app.use(rateLimit(1000, 15 * 60 * 1000)); // 1000 requests per 15 minutes
+  // Security middleware for serverless
+  app.use(rateLimitServerless(1000, 15 * 60 * 1000)); // 1000 requests per 15 minutes
   
   // Auth middleware setup
   setupAuth(app);
+
+  // Initialize serverless authentication components
+  await initializeDefaultApiKey();
+  
+  // Clean up expired sessions periodically
+  setInterval(cleanupExpiredSessions, 60 * 60 * 1000); // Every hour
 
   // Initialize default admin user if none exists
   try {
@@ -71,10 +77,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AWS S3 Upload endpoint (protected - admin only)
-  app.post("/api/upload/presigned", authenticate, requireAdmin, handlePresignedUpload);
+  app.post("/api/upload/presigned", authenticateServerless, requireAdminServerless, handlePresignedUpload);
 
   // Auto-deployment endpoints (protected - admin only)
-  app.post("/api/deploy", authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/deploy", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const result = await triggerAutoDeployment();
       res.json(result);
@@ -87,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/deploy/status", authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/deploy/status", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const status = await getDeploymentStatus();
       res.json(status);
@@ -98,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload URL endpoint (protected - admin only)
-  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+  app.post("/api/objects/upload", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
@@ -110,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Products API (protected with API key for public access)
-  app.get("/api/products", requireApiKey, async (req, res) => {
+  app.get("/api/products", requireApiKeyServerless, async (req, res) => {
     try {
       const { category } = req.query;
       let products;
@@ -129,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Categories API (protected with API key for public access)
-  app.get("/api/categories", requireApiKey, async (req, res) => {
+  app.get("/api/categories", requireApiKeyServerless, async (req, res) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories);
@@ -152,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/categories", authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/categories", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const categoryData = insertCategorySchema.parse(req.body);
 
@@ -176,7 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/categories/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/categories/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const updates = insertCategorySchema.partial().parse(req.body);
 
@@ -203,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/categories/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/categories/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const deleted = await storage.deleteCategory(req.params.id);
       if (!deleted) {
@@ -244,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", isAuthenticated, async (req, res) => {
+  app.post("/api/products", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const productData = insertProductSchema.parse(req.body);
       
@@ -267,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/products/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/products/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const updates = insertProductSchema.partial().parse(req.body);
       
@@ -293,7 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/products/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/products/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const deleted = await storage.deleteProduct(req.params.id);
       if (!deleted) {
@@ -472,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/home-content", isAuthenticated, async (req, res) => {
+  app.post("/api/home-content", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const contentSchema = insertHomePageContentSchema;
       const validatedContent = contentSchema.parse(req.body);
@@ -487,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/home-content/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/home-content/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const content = await storage.updateHomePageContent(req.params.id, req.body);
       if (!content) {
@@ -500,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/home-content/bulk", isAuthenticated, async (req, res) => {
+  app.post("/api/home-content/bulk", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const contentList = req.body;
       const results = await storage.bulkUpsertHomePageContent(contentList);
@@ -511,7 +517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/home-content/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/home-content/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const success = await storage.deleteHomePageContent(req.params.id);
       if (!success) {

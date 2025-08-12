@@ -19,6 +19,9 @@ Preferred communication style: Simple, everyday language.
 - **✅ Auto-Deploy Feature**: Added one-click deployment button in CMS for non-technical users
 - **✅ Deployment Status**: Real-time deployment tracking with progress indicators
 - **✅ Static Build Pipeline**: Automated build and deploy process to S3 without developer intervention
+- **✅ Serverless Authentication**: Complete JWT-based authentication system with database-level session management
+- **✅ API Key Protection**: Public endpoints protected with API key authentication for secure access
+- **✅ Security Hardening**: Rate limiting, session invalidation, and comprehensive access control implemented
 
 # System Architecture
 
@@ -51,7 +54,15 @@ The backend is built with **Express.js** and follows RESTful API principles:
 
 ## Authentication and Authorization
 
-The application currently implements a basic admin interface without complex authentication. The object storage system includes a comprehensive ACL framework for future access control needs, supporting different access group types and permission levels.
+**Serverless JWT Authentication System**: Complete stateless authentication designed for serverless deployment:
+
+- **Database-Level Sessions**: All session data stored in PostgreSQL with token hash validation
+- **JWT Tokens**: Stateless authentication tokens with 24-hour expiration and automatic refresh
+- **API Key Protection**: Public endpoints secured with API key authentication (default key: `sk-test123`)
+- **Role-Based Access Control**: Admin-only endpoints for CMS and product management
+- **Security Features**: Rate limiting (1000 req/15min), session invalidation, IP tracking, automatic cleanup
+- **Database Tables**: `user_sessions` for JWT validation, `api_keys` for public access, enhanced `users` table
+- **Deployment Ready**: No server-side session storage, fully horizontal-scalable architecture
 
 ## File Upload and Management
 
