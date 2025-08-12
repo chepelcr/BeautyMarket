@@ -259,37 +259,7 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  // Add missing methods for serverless auth
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
 
-  async createUser(userData: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User> {
-    const [user] = await db.insert(users).values({
-      username: userData.username,
-      password: userData.password,
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role || 'admin',
-    }).returning();
-    return user;
-  }
-
-  async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
-    try {
-      const [user] = await db
-        .update(users)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(users.id, id))
-        .returning();
-      return user;
-    } catch (error) {
-      console.error('Error updating user:', error);
-      return undefined;
-    }
-  }
 }
 
 // Database storage implementation
@@ -483,6 +453,15 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values(userData)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
       .returning();
     return user;
   }
