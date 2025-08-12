@@ -26,7 +26,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("✓ Default admin user created: admin/admin123");
     }
   } catch (error) {
-    console.log("Admin user initialization skipped:", error.message);
+    console.log("Admin user initialization skipped:", (error as Error).message);
   }
   
   // Public file serving endpoint
@@ -84,6 +84,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(products);
     } catch (error) {
       console.error("Error fetching products:", error);
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
+  });
+
+  // Category-specific products route - must come before /:id route
+  app.get("/api/products/:category(maquillaje|skincare|accesorios)", async (req, res) => {
+    try {
+      const category = req.params.category;
+      const products = await storage.getProductsByCategory(category);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products by category:", error);
       res.status(500).json({ error: "Failed to fetch products" });
     }
   });
