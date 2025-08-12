@@ -100,7 +100,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
 
           {/* Button */}
           <div className="pt-2">
-            <Link href={`/products?category=${category.slug}`}>
+            <Link href={`/products/${category.slug}`}>
               <Button 
                 className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"
                 style={{ 

@@ -6,6 +6,7 @@ import type { Category } from "@shared/schema";
 import CategoryCard from "@/components/category-card";
 import { useCmsContent } from "@/hooks/use-cms-content";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
+import { BackgroundSection } from "@/components/ui/background-section";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
@@ -119,12 +120,9 @@ export default function Home() {
         </div>
       </section>
       {/* Category Showcase */}
-      <section 
+      <BackgroundSection 
+        section="categories"
         className="py-20 relative"
-        style={{
-          ...getSectionStyles('categories'),
-          backgroundColor: getSectionStyles('categories').backgroundColor || 'rgb(255, 255, 255)'
-        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -176,7 +174,7 @@ export default function Home() {
             </div>
           )}
         </div>
-      </section>
+      </BackgroundSection>
       {/* How to Buy Section */}
       <section id="como-comprar" className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

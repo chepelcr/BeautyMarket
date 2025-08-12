@@ -20,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/products" component={Products} />
+      <Route path="/products/:category" component={Products} />
       <Route path="/admin/deployments" component={DeploymentHistory} />
       <Route path="/admin/profile" component={Profile} />
       <Route path="/reset-password" component={ResetPassword} />

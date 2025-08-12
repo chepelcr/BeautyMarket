@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { useParams } from "wouter";
 import ProductCard from "@/components/products/product-card";
 import ProductFilters from "@/components/products/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +9,7 @@ import type { Product } from "@shared/schema";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 export default function Products() {
+  const params = useParams();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const activeCategory = useCartStore((state) => state.activeCategory);
   const clearActiveCategory = useCartStore((state) => state.clearActiveCategory);
@@ -15,13 +17,15 @@ export default function Products() {
   // Set dynamic page title
   useDynamicTitle("Productos");
 
-  // Set initial category from store if available
+  // Set initial category from URL parameter or store
   useEffect(() => {
-    if (activeCategory) {
+    if (params.category) {
+      setSelectedCategory(params.category);
+    } else if (activeCategory) {
       setSelectedCategory(activeCategory);
       clearActiveCategory();
     }
-  }, [activeCategory, clearActiveCategory]);
+  }, [params.category, activeCategory, clearActiveCategory]);
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
