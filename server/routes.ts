@@ -4,24 +4,30 @@ import { storage } from "./storage";
 import { insertProductSchema, insertOrderSchema, categories } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auth middleware setup
-  await setupAuth(app);
+  setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+  // Initialize default admin user if none exists
+  try {
+    const adminUser = await storage.getUserByUsername("admin");
+    if (!adminUser) {
+      await storage.createUser({
+        username: "admin",
+        password: await require("./auth").hashPassword("admin123"),
+        email: "admin@strawberryessentials.com",
+        firstName: "Admin",
+        lastName: "User",
+        role: "admin"
+      });
+      console.log("✓ Default admin user created: admin/admin123");
     }
-  });
+  } catch (error) {
+    console.log("Admin user initialization skipped:", error.message);
+  }
   
   // Public file serving endpoint
   app.get("/public-objects/:filePath(*)", async (req, res) => {

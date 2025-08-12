@@ -1,4 +1,4 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, users } from "@shared/schema";
+import { type Product, type InsertProduct, type Order, type InsertOrder, type User, users, products as productsTable, orders as ordersTable } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -18,9 +18,10 @@ export interface IStorage {
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
   
-  // User operations (required for Replit Auth)
+  // User operations (required for local auth)
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
@@ -210,4 +211,86 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(userData: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        role: userData.role || "admin",
+      })
+      .returning();
+    return user;
+  }
+
+  // Product operations
+  async getProducts(): Promise<Product[]> {
+    return await db.select().from(productsTable).orderBy(productsTable.createdAt);
+  }
+
+  async getProductById(id: string): Promise<Product | undefined> {
+    const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
+    return product || undefined;
+  }
+
+  async getProductsByCategory(category: string): Promise<Product[]> {
+    return await db.select().from(productsTable).where(eq(productsTable.category, category));
+  }
+
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const [newProduct] = await db.insert(productsTable).values(product).returning();
+    return newProduct;
+  }
+
+  async updateProduct(id: string, productData: Partial<InsertProduct>): Promise<Product | undefined> {
+    const [updatedProduct] = await db
+      .update(productsTable)
+      .set(productData)
+      .where(eq(productsTable.id, id))
+      .returning();
+    return updatedProduct || undefined;
+  }
+
+  async deleteProduct(id: string): Promise<boolean> {
+    const result = await db.delete(productsTable).where(eq(productsTable.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Order operations
+  async getOrders(): Promise<Order[]> {
+    return await db.select().from(ordersTable).orderBy(ordersTable.createdAt);
+  }
+
+  async getOrderById(id: string): Promise<Order | undefined> {
+    const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+    return order || undefined;
+  }
+
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const [newOrder] = await db.insert(ordersTable).values(order).returning();
+    return newOrder;
+  }
+
+  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
+    const [updatedOrder] = await db
+      .update(ordersTable)
+      .set({ status })
+      .where(eq(ordersTable.id, id))
+      .returning();
+    return updatedOrder || undefined;
+  }
+}
+
+export const storage = new DatabaseStorage();

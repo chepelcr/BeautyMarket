@@ -173,8 +173,17 @@ export default function Admin() {
               <p className="text-pink-100">Gestiona tus productos y categorías</p>
             </div>
             <div className="flex items-center gap-4">
+              <span className="text-pink-100">Hola, {user?.username}</span>
               <Button
-                onClick={() => window.location.href = "/api/logout"}
+                onClick={async () => {
+                  try {
+                    await apiRequest("POST", "/api/logout");
+                    queryClient.setQueryData(["/api/user"], null);
+                    navigate("/login");
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                  }
+                }}
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-pink-primary"
               >
