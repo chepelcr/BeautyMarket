@@ -422,7 +422,7 @@ export function CmsManager() {
       )}
 
       <Tabs defaultValue={sections[0]} className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
           {sections.map((section) => (
             <TabsTrigger 
               key={section} 
@@ -432,7 +432,8 @@ export function CmsManager() {
               {section === 'hero' ? 'Inicio' : 
                section === 'about' ? 'Acerca' :
                section === 'contact' ? 'Contacto' :
-               section === 'categories' ? 'Categorías' : section}
+               section === 'categories' ? 'Categorías' :
+               section === 'site' ? 'Sitio' : section}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -445,7 +446,8 @@ export function CmsManager() {
                   Sección: {section === 'hero' ? 'Inicio' : 
                             section === 'about' ? 'Acerca de Nosotros' :
                             section === 'contact' ? 'Contacto' :
-                            section === 'categories' ? 'Categorías' : section}
+                            section === 'categories' ? 'Categorías' :
+                            section === 'site' ? 'Configuración del Sitio' : section}
                   <Badge variant="secondary">
                     {Object.keys(contentData[section] || {}).length} elementos
                   </Badge>
@@ -507,9 +509,21 @@ export function CmsManager() {
           </DialogHeader>
           <div className="flex-1 min-h-0">
             <iframe
+              key={showPreview ? JSON.stringify(contentData) : 'closed'}
               src="/"
               className="w-full h-[70vh] border-0"
               title="Vista Previa"
+              onLoad={() => {
+                // Force refresh on data changes
+                const iframe = document.querySelector('iframe[title="Vista Previa"]') as HTMLIFrameElement;
+                if (iframe && iframe.contentWindow) {
+                  try {
+                    iframe.contentWindow.location.reload();
+                  } catch (e) {
+                    // Cross-origin error is expected, ignore
+                  }
+                }
+              }}
             />
           </div>
         </DialogContent>

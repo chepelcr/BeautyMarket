@@ -257,7 +257,13 @@ export class DatabaseStorage implements IStorage {
         { section: 'hero', key: 'title', value: 'Strawberry Essentials', type: 'text', displayName: 'Título Principal', sortOrder: 1 },
         { section: 'hero', key: 'subtitle', value: 'Tu belleza natural, potenciada', type: 'text', displayName: 'Subtítulo', sortOrder: 2 },
         { section: 'hero', key: 'description', value: 'Descubre nuestra colección cuidadosamente seleccionada de productos de belleza que realzan tu belleza natural. Calidad premium, resultados excepcionales.', type: 'text', displayName: 'Descripción', sortOrder: 3 },
-        { section: 'hero', key: 'backgroundStyle', value: '{"type":"gradient","mode":"both","gradient":{"from":"#fce7f3","to":"#fed7d7","direction":"to-br"}}', type: 'background', displayName: 'Fondo de la Sección', sortOrder: 4 }
+        { section: 'hero', key: 'backgroundStyle', value: '{"type":"gradient","mode":"both","gradient":{"from":"#fce7f3","to":"#fed7d7","direction":"to-br"}}', type: 'background', displayName: 'Fondo de la Sección', sortOrder: 4 },
+        { section: 'hero', key: 'image1', value: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 1', sortOrder: 5 },
+        { section: 'hero', key: 'image2', value: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 2', sortOrder: 6 },
+        { section: 'hero', key: 'image3', value: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 3', sortOrder: 7 },
+        { section: 'hero', key: 'image4', value: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 4', sortOrder: 8 },
+        { section: 'site', key: 'favicon', value: '/favicon.ico', type: 'image', displayName: 'Favicon', sortOrder: 1 },
+        { section: 'site', key: 'navbarLogo', value: '', type: 'image', displayName: 'Logo del Navbar', sortOrder: 2 }
       ];
       
       await this.bulkUpsertHomePageContent(heroContentData);

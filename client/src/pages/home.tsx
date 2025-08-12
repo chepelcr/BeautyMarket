@@ -71,14 +71,14 @@ export default function Home() {
                 <div className="space-y-4">
                   <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg transform rotate-2 hover:rotate-0 transition-transform">
                     <img 
-                      src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      src={getContent('hero', 'image1', 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300')} 
                       alt="Elegant lip products on marble" 
                       className="rounded-xl w-full h-32 object-cover" 
                     />
                   </div>
                   <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg transform -rotate-1 hover:rotate-0 transition-transform">
                     <img 
-                      src="https://images.unsplash.com/photo-1570554886111-e80fcca6a029?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      src={getContent('hero', 'image2', 'https://images.unsplash.com/photo-1570554886111-e80fcca6a029?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300')} 
                       alt="Skincare serums with droppers" 
                       className="rounded-xl w-full h-32 object-cover" 
                     />
@@ -87,14 +87,14 @@ export default function Home() {
                 <div className="space-y-4 mt-8">
                   <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg transform rotate-1 hover:rotate-0 transition-transform">
                     <img 
-                      src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      src={getContent('hero', 'image3', 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300')} 
                       alt="Makeup palette with brushes" 
                       className="rounded-xl w-full h-32 object-cover" 
                     />
                   </div>
                   <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg transform -rotate-2 hover:rotate-0 transition-transform">
                     <img 
-                      src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      src={getContent('hero', 'image4', 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300')} 
                       alt="Premium skincare bottles" 
                       className="rounded-xl w-full h-32 object-cover" 
                     />
