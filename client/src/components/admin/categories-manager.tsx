@@ -70,27 +70,21 @@ export default function CategoriesManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif font-bold">Gestión de Categorías</h2>
-          <p className="text-gray-600">Administra las categorías de productos y su apariencia</p>
-        </div>
-        <Button onClick={handleCreateCategory}>
-          <i className="fas fa-plus mr-2"></i>
-          Nueva Categoría
-        </Button>
+      <div>
+        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión de Categorías</h2>
+        <p className="text-gray-600 dark:text-gray-300">Administra las categorías de productos y su apariencia</p>
       </div>
 
       {categories.length === 0 ? (
-        <Card>
+        <Card className="dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-12 text-center">
             <div className="space-y-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto">
                 <i className="fas fa-folder-open text-gray-400 text-2xl"></i>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">No hay categorías</h3>
-                <p className="text-gray-600">Crea tu primera categoría para organizar los productos</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No hay categorías</h3>
+                <p className="text-gray-600 dark:text-gray-300">Crea tu primera categoría para organizar los productos</p>
               </div>
               <Button onClick={handleCreateCategory}>
                 Crear Primera Categoría
@@ -100,8 +94,27 @@ export default function CategoriesManager() {
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Add New Category Card */}
+          <Card 
+            className="overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-pink-primary dark:hover:border-pink-400 cursor-pointer transition-all duration-300 hover:shadow-lg"
+            onClick={handleCreateCategory}
+          >
+            <CardContent className="p-8 text-center">
+              <div className="space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900 dark:to-pink-800 rounded-full flex items-center justify-center mx-auto">
+                  <i className="fas fa-plus text-pink-primary dark:text-pink-400 text-2xl"></i>
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white">Nueva Categoría</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">Agregar una nueva categoría</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Existing Categories */}
           {categories.map((category: Category) => (
-            <Card key={category.id} className="overflow-hidden">
+            <Card key={category.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700">
               <div 
                 className="h-24 p-4 flex items-center justify-between"
                 style={{ backgroundColor: category.backgroundColor }}
@@ -121,11 +134,11 @@ export default function CategoriesManager() {
               
               <CardContent className="p-4">
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                     {category.description}
                   </p>
                   
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>Slug: {category.slug}</span>
                     <span>•</span>
                     <span>Orden: {category.sortOrder}</span>

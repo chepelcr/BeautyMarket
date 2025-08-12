@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
 
 export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
@@ -184,22 +185,7 @@ export default function Admin() {
               <p className="text-pink-100">Gestiona tus productos y categorías</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-pink-100">Hola, {user?.username}</span>
-              <Button
-                onClick={async () => {
-                  try {
-                    await apiRequest("POST", "/api/logout");
-                    queryClient.setQueryData(["/api/user"], null);
-                    navigate("/login");
-                  } catch (error) {
-                    console.error("Logout error:", error);
-                  }
-                }}
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-pink-primary"
-              >
-                Cerrar Sesión
-              </Button>
+              <SimpleThemeToggle />
             </div>
           </div>
           
@@ -233,15 +219,8 @@ export default function Admin() {
 
             {activeTab === 'products' && (
               <>
-                <div className="flex justify-between items-center mb-8">
+                <div className="mb-8">
                   <h2 className="font-serif text-2xl font-semibold text-gray-900 dark:text-white">Gestión de Productos</h2>
-                  <Button 
-                    onClick={() => setShowProductForm(true)}
-                    className="bg-pink-primary hover:bg-pink-600 text-white"
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Agregar Producto
-                  </Button>
                 </div>
             
             {/* Products Table */}
