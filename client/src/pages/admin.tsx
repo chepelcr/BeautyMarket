@@ -137,22 +137,6 @@ export default function Admin() {
       <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-pink-primary to-coral p-8 flex justify-between items-center">
-              <div>
-                <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
-                <p className="text-pink-100">Gestiona tus productos y categorías</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={() => window.location.href = "/api/logout"}
-                  variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-pink-primary"
-                >
-                  Cerrar Sesión
-                </Button>
-              </div>
-            </div>
-            
             <div className="p-8">
               <div className="space-y-4">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -178,17 +162,6 @@ export default function Admin() {
     <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
-          {/* Admin Header */}
-          <div className="bg-gradient-to-r from-pink-primary to-coral p-8 flex justify-between items-center">
-            <div>
-              <h1 className="font-serif text-3xl font-bold text-white mb-2">Panel de Administración</h1>
-              <p className="text-pink-100">Gestiona tus productos y categorías</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <SimpleThemeToggle />
-            </div>
-          </div>
-          
           {/* Admin Content */}
           <div className="p-8">
             {/* Tabs */}
