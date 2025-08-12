@@ -117,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Products API (protected with API key for public access)
-  app.get("/api/products", requireApiKeyServerless, async (req, res) => {
+  app.get("/api/products", async (req, res) => {
     try {
       const { category } = req.query;
       let products;
@@ -136,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Categories API (protected with API key for public access)
-  app.get("/api/categories", requireApiKeyServerless, async (req, res) => {
+  app.get("/api/categories", async (req, res) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories);
