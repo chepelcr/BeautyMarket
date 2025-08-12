@@ -41,11 +41,21 @@ export default function CartSidebar() {
             <div className="space-y-4">
               {items.map((item) => (
                 <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-                  <img
-                    src={item.imageUrl || "https://via.placeholder.com/64"}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 rounded-lg flex items-center justify-center ${item.imageUrl ? 'hidden' : ''}`}>
+                    <span className="text-2xl">🍓</span>
+                  </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{item.name}</h4>
                     <p className="text-pink-primary font-semibold">₡{item.price.toLocaleString()}</p>

@@ -30,11 +30,21 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group">
       <div className="relative overflow-hidden">
-        <img
-          src={product.imageUrl || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400"}
-          alt={product.name}
-          className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+        ) : null}
+        <div className={`w-full h-64 bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 ${product.imageUrl ? 'hidden' : ''}`}>
+          <span className="text-6xl">🍓</span>
+        </div>
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       </div>
       
