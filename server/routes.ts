@@ -16,6 +16,7 @@ import {
   cleanupExpiredSessions,
   AuthenticatedRequest
 } from "./middleware/serverless-auth";
+import { SwaggerAutoConfig } from "./swagger";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Security middleware for serverless
@@ -529,6 +530,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Error interno del servidor" });
     }
   });
+
+  // Setup Swagger documentation
+  const swaggerConfig = new SwaggerAutoConfig();
+  swaggerConfig.setupSwaggerEndpoints(app);
 
   const httpServer = createServer(app);
   return httpServer;
