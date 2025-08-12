@@ -27,7 +27,7 @@ async function uploadFile(filePath, key) {
     Key: key,
     Body: fileContent,
     ContentType: contentType,
-    ACL: 'public-read',
+    // Removed ACL since bucket doesn't allow ACLs
   };
 
   // Set cache control for different file types

@@ -11,7 +11,8 @@ import { ImageUpload } from "@/components/image-upload";
 import { DeployButton } from "@/components/deploy-button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, RotateCcw, Eye, X } from "lucide-react";
+import { Loader2, Save, RotateCcw, Eye, X, History } from "lucide-react";
+import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 
 interface HomePageContent {
@@ -421,6 +422,17 @@ export function CmsManager() {
             <span className="sm:hidden">Guardar</span>
           </Button>
           <DeployButton disabled={hasChanges} />
+          <Link href="/admin/deployments">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+            >
+              <History className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Historial</span>
+              <span className="sm:hidden">Log</span>
+            </Button>
+          </Link>
         </div>
       </div>
 

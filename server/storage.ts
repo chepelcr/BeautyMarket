@@ -1,4 +1,4 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent } from "@shared/schema";
+import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, type DeploymentHistory, type InsertDeploymentHistory, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent, deploymentHistory } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -40,6 +40,12 @@ export interface IStorage {
   updateHomePageContent(id: string, content: Partial<InsertHomePageContent>): Promise<HomePageContent | undefined>;
   deleteHomePageContent(id: string): Promise<boolean>;
   bulkUpsertHomePageContent(contentList: InsertHomePageContent[]): Promise<HomePageContent[]>;
+  
+  // Deployment History
+  getDeploymentHistory(): Promise<DeploymentHistory[]>;
+  getDeploymentById(id: string): Promise<DeploymentHistory | undefined>;
+  createDeployment(deployment: InsertDeploymentHistory): Promise<DeploymentHistory>;
+  updateDeployment(id: string, deployment: Partial<InsertDeploymentHistory>): Promise<DeploymentHistory | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -521,6 +527,33 @@ export class DatabaseStorage implements IStorage {
       }
     }
     return results;
+  }
+  
+  // Deployment History
+  async getDeploymentHistory(): Promise<DeploymentHistory[]> {
+    return await db.select().from(deploymentHistory).orderBy(deploymentHistory.startedAt);
+  }
+
+  async getDeploymentById(id: string): Promise<DeploymentHistory | undefined> {
+    const [deployment] = await db.select().from(deploymentHistory).where(eq(deploymentHistory.id, id));
+    return deployment || undefined;
+  }
+
+  async createDeployment(deployment: InsertDeploymentHistory): Promise<DeploymentHistory> {
+    const [newDeployment] = await db
+      .insert(deploymentHistory)
+      .values(deployment)
+      .returning();
+    return newDeployment;
+  }
+
+  async updateDeployment(id: string, deployment: Partial<InsertDeploymentHistory>): Promise<DeploymentHistory | undefined> {
+    const [updatedDeployment] = await db
+      .update(deploymentHistory)
+      .set(deployment)
+      .where(eq(deploymentHistory.id, id))
+      .returning();
+    return updatedDeployment || undefined;
   }
 }
 

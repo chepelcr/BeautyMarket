@@ -104,6 +104,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get deployment history
+  app.get("/api/deployments", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+    try {
+      const deployments = await storage.getDeploymentHistory();
+      res.json(deployments);
+    } catch (error) {
+      console.error("Error fetching deployment history:", error);
+      res.status(500).json({ error: "Failed to fetch deployment history" });
+    }
+  });
+
   // Upload URL endpoint (protected - admin only)
   app.post("/api/objects/upload", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
