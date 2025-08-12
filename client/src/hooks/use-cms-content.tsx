@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { generateBackgroundStyle } from "@/utils/background-styles";
 
 export interface CmsContent {
   id: string;
@@ -39,11 +40,12 @@ export function useCmsContent() {
     return content[section]?.[key] || defaultValue;
   };
 
-  const getSectionStyles = (section: string) => {
-    const backgroundColor = getContent(section, 'background_color', '#ffffff');
-    return {
-      backgroundColor,
-    };
+  const getSectionStyles = (section: string, key: string = 'backgroundStyle') => {
+    const bgValue = getContent(section, key);
+    if (!bgValue) return {};
+    
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    return generateBackgroundStyle(bgValue, isDark);
   };
 
   const getButtonStyles = (section: string) => {

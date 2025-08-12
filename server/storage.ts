@@ -1,4 +1,4 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent } from "@shared/schema";
+import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -230,6 +230,40 @@ export class MemStorage implements IStorage {
 
 // Database storage implementation
 export class DatabaseStorage implements IStorage {
+  constructor() {
+    this.initializeFooterContent();
+  }
+  
+  private async initializeFooterContent() {
+    // Only initialize if no contact content exists
+    const existingContent = await this.getHomePageContentBySection('contact');
+    if (existingContent.length === 0) {
+      const footerContentData: InsertHomePageContent[] = [
+        { section: 'contact', key: 'companyName', value: 'Strawberry Essentials', type: 'text', displayName: 'Nombre de la Empresa', sortOrder: 1 },
+        { section: 'contact', key: 'footerText', value: 'Tu belleza, nuestra pasión', type: 'text', displayName: 'Texto del Footer', sortOrder: 2 },
+        { section: 'contact', key: 'instagram', value: '@strawberry.essentials', type: 'text', displayName: 'Instagram', sortOrder: 3 },
+        { section: 'contact', key: 'phone', value: '73676745', type: 'text', displayName: 'Teléfono', sortOrder: 4 },
+        { section: 'contact', key: 'payment_methods', value: 'SINPE Móvil o efectivo', type: 'text', displayName: 'Métodos de Pago', sortOrder: 5 },
+        { section: 'contact', key: 'footerBackground', value: '{"type":"color","mode":"both","value":"#1f2937"}', type: 'background', displayName: 'Fondo del Footer', sortOrder: 6 }
+      ];
+      
+      await this.bulkUpsertHomePageContent(footerContentData);
+    }
+    
+    // Initialize hero background data
+    const existingHero = await this.getHomePageContentBySection('hero');
+    if (existingHero.length === 0) {
+      const heroContentData: InsertHomePageContent[] = [
+        { section: 'hero', key: 'title', value: 'Strawberry Essentials', type: 'text', displayName: 'Título Principal', sortOrder: 1 },
+        { section: 'hero', key: 'subtitle', value: 'Tu belleza natural, potenciada', type: 'text', displayName: 'Subtítulo', sortOrder: 2 },
+        { section: 'hero', key: 'description', value: 'Descubre nuestra colección cuidadosamente seleccionada de productos de belleza que realzan tu belleza natural. Calidad premium, resultados excepcionales.', type: 'text', displayName: 'Descripción', sortOrder: 3 },
+        { section: 'hero', key: 'backgroundStyle', value: '{"type":"gradient","mode":"both","gradient":{"from":"#fce7f3","to":"#fed7d7","direction":"to-br"}}', type: 'background', displayName: 'Fondo de la Sección', sortOrder: 4 }
+      ];
+      
+      await this.bulkUpsertHomePageContent(heroContentData);
+    }
+  }
+
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));

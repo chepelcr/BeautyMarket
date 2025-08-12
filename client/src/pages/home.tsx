@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Category } from "@shared/schema";
 import CategoryCard from "@/components/category-card";
 import { useCmsContent } from "@/hooks/use-cms-content";
+import { DynamicFooter } from "@/components/dynamic-footer";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
@@ -23,7 +24,7 @@ export default function Home() {
       {/* Hero Section */}
       <section 
         className="relative overflow-hidden bg-gradient-to-br from-pink-light via-cream to-pink-soft dark:from-gray-900 dark:via-gray-800 dark:to-gray-700"
-        style={getSectionStyles('hero')}
+        style={getSectionStyles('hero', 'backgroundStyle')}
       >
         <div className="absolute inset-0">
           <svg viewBox="0 0 1440 800" className="absolute inset-0 w-full h-full">
@@ -217,6 +218,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      <DynamicFooter />
     </div>
   );
 }
