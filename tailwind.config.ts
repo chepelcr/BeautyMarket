@@ -73,6 +73,30 @@ export default {
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
       },
+      fontSize: {
+        'xs': 'var(--text-xs)',
+        'sm': 'var(--text-sm)',
+        'base': 'var(--text-base)',
+        'lg': 'var(--text-lg)',
+        'xl': 'var(--text-xl)',
+        '2xl': 'var(--text-2xl)',
+        '3xl': 'var(--text-3xl)',
+        '4xl': 'var(--text-4xl)',
+        '5xl': 'var(--text-5xl)',
+        '6xl': 'var(--text-6xl)',
+      },
+      fontWeight: {
+        light: 'var(--font-light)',
+        normal: 'var(--font-normal)',
+        medium: 'var(--font-medium)',
+        semibold: 'var(--font-semibold)',
+        bold: 'var(--font-bold)',
+      },
+      lineHeight: {
+        tight: 'var(--leading-tight)',
+        normal: 'var(--leading-normal)',
+        relaxed: 'var(--leading-relaxed)',
+      },
       keyframes: {
         "accordion-down": {
           from: {
