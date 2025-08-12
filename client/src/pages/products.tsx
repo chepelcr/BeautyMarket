@@ -36,11 +36,11 @@ export default function Products() {
 
   if (isLoading) {
     return (
-      <div className="py-20 bg-cream min-h-screen">
+      <div className="py-20 bg-cream dark:bg-gray-900 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h1 className="font-serif text-4xl font-bold text-gray-900 mb-4">Nuestros Productos</h1>
-            <p className="text-gray-600">Descubre nuestra selección de productos de belleza premium</p>
+            <h1 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">Nuestros Productos</h1>
+            <p className="text-gray-600 dark:text-gray-300">Descubre nuestra selección de productos de belleza premium</p>
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -64,11 +64,11 @@ export default function Products() {
   }
 
   return (
-    <div className="py-20 bg-cream min-h-screen">
+    <div className="py-20 bg-cream dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="font-serif text-4xl font-bold text-gray-900 mb-4">Nuestros Productos</h1>
-          <p className="text-gray-600 mb-8">Descubre nuestra selección de productos de belleza premium</p>
+          <h1 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">Nuestros Productos</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">Descubre nuestra selección de productos de belleza premium</p>
           
           <ProductFilters 
             selectedCategory={selectedCategory} 
@@ -82,10 +82,10 @@ export default function Products() {
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-search text-gray-400 text-2xl"></i>
               </div>
-              <h3 className="font-serif text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="font-serif text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 No se encontraron productos
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 {selectedCategory === "all" 
                   ? "No hay productos disponibles en este momento." 
                   : `No hay productos en la categoría "${selectedCategory}".`

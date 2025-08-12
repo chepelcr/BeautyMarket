@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/cart";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
 import strawberryLogo from "@assets/image_1755019713048.png";
 
 export default function Navbar() {
@@ -36,7 +37,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+    <nav className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -48,7 +49,7 @@ export default function Navbar() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-serif text-xl font-semibold text-gray-900">
+            <span className="font-serif text-xl font-semibold text-gray-900 dark:text-white">
               Strawberry Essentials
             </span>
           </Link>
@@ -59,7 +60,7 @@ export default function Navbar() {
               <Link
                 key={item.id}
                 href={item.href}
-                className={`text-gray-700 hover:text-pink-primary transition-colors ${
+                className={`text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors ${
                   location === item.href ? "text-pink-primary font-medium" : ""
                 }`}
               >
@@ -74,7 +75,7 @@ export default function Navbar() {
             {isAuthenticated && user && (
               <div className="hidden md:flex items-center space-x-3 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full">
                 <span className="text-white text-sm font-medium">
-                  Hola, {(user as any).username}
+                  Hola, {String((user as any)?.username || 'Usuario')}
                 </span>
                 <Button
                   onClick={handleLogout}
@@ -91,7 +92,7 @@ export default function Navbar() {
               variant="ghost"
               size="sm"
               onClick={toggleCart}
-              className="relative p-2 text-gray-700 hover:text-pink-primary transition-colors"
+              className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
             >
               <i className="fas fa-shopping-bag text-xl"></i>
               {totalItems > 0 && (
@@ -101,10 +102,12 @@ export default function Navbar() {
               )}
             </Button>
             
+            <SimpleThemeToggle />
+            
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden p-2 text-gray-700"
+              className="md:hidden p-2 text-gray-700 dark:text-gray-300"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <i className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"} text-xl`}></i>
@@ -114,13 +117,13 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
             <div className="flex flex-col space-y-4">
               {navItems.map((item) => (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`text-gray-700 hover:text-pink-primary transition-colors ${
+                  className={`text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors ${
                     location === item.href ? "text-pink-primary font-medium" : ""
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -131,9 +134,9 @@ export default function Navbar() {
               
               {/* Mobile auth section */}
               {isAuthenticated && user && (
-                <div className="pt-4 border-t border-gray-200 space-y-3">
-                  <div className="text-gray-700 text-sm">
-                    Hola, {(user as any).username}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                  <div className="text-gray-700 dark:text-gray-300 text-sm">
+                    Hola, {String((user as any)?.username || 'Usuario')}
                   </div>
                   <Button
                     onClick={() => {

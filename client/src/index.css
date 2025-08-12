@@ -88,6 +88,13 @@
   --font-serif: 'Playfair Display', serif;
   --font-mono: Menlo, monospace;
   --radius: 1.3rem;
+
+  /* Dark mode Strawberry Essentials Colors */
+  --pink-primary: hsl(340, 82%, 62%);
+  --pink-soft: hsl(330, 50%, 25%);
+  --pink-light: hsl(327, 25%, 8%);
+  --cream: hsl(34, 20%, 12%);
+  --coral: hsl(334, 70%, 45%);
 }
 
 @layer base {
