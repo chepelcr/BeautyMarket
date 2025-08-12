@@ -1,10 +1,13 @@
-import AWS from 'aws-sdk';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Request, Response } from 'express';
 
-// Configure AWS S3
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+// Configure AWS S3 Client
+const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
@@ -24,15 +27,14 @@ export const getPresignedUploadUrl = async (
 ): Promise<{ uploadUrl: string; fileUrl: string }> => {
   const key = `${folder}/${Date.now()}-${fileName}`;
   
-  const uploadParams = {
+  const command = new PutObjectCommand({
     Bucket: BUCKET_NAME!,
     Key: key,
     ContentType: fileType,
-    Expires: 900, // 15 minutes
     ACL: 'public-read', // Make files publicly accessible
-  };
+  });
 
-  const uploadUrl = s3.getSignedUrl('putObject', uploadParams);
+  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 }); // 15 minutes
   const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
 
   return { uploadUrl, fileUrl };

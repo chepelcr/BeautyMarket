@@ -25,6 +25,10 @@ Preferred communication style: Simple, everyday language.
 - **✅ Swagger Documentation**: Auto-generated API documentation with interactive testing interface
 - **✅ AWS Lambda Deployment**: Complete serverless deployment setup with Docker and Serverless Framework
 - **✅ Production Ready**: Full CI/CD pipeline with multiple deployment targets and comprehensive monitoring
+- **✅ Shop Sidebar Theming**: Fixed ProductFilters and CartSidebar dark/light mode compatibility
+- **✅ CMS Sidebar Options**: Added 8 comprehensive sidebar customization options to admin panel
+- **✅ AWS SDK v3 Migration**: Migrated from AWS SDK v2 to v3 for better performance and security
+- **✅ Auth Bug Fix**: Resolved login error with updateUser method implementation
 
 # System Architecture
 
