@@ -34,10 +34,15 @@ interface ContentData {
   [section: string]: ContentSection;
 }
 
-export function CmsManager() {
+interface CmsManagerProps {
+  defaultActiveSection?: string;
+}
+
+export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   const [contentData, setContentData] = useState<ContentData>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [activeSection, setActiveSection] = useState(defaultActiveSection);
   const queryClient = useQueryClient();
 
   const { data: content, isLoading } = useQuery<HomePageContent[]>({
@@ -80,8 +85,16 @@ export function CmsManager() {
         return acc;
       }, {} as ContentData);
       setContentData(grouped);
+      
+      // Set active section based on prop if available in content
+      if (defaultActiveSection && grouped[defaultActiveSection]) {
+        setActiveSection(defaultActiveSection);
+      } else if (Object.keys(grouped).length > 0) {
+        // Fallback to first available section
+        setActiveSection(Object.keys(grouped)[0]);
+      }
     }
-  }, [content]);
+  }, [content, defaultActiveSection]);
 
   const handleInputChange = (section: string, key: string, value: string) => {
     setContentData(prev => ({
@@ -373,6 +386,11 @@ export function CmsManager() {
   // Define proper section order matching the home page
   const sectionOrder = ['hero', 'categories', 'about', 'contact', 'site'];
   const sections = sectionOrder.filter(section => contentData[section]);
+  
+  // Ensure active section is valid, default to first available or hero
+  const validActiveSection = sections.includes(activeSection) 
+    ? activeSection 
+    : (sections.includes('hero') ? 'hero' : sections[0]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -444,7 +462,7 @@ export function CmsManager() {
         </div>
       )}
 
-      <Tabs defaultValue={sections[0]} className="w-full">
+      <Tabs defaultValue={validActiveSection} key={validActiveSection} className="w-full">
         <TabsList className="grid grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
           {sections.map((section) => (
             <TabsTrigger 

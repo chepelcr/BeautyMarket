@@ -310,7 +310,7 @@ export default function Admin() {
             )}
 
             {activeTab === 'content' && (
-              <CmsManager />
+              <CmsManager defaultActiveSection="hero" />
             )}
           </div>
         </div>
