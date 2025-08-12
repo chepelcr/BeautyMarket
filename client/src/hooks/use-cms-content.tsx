@@ -60,6 +60,35 @@ export function useCmsContent() {
     const textColor = getContent(section, colorKey);
     if (!textColor) return {};
     
+    // Check if it's a JSON color configuration (dual-mode support)
+    try {
+      const colorData = JSON.parse(textColor);
+      if (colorData && typeof colorData === 'object') {
+        const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+        
+        // Handle dual-mode colors
+        if (colorData.mode === 'both') {
+          const color = isDark 
+            ? (colorData.darkValue || colorData.value || '#000000') 
+            : (colorData.lightValue || colorData.value || '#000000');
+          return { color };
+        }
+        
+        // Handle single-mode colors
+        if (colorData.mode === 'light' && !isDark) {
+          return { color: colorData.value || '#000000' };
+        }
+        if (colorData.mode === 'dark' && isDark) {
+          return { color: colorData.value || '#ffffff' };
+        }
+        
+        // Default single color
+        return { color: colorData.value || textColor };
+      }
+    } catch {
+      // Not JSON, treat as regular color string
+    }
+    
     return {
       color: textColor,
     };

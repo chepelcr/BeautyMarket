@@ -144,22 +144,149 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
     switch (item.type) {
       case "color":
         return (
-          <div className="space-y-3">
-            <div className="flex gap-2 items-center">
-              <Input
-                type="color"
-                value={value}
-                onChange={(e) => handleInputChange(section, item.key, e.target.value)}
-                className="w-16 h-10 p-1 border rounded cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={value}
-                onChange={(e) => handleInputChange(section, item.key, e.target.value)}
-                placeholder="#000000"
-                className="flex-1"
-              />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Modo</Label>
+              <select 
+                className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                value={(() => {
+                  try {
+                    return JSON.parse(value || '{"mode":"single"}').mode || 'single';
+                  } catch {
+                    return 'single';
+                  }
+                })()}
+                onChange={(e) => {
+                  try {
+                    const colorData = JSON.parse(value || '{}');
+                    colorData.mode = e.target.value;
+                    if (e.target.value === 'single') {
+                      colorData.value = colorData.value || value || '#000000';
+                    } else {
+                      colorData.lightValue = colorData.lightValue || value || '#000000';
+                      colorData.darkValue = colorData.darkValue || '#ffffff';
+                    }
+                    handleInputChange(section, item.key, JSON.stringify(colorData));
+                  } catch {
+                    // If it's not JSON, convert to JSON format
+                    const colorData = {
+                      mode: e.target.value,
+                      value: value || '#000000',
+                      lightValue: value || '#000000',
+                      darkValue: '#ffffff'
+                    };
+                    handleInputChange(section, item.key, JSON.stringify(colorData));
+                  }
+                }}
+              >
+                <option value="single">Color Único</option>
+                <option value="both">Ambos Modos</option>
+              </select>
             </div>
+            {(() => {
+              try {
+                const colorData = JSON.parse(value || '{"mode":"single","value":"#000000"}');
+                if (colorData.mode === 'both') {
+                  // Show two color pickers for light and dark modes
+                  return (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Color Modo Claro</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={colorData.lightValue || colorData.value || '#000000'}
+                            onChange={(e) => {
+                              colorData.lightValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(colorData));
+                            }}
+                            className="w-16 h-10 p-1 border rounded cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={colorData.lightValue || colorData.value || '#000000'}
+                            onChange={(e) => {
+                              colorData.lightValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(colorData));
+                            }}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Color Modo Oscuro</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={colorData.darkValue || '#ffffff'}
+                            onChange={(e) => {
+                              colorData.darkValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(colorData));
+                            }}
+                            className="w-16 h-10 p-1 border rounded cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={colorData.darkValue || '#ffffff'}
+                            onChange={(e) => {
+                              colorData.darkValue = e.target.value;
+                              handleInputChange(section, item.key, JSON.stringify(colorData));
+                            }}
+                            placeholder="#ffffff"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  // Single color picker
+                  return (
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="color"
+                        value={colorData.value || value || '#000000'}
+                        onChange={(e) => {
+                          colorData.value = e.target.value;
+                          handleInputChange(section, item.key, JSON.stringify(colorData));
+                        }}
+                        className="w-16 h-10 p-1 border rounded cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={colorData.value || value || '#000000'}
+                        onChange={(e) => {
+                          colorData.value = e.target.value;
+                          handleInputChange(section, item.key, JSON.stringify(colorData));
+                        }}
+                        placeholder="#000000"
+                        className="flex-1"
+                      />
+                    </div>
+                  );
+                }
+              } catch {
+                // Fallback for non-JSON values (legacy support)
+                return (
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="color"
+                      value={value}
+                      onChange={(e) => handleInputChange(section, item.key, e.target.value)}
+                      className="w-16 h-10 p-1 border rounded cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={value}
+                      onChange={(e) => handleInputChange(section, item.key, e.target.value)}
+                      placeholder="#000000"
+                      className="flex-1"
+                    />
+                  </div>
+                );
+              }
+            })()}
           </div>
         );
       case "background":
