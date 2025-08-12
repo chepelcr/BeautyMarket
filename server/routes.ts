@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertProductSchema, insertOrderSchema, insertCategorySchema, insertHomePageContentSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth } from "./auth";
 import { handlePresignedUpload } from "./s3-upload";
 import { triggerAutoDeployment, getDeploymentStatus } from "./deployment";
 import { 
@@ -314,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Orders API (protected - admin only)
-  app.get("/api/orders", isAuthenticated, async (req, res) => {
+  app.get("/api/orders", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const orders = await storage.getOrders();
       res.json(orders);
@@ -479,7 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/home-content", isAuthenticated, async (req, res) => {
+  app.post("/api/home-content", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const contentSchema = insertHomePageContentSchema;
       const validatedContent = contentSchema.parse(req.body);
@@ -494,7 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/home-content/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/home-content/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const content = await storage.updateHomePageContent(req.params.id, req.body);
       if (!content) {
@@ -507,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/home-content/bulk", isAuthenticated, async (req, res) => {
+  app.post("/api/home-content/bulk", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const contentList = req.body;
       const results = await storage.bulkUpsertHomePageContent(contentList);
@@ -518,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/home-content/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/home-content/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {
       const success = await storage.deleteHomePageContent(req.params.id);
       if (!success) {

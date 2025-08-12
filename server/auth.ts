@@ -1,18 +1,11 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
-import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+import { Express } from "express";
 import { createUserSession } from "./middleware/serverless-auth";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
-declare global {
-  namespace Express {
-    interface User extends SelectUser {}
-  }
-}
+
 
 const scryptAsync = promisify(scrypt);
 
@@ -30,45 +23,7 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "strawberry-essentials-secret-key-2024",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  };
-
   app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false, { message: "Invalid username or password" });
-        }
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }),
-  );
-
-  passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser(async (id: string, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
 
   // Register endpoint - create default admin user
   app.post("/api/register", async (req, res, next) => {
@@ -101,80 +56,90 @@ export function setupAuth(app: Express) {
   });
 
   // Login endpoint
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) {
-        return res.status(500).json({ message: "Internal server error" });
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Authenticate user
+      const user = await storage.getUserByUsername(username);
+      if (!user || !(await comparePasswords(password, user.password))) {
+        return res.status(401).json({ message: "Invalid username or password" });
       }
-      if (!user) {
-        return res.status(401).json({ message: info.message || "Invalid credentials" });
-      }
-      req.login(user, async (err) => {
-        if (err) {
-          return res.status(500).json({ message: "Internal server error" });
-        }
-        
-        // Create database session and JWT token
-        const { token, sessionId } = await createUserSession(
-          {
-            id: user.id,
-            username: user.username,
-            email: user.email || '',
-            role: user.role,
-          },
-          req.get('User-Agent'),
-          req.ip || req.connection.remoteAddress
-        );
 
-        // Update user's last login
-        await storage.updateUser(user.id, { lastLogin: new Date() });
-
-        // Set secure HTTP-only cookie
-        res.cookie('auth_token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        });
-
-        res.json({ 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
+      // Create database session and JWT token
+      const { token, sessionId } = await createUserSession(
+        {
+          id: user.id,
+          username: user.username,
+          email: user.email || '',
           role: user.role,
-          token, // Also return token for Bearer auth
-          sessionId
-        });
+        },
+        req.get('User-Agent'),
+        req.ip || req.connection.remoteAddress
+      );
+
+      // Update user's last login
+      await storage.updateUser(user.id, { lastLogin: new Date() });
+
+      // Set secure HTTP-only cookie
+      res.cookie('auth_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
       });
-    })(req, res, next);
+
+      res.json({ 
+        id: user.id, 
+        username: user.username, 
+        email: user.email, 
+        role: user.role,
+        token, // Also return token for Bearer auth
+        sessionId
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Logout endpoint
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      // Clear the JWT token cookie
-      res.clearCookie('auth_token');
-      res.json({ message: "Logged out successfully" });
-    });
+  app.post("/api/logout", (req, res) => {
+    // Clear the JWT token cookie
+    res.clearCookie('auth_token');
+    res.json({ message: "Logged out successfully" });
   });
 
-  // Get current user endpoint
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
+  // Get current user endpoint - using serverless auth
+  app.get("/api/user", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.startsWith('Bearer ') 
+        ? authHeader.substring(7) 
+        : req.cookies?.auth_token;
+
+      if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { verifyUserSession } = await import("./middleware/serverless-auth");
+      const sessionData = await verifyUserSession(token);
+      if (!sessionData) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      res.json({
+        id: sessionData.user.id,
+        username: sessionData.user.username,
+        email: sessionData.user.email,
+        role: sessionData.user.role
+      });
+    } catch (error) {
+      console.error('User endpoint error:', error);
+      res.status(401).json({ message: "Unauthorized" });
     }
-    const user = req.user as SelectUser;
-    res.json({ id: user.id, username: user.username, email: user.email, role: user.role });
   });
 }
 
-// Middleware to check if user is authenticated
-export function isAuthenticated(req: any, res: any, next: any) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: "Unauthorized" });
-}
-
+// Export hashPassword for use in other modules
 export { hashPassword, comparePasswords };
