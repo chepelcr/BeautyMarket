@@ -45,14 +45,7 @@ export function useCmsContent() {
     if (!bgValue) return {};
     
     const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-    const styles = generateBackgroundStyle(bgValue, isDark);
-    
-    // Add debugging
-    if (section === 'categories') {
-      console.log('Categories background:', { bgValue, isDark, styles });
-    }
-    
-    return styles;
+    return generateBackgroundStyle(bgValue, isDark);
   };
 
   const getButtonStyles = (section: string) => {

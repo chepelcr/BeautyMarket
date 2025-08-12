@@ -26,8 +26,11 @@ export default function Home() {
     <div>
       {/* Hero Section */}
       <section 
-        className="relative overflow-hidden bg-gradient-to-br from-pink-light via-cream to-pink-soft dark:from-gray-900 dark:via-gray-800 dark:to-gray-700"
-        style={getSectionStyles('hero', 'backgroundStyle')}
+        className="relative overflow-hidden"
+        style={{
+          ...getSectionStyles('hero', 'backgroundStyle'),
+          backgroundColor: getSectionStyles('hero', 'backgroundStyle').backgroundColor || 'linear-gradient(to bottom right, #fce7f3, #fdf2f8, #fce7f3)'
+        }}
       >
         <div className="absolute inset-0">
           <svg viewBox="0 0 1440 800" className="absolute inset-0 w-full h-full">
@@ -117,8 +120,11 @@ export default function Home() {
       </section>
       {/* Category Showcase */}
       <section 
-        className="py-20 bg-white dark:bg-gray-900 relative"
-        style={getSectionStyles('categories')}
+        className="py-20 relative"
+        style={{
+          ...getSectionStyles('categories'),
+          backgroundColor: getSectionStyles('categories').backgroundColor || 'rgb(255, 255, 255)'
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
