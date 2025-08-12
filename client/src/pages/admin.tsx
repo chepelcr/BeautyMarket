@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import ProductForm from "@/components/admin/product-form";
+import CategoriesManager from "@/components/admin/categories-manager";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@shared/schema";
@@ -17,6 +19,8 @@ export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [, navigate] = useLocation();
@@ -47,18 +51,23 @@ export default function Admin() {
     }
   });
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) {
-      return;
-    }
+  const handleDeleteProduct = (product: Product) => {
+    setProductToDelete(product);
+    setShowDeleteDialog(true);
+  };
 
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+    
     try {
-      await apiRequest("DELETE", `/api/products/${productId}`);
+      await apiRequest("DELETE", `/api/products/${productToDelete.id}`);
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       toast({
         title: "Producto eliminado",
-        description: "El producto ha sido eliminado exitosamente",
+        description: "El producto ha sido eliminado exitosamente.",
       });
+      setShowDeleteDialog(false);
+      setProductToDelete(null);
     } catch (error) {
       if (isUnauthorizedError(error as Error)) {
         toast({
@@ -73,9 +82,10 @@ export default function Admin() {
       }
       toast({
         title: "Error",
-        description: "Error al eliminar el producto",
+        description: "No se pudo eliminar el producto. Inténtalo de nuevo.",
         variant: "destructive",
       });
+      console.error("Error deleting product:", error);
     }
   };
 
@@ -335,7 +345,7 @@ export default function Admin() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDeleteProduct(product.id)}
+                              onClick={() => handleDeleteProduct(product)}
                               className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
                             >
                               <i className="fas fa-trash mr-1"></i>
@@ -353,23 +363,7 @@ export default function Admin() {
             )}
 
             {activeTab === 'categories' && (
-              <div>
-                <h2 className="font-serif text-2xl font-semibold text-gray-900 mb-6">Gestión de Categorías</h2>
-                <p className="text-gray-600 mb-8">Administra las categorías de productos y personaliza su apariencia</p>
-                
-                <div className="bg-gray-100 rounded-xl p-8 text-center">
-                  <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i className="fas fa-tags text-pink-primary text-2xl"></i>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Sistema de Categorías Dinámicas</h3>
-                  <p className="text-gray-600 mb-4">
-                    Las categorías ahora son administrables desde la base de datos con colores personalizables y dos imágenes por categoría.
-                  </p>
-                  <div className="text-sm text-gray-500">
-                    En desarrollo... 🚧
-                  </div>
-                </div>
-              </div>
+              <CategoriesManager />
             )}
           </div>
         </div>
@@ -389,6 +383,32 @@ export default function Admin() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que quieres eliminar "{productToDelete?.name}"? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteDialog(false);
+              setProductToDelete(null);
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteProduct}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
