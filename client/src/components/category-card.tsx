@@ -49,14 +49,14 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 {category.description}
               </p>
             </div>
-            <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">🍓</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xl">🍓</span>
             </div>
           </div>
 
           {/* Images */}
-          <div className="flex space-x-4">
-            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden">
+          <div className="flex justify-center space-x-4">
+            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
               {category.image1Url ? (
                 <img 
                   src={category.image1Url} 
@@ -65,17 +65,18 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
+                    const fallback = target.parentElement?.querySelector('.fallback-icon');
+                    if (fallback) fallback.classList.remove('hidden');
                   }}
                 />
               ) : null}
-              <div className={`w-full h-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center ${category.image1Url ? 'hidden' : ''}`}>
+              <div className={`fallback-icon absolute inset-0 flex items-center justify-center ${category.image1Url ? 'hidden' : ''}`}>
                 <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">🍓</span>
+                  <span className="text-white text-lg">🍓</span>
                 </div>
               </div>
             </div>
-            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden">
+            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
               {category.image2Url ? (
                 <img 
                   src={category.image2Url} 
@@ -84,30 +85,33 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
+                    const fallback = target.parentElement?.querySelector('.fallback-icon');
+                    if (fallback) fallback.classList.remove('hidden');
                   }}
                 />
               ) : null}
-              <div className={`w-full h-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center ${category.image2Url ? 'hidden' : ''}`}>
+              <div className={`fallback-icon absolute inset-0 flex items-center justify-center ${category.image2Url ? 'hidden' : ''}`}>
                 <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xl">🍓</span>
+                  <span className="text-white text-lg">🍓</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Button */}
-          <Link href={`/products?category=${category.slug}`}>
-            <Button 
-              className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"
-              style={{ 
-                backgroundColor: category.buttonColor,
-                color: buttonTextColor
-              }}
-            >
-              Ver Productos
-            </Button>
-          </Link>
+          <div className="pt-2">
+            <Link href={`/products?category=${category.slug}`}>
+              <Button 
+                className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"
+                style={{ 
+                  backgroundColor: category.buttonColor,
+                  color: buttonTextColor
+                }}
+              >
+                Ver Productos
+              </Button>
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>
