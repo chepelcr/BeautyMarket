@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { insertProductSchema, validCategories, type Product, type InsertProduct } from "@shared/schema";
+import { insertProductSchema, validCategories, type Product, type InsertProduct, type Category } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { UploadResult } from "@uppy/core";
@@ -24,6 +24,11 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+
+  // Fetch categories dynamically from database
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
@@ -127,14 +132,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
     }
   };
 
-  const getCategoryLabel = (category: string) => {
-    const labels = {
-      maquillaje: "Maquillaje",
-      skincare: "Skincare", 
-      accesorios: "Accesorios"
-    };
-    return labels[category as keyof typeof labels] || category;
-  };
+
 
   return (
     <Form {...form}>
@@ -186,11 +184,17 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {validCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {getCategoryLabel(category)}
-                    </SelectItem>
-                  ))}
+                  {categoriesLoading ? (
+                    <SelectItem value="" disabled>Cargando categorías...</SelectItem>
+                  ) : categories.length === 0 ? (
+                    <SelectItem value="" disabled>No hay categorías disponibles</SelectItem>
+                  ) : (
+                    categories.map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
