@@ -49,7 +49,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 {category.description}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
               <span className="text-2xl">🍓</span>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 />
               ) : null}
               <div className={`fallback-icon absolute inset-0 flex items-center justify-center ${category.image1Url ? 'hidden' : ''}`}>
-                <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 rounded-full flex items-center justify-center shadow-sm">
+                <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-xl">🍓</span>
                 </div>
               </div>
@@ -91,7 +91,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                 />
               ) : null}
               <div className={`fallback-icon absolute inset-0 flex items-center justify-center ${category.image2Url ? 'hidden' : ''}`}>
-                <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 rounded-full flex items-center justify-center shadow-sm">
+                <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-xl">🍓</span>
                 </div>
               </div>
