@@ -426,7 +426,7 @@ export function CmsManager() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full h-full"
+              className="w-full py-2"
             >
               <History className="w-4 h-4 mr-1 sm:mr-2" />
               <span className="hidden md:inline">Historial</span>

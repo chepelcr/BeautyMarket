@@ -1,7 +1,7 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, type DeploymentHistory, type InsertDeploymentHistory, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent, deploymentHistory } from "@shared/schema";
+import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, type DeploymentHistory, type InsertDeploymentHistory, type PasswordResetToken, type InsertPasswordResetToken, type EmailVerificationToken, type InsertEmailVerificationToken, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent, deploymentHistory, passwordResetTokens, emailVerificationTokens } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Products
@@ -46,6 +46,23 @@ export interface IStorage {
   getDeploymentById(id: string): Promise<DeploymentHistory | undefined>;
   createDeployment(deployment: InsertDeploymentHistory): Promise<DeploymentHistory>;
   updateDeployment(id: string, deployment: Partial<InsertDeploymentHistory>): Promise<DeploymentHistory | undefined>;
+  
+  // Password Reset Tokens
+  createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markPasswordResetTokenUsed(id: string): Promise<void>;
+  cleanupExpiredPasswordResetTokens(): Promise<void>;
+  
+  // Email Verification Tokens
+  createEmailVerificationToken(token: InsertEmailVerificationToken): Promise<EmailVerificationToken>;
+  getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined>;
+  markEmailVerificationTokenUsed(id: string): Promise<void>;
+  cleanupExpiredEmailVerificationTokens(): Promise<void>;
+  
+  // User Profile Management
+  updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string }): Promise<User>;
+  changeUserPassword(id: string, hashedPassword: string): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -554,6 +571,88 @@ export class DatabaseStorage implements IStorage {
       .where(eq(deploymentHistory.id, id))
       .returning();
     return updatedDeployment || undefined;
+  }
+
+  // Password Reset Token methods
+  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [newToken] = await db.insert(passwordResetTokens)
+      .values(token)
+      .returning();
+    return newToken;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db.select()
+      .from(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.token, token),
+        eq(passwordResetTokens.used, false)
+      ));
+    return resetToken;
+  }
+
+  async markPasswordResetTokenUsed(id: string): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.id, id));
+  }
+
+  async cleanupExpiredPasswordResetTokens(): Promise<void> {
+    await db.delete(passwordResetTokens)
+      .where(lt(passwordResetTokens.expiresAt, new Date()));
+  }
+
+  // Email Verification Token methods
+  async createEmailVerificationToken(token: InsertEmailVerificationToken): Promise<EmailVerificationToken> {
+    const [newToken] = await db.insert(emailVerificationTokens)
+      .values(token)
+      .returning();
+    return newToken;
+  }
+
+  async getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined> {
+    const [verifyToken] = await db.select()
+      .from(emailVerificationTokens)
+      .where(and(
+        eq(emailVerificationTokens.token, token),
+        eq(emailVerificationTokens.used, false)
+      ));
+    return verifyToken;
+  }
+
+  async markEmailVerificationTokenUsed(id: string): Promise<void> {
+    await db.update(emailVerificationTokens)
+      .set({ used: true })
+      .where(eq(emailVerificationTokens.id, id));
+  }
+
+  async cleanupExpiredEmailVerificationTokens(): Promise<void> {
+    await db.delete(emailVerificationTokens)
+      .where(lt(emailVerificationTokens.expiresAt, new Date()));
+  }
+
+  // User Profile Management methods
+  async updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string }): Promise<User> {
+    const [user] = await db.update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async changeUserPassword(id: string, hashedPassword: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({ passwordHash: hashedPassword, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.email, email));
+    return user;
   }
 }
 

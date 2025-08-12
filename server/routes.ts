@@ -5,6 +5,7 @@ import { insertProductSchema, insertOrderSchema, insertCategorySchema, insertHom
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { setupAuth } from "./auth";
+import { setupUserManagement } from "./user-management";
 import { handlePresignedUpload } from "./s3-upload";
 import { triggerAutoDeployment, getDeploymentStatus } from "./deployment";
 import { 
@@ -24,6 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Auth middleware setup
   setupAuth(app);
+  setupUserManagement(app);
 
   // Initialize serverless authentication components
   await initializeDefaultApiKey();

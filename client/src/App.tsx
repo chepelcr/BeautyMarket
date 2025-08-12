@@ -8,6 +8,8 @@ import Products from "@/pages/products";
 import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import DeploymentHistory from "./pages/DeploymentHistory";
+import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
 import Navbar from "@/components/layout/navbar";
 import { DynamicFooter } from "@/components/dynamic-footer";
 import CartSidebar from "@/components/cart/cart-sidebar";
@@ -18,8 +20,10 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/products" component={Products} />
-      <Route path="/admin" component={Admin} />
       <Route path="/admin/deployments" component={DeploymentHistory} />
+      <Route path="/admin/profile" component={Profile} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/admin" component={Admin} />
       <Route path="/login" component={Login} />
       <Route>404 - Page not found</Route>
     </Switch>

@@ -8,6 +8,8 @@ import { queryClient } from "@/lib/queryClient";
 import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
 import { useQuery } from "@tanstack/react-query";
 import { HomePageContent } from "@shared/schema";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { User, Settings, LogOut } from "lucide-react";
 import strawberryLogo from "@assets/image_1755019713048.png";
 
 export default function Navbar() {
@@ -83,21 +85,35 @@ export default function Navbar() {
 
           {/* Auth Section, Cart & Mobile Menu */}
           <div className="flex items-center space-x-4">
-            {/* User greeting and logout for authenticated users */}
+            {/* User dropdown for authenticated users */}
             {isAuthenticated && user && (
-              <div className="hidden md:flex items-center space-x-3 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full">
-                <span className="text-white text-sm font-medium">
-                  Hola, {String((user as any)?.username || 'Usuario')}
-                </span>
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  size="sm"
-                  className="border-white text-white bg-transparent hover:bg-white hover:text-pink-primary text-xs px-3 py-1 h-7"
-                >
-                  Cerrar Sesión
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full text-white hover:from-pink-600 hover:to-coral-dark"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {String((user as any)?.firstName || (user as any)?.username || 'Usuario')}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/profile" className="flex items-center cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Mi Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400 cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
             <Button
@@ -148,8 +164,16 @@ export default function Navbar() {
               {isAuthenticated && user && (
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
                   <div className="text-gray-700 dark:text-gray-300 text-sm">
-                    Hola, {String((user as any)?.username || 'Usuario')}
+                    Hola, {String((user as any)?.firstName || (user as any)?.username || 'Usuario')}
                   </div>
+                  <Link
+                    href="/admin/profile"
+                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Mi Perfil
+                  </Link>
                   <Button
                     onClick={() => {
                       handleLogout();
@@ -159,6 +183,7 @@ export default function Navbar() {
                     size="sm"
                     className="w-full"
                   >
+                    <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
                   </Button>
                 </div>
