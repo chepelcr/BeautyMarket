@@ -7,6 +7,7 @@ import ProductForm from "@/components/admin/product-form";
 import CategoriesManager from "@/components/admin/categories-manager";
 import { CmsManager } from "@/components/admin/cms-manager";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -33,6 +34,11 @@ export default function Admin() {
       navigate("/login");
     }
   }, [isAuthenticated, isLoading, navigate]);
+
+  // Fix scrolling issue by scrolling to top when accessing admin
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -165,165 +171,138 @@ export default function Admin() {
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
           {/* Admin Content */}
           <div className="p-8">
-            {/* Tabs */}
-            <div className="flex space-x-1 mb-8 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            {/* Mobile-Responsive Tabs */}
+            <div className="flex flex-col sm:flex-row gap-1 mb-8 bg-gray-100 dark:bg-gray-700 rounded-lg p-2 sm:p-1">
               <button
                 onClick={() => setActiveTab('products')}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'products'
                     ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                <i className="fas fa-box mr-2"></i>
+                <i className="fas fa-box mr-1 sm:mr-2"></i>
                 Productos
               </button>
               <button
                 onClick={() => setActiveTab('categories')}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'categories'
                     ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                <i className="fas fa-tags mr-2"></i>
+                <i className="fas fa-tags mr-1 sm:mr-2"></i>
                 Categorías
               </button>
               <button
                 onClick={() => setActiveTab('content')}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                   activeTab === 'content'
                     ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                <i className="fas fa-edit mr-2"></i>
+                <i className="fas fa-edit mr-1 sm:mr-2"></i>
                 Contenido
               </button>
             </div>
 
             {activeTab === 'products' && (
-              <>
-                <div className="mb-8">
-                  <h2 className="font-serif text-2xl font-semibold text-gray-900 dark:text-white">Gestión de Productos</h2>
-                </div>
-            
-            {/* Products Table */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="font-medium text-gray-900 dark:text-white">Lista de Productos</h3>
-              </div>
-              
-              {products && products.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i className="fas fa-box-open text-gray-400 text-2xl"></i>
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión de Productos</h2>
+                    <p className="text-gray-600 dark:text-gray-300">Administra tu catálogo de productos de belleza</p>
                   </div>
-                  <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    No hay productos
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    Comienza agregando tu primer producto al catálogo.
-                  </p>
                   <Button 
                     onClick={() => setShowProductForm(true)}
-                    className="bg-pink-primary hover:bg-pink-600 text-white"
+                    className="bg-pink-primary hover:bg-pink-600 text-white shrink-0"
                   >
+                    <i className="fas fa-plus mr-2"></i>
                     Agregar Producto
                   </Button>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Producto
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Categoría
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Precio
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Estado
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {products?.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-16 w-16">
-                                {product.imageUrl ? (
-                                  <img
-                                    className="h-16 w-16 rounded-lg object-cover"
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                  />
-                                ) : (
-                                  <div className="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center">
-                                    <i className="fas fa-image text-gray-400"></i>
-                                  </div>
-                                )}
+            
+                {products && products.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fas fa-box-open text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      No hay productos
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Comienza agregando tu primer producto al catálogo.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {products?.map((product) => (
+                      <Card key={product.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 mb-3">
+                            {product.imageUrl ? (
+                              <img
+                                className="w-full h-full object-cover"
+                                src={product.imageUrl}
+                                alt={product.name}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <i className="fas fa-image text-gray-400 text-3xl"></i>
                               </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {product.name}
-                                </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
-                                  {product.description}
-                                </div>
-                              </div>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <CardTitle className="text-lg font-serif text-gray-900 dark:text-white line-clamp-1">
+                              {product.name}
+                            </CardTitle>
+                            <div className="flex items-center justify-between">
+                              <Badge className={getCategoryColor(product.category)}>
+                                {getCategoryLabel(product.category)}
+                              </Badge>
+                              <Badge variant={product.isActive ? "default" : "secondary"}>
+                                {product.isActive ? "Activo" : "Inactivo"}
+                              </Badge>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge className={getCategoryColor(product.category)}>
-                              {getCategoryLabel(product.category)}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-semibold text-gray-900">
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                              {product.description}
+                            </p>
+                            <div className="text-xl font-bold text-gray-900 dark:text-white">
                               ₡{product.price.toLocaleString()}
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge variant={product.isActive ? "default" : "secondary"}>
-                              {product.isActive ? "Activo" : "Inactivo"}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                            >
-                              <i className="fas fa-edit mr-1"></i>
-                              Editar
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteProduct(product)}
-                              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                            >
-                              <i className="fas fa-trash mr-1"></i>
-                              Eliminar
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-            </>
+                            <div className="flex gap-2 pt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditProduct(product)}
+                                className="flex-1"
+                              >
+                                <i className="fas fa-edit mr-1"></i>
+                                Editar
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteProduct(product)}
+                                className="flex-1 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                              >
+                                <i className="fas fa-trash mr-1"></i>
+                                Eliminar
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {activeTab === 'categories' && (

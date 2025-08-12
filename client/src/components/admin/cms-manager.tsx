@@ -180,42 +180,51 @@ export function CmsManager() {
   const sections = Object.keys(contentData).sort();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 dark:text-white">
             Editor de Contenido
           </h2>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Edita todos los textos, colores y contenido de la página principal
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={() => window.open('/', '_blank')}
             variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
           >
             <Eye className="w-4 h-4 mr-2" />
-            Vista Previa
+            <span className="hidden sm:inline">Vista Previa</span>
+            <span className="sm:hidden">Previa</span>
           </Button>
           <Button
             onClick={handleReset}
             variant="outline"
+            size="sm"
             disabled={!hasChanges}
+            className="w-full sm:w-auto"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Descartar
+            <span className="hidden sm:inline">Descartar</span>
+            <span className="sm:hidden">Reset</span>
           </Button>
           <Button
             onClick={handleSave}
             disabled={!hasChanges || updateMutation.isPending}
+            size="sm"
+            className="w-full sm:w-auto"
           >
             {updateMutation.isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Save className="w-4 h-4 mr-2" />
             )}
-            Guardar Cambios
+            <span className="hidden sm:inline">Guardar Cambios</span>
+            <span className="sm:hidden">Guardar</span>
           </Button>
         </div>
       </div>
@@ -229,9 +238,13 @@ export function CmsManager() {
       )}
 
       <Tabs defaultValue={sections[0]} className="w-full">
-        <TabsList className="grid grid-cols-4 lg:grid-cols-6">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-1">
           {sections.map((section) => (
-            <TabsTrigger key={section} value={section} className="capitalize">
+            <TabsTrigger 
+              key={section} 
+              value={section} 
+              className="capitalize text-xs sm:text-sm px-2 sm:px-4 py-2"
+            >
               {section === 'hero' ? 'Inicio' : 
                section === 'about' ? 'Acerca' :
                section === 'contact' ? 'Contacto' :
