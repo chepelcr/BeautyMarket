@@ -71,23 +71,33 @@ export function useCmsContent() {
           const color = isDark 
             ? (colorData.darkValue || colorData.value || '#000000') 
             : (colorData.lightValue || colorData.value || '#000000');
-          return { color };
+          return { 
+            color: `${color} !important`,
+            '--text-color': color 
+          };
         }
         
         // Handle single-mode colors
         if (colorData.mode === 'single') {
-          return { color: colorData.value || '#000000' };
+          return { 
+            color: `${colorData.value || '#000000'} !important`,
+            '--text-color': colorData.value || '#000000'
+          };
         }
         
         // Default single color
-        return { color: colorData.value || textColor };
+        return { 
+          color: `${colorData.value || textColor} !important`,
+          '--text-color': colorData.value || textColor
+        };
       }
     } catch {
       // Not JSON, treat as regular color string
     }
     
     return {
-      color: textColor,
+      color: `${textColor} !important`,
+      '--text-color': textColor
     };
   };
 
