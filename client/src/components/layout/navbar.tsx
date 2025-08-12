@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/cart";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import strawberryLogo from "@assets/image_1755019713048.png";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -42,7 +43,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full overflow-hidden">
               <img 
-                src="@assets/image_1755019713048.png" 
+                src={strawberryLogo} 
                 alt="Strawberry Essentials Logo"
                 className="w-full h-full object-cover"
               />
