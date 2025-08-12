@@ -8,7 +8,7 @@ import Products from "@/pages/products";
 import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
+import { DynamicFooter } from "@/components/dynamic-footer";
 import CartSidebar from "@/components/cart/cart-sidebar";
 import CheckoutModal from "@/components/cart/checkout-modal";
 
@@ -31,7 +31,7 @@ function App() {
         <div className="min-h-screen bg-cream dark:bg-gray-900">
           <Navbar />
           <Router />
-          <Footer />
+          <DynamicFooter />
           <CartSidebar />
           <CheckoutModal />
           <Toaster />

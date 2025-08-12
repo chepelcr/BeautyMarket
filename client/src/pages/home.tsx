@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { Category } from "@shared/schema";
 import CategoryCard from "@/components/category-card";
 import { useCmsContent } from "@/hooks/use-cms-content";
-import { DynamicFooter } from "@/components/dynamic-footer";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
@@ -218,8 +217,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-      <DynamicFooter />
     </div>
   );
 }

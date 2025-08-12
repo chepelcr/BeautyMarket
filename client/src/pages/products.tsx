@@ -5,7 +5,6 @@ import ProductFilters from "@/components/products/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/store/cart";
 import type { Product } from "@shared/schema";
-import { DynamicFooter } from "@/components/dynamic-footer";
 
 export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -60,8 +59,6 @@ export default function Products() {
             ))}
           </div>
         </div>
-        
-        <DynamicFooter />
       </div>
     );
   }
@@ -104,8 +101,7 @@ export default function Products() {
           </div>
         )}
       </div>
-      
-      <DynamicFooter />
+
     </div>
   );
 }

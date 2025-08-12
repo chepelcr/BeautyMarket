@@ -3,10 +3,16 @@ import { FaInstagram, FaWhatsapp, FaPhone } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
 export function DynamicFooter() {
   const { getContent } = useCmsContent();
+  
+  // Check if user is authenticated (admin)
+  const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
+    queryKey: ["/api/user"],
+    retry: false,
+  });
 
   const footerBg = getContent('contact', 'footerBackground');
   const companyName = getContent('contact', 'companyName') || 'Strawberry Essentials';
@@ -78,9 +84,24 @@ export function DynamicFooter() {
         </div>
         
         <div className="pt-4 border-t border-gray-700 dark:border-gray-800">
-          <p className="text-sm text-gray-400 dark:text-gray-500">
-            © {new Date().getFullYear()} {companyName}. Todos los derechos reservados.
-          </p>
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              © {new Date().getFullYear()} {companyName}. Todos los derechos reservados.
+            </p>
+            
+            {user && (
+              <Link href="/admin">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Panel Admin
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </footer>
