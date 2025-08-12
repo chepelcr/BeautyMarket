@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, insertOrderSchema, insertCategorySchema } from "@shared/schema";
+import { insertProductSchema, insertOrderSchema, insertCategorySchema, insertHomePageContentSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { setupAuth, isAuthenticated } from "./auth";
@@ -403,6 +403,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const districts = districtsByCantonKeyMap[districtsByCantonKey] || [];
     res.json(districts);
+  });
+
+  // Home Page Content Management API
+  app.get("/api/home-content", async (req, res) => {
+    try {
+      const content = await storage.getHomePageContent();
+      res.json(content);
+    } catch (error) {
+      console.error("Error getting home content:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.get("/api/home-content/:section", async (req, res) => {
+    try {
+      const content = await storage.getHomePageContentBySection(req.params.section);
+      res.json(content);
+    } catch (error) {
+      console.error("Error getting home content by section:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.post("/api/home-content", isAuthenticated, async (req, res) => {
+    try {
+      const contentSchema = insertHomePageContentSchema;
+      const validatedContent = contentSchema.parse(req.body);
+      const content = await storage.createHomePageContent(validatedContent);
+      res.status(201).json(content);
+    } catch (error) {
+      console.error("Error creating home content:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Datos inválidos", details: error.errors });
+      }
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.put("/api/home-content/:id", isAuthenticated, async (req, res) => {
+    try {
+      const content = await storage.updateHomePageContent(req.params.id, req.body);
+      if (!content) {
+        return res.status(404).json({ error: "Contenido no encontrado" });
+      }
+      res.json(content);
+    } catch (error) {
+      console.error("Error updating home content:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.post("/api/home-content/bulk", isAuthenticated, async (req, res) => {
+    try {
+      const contentList = req.body;
+      const results = await storage.bulkUpsertHomePageContent(contentList);
+      res.json(results);
+    } catch (error) {
+      console.error("Error bulk updating home content:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.delete("/api/home-content/:id", isAuthenticated, async (req, res) => {
+    try {
+      const success = await storage.deleteHomePageContent(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Contenido no encontrado" });
+      }
+      res.status(200).json({ message: "Contenido eliminado correctamente" });
+    } catch (error) {
+      console.error("Error deleting home content:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
   });
 
   const httpServer = createServer(app);

@@ -4,9 +4,11 @@ import { useCartStore } from "@/store/cart";
 import { useQuery } from "@tanstack/react-query";
 import type { Category } from "@shared/schema";
 import CategoryCard from "@/components/category-card";
+import { useCmsContent } from "@/hooks/use-cms-content";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
+  const { getContent, getSectionStyles, getButtonStyles } = useCmsContent();
 
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -19,7 +21,10 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-pink-light via-cream to-pink-soft dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+      <section 
+        className="relative overflow-hidden bg-gradient-to-br from-pink-light via-cream to-pink-soft dark:from-gray-900 dark:via-gray-800 dark:to-gray-700"
+        style={getSectionStyles('hero')}
+      >
         <div className="absolute inset-0">
           <svg viewBox="0 0 1440 800" className="absolute inset-0 w-full h-full">
             <path d="M0,400 Q360,300 720,400 T1440,400 L1440,800 L0,800 Z" fill="rgba(233, 30, 99, 0.05)" className="dark:fill-pink-primary/10"/>
@@ -32,19 +37,23 @@ export default function Home() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="font-serif text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                  Catálogo de
-                  <span className="text-pink-primary"> Productos</span>
+                  {getContent('hero', 'title', 'Strawberry Essentials')}
+                  <span className="text-pink-primary block">
+                    {getContent('hero', 'subtitle', 'Tu belleza natural, potenciada')}
+                  </span>
                 </h1>
                 <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                  Descubre nuestra colección de productos de belleza cuidadosamente seleccionados. 
-                  Maquillaje, skincare y accesorios para realzar tu belleza natural.
+                  {getContent('hero', 'description', 'Descubre nuestra colección de productos de belleza cuidadosamente seleccionados para realzar tu belleza natural. Calidad premium, resultados visibles.')}
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/products">
-                  <Button className="bg-pink-primary hover:bg-pink-600 text-white px-8 py-4 h-auto font-medium">
-                    Ver Productos
+                  <Button 
+                    className="text-white px-8 py-4 h-auto font-medium hover:opacity-90 transition-opacity"
+                    style={getButtonStyles('hero')}
+                  >
+                    {getContent('hero', 'cta_text', 'Ver Productos')}
                   </Button>
                 </Link>
                 <Button 
@@ -97,11 +106,18 @@ export default function Home() {
         </div>
       </section>
       {/* Category Showcase */}
-      <section className="py-20 bg-white dark:bg-gray-900 relative">
+      <section 
+        className="py-20 bg-white dark:bg-gray-900 relative"
+        style={getSectionStyles('categories')}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">Nueva Colección</h2>
-            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Explora nuestras categorías de productos cuidadosamente seleccionadas para tu rutina de belleza</p>
+            <h2 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              {getContent('categories', 'title', 'Nuestras Categorías')}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              {getContent('categories', 'description', 'Explora nuestra amplia gama de productos organizados por categorías')}
+            </p>
           </div>
           
           {isLoading ? (
@@ -175,7 +191,9 @@ export default function Home() {
               <div className="flex-shrink-0 w-12 h-12 bg-pink-primary text-white rounded-full flex items-center justify-center font-bold text-lg">3</div>
               <div>
                 <h3 className="font-serif text-xl font-semibold text-gray-900 dark:text-white mb-2">Realiza tu pedido por mensaje</h3>
-                <p className="text-gray-600 dark:text-gray-300">Envíanos tu pedido a nuestro Instagram @strawberry.essentials o al teléfono 73676745 para coordinar el monto</p>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Envíanos tu pedido a nuestro Instagram {getContent('contact', 'instagram', '@strawberry.essentials')} o al teléfono {getContent('contact', 'phone', '73676745')} para coordinar el monto
+                </p>
               </div>
             </div>
             
@@ -183,7 +201,9 @@ export default function Home() {
               <div className="flex-shrink-0 w-12 h-12 bg-pink-primary text-white rounded-full flex items-center justify-center font-bold text-lg">4</div>
               <div>
                 <h3 className="font-serif text-xl font-semibold text-gray-900 dark:text-white mb-2">Realiza tu pago</h3>
-                <p className="text-gray-600 dark:text-gray-300">Puedes pagar por SINPE Móvil o en efectivo</p>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Puedes pagar por {getContent('contact', 'payment_methods', 'SINPE Móvil o efectivo')}
+                </p>
               </div>
             </div>
             

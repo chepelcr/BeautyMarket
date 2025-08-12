@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import ProductForm from "@/components/admin/product-form";
 import CategoriesManager from "@/components/admin/categories-manager";
+import { CmsManager } from "@/components/admin/cms-manager";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@shared/schema";
@@ -19,7 +20,7 @@ import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
 export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'content'>('products');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const { toast } = useToast();
@@ -188,6 +189,17 @@ export default function Admin() {
                 <i className="fas fa-tags mr-2"></i>
                 Categorías
               </button>
+              <button
+                onClick={() => setActiveTab('content')}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === 'content'
+                    ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <i className="fas fa-edit mr-2"></i>
+                Contenido
+              </button>
             </div>
 
             {activeTab === 'products' && (
@@ -316,6 +328,10 @@ export default function Admin() {
 
             {activeTab === 'categories' && (
               <CategoriesManager />
+            )}
+
+            {activeTab === 'content' && (
+              <CmsManager />
             )}
           </div>
         </div>

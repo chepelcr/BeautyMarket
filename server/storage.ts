@@ -1,7 +1,7 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type Category, type InsertCategory, users, products as productsTable, orders as ordersTable, categoriesTable } from "@shared/schema";
+import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // Products
@@ -30,6 +30,15 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User>;
+  
+  // Home Page Content Management
+  getHomePageContent(): Promise<HomePageContent[]>;
+  getHomePageContentBySection(section: string): Promise<HomePageContent[]>;
+  getHomePageContentByKey(section: string, key: string): Promise<HomePageContent | undefined>;
+  createHomePageContent(content: InsertHomePageContent): Promise<HomePageContent>;
+  updateHomePageContent(id: string, content: Partial<InsertHomePageContent>): Promise<HomePageContent | undefined>;
+  deleteHomePageContent(id: string): Promise<boolean>;
+  bulkUpsertHomePageContent(contentList: InsertHomePageContent[]): Promise<HomePageContent[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -335,6 +344,82 @@ export class DatabaseStorage implements IStorage {
       .where(eq(ordersTable.id, id))
       .returning();
     return updatedOrder || undefined;
+  }
+
+  // User operations (required for local auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .returning();
+    return user;
+  }
+
+  // Home Page Content Management
+  async getHomePageContent(): Promise<HomePageContent[]> {
+    return await db.select().from(homePageContent).orderBy(homePageContent.section, homePageContent.sortOrder);
+  }
+
+  async getHomePageContentBySection(section: string): Promise<HomePageContent[]> {
+    return await db.select().from(homePageContent)
+      .where(eq(homePageContent.section, section))
+      .orderBy(homePageContent.sortOrder);
+  }
+
+  async getHomePageContentByKey(section: string, key: string): Promise<HomePageContent | undefined> {
+    const [content] = await db.select().from(homePageContent)
+      .where(and(eq(homePageContent.section, section), eq(homePageContent.key, key)))
+      .limit(1);
+    return content;
+  }
+
+  async createHomePageContent(content: InsertHomePageContent): Promise<HomePageContent> {
+    const [newContent] = await db
+      .insert(homePageContent)
+      .values(content)
+      .returning();
+    return newContent;
+  }
+
+  async updateHomePageContent(id: string, content: Partial<InsertHomePageContent>): Promise<HomePageContent | undefined> {
+    const [updatedContent] = await db
+      .update(homePageContent)
+      .set({ ...content, updatedAt: new Date() })
+      .where(eq(homePageContent.id, id))
+      .returning();
+    return updatedContent;
+  }
+
+  async deleteHomePageContent(id: string): Promise<boolean> {
+    const result = await db
+      .delete(homePageContent)
+      .where(eq(homePageContent.id, id));
+    return result.rowCount > 0;
+  }
+
+  async bulkUpsertHomePageContent(contentList: InsertHomePageContent[]): Promise<HomePageContent[]> {
+    const results: HomePageContent[] = [];
+    for (const content of contentList) {
+      const existing = await this.getHomePageContentByKey(content.section, content.key);
+      if (existing) {
+        const updated = await this.updateHomePageContent(existing.id, content);
+        if (updated) results.push(updated);
+      } else {
+        const created = await this.createHomePageContent(content);
+        results.push(created);
+      }
+    }
+    return results;
   }
 }
 
