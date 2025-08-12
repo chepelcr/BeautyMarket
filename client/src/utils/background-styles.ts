@@ -43,9 +43,15 @@ export function generateBackgroundStyle(bgValue: string, isDark: boolean = false
         const color = isDark 
           ? (bgData.darkValue || bgData.value || '#000000') 
           : (bgData.lightValue || bgData.value || '#ffffff');
-        return { backgroundColor: color };
+        return { 
+          backgroundColor: `${color} !important`,
+          '--bg-color': color
+        };
       }
-      return { backgroundColor: bgData.value };
+      return { 
+        backgroundColor: `${bgData.value} !important`,
+        '--bg-color': bgData.value
+      };
       
     case 'gradient':
       if (!bgData.gradient) return {};
