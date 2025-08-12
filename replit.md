@@ -29,6 +29,10 @@ Preferred communication style: Simple, everyday language.
 - **✅ CMS Sidebar Options**: Added 8 comprehensive sidebar customization options to admin panel
 - **✅ AWS SDK v3 Migration**: Migrated from AWS SDK v2 to v3 for better performance and security
 - **✅ Auth Bug Fix**: Resolved login error with updateUser method implementation
+- **✅ S3 ACL Fix**: Removed ACL settings from S3 deployment to support modern bucket configurations
+- **✅ Deployment History**: Complete deployment tracking system with database storage and history page
+- **✅ ES Module Migration**: Converted build scripts from CommonJS to ES modules for deployment compatibility
+- **✅ Responsive Button Layout**: Fixed CMS button layout for proper tablet and mobile display
 
 # System Architecture
 

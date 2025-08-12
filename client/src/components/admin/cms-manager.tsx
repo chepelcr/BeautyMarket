@@ -385,12 +385,12 @@ export function CmsManager() {
             Edita todos los textos, colores y contenido de la página principal
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:flex-wrap lg:flex-nowrap">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:flex sm:flex-row sm:flex-wrap lg:flex-nowrap">
           <Button
             onClick={() => setShowPreview(true)}
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto min-w-0 flex-shrink-0"
+            className="w-full sm:flex-1 lg:w-auto"
           >
             <Eye className="w-4 h-4 mr-1 sm:mr-2" />
             <span className="hidden md:inline">Vista Previa</span>
@@ -401,7 +401,7 @@ export function CmsManager() {
             variant="outline"
             size="sm"
             disabled={!hasChanges}
-            className="w-full sm:w-auto min-w-0 flex-shrink-0"
+            className="w-full sm:flex-1 lg:w-auto"
           >
             <RotateCcw className="w-4 h-4 mr-1 sm:mr-2" />
             <span className="hidden md:inline">Descartar</span>
@@ -411,7 +411,7 @@ export function CmsManager() {
             onClick={handleSave}
             disabled={!hasChanges || updateMutation.isPending}
             size="sm"
-            className="w-full sm:w-auto min-w-0 flex-shrink-0"
+            className="w-full sm:flex-1 lg:w-auto"
           >
             {updateMutation.isPending ? (
               <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
@@ -421,12 +421,12 @@ export function CmsManager() {
             <span className="hidden md:inline">Guardar Cambios</span>
             <span className="md:hidden">Guardar</span>
           </Button>
-          <DeployButton disabled={hasChanges} className="w-full sm:w-auto min-w-0 flex-shrink-0" />
-          <Link href="/admin/deployments" className="w-full sm:w-auto">
+          <DeployButton disabled={hasChanges} className="w-full sm:flex-1 lg:w-auto" />
+          <Link href="/admin/deployments" className="w-full sm:flex-1 lg:w-auto">
             <Button
               variant="outline"
               size="sm"
-              className="w-full min-w-0 flex-shrink-0"
+              className="w-full h-full"
             >
               <History className="w-4 h-4 mr-1 sm:mr-2" />
               <span className="hidden md:inline">Historial</span>
