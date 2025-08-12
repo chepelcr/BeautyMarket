@@ -162,13 +162,7 @@ export async function authenticateServerless(req: AuthenticatedRequest, res: Res
       ? authHeader.substring(7) 
       : req.cookies?.auth_token;
 
-    console.log('Auth Debug:', {
-      path: req.path,
-      hasAuthHeader: !!authHeader,
-      hasCookies: !!req.cookies,
-      cookieKeys: req.cookies ? Object.keys(req.cookies) : [],
-      hasToken: !!token
-    });
+
 
     if (!token) {
       return res.status(401).json({ 

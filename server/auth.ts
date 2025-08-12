@@ -42,7 +42,19 @@ export function setupAuth(app: Express) {
   };
 
   app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
+  
+  // Only use session middleware for specific routes to avoid conflicts
+  const sessionMiddleware = session(sessionSettings);
+  app.use((req, res, next) => {
+    // Skip session for serverless auth routes that use JWT
+    if (req.path.includes('/api/home-content') || 
+        req.path.includes('/api/deploy') || 
+        req.path.includes('/api/objects')) {
+      return next();
+    }
+    return sessionMiddleware(req, res, next);
+  });
+  
   app.use(passport.initialize());
   app.use(passport.session());
 
