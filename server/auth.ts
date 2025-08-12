@@ -4,6 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+import { generateToken } from "./middleware/auth";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
@@ -112,7 +113,30 @@ export function setupAuth(app: Express) {
         if (err) {
           return res.status(500).json({ message: "Internal server error" });
         }
-        res.json({ id: user.id, username: user.username, email: user.email, role: user.role });
+        
+        // Generate JWT token
+        const token = generateToken({
+          id: user.id,
+          username: user.username,
+          email: user.email || '',
+          role: user.role,
+        });
+
+        // Set secure HTTP-only cookie
+        res.cookie('auth_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        });
+
+        res.json({ 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          role: user.role,
+          token // Also return token for Bearer auth
+        });
       });
     })(req, res, next);
   });
@@ -121,6 +145,8 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
+      // Clear the JWT token cookie
+      res.clearCookie('auth_token');
       res.json({ message: "Logged out successfully" });
     });
   });

@@ -7,8 +7,19 @@ import { ObjectStorageService } from "./objectStorage";
 import { setupAuth, isAuthenticated } from "./auth";
 import { handlePresignedUpload } from "./s3-upload";
 import { triggerAutoDeployment, getDeploymentStatus } from "./deployment";
+import { 
+  authenticate, 
+  requireAdmin, 
+  requireApiKey, 
+  rateLimit, 
+  requestLogger,
+  AuthenticatedRequest
+} from "./middleware/auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Security middleware
+  app.use(requestLogger);
+  app.use(rateLimit(1000, 15 * 60 * 1000)); // 1000 requests per 15 minutes
   
   // Auth middleware setup
   setupAuth(app);
@@ -60,10 +71,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AWS S3 Upload endpoint (protected - admin only)
-  app.post("/api/upload/presigned", isAuthenticated, handlePresignedUpload);
+  app.post("/api/upload/presigned", authenticate, requireAdmin, handlePresignedUpload);
 
   // Auto-deployment endpoints (protected - admin only)
-  app.post("/api/deploy", isAuthenticated, async (req, res) => {
+  app.post("/api/deploy", authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {
       const result = await triggerAutoDeployment();
       res.json(result);
@@ -76,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/deploy/status", isAuthenticated, async (req, res) => {
+  app.get("/api/deploy/status", authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {
       const status = await getDeploymentStatus();
       res.json(status);
@@ -98,8 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Products API
-  app.get("/api/products", async (req, res) => {
+  // Products API (protected with API key for public access)
+  app.get("/api/products", requireApiKey, async (req, res) => {
     try {
       const { category } = req.query;
       let products;
@@ -117,8 +128,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Categories CRUD operations
-  app.get("/api/categories", async (req, res) => {
+  // Categories API (protected with API key for public access)
+  app.get("/api/categories", requireApiKey, async (req, res) => {
     try {
       const categories = await storage.getCategories();
       res.json(categories);
@@ -141,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/categories", isAuthenticated, async (req, res) => {
+  app.post("/api/categories", authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {
       const categoryData = insertCategorySchema.parse(req.body);
 
