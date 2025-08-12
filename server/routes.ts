@@ -479,7 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/home-content", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/home-content", isAuthenticated, async (req, res) => {
     try {
       const contentSchema = insertHomePageContentSchema;
       const validatedContent = contentSchema.parse(req.body);
@@ -494,7 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/home-content/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+  app.put("/api/home-content/:id", isAuthenticated, async (req, res) => {
     try {
       const content = await storage.updateHomePageContent(req.params.id, req.body);
       if (!content) {
@@ -507,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/home-content/bulk", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/home-content/bulk", isAuthenticated, async (req, res) => {
     try {
       const contentList = req.body;
       const results = await storage.bulkUpsertHomePageContent(contentList);
@@ -518,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/home-content/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+  app.delete("/api/home-content/:id", isAuthenticated, async (req, res) => {
     try {
       const success = await storage.deleteHomePageContent(req.params.id);
       if (!success) {
