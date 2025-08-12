@@ -89,18 +89,16 @@ export function DynamicFooter() {
               © {new Date().getFullYear()} {companyName}. Todos los derechos reservados.
             </p>
             
-            {user && (
-              <Link href="/admin">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Panel Admin
-                </Button>
-              </Link>
-            )}
+            <Link href="/admin">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
