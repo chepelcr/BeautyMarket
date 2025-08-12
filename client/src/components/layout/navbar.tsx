@@ -2,18 +2,37 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { items, toggleCart } = useCartStore();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  const navItems = [
+  const baseNavItems = [
     { href: "/", label: "Inicio", id: "home" },
     { href: "/products", label: "Productos", id: "productos" },
   ];
+
+  // Add admin link if user is authenticated
+  const navItems = isAuthenticated 
+    ? [...baseNavItems, { href: "/admin", label: "Admin", id: "admin" }]
+    : baseNavItems;
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/logout");
+      queryClient.setQueryData(["/api/user"], null);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-40">
@@ -44,8 +63,25 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Cart & Mobile Menu */}
+          {/* Auth Section, Cart & Mobile Menu */}
           <div className="flex items-center space-x-4">
+            {/* User greeting and logout for authenticated users */}
+            {isAuthenticated && user && (
+              <div className="hidden md:flex items-center space-x-3 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full">
+                <span className="text-white text-sm font-medium">
+                  Hola, {(user as any).username}
+                </span>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="border-white text-white bg-transparent hover:bg-white hover:text-pink-primary text-xs px-3 py-1 h-7"
+                >
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
+
             <Button
               variant="ghost"
               size="sm"
@@ -87,6 +123,26 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              
+              {/* Mobile auth section */}
+              {isAuthenticated && user && (
+                <div className="pt-4 border-t border-gray-200 space-y-3">
+                  <div className="text-gray-700 text-sm">
+                    Hola, {(user as any).username}
+                  </div>
+                  <Button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Cerrar Sesión
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
