@@ -8,6 +8,15 @@ This is a full-stack e-commerce application for "Strawberry Essentials," a beaut
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes (August 12, 2025)
+
+- **✅ AWS S3 Integration**: Implemented complete S3 integration for image uploads
+- **✅ CMS Image Upload**: Replaced URL input fields with S3-powered image upload components
+- **✅ Background Settings Fix**: Converted "color" type fields to "background" type fields for advanced styling
+- **✅ Preview Modal Fix**: Resolved redirect errors in CMS preview modal
+- **✅ Deployment Target**: Changed from GitHub Pages to AWS S3 bucket hosting
+- **✅ Upload Endpoints**: Added S3 presigned URL generation and file management
+
 # System Architecture
 
 ## Frontend Architecture
@@ -63,8 +72,9 @@ The application currently implements a basic admin interface without complex aut
 - **Type Safety**: Full TypeScript support across frontend, backend, and shared schemas
 - **Database Migrations**: Drizzle Kit for database schema management
 - **Environment**: Replit-optimized with specific plugins and configurations
-- **Static Deployment**: GitHub Pages compatible with automatic environment detection
+- **Image Storage**: AWS S3 integration for file uploads and management
 - **Deployment Options**: 
-  - Dynamic: Replit with full backend functionality
-  - Static: GitHub Pages with client-side data management
-  - GitHub Actions workflow for automatic deployment
+  - Primary: AWS S3 static hosting with S3 image storage (`npm run deploy`)
+  - Alternative: GitHub Pages with client-side data management (`npm run deploy:github`)
+  - Dynamic: Replit with full backend functionality for development
+- **AWS S3 Integration**: Direct image uploads to S3 with presigned URLs and comprehensive ACL system

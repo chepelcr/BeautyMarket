@@ -292,16 +292,15 @@ export function CmsManager() {
               } else if (bgData.type === 'image') {
                 return (
                   <div className="space-y-3">
-                    <Input
-                      type="text"
+                    <ImageUpload
                       value={bgData.image?.url || ''}
-                      onChange={(e) => {
+                      onChange={(url) => {
                         bgData.image = bgData.image || {};
-                        bgData.image.url = e.target.value;
+                        bgData.image.url = url;
                         handleInputChange(section, item.key, JSON.stringify(bgData));
                       }}
-                      placeholder="URL de la imagen"
-                      className="w-full"
+                      label="Imagen de fondo"
+                      folder={`${section}-backgrounds`}
                     />
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Transparencia: {Math.round((bgData.image?.opacity || 1) * 100)}%</Label>
