@@ -16,6 +16,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [, navigate] = useLocation();
@@ -194,16 +195,44 @@ export default function Admin() {
           
           {/* Admin Content */}
           <div className="p-8">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="font-serif text-2xl font-semibold text-gray-900">Gestión de Productos</h2>
-              <Button 
-                onClick={() => setShowProductForm(true)}
-                className="bg-pink-primary hover:bg-pink-600 text-white"
+            {/* Tabs */}
+            <div className="flex space-x-1 mb-8 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === 'products'
+                    ? 'bg-white text-pink-primary shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
               >
-                <i className="fas fa-plus mr-2"></i>
-                Agregar Producto
-              </Button>
+                <i className="fas fa-box mr-2"></i>
+                Productos
+              </button>
+              <button
+                onClick={() => setActiveTab('categories')}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === 'categories'
+                    ? 'bg-white text-pink-primary shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <i className="fas fa-tags mr-2"></i>
+                Categorías
+              </button>
             </div>
+
+            {activeTab === 'products' && (
+              <>
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="font-serif text-2xl font-semibold text-gray-900">Gestión de Productos</h2>
+                  <Button 
+                    onClick={() => setShowProductForm(true)}
+                    className="bg-pink-primary hover:bg-pink-600 text-white"
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Agregar Producto
+                  </Button>
+                </div>
             
             {/* Products Table */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -320,6 +349,28 @@ export default function Admin() {
                 </div>
               )}
             </div>
+            </>
+            )}
+
+            {activeTab === 'categories' && (
+              <div>
+                <h2 className="font-serif text-2xl font-semibold text-gray-900 mb-6">Gestión de Categorías</h2>
+                <p className="text-gray-600 mb-8">Administra las categorías de productos y personaliza su apariencia</p>
+                
+                <div className="bg-gray-100 rounded-xl p-8 text-center">
+                  <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-tags text-pink-primary text-2xl"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Sistema de Categorías Dinámicas</h3>
+                  <p className="text-gray-600 mb-4">
+                    Las categorías ahora son administrables desde la base de datos con colores personalizables y dos imágenes por categoría.
+                  </p>
+                  <div className="text-sm text-gray-500">
+                    En desarrollo... 🚧
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

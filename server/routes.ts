@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, insertOrderSchema, categories } from "@shared/schema";
+import { insertProductSchema, insertOrderSchema, insertCategorySchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 import { setupAuth, isAuthenticated } from "./auth";
@@ -88,11 +88,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Category-specific products route - must come before /:id route
-  app.get("/api/products/:category(maquillaje|skincare|accesorios)", async (req, res) => {
+  // Categories CRUD operations
+  app.get("/api/categories", async (req, res) => {
     try {
-      const category = req.params.category;
-      const products = await storage.getProductsByCategory(category);
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.get("/api/categories/:id", async (req, res) => {
+    try {
+      const category = await storage.getCategoryById(req.params.id);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error fetching category:", error);
+      res.status(500).json({ error: "Failed to fetch category" });
+    }
+  });
+
+  app.post("/api/categories", isAuthenticated, async (req, res) => {
+    try {
+      const categoryData = insertCategorySchema.parse(req.body);
+
+      // Handle image URLs if they are uploaded files
+      const objectStorageService = new ObjectStorageService();
+      if (categoryData.image1Url) {
+        categoryData.image1Url = objectStorageService.normalizeObjectEntityPath(categoryData.image1Url);
+      }
+      if (categoryData.image2Url) {
+        categoryData.image2Url = objectStorageService.normalizeObjectEntityPath(categoryData.image2Url);
+      }
+
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      console.error("Error creating category:", error);
+      res.status(500).json({ error: "Failed to create category" });
+    }
+  });
+
+  app.put("/api/categories/:id", isAuthenticated, async (req, res) => {
+    try {
+      const updates = insertCategorySchema.partial().parse(req.body);
+
+      // Handle image URLs if they are uploaded files
+      const objectStorageService = new ObjectStorageService();
+      if (updates.image1Url) {
+        updates.image1Url = objectStorageService.normalizeObjectEntityPath(updates.image1Url);
+      }
+      if (updates.image2Url) {
+        updates.image2Url = objectStorageService.normalizeObjectEntityPath(updates.image2Url);
+      }
+
+      const category = await storage.updateCategory(req.params.id, updates);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation error", details: error.errors });
+      }
+      console.error("Error updating category:", error);
+      res.status(500).json({ error: "Failed to update category" });
+    }
+  });
+
+  app.delete("/api/categories/:id", isAuthenticated, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCategory(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ error: "Failed to delete category" });
+    }
+  });
+
+  // Category-specific products route
+  app.get("/api/categories/:slug/products", async (req, res) => {
+    try {
+      const category = await storage.getCategoryBySlug(req.params.slug);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      const products = await storage.getProductsByCategory(category.slug);
       res.json(products);
     } catch (error) {
       console.error("Error fetching products by category:", error);
@@ -117,10 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const productData = insertProductSchema.parse(req.body);
       
-      // Validate category
-      if (!categories.includes(productData.category as any)) {
-        return res.status(400).json({ error: "Invalid category" });
-      }
+      // Category validation will be done against the database categories
 
       // Handle image URL if it's an uploaded file
       if (productData.imageUrl) {
@@ -143,10 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const updates = insertProductSchema.partial().parse(req.body);
       
-      // Validate category if provided
-      if (updates.category && !categories.includes(updates.category as any)) {
-        return res.status(400).json({ error: "Invalid category" });
-      }
+      // Category validation will be done against the database categories
 
       // Handle image URL if it's an uploaded file
       if (updates.imageUrl) {

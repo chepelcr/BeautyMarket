@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useCartStore } from "@/store/cart";
+import { useQuery } from "@tanstack/react-query";
+import type { Category } from "@shared/schema";
+import CategoryCard from "@/components/category-card";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
+
+  const { data: categories = [], isLoading } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
@@ -97,109 +104,39 @@ export default function Home() {
             <p className="text-gray-600 max-w-2xl mx-auto">Explora nuestras categorías de productos cuidadosamente seleccionadas para tu rutina de belleza</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Maquillaje Category */}
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-light to-pink-soft p-8 hover:scale-105 transition-transform duration-300">
-              <div className="absolute top-4 right-4 w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <i className="fas fa-palette text-pink-primary text-xl"></i>
-              </div>
-              
-              <div className="space-y-4 mb-6">
-                <h3 className="font-serif text-2xl font-semibold text-gray-900">Maquillaje</h3>
-                <p className="text-gray-600">Labiales, correctores y productos para resaltar tu belleza natural</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mb-6">
-                <img 
-                  src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120" 
-                  alt="Colorful lipstick collection" 
-                  className="rounded-lg w-full h-20 object-cover" 
-                />
-                <img 
-                  src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120" 
-                  alt="Makeup brushes and tools" 
-                  className="rounded-lg w-full h-20 object-cover" 
-                />
-              </div>
-              
-              <Link href="/products">
-                <Button 
-                  className="w-full bg-pink-primary text-white hover:bg-pink-600"
-                  onClick={() => handleCategoryClick("maquillaje")}
-                >
-                  Ver Productos
-                </Button>
-              </Link>
+          {isLoading ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-3xl bg-gray-200 p-8 h-80 animate-pulse">
+                  <div className="h-6 bg-gray-300 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-6"></div>
+                  <div className="grid grid-cols-2 gap-2 mb-6">
+                    <div className="h-20 bg-gray-300 rounded-lg"></div>
+                    <div className="h-20 bg-gray-300 rounded-lg"></div>
+                  </div>
+                  <div className="h-10 bg-gray-300 rounded"></div>
+                </div>
+              ))}
             </div>
-            
-            {/* Skincare Category */}
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-50 to-blue-50 p-8 hover:scale-105 transition-transform duration-300">
-              <div className="absolute top-4 right-4 w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <i className="fas fa-seedling text-green-600 text-xl"></i>
-              </div>
-              
-              <div className="space-y-4 mb-6">
-                <h3 className="font-serif text-2xl font-semibold text-gray-900">Cuidado de la Piel</h3>
-                <p className="text-gray-600">Serums, mascarillas y productos para el cuidado facial</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mb-6">
-                <img 
-                  src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120" 
-                  alt="Natural skincare products" 
-                  className="rounded-lg w-full h-20 object-cover" 
-                />
-                <img 
-                  src="https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120" 
-                  alt="Face masks and serums" 
-                  className="rounded-lg w-full h-20 object-cover" 
-                />
-              </div>
-              
-              <Link href="/products">
-                <Button 
-                  className="w-full bg-green-600 text-white hover:bg-green-700"
-                  onClick={() => handleCategoryClick("skincare")}
-                >
-                  Ver Productos
-                </Button>
-              </Link>
+          ) : categories.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {categories.map((category) => (
+                <CategoryCard key={category.id} category={category} />
+              ))}
             </div>
-            
-            {/* Accesorios Category */}
-            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-50 to-pink-50 p-8 hover:scale-105 transition-transform duration-300">
-              <div className="absolute top-4 right-4 w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <i className="fas fa-gem text-purple-600 text-xl"></i>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i className="fas fa-tags text-gray-400 text-2xl"></i>
               </div>
-              
-              <div className="space-y-4 mb-6">
-                <h3 className="font-serif text-2xl font-semibold text-gray-900">Accesorios</h3>
-                <p className="text-gray-600">Herramientas, brochas y accesorios de belleza</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mb-6">
-                <img 
-                  src="https://images.unsplash.com/photo-1512496015851-a90fb38ba796?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120" 
-                  alt="Professional makeup brushes" 
-                  className="rounded-lg w-full h-20 object-cover" 
-                />
-                <img 
-                  src="https://images.unsplash.com/photo-1596755389378-c31d21fd1273?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120" 
-                  alt="Beauty tools and accessories" 
-                  className="rounded-lg w-full h-20 object-cover" 
-                />
-              </div>
-              
-              <Link href="/products">
-                <Button 
-                  className="w-full bg-purple-600 text-white hover:bg-purple-700"
-                  onClick={() => handleCategoryClick("accesorios")}
-                >
-                  Ver Productos
-                </Button>
-              </Link>
+              <h3 className="font-serif text-lg font-semibold text-gray-900 mb-2">
+                No hay categorías disponibles
+              </h3>
+              <p className="text-gray-600">
+                Las categorías se están configurando. Vuelve pronto.
+              </p>
             </div>
-          </div>
+          )}
         </div>
       </section>
       {/* How to Buy Section */}

@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import { insertProductSchema, categories, type Product, type InsertProduct } from "@shared/schema";
+import { insertProductSchema, validCategories, type Product, type InsertProduct } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { UploadResult } from "@uppy/core";
@@ -186,7 +186,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {categories.map((category) => (
+                  {validCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {getCategoryLabel(category)}
                     </SelectItem>

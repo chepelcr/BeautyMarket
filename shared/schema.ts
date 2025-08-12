@@ -54,6 +54,22 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Categories table for dynamic category management
+export const categoriesTable = pgTable("categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: varchar("slug", { length: 50 }).unique().notNull(),
+  description: text("description").notNull(),
+  backgroundColor: varchar("background_color", { length: 7 }).notNull(), // Hex color
+  buttonColor: varchar("button_color", { length: 7 }).notNull(), // Hex color
+  image1Url: text("image1_url"), // First image for the card
+  image2Url: text("image2_url"), // Second image for the card
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+});
+
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
@@ -65,17 +81,25 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
   createdAt: true,
 });
 
+export const insertCategorySchema = createInsertSchema(categoriesTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type Category = typeof categoriesTable.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
-// Category enum for validation
-export const categories = ["maquillaje", "skincare", "accesorios"] as const;
-export type Category = typeof categories[number];
+// Legacy category validation for backward compatibility
+export const validCategories = ["maquillaje", "skincare", "accesorios"] as const;
+export type ValidCategory = typeof validCategories[number];
 
 // Delivery method enum
 export const deliveryMethods = ["correos", "uber-flash", "personal"] as const;
