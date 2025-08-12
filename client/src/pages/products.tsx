@@ -5,11 +5,15 @@ import ProductFilters from "@/components/products/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/store/cart";
 import type { Product } from "@shared/schema";
+import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const activeCategory = useCartStore((state) => state.activeCategory);
   const clearActiveCategory = useCartStore((state) => state.clearActiveCategory);
+  
+  // Set dynamic page title
+  useDynamicTitle("Productos");
 
   // Set initial category from store if available
   useEffect(() => {

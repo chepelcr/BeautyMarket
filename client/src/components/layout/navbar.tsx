@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
+import { useQuery } from "@tanstack/react-query";
+import { HomePageContent } from "@shared/schema";
 import strawberryLogo from "@assets/image_1755019713048.png";
 
 export default function Navbar() {
@@ -15,6 +17,16 @@ export default function Navbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Load dynamic site content
+  const { data: homeContent } = useQuery<HomePageContent[]>({
+    queryKey: ["/api/home-content"],
+  });
+
+  // Get dynamic site title and logo
+  const siteContent = homeContent?.filter(item => item.section === 'site') || [];
+  const siteTitle = siteContent.find(item => item.key === 'title')?.value || 'Strawberry Essentials';
+  const siteLogo = siteContent.find(item => item.key === 'logo')?.value || strawberryLogo;
 
   const baseNavItems = [
     { href: "/", label: "Inicio", id: "home" },
@@ -44,13 +56,13 @@ export default function Navbar() {
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full overflow-hidden">
               <img 
-                src={strawberryLogo} 
-                alt="Strawberry Essentials Logo"
+                src={siteLogo} 
+                alt={`${siteTitle} Logo`}
                 className="w-full h-full object-cover"
               />
             </div>
             <span className="font-serif text-xl font-semibold text-gray-900 dark:text-white">
-              Strawberry Essentials
+              {siteTitle}
             </span>
           </Link>
 

@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
+import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
@@ -27,6 +28,9 @@ export default function Admin() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
   const [, navigate] = useLocation();
+
+  // Set dynamic page title
+  useDynamicTitle("Administración");
 
   // Redirect to login if not authenticated
   useEffect(() => {

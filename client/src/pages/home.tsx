@@ -5,10 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import type { Category } from "@shared/schema";
 import CategoryCard from "@/components/category-card";
 import { useCmsContent } from "@/hooks/use-cms-content";
+import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
   const { getContent, getSectionStyles, getButtonStyles } = useCmsContent();
+  
+  // Set dynamic page title
+  useDynamicTitle();
 
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
