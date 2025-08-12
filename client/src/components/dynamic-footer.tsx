@@ -1,4 +1,9 @@
 import { useCmsContent } from "@/hooks/use-cms-content";
+import { FaInstagram, FaWhatsapp, FaPhone } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 export function DynamicFooter() {
   const { getContent } = useCmsContent();
