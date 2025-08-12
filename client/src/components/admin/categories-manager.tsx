@@ -99,7 +99,7 @@ export default function CategoriesManager() {
             className="overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-pink-primary dark:hover:border-pink-400 cursor-pointer transition-all duration-300 hover:shadow-lg"
             onClick={handleCreateCategory}
           >
-            <CardContent className="p-8 text-center">
+            <CardContent className="flex items-center justify-center min-h-[280px] p-8 text-center">
               <div className="space-y-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900 dark:to-pink-800 rounded-full flex items-center justify-center mx-auto">
                   <i className="fas fa-plus text-pink-primary dark:text-pink-400 text-2xl"></i>
