@@ -10,7 +10,7 @@ const sesClient = new SESClient({
 });
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5000';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://d1taomm62uzhjk.cloudfront.net';
 
 export interface EmailTemplate {
   to: string;
