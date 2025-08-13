@@ -377,8 +377,17 @@ export class DatabaseStorage implements IStorage {
     return product || undefined;
   }
 
-  async getProductsByCategory(category: string): Promise<Product[]> {
-    return await db.select().from(productsTable).where(eq(productsTable.category, category));
+  async getProductsByCategory(categorySlugOrName: string): Promise<Product[]> {
+    // First, try to find the category by slug to get the proper name
+    const categoryRecord = await db.select()
+      .from(categoriesTable)
+      .where(eq(categoriesTable.slug, categorySlugOrName))
+      .limit(1);
+    
+    // If found by slug, use the category name; otherwise use the input as-is
+    const categoryName = categoryRecord[0]?.name || categorySlugOrName;
+    
+    return await db.select().from(productsTable).where(eq(productsTable.category, categoryName));
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {

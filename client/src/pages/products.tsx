@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import ProductCard from "@/components/products/product-card";
 import ProductFilters from "@/components/products/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +10,7 @@ import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 export default function Products() {
   const params = useParams();
+  const [location, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const activeCategory = useCartStore((state) => state.activeCategory);
   const clearActiveCategory = useCartStore((state) => state.clearActiveCategory);
@@ -27,14 +28,24 @@ export default function Products() {
     }
   }, [params.category, activeCategory, clearActiveCategory]);
 
+  // Handle category change with URL updates
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    if (category === "all") {
+      setLocation("/products");
+    } else {
+      setLocation(`/products/${category}`);
+    }
+  };
+
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["/api/products", selectedCategory],
     queryFn: async () => {
-      const params = new URLSearchParams();
+      const queryParams = new URLSearchParams();
       if (selectedCategory !== "all") {
-        params.append("category", selectedCategory);
+        queryParams.append("category", selectedCategory);
       }
-      const response = await fetch(`/api/products?${params}`);
+      const response = await fetch(`/api/products?${queryParams}`);
       if (!response.ok) throw new Error("Failed to fetch products");
       return response.json();
     }
@@ -80,7 +91,7 @@ export default function Products() {
           
           <ProductFilters 
             selectedCategory={selectedCategory} 
-            onCategoryChange={setSelectedCategory} 
+            onCategoryChange={handleCategoryChange} 
           />
         </div>
         
