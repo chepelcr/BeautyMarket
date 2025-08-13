@@ -122,6 +122,50 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Category = typeof categoriesTable.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
+// Costa Rican Location Management Schema
+export const provinces = pgTable("provinces", {
+  id: integer("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const cantons = pgTable("cantons", {
+  id: integer("id").primaryKey(),
+  provinceId: integer("province_id").notNull().references(() => provinces.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 100 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const districts = pgTable("districts", {
+  id: integer("id").primaryKey(),
+  provinceId: integer("province_id").notNull().references(() => provinces.id, { onDelete: "cascade" }),
+  cantonId: integer("canton_id").notNull().references(() => cantons.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 100 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertProvinceSchema = createInsertSchema(provinces).omit({
+  createdAt: true,
+});
+
+export const insertCantonSchema = createInsertSchema(cantons).omit({
+  createdAt: true,
+});
+
+export const insertDistrictSchema = createInsertSchema(districts).omit({
+  createdAt: true,
+});
+
+export type Province = typeof provinces.$inferSelect;
+export type Canton = typeof cantons.$inferSelect;
+export type District = typeof districts.$inferSelect;
+export type InsertProvince = z.infer<typeof insertProvinceSchema>;
+export type InsertCanton = z.infer<typeof insertCantonSchema>;
+export type InsertDistrict = z.infer<typeof insertDistrictSchema>;
+
 // Home Page Content Management Schema
 export const homePageContent = pgTable("home_page_content", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
