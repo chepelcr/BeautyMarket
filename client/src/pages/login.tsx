@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,14 +12,19 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Mail } from "lucide-react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Email válido requerido"),
+});
+
 type LoginForm = z.infer<typeof loginSchema>;
+type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export default function Login() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,12 +32,20 @@ export default function Login() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
       password: "",
+    },
+  });
+
+  const forgotPasswordForm = useForm<ForgotPasswordForm>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -53,6 +67,28 @@ export default function Login() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (data: ForgotPasswordForm) => {
+      const response = await apiRequest("POST", "/api/auth/forgot-password", data);
+      return await response.json();
+    },
+    onSuccess: (result) => {
+      toast({
+        title: "Email enviado",
+        description: result.message || "Si existe una cuenta con ese email, se ha enviado un enlace de recuperación",
+      });
+      setShowForgotPassword(false);
+      forgotPasswordForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo enviar el email de recuperación",
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       navigate("/admin");
@@ -61,6 +97,10 @@ export default function Login() {
 
   const onSubmit = (data: LoginForm) => {
     loginMutation.mutate(data);
+  };
+
+  const onForgotPasswordSubmit = (data: ForgotPasswordForm) => {
+    forgotPasswordMutation.mutate(data);
   };
 
   if (isLoading) {
@@ -149,10 +189,73 @@ export default function Login() {
             </form>
           </Form>
           
-          <div className="text-center">
-            <a href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-              ← Volver al sitio principal
-            </a>
+          <div className="text-center space-y-2">
+            <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+              <DialogTrigger asChild>
+                <Button variant="link" className="text-sm text-pink-primary hover:text-pink-600">
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-pink-primary" />
+                    Recuperar Contraseña
+                  </DialogTitle>
+                  <DialogDescription>
+                    Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...forgotPasswordForm}>
+                  <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+                    <FormField
+                      control={forgotPasswordForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email"
+                              placeholder="tu@email.com" 
+                              {...field} 
+                              disabled={forgotPasswordMutation.isPending}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowForgotPassword(false)}
+                        className="flex-1"
+                        disabled={forgotPasswordMutation.isPending}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        className="flex-1 bg-pink-primary hover:bg-pink-600 text-white"
+                        disabled={forgotPasswordMutation.isPending}
+                      >
+                        {forgotPasswordMutation.isPending ? "Enviando..." : "Enviar Email"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+            
+            <div>
+              <a href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                ← Volver al sitio principal
+              </a>
+            </div>
           </div>
         </CardContent>
       </Card>
