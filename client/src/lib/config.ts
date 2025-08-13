@@ -10,9 +10,8 @@ export const config = {
 
   // API base URL - points to development server for S3 deployment
   // CHANGE THIS: Update to your production API URL when moving to production
-  apiBaseUrl: import.meta.env.DEV
-    ? ""
-    : "https://888b848e-d46c-4244-bfa1-a77e867c3da2-00-g5w40pnom46x.worf.replit.dev",
+  apiBaseUrl:
+    "https://888b848e-d46c-4244-bfa1-a77e867c3da2-00-g5w40pnom46x.worf.replit.dev",
 
   // Static mode - disables backend features
   staticMode:
