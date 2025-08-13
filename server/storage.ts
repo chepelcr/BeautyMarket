@@ -83,7 +83,7 @@ export class MemStorage implements IStorage {
         name: "Labial Mate Rosa",
         description: "Labial de larga duración con acabado mate en tono rosa perfecto para cualquier ocasión",
         price: 3500,
-        category: "maquillaje",
+        categoryId: "maquillaje",
         imageUrl: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -91,7 +91,7 @@ export class MemStorage implements IStorage {
         name: "Serum Vitamina C",
         description: "Serum antioxidante con vitamina C para una piel radiante y protegida",
         price: 8500,
-        category: "skincare",
+        categoryId: "skincare",
         imageUrl: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -99,7 +99,7 @@ export class MemStorage implements IStorage {
         name: "Set de Brochas Profesional",
         description: "Set completo de brochas profesionales para maquillaje, incluye estuche de viaje",
         price: 12000,
-        category: "accesorios",
+        categoryId: "accesorios",
         imageUrl: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -107,7 +107,7 @@ export class MemStorage implements IStorage {
         name: "Base Líquida Cobertura Media",
         description: "Base líquida de cobertura media a completa, disponible en múltiples tonos",
         price: 4500,
-        category: "maquillaje",
+        categoryId: "maquillaje",
         imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -115,7 +115,7 @@ export class MemStorage implements IStorage {
         name: "Crema Hidratante Facial",
         description: "Crema hidratante facial para todo tipo de piel, con ingredientes naturales",
         price: 6500,
-        category: "skincare",
+        categoryId: "skincare",
         imageUrl: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -123,7 +123,7 @@ export class MemStorage implements IStorage {
         name: "Corrector Alta Cobertura",
         description: "Corrector de alta cobertura para ojeras e imperfecciones",
         price: 2800,
-        category: "maquillaje",
+        categoryId: "maquillaje",
         imageUrl: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -131,7 +131,7 @@ export class MemStorage implements IStorage {
         name: "Mascarilla Purificante",
         description: "Mascarilla facial purificante de arcilla para piel grasa y mixta",
         price: 5500,
-        category: "skincare",
+        categoryId: "skincare",
         imageUrl: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       },
@@ -139,7 +139,7 @@ export class MemStorage implements IStorage {
         name: "Espejo LED Maquillaje",
         description: "Espejo con iluminación LED ajustable, perfecto para aplicar maquillaje",
         price: 15000,
-        category: "accesorios",
+        categoryId: "accesorios",
         imageUrl: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
         isActive: true
       }
@@ -161,7 +161,7 @@ export class MemStorage implements IStorage {
 
   async getProductsByCategory(category: string): Promise<Product[]> {
     return Array.from(this.products.values()).filter(
-      p => p.category === category && p.isActive
+      p => p.categoryId === category && p.isActive
     );
   }
 
@@ -251,18 +251,13 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
-    try {
-      const [user] = await db
-        .update(users)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(users.id, id))
-        .returning();
-      return user;
-    } catch (error) {
-      console.error('Error updating user:', error);
-      return undefined;
-    }
+  async updateUser(id: string, data: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -444,7 +439,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProduct(id: string): Promise<boolean> {
     const result = await db.delete(productsTable).where(eq(productsTable.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Categories operations
@@ -481,7 +476,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: string): Promise<boolean> {
     const result = await db.delete(categoriesTable).where(eq(categoriesTable.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Order operations
@@ -508,24 +503,7 @@ export class DatabaseStorage implements IStorage {
     return updatedOrder || undefined;
   }
 
-  // User operations (required for local auth)
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
-
-  async createUser(userData: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
-    return user;
-  }
 
   async updateUser(id: string, data: Partial<User>): Promise<User> {
     const [user] = await db
@@ -575,7 +553,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(homePageContent)
       .where(eq(homePageContent.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async bulkUpsertHomePageContent(contentList: InsertHomePageContent[]): Promise<HomePageContent[]> {
@@ -697,7 +675,7 @@ export class DatabaseStorage implements IStorage {
 
   async changeUserPassword(id: string, hashedPassword: string): Promise<User> {
     const [user] = await db.update(users)
-      .set({ passwordHash: hashedPassword, updatedAt: new Date() })
+      .set({ password: hashedPassword, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;
