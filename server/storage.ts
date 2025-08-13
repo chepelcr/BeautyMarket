@@ -369,7 +369,16 @@ export class DatabaseStorage implements IStorage {
 
   // Product operations
   async getProducts(): Promise<Product[]> {
-    return await db.select().from(productsTable).orderBy(productsTable.createdAt);
+    return await db.select()
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .orderBy(productsTable.createdAt)
+      .then(results => 
+        results.map(result => ({
+          ...result.products,
+          category: result.categories?.name || null // Backward compatibility
+        }))
+      );
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
@@ -378,16 +387,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProductsByCategory(categorySlugOrName: string): Promise<Product[]> {
-    // First, try to find the category by slug to get the proper name
+    // First, try to find the category by slug to get the proper ID
     const categoryRecord = await db.select()
       .from(categoriesTable)
       .where(eq(categoriesTable.slug, categorySlugOrName))
       .limit(1);
     
-    // If found by slug, use the category name; otherwise use the input as-is
-    const categoryName = categoryRecord[0]?.name || categorySlugOrName;
+    // If not found by slug, try by name for backward compatibility
+    if (!categoryRecord[0]) {
+      const categoryByName = await db.select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.name, categorySlugOrName))
+        .limit(1);
+      
+      if (!categoryByName[0]) {
+        return []; // Category not found
+      }
+      
+      return await db.select()
+        .from(productsTable)
+        .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+        .where(eq(productsTable.categoryId, categoryByName[0].id))
+        .then(results => 
+          results.map(result => ({
+            ...result.products,
+            category: result.categories?.name || null // Backward compatibility
+          }))
+        );
+    }
     
-    return await db.select().from(productsTable).where(eq(productsTable.category, categoryName));
+    return await db.select()
+      .from(productsTable)
+      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .where(eq(productsTable.categoryId, categoryRecord[0].id))
+      .then(results => 
+        results.map(result => ({
+          ...result.products,
+          category: result.categories?.name || null // Backward compatibility
+        }))
+      );
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {

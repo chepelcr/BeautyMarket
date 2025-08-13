@@ -36,7 +36,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       name: product?.name || "",
       description: product?.description || "",
       price: product?.price || 0,
-      category: product?.category || "",
+      categoryId: product?.categoryId || "",
       imageUrl: product?.imageUrl || "",
       isActive: product?.isActive ?? true,
     },
@@ -173,7 +173,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
 
         <FormField
           control={form.control}
-          name="category"
+          name="categoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Categoría</FormLabel>
@@ -190,7 +190,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                     <SelectItem value="" disabled>No hay categorías disponibles</SelectItem>
                   ) : (
                     categories.map((category) => (
-                      <SelectItem key={category.id} value={category.name}>
+                      <SelectItem key={category.id} value={category.id}>
                         {category.name}
                       </SelectItem>
                     ))

@@ -8,7 +8,7 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: integer("price").notNull(), // Price in colones
-  category: varchar("category", { length: 50 }).notNull(),
+  categoryId: varchar("category_id", { length: 36 }).notNull().references(() => categoriesTable.id, { onDelete: "restrict" }),
   imageUrl: text("image_url"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
