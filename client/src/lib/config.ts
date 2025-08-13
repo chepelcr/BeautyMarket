@@ -8,8 +8,9 @@ export const config = {
     !window.location.hostname.includes('localhost')
   ),
   
-  // API base URL - empty for static builds, backend URL for dynamic
-  apiBaseUrl: import.meta.env.DEV ? '' : '',
+  // API base URL - points to development server for S3 deployment
+  // CHANGE THIS: Update to your production API URL when moving to production
+  apiBaseUrl: import.meta.env.DEV ? '' : 'https://rest-express-u28s.replit.app',
   
   // Static mode - disables backend features
   staticMode: !import.meta.env.DEV && (

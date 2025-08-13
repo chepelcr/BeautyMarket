@@ -55,6 +55,7 @@ Preferred communication style: Simple, everyday language.
 - **✅ Email Service CloudFront Fix**: Updated password reset emails to use CloudFront distribution URL instead of localhost
 - **✅ S3 SPA Routing Fix**: Added proper S3 bucket website configuration and error document handling for client-side routing support
 - **⚠️ CloudFront SPA Configuration Required**: Manual CloudFront error page configuration needed for direct route access
+- **✅ API Configuration Update**: Frontend now points to development server for S3 deployment with production config guide
 
 # System Architecture
 
