@@ -54,6 +54,7 @@ Preferred communication style: Simple, everyday language.
 - **✅ Password Reset Integration**: Added complete forgot password functionality to login form with email modal
 - **✅ Email Service CloudFront Fix**: Updated password reset emails to use CloudFront distribution URL instead of localhost
 - **✅ S3 SPA Routing Fix**: Added proper S3 bucket website configuration and error document handling for client-side routing support
+- **⚠️ CloudFront SPA Configuration Required**: Manual CloudFront error page configuration needed for direct route access
 
 # System Architecture
 
