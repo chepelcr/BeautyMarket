@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Category } from "@shared/schema";
+import { normalizeImageUrl } from "@/lib/image-utils";
 
 interface CategoryCardProps {
   category: Category;
@@ -59,7 +60,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
             <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
               {category.image1Url ? (
                 <img 
-                  src={category.image1Url} 
+                  src={normalizeImageUrl(category.image1Url) || ''} 
                   alt={`${category.name} imagen 1`} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   onError={(e) => {
@@ -79,7 +80,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
             <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
               {category.image2Url ? (
                 <img 
-                  src={category.image2Url} 
+                  src={normalizeImageUrl(category.image2Url) || ''} 
                   alt={`${category.name} imagen 2`} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   onError={(e) => {

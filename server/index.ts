@@ -1,9 +1,30 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// CORS configuration with CloudFront domain
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5000', 
+    'https://d1taomm62uzhjk.cloudfront.net',
+    /\.replit\.dev$/,
+    /\.repl\.co$/
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-API-Key',
+    'Accept'
+  ]
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

@@ -24,20 +24,25 @@ export const getPresignedUploadUrl = async (
   fileName: string,
   fileType: string,
   folder: string = 'uploads'
-): Promise<{ uploadUrl: string; fileUrl: string }> => {
-  const key = `${folder}/${Date.now()}-${fileName}`;
+): Promise<{ uploadUrl: string; fileUrl: string; s3Key: string }> => {
+  // Use 'images' folder for CMS images to preserve them during deployments
+  const actualFolder = folder === 'uploads' ? 'images' : folder;
+  const key = `${actualFolder}/${Date.now()}-${fileName}`;
   
   const command = new PutObjectCommand({
     Bucket: BUCKET_NAME!,
     Key: key,
     ContentType: fileType,
-    ACL: 'public-read', // Make files publicly accessible
+    // Remove ACL to support modern S3 bucket configurations
   });
 
   const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 }); // 15 minutes
-  const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
+  
+  // Use CloudFront URL for consistent image delivery
+  const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN || 'd1taomm62uzhjk.cloudfront.net';
+  const fileUrl = `https://${CLOUDFRONT_DOMAIN}/${key}`;
 
-  return { uploadUrl, fileUrl };
+  return { uploadUrl, fileUrl, s3Key: key };
 };
 
 // Get presigned URL endpoint
@@ -59,12 +64,13 @@ export const handlePresignedUpload = async (req: Request, res: Response) => {
       });
     }
 
-    const { uploadUrl, fileUrl } = await getPresignedUploadUrl(fileName, fileType, folder);
+    const { uploadUrl, fileUrl, s3Key } = await getPresignedUploadUrl(fileName, fileType, folder);
 
     res.json({
       success: true,
       uploadUrl,
       fileUrl,
+      s3Key,
     });
   } catch (error) {
     console.error('Error generating presigned URL:', error);

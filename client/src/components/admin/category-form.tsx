@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -105,15 +105,28 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
   };
 
   const handleImageUpload = async (fieldName: 'image1Url' | 'image2Url') => {
+    const data = await apiRequest('POST', '/api/objects/upload', {
+      fileName: `category-${fieldName}.jpg`,
+      fileType: 'image/jpeg',
+      folder: 'images'
+    }).then(res => res.json());
+    
+    // Store the CloudFront URL for later use in completion handler
+    pendingCloudFrontUrls.current[fieldName] = data.fileUrl;
+    
     return {
       method: 'PUT' as const,
-      url: await apiRequest('POST', '/api/objects/upload').then(res => res.json()).then(data => data.uploadURL),
+      url: data.uploadUrl,
     };
   };
 
+  const pendingCloudFrontUrls = useRef<{[key: string]: string}>({});
+
   const handleUploadComplete = (fieldName: 'image1Url' | 'image2Url') => (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful[0]) {
-      setValue(fieldName, result.successful[0].uploadURL as string);
+    if (result.successful && result.successful[0] && pendingCloudFrontUrls.current[fieldName]) {
+      // Use the CloudFront URL we stored from the presigned request
+      setValue(fieldName, pendingCloudFrontUrls.current[fieldName]);
+      delete pendingCloudFrontUrls.current[fieldName]; // Clear after use
     }
   };
 

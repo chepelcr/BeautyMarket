@@ -103,19 +103,30 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const handleGetUploadParameters = async () => {
-    const response = await apiRequest("POST", "/api/objects/upload");
+    const response = await apiRequest("POST", "/api/objects/upload", {
+      fileName: 'product-image.jpg',
+      fileType: 'image/jpeg',
+      folder: 'images'
+    });
     const data = await response.json();
+    
+    // Store the CloudFront URL for later use in completion handler
+    pendingCloudFrontUrl = data.fileUrl;
+    
     return {
       method: "PUT" as const,
-      url: data.uploadURL,
+      url: data.uploadUrl,
     };
   };
 
+  let pendingCloudFrontUrl = '';
+
   const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful[0]) {
-      const uploadURL = result.successful[0].uploadURL as string;
-      setUploadedImageUrl(uploadURL);
-      form.setValue("imageUrl", uploadURL);
+    if (result.successful && result.successful[0] && pendingCloudFrontUrl) {
+      // Use the CloudFront URL we stored from the presigned request
+      setUploadedImageUrl(pendingCloudFrontUrl);
+      form.setValue("imageUrl", pendingCloudFrontUrl);
+      pendingCloudFrontUrl = ''; // Clear after use
     }
   };
 

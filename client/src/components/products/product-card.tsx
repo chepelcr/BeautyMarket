@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/store/cart";
 import type { Product } from "@shared/schema";
+import { normalizeImageUrl } from "@/lib/image-utils";
 
 interface ProductCardProps {
   product: Product;
@@ -32,7 +33,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative overflow-hidden">
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={normalizeImageUrl(product.imageUrl) || ''}
             alt={product.name}
             className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {

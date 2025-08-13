@@ -9,8 +9,12 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*',
-  credentials: false,
+  origin: [
+    'https://d1taomm62uzhjk.cloudfront.net',
+    /\.replit\.dev$/,
+    /\.repl\.co$/
+  ],
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',

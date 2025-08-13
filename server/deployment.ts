@@ -58,17 +58,57 @@ async function uploadFile(filePath: string, key: string): Promise<void> {
   await s3.upload(params).promise();
 }
 
-async function uploadDirectory(dirPath: string, prefix = ''): Promise<void> {
+async function uploadDirectory(dirPath: string, prefix = '', preserveImages = true): Promise<void> {
   const files = fs.readdirSync(dirPath);
   
   for (const file of files) {
     const filePath = path.join(dirPath, file);
     const key = prefix ? `${prefix}/${file}` : file;
     
+    // Skip existing images directory to preserve uploaded images during deployment
+    if (preserveImages && key === 'images') {
+      console.log(`⚠️  Skipping images directory to preserve uploaded content`);
+      continue;
+    }
+    
     if (fs.statSync(filePath).isDirectory()) {
-      await uploadDirectory(filePath, key);
+      await uploadDirectory(filePath, key, preserveImages);
     } else {
       await uploadFile(filePath, key);
+    }
+  }
+}
+
+async function deleteExistingAssets(): Promise<void> {
+  if (!BUCKET_NAME) return;
+  
+  console.log('🗑️  Cleaning up existing client assets...');
+  
+  // List all objects except images directory
+  const listParams = {
+    Bucket: BUCKET_NAME,
+    Prefix: '', 
+  };
+  
+  const objects = await s3.listObjectsV2(listParams).promise();
+  
+  if (objects.Contents && objects.Contents.length > 0) {
+    // Filter out images directory to preserve uploaded images
+    const objectsToDelete = objects.Contents.filter(obj => 
+      obj.Key && !obj.Key.startsWith('images/')
+    );
+    
+    if (objectsToDelete.length > 0) {
+      const deleteParams = {
+        Bucket: BUCKET_NAME,
+        Delete: {
+          Objects: objectsToDelete.map(obj => ({ Key: obj.Key! })),
+          Quiet: true
+        }
+      };
+      
+      await s3.deleteObjects(deleteParams).promise();
+      console.log(`✅ Deleted ${objectsToDelete.length} existing assets (preserved images directory)`);
     }
   }
 }
@@ -127,6 +167,9 @@ export async function deployToS3(buildId: string = Date.now().toString()): Promi
       throw new Error('Build folder not found. Build may have failed.');
     }
 
+    // Clean up existing assets (but preserve images)
+    await deleteExistingAssets();
+    
     // Upload to S3
     console.log('📤 Uploading to S3...');
     await uploadDirectory(distFolder);

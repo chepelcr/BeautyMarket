@@ -117,17 +117,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload URL endpoint (protected - admin only)
-  app.post("/api/objects/upload", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
-    } catch (error) {
-      console.error("Error generating upload URL:", error);
-      res.status(500).json({ error: "Failed to generate upload URL" });
-    }
-  });
+  // Upload URL endpoint (protected - admin only) - uses S3 with CloudFront
+  app.post("/api/objects/upload", authenticateServerless, requireAdminServerless, handlePresignedUpload);
 
   // Products API (protected with API key for public access)
   app.get("/api/products", async (req, res) => {
