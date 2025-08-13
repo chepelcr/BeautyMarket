@@ -8,8 +8,14 @@ This is a full-stack e-commerce application for "Strawberry Essentials," a beaut
 
 Preferred communication style: Simple, everyday language.
 
-# Recent Changes (August 12, 2025)
+# Recent Changes (August 13, 2025)
 
+- **✅ Foreign Key Category Management**: Migrated from string-based category matching to proper foreign key relationships between products and categories tables
+- **✅ Database Schema Migration**: Updated products table to use `category_id` foreign key instead of `category` string field with proper constraints
+- **✅ JOIN Query Optimization**: Implemented JOIN queries in product filtering for reliable category-based results using category slugs
+- **✅ Product Form Enhancement**: Updated admin product forms to use category ID selection with proper foreign key validation
+- **✅ API Backward Compatibility**: Maintained backward compatibility in API responses while using modern database relationships
+- **✅ Category Slug Routing**: Enhanced category filtering to work with both category slugs and names for flexible URL structure
 - **✅ AWS S3 Integration**: Implemented complete S3 integration for image uploads
 - **✅ CMS Image Upload**: Replaced URL input fields with S3-powered image upload components  
 - **✅ Background Settings Fix**: Converted "color" type fields to "background" type fields for advanced styling
