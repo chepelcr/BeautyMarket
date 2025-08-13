@@ -16,6 +16,31 @@ const s3 = new AWS.S3({
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
 
+async function configureBucketWebsite(): Promise<void> {
+  if (!BUCKET_NAME) return;
+  
+  console.log('🌐 Configuring S3 bucket for website hosting...');
+  
+  try {
+    const websiteParams = {
+      Bucket: BUCKET_NAME,
+      WebsiteConfiguration: {
+        IndexDocument: {
+          Suffix: 'index.html'
+        },
+        ErrorDocument: {
+          Key: 'index.html' // Serve index.html for all 404s to enable SPA routing
+        }
+      }
+    };
+    
+    await s3.putBucketWebsite(websiteParams).promise();
+    console.log('✅ S3 bucket configured for SPA website hosting');
+  } catch (error) {
+    console.warn('⚠️ Could not configure bucket website settings (may need manual setup):', error.message);
+  }
+}
+
 interface DeploymentStatus {
   status: 'idle' | 'building' | 'uploading' | 'success' | 'error';
   message: string;
@@ -169,6 +194,9 @@ export async function deployToS3(buildId: string = Date.now().toString()): Promi
 
     // Clean up existing assets (but preserve images)
     await deleteExistingAssets();
+    
+    // Configure S3 bucket for website hosting
+    await configureBucketWebsite();
     
     // Upload to S3
     console.log('📤 Uploading to S3...');
