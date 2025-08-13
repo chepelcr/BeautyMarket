@@ -69,7 +69,9 @@ export function ImageUpload({
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file');
+        const errorText = await uploadResponse.text();
+        console.error('S3 Upload failed:', uploadResponse.status, errorText);
+        throw new Error(`Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText}`);
       }
 
       onChange(fileUrl);
@@ -79,9 +81,21 @@ export function ImageUpload({
       });
     } catch (error) {
       console.error('Upload error:', error);
+      let errorMessage = "No se pudo subir la imagen.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to get upload URL')) {
+          errorMessage = "Error al obtener URL de subida. Verifica la configuración del servidor.";
+        } else if (error.message.includes('Failed to upload file')) {
+          errorMessage = "Error al subir archivo a S3. Verifica permisos del bucket.";
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Error de subida",
-        description: "No se pudo subir la imagen. Verifica tu configuración de AWS.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

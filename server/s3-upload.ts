@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Request, Response } from 'express';
 
@@ -90,10 +90,12 @@ export const deleteS3File = async (fileUrl: string): Promise<boolean> => {
     const key = fileUrl.split(`${BUCKET_NAME}.s3.`)[1]?.split('/').slice(1).join('/');
     if (!key) return false;
 
-    await s3.deleteObject({
+    const deleteCommand = new DeleteObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
-    }).promise();
+    });
+    
+    await s3Client.send(deleteCommand);
 
     return true;
   } catch (error) {
