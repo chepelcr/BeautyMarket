@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCartStore } from "@/store/cart";
 import { generateWhatsAppMessage } from "@/lib/whatsapp";
 import { useToast } from "@/hooks/use-toast";
-
-interface Location {
-  code: string;
-  name: string;
-}
+import { 
+  getProvinces, 
+  getCantonsByProvinceCode, 
+  getDistrictsByCantonCode,
+  getProvinceByCode,
+  getCantonByCode,
+  getDistrictByCode,
+  formatLocationString,
+  type Province,
+  type Canton,
+  type District 
+} from "@/data/locations";
 
 export default function CheckoutModal() {
   const { showCheckout, setShowCheckout, items, total, clearCart } = useCartStore();
@@ -29,28 +35,31 @@ export default function CheckoutModal() {
     deliveryMethod: "",
   });
 
-  const { data: provinces } = useQuery<Location[]>({
-    queryKey: ["/api/locations/provinces"],
-    enabled: showCheckout,
-  });
+  // Get location data from client-side source
+  const provinces = getProvinces();
+  const [cantons, setCantons] = useState<Canton[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
 
-  const { data: cantons } = useQuery<Location[]>({
-    queryKey: ["/api/locations/cantons", formData.provincia],
-    enabled: !!formData.provincia,
-  });
-
-  const { data: districts } = useQuery<Location[]>({
-    queryKey: ["/api/locations/districts", formData.provincia, formData.canton],
-    enabled: !!formData.provincia && !!formData.canton,
-  });
-
-  // Reset canton and district when provincia changes
+  // Update cantons when province changes
   useEffect(() => {
+    if (formData.provincia) {
+      const newCantons = getCantonsByProvinceCode(formData.provincia);
+      setCantons(newCantons);
+    } else {
+      setCantons([]);
+    }
     setFormData(prev => ({ ...prev, canton: "", distrito: "" }));
+    setDistricts([]);
   }, [formData.provincia]);
 
-  // Reset district when canton changes
+  // Update districts when canton changes
   useEffect(() => {
+    if (formData.provincia && formData.canton) {
+      const newDistricts = getDistrictsByCantonCode(formData.provincia, formData.canton);
+      setDistricts(newDistricts);
+    } else {
+      setDistricts([]);
+    }
     setFormData(prev => ({ ...prev, distrito: "" }));
   }, [formData.canton]);
 
@@ -92,7 +101,11 @@ export default function CheckoutModal() {
       return;
     }
 
-    // Generate WhatsApp message
+    // Generate WhatsApp message with location names
+    const province = getProvinceByCode(formData.provincia);
+    const canton = getCantonByCode(formData.provincia, formData.canton);
+    const district = getDistrictByCode(formData.provincia, formData.canton, formData.distrito);
+
     const message = generateWhatsAppMessage({
       items,
       total,
@@ -101,9 +114,9 @@ export default function CheckoutModal() {
         phone: formData.customerPhone,
       },
       delivery: {
-        provincia: provinces?.find(p => p.code === formData.provincia)?.name || formData.provincia,
-        canton: cantons?.find(c => c.code === formData.canton)?.name || formData.canton,
-        distrito: districts?.find(d => d.code === formData.distrito)?.name || formData.distrito,
+        provincia: province?.name || formData.provincia,
+        canton: canton?.name || formData.canton,
+        distrito: district?.name || formData.distrito,
         address: formData.address,
         method: formData.deliveryMethod,
       },
