@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Mail } from "lucide-react";
+import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -33,6 +34,9 @@ export default function Login() {
   const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  // Set dynamic page title
+  useDynamicTitle("Iniciar Sesión");
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
 import { ArrowLeft, Calendar, Clock, ExternalLink, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useDynamicTitle } from '@/hooks/useDynamicTitle';
 
 interface DeploymentHistory {
   id: string;
@@ -35,6 +36,9 @@ const statusIcons = {
 };
 
 export default function DeploymentHistory() {
+  // Set dynamic page title
+  useDynamicTitle("Historial de Despliegues");
+
   const { data: deployments, isLoading, error } = useQuery<DeploymentHistory[]>({
     queryKey: ['/api/deployments'],
     refetchInterval: 5000, // Refresh every 5 seconds to get latest status
