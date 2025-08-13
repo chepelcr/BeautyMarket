@@ -45,6 +45,12 @@ Preferred communication style: Simple, everyday language.
 - **✅ Username Editing**: Added username editing functionality with uniqueness validation
 - **✅ Comprehensive Font System**: Migrated from Inter to Nunito for rounded, friendly typography across entire application
 - **✅ Font Token Architecture**: Implemented complete font token system with semantic typography classes and CSS variables
+- **✅ CloudFront Integration**: Complete CloudFront distribution integration for consistent image delivery across the application
+- **✅ Image Preservation System**: Updated deployment to preserve uploaded images in separate 'images/' directory during builds
+- **✅ Unified Image URL System**: All image URLs now normalized through CloudFront (d1taomm62uzhjk.cloudfront.net) for consistent delivery
+- **✅ CMS Upload Migration**: Updated all CMS image upload components to use new S3 system with CloudFront URLs
+- **✅ Homepage Image Updates**: Applied CloudFront URL normalization to all homepage image content including hero section
+- **✅ Background Image Support**: Added CloudFront URL support for CMS background image configurations
 
 # System Architecture
 

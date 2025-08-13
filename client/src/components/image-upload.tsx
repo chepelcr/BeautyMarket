@@ -40,8 +40,8 @@ export function ImageUpload({
     setIsUploading(true);
     
     try {
-      // Get presigned URL
-      const response = await fetch('/api/upload/presigned', {
+      // Get presigned URL using the S3 upload endpoint
+      const response = await fetch('/api/objects/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

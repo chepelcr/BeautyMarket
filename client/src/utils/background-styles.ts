@@ -1,3 +1,5 @@
+import { normalizeImageUrl } from "@/lib/image-utils";
+
 export interface BackgroundData {
   type: 'color' | 'gradient' | 'image';
   mode?: 'both' | 'light' | 'dark';
@@ -80,8 +82,9 @@ export function generateBackgroundStyle(bgValue: string, isDark: boolean = false
     case 'image':
       if (!bgData.image) return {};
       const { url, opacity } = bgData.image;
+      const normalizedUrl = normalizeImageUrl(url) || url;
       return {
-        backgroundImage: `url(${url})`,
+        backgroundImage: `url(${normalizedUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
