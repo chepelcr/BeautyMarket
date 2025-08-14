@@ -1,4 +1,38 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type User, type UpsertUser, type Category, type InsertCategory, type HomePageContent, type InsertHomePageContent, type DeploymentHistory, type InsertDeploymentHistory, type PasswordResetToken, type InsertPasswordResetToken, type EmailVerificationToken, type InsertEmailVerificationToken, type Province, type Canton, type District, type InsertProvince, type InsertCanton, type InsertDistrict, users, products as productsTable, orders as ordersTable, categoriesTable, homePageContent, deploymentHistory, passwordResetTokens, emailVerificationTokens, provinces, cantons, districts } from "@shared/schema";
+import {
+  type Product,
+  type InsertProduct,
+  type Order,
+  type InsertOrder,
+  type User,
+  type UpsertUser,
+  type Category,
+  type InsertCategory,
+  type HomePageContent,
+  type InsertHomePageContent,
+  type DeploymentHistory,
+  type InsertDeploymentHistory,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
+  type EmailVerificationToken,
+  type InsertEmailVerificationToken,
+  type Province,
+  type Canton,
+  type District,
+  type InsertProvince,
+  type InsertCanton,
+  type InsertDistrict,
+  users,
+  products as productsTable,
+  orders as ordersTable,
+  categoriesTable,
+  homePageContent,
+  deploymentHistory,
+  passwordResetTokens,
+  emailVerificationTokens,
+  provinces,
+  cantons,
+  districts,
+} from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, and, lt } from "drizzle-orm";
@@ -9,275 +43,102 @@ export interface IStorage {
   getProductById(id: string): Promise<Product | undefined>;
   getProductsByCategory(category: string): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  updateProduct(
+    id: string,
+    product: Partial<InsertProduct>,
+  ): Promise<Product | undefined>;
   deleteProduct(id: string): Promise<boolean>;
-  
+
   // Categories
   getCategories(): Promise<Category[]>;
   getCategoryById(id: string): Promise<Category | undefined>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
-  updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  updateCategory(
+    id: string,
+    category: Partial<InsertCategory>,
+  ): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
-  
+
   // Orders
   getOrders(): Promise<Order[]>;
   getOrderById(id: string): Promise<Order | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
-  
+
   // User operations (required for local auth)
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User>;
+  createUser(user: {
+    username: string;
+    password: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+  }): Promise<User>;
   updateUser(id: string, data: Partial<User>): Promise<User>;
-  
+
   // Home Page Content Management
   getHomePageContent(): Promise<HomePageContent[]>;
   getHomePageContentBySection(section: string): Promise<HomePageContent[]>;
-  getHomePageContentByKey(section: string, key: string): Promise<HomePageContent | undefined>;
-  createHomePageContent(content: InsertHomePageContent): Promise<HomePageContent>;
-  updateHomePageContent(id: string, content: Partial<InsertHomePageContent>): Promise<HomePageContent | undefined>;
+  getHomePageContentByKey(
+    section: string,
+    key: string,
+  ): Promise<HomePageContent | undefined>;
+  createHomePageContent(
+    content: InsertHomePageContent,
+  ): Promise<HomePageContent>;
+  updateHomePageContent(
+    id: string,
+    content: Partial<InsertHomePageContent>,
+  ): Promise<HomePageContent | undefined>;
   deleteHomePageContent(id: string): Promise<boolean>;
-  bulkUpsertHomePageContent(contentList: InsertHomePageContent[]): Promise<HomePageContent[]>;
-  
+  bulkUpsertHomePageContent(
+    contentList: InsertHomePageContent[],
+  ): Promise<HomePageContent[]>;
+
   // Deployment History
   getDeploymentHistory(): Promise<DeploymentHistory[]>;
   getDeploymentById(id: string): Promise<DeploymentHistory | undefined>;
-  createDeployment(deployment: InsertDeploymentHistory): Promise<DeploymentHistory>;
-  updateDeployment(id: string, deployment: Partial<InsertDeploymentHistory>): Promise<DeploymentHistory | undefined>;
-  
+  createDeployment(
+    deployment: InsertDeploymentHistory,
+  ): Promise<DeploymentHistory>;
+  updateDeployment(
+    id: string,
+    deployment: Partial<InsertDeploymentHistory>,
+  ): Promise<DeploymentHistory | undefined>;
+
   // Password Reset Tokens
-  createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  createPasswordResetToken(
+    token: InsertPasswordResetToken,
+  ): Promise<PasswordResetToken>;
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markPasswordResetTokenUsed(id: string): Promise<void>;
   cleanupExpiredPasswordResetTokens(): Promise<void>;
-  
+
   // Email Verification Tokens
-  createEmailVerificationToken(token: InsertEmailVerificationToken): Promise<EmailVerificationToken>;
-  getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined>;
+  createEmailVerificationToken(
+    token: InsertEmailVerificationToken,
+  ): Promise<EmailVerificationToken>;
+  getEmailVerificationToken(
+    token: string,
+  ): Promise<EmailVerificationToken | undefined>;
   markEmailVerificationTokenUsed(id: string): Promise<void>;
   cleanupExpiredEmailVerificationTokens(): Promise<void>;
-  
+
   // User Profile Management
-  updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string; username?: string }): Promise<User>;
+  updateUserProfile(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      username?: string;
+    },
+  ): Promise<User>;
   changeUserPassword(id: string, hashedPassword: string): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
-}
-
-export class MemStorage implements IStorage {
-  private products: Map<string, Product>;
-  private orders: Map<string, Order>;
-
-  constructor() {
-    this.products = new Map();
-    this.orders = new Map();
-    
-    // Initialize with some sample products
-    this.initializeProducts();
-  }
-
-  private async initializeProducts() {
-    const sampleProducts: InsertProduct[] = [
-      {
-        name: "Labial Mate Rosa",
-        description: "Labial de larga duración con acabado mate en tono rosa perfecto para cualquier ocasión",
-        price: 3500,
-        categoryId: "maquillaje",
-        imageUrl: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Serum Vitamina C",
-        description: "Serum antioxidante con vitamina C para una piel radiante y protegida",
-        price: 8500,
-        categoryId: "skincare",
-        imageUrl: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Set de Brochas Profesional",
-        description: "Set completo de brochas profesionales para maquillaje, incluye estuche de viaje",
-        price: 12000,
-        categoryId: "accesorios",
-        imageUrl: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Base Líquida Cobertura Media",
-        description: "Base líquida de cobertura media a completa, disponible en múltiples tonos",
-        price: 4500,
-        categoryId: "maquillaje",
-        imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Crema Hidratante Facial",
-        description: "Crema hidratante facial para todo tipo de piel, con ingredientes naturales",
-        price: 6500,
-        categoryId: "skincare",
-        imageUrl: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Corrector Alta Cobertura",
-        description: "Corrector de alta cobertura para ojeras e imperfecciones",
-        price: 2800,
-        categoryId: "maquillaje",
-        imageUrl: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Mascarilla Purificante",
-        description: "Mascarilla facial purificante de arcilla para piel grasa y mixta",
-        price: 5500,
-        categoryId: "skincare",
-        imageUrl: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      },
-      {
-        name: "Espejo LED Maquillaje",
-        description: "Espejo con iluminación LED ajustable, perfecto para aplicar maquillaje",
-        price: 15000,
-        categoryId: "accesorios",
-        imageUrl: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        isActive: true
-      }
-    ];
-
-    for (const product of sampleProducts) {
-      await this.createProduct(product);
-    }
-  }
-
-  // Products
-  async getProducts(): Promise<Product[]> {
-    return Array.from(this.products.values()).filter(p => p.isActive);
-  }
-
-  async getProductById(id: string): Promise<Product | undefined> {
-    return this.products.get(id);
-  }
-
-  async getProductsByCategory(category: string): Promise<Product[]> {
-    return Array.from(this.products.values()).filter(
-      p => p.categoryId === category && p.isActive
-    );
-  }
-
-  async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const id = randomUUID();
-    const now = new Date();
-    const product: Product = {
-      ...insertProduct,
-      id,
-      imageUrl: insertProduct.imageUrl ?? null,
-      isActive: insertProduct.isActive ?? true,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.products.set(id, product);
-    return product;
-  }
-
-  async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product | undefined> {
-    const product = this.products.get(id);
-    if (!product) return undefined;
-
-    const updatedProduct: Product = {
-      ...product,
-      ...updates,
-      updatedAt: new Date()
-    };
-    this.products.set(id, updatedProduct);
-    return updatedProduct;
-  }
-
-  async deleteProduct(id: string): Promise<boolean> {
-    return this.products.delete(id);
-  }
-
-  // Orders
-  async getOrders(): Promise<Order[]> {
-    return Array.from(this.orders.values());
-  }
-
-  async getOrderById(id: string): Promise<Order | undefined> {
-    return this.orders.get(id);
-  }
-
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const id = randomUUID();
-    const order: Order = {
-      ...insertOrder,
-      id,
-      status: insertOrder.status ?? "pending",
-      createdAt: new Date()
-    };
-    this.orders.set(id, order);
-    return order;
-  }
-
-  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
-    const order = this.orders.get(id);
-    if (!order) return undefined;
-
-    const updatedOrder: Order = {
-      ...order,
-      status
-    };
-    this.orders.set(id, updatedOrder);
-    return updatedOrder;
-  }
-
-  // User operations (required for Replit Auth)
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
-  }
-
-  async updateUser(id: string, data: Partial<User>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
-
-  async createUser(userData: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User> {
-    const [user] = await db.insert(users).values({
-      username: userData.username,
-      password: userData.password,
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role || 'admin',
-    }).returning();
-    return user;
-  }
-
-
 }
 
 // Database storage implementation
@@ -285,58 +146,232 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     this.initializeFooterContent();
   }
-  
+
   private async initializeFooterContent() {
     // Only initialize if no contact content exists
-    const existingContent = await this.getHomePageContentBySection('contact');
+    const existingContent = await this.getHomePageContentBySection("contact");
     if (existingContent.length === 0) {
       const footerContentData: InsertHomePageContent[] = [
-        { section: 'contact', key: 'companyName', value: 'Strawberry Essentials', type: 'text', displayName: 'Nombre de la Empresa', sortOrder: 1 },
-        { section: 'contact', key: 'footerText', value: 'Tu belleza, nuestra pasión', type: 'text', displayName: 'Texto del Footer', sortOrder: 2 },
-        { section: 'contact', key: 'instagram', value: '@strawberry.essentials', type: 'text', displayName: 'Instagram', sortOrder: 3 },
-        { section: 'contact', key: 'phone', value: '73676745', type: 'text', displayName: 'Teléfono', sortOrder: 4 },
-        { section: 'contact', key: 'payment_methods', value: 'SINPE Móvil o efectivo', type: 'text', displayName: 'Métodos de Pago', sortOrder: 5 },
-        { section: 'contact', key: 'footerBackground', value: '{"type":"color","mode":"both","value":"#1f2937"}', type: 'background', displayName: 'Fondo del Footer', sortOrder: 6 }
+        {
+          section: "contact",
+          key: "companyName",
+          value: "Strawberry Essentials",
+          type: "text",
+          displayName: "Nombre de la Empresa",
+          sortOrder: 1,
+        },
+        {
+          section: "contact",
+          key: "footerText",
+          value: "Tu belleza, nuestra pasión",
+          type: "text",
+          displayName: "Texto del Footer",
+          sortOrder: 2,
+        },
+        {
+          section: "contact",
+          key: "instagram",
+          value: "@strawberry.essentials",
+          type: "text",
+          displayName: "Instagram",
+          sortOrder: 3,
+        },
+        {
+          section: "contact",
+          key: "phone",
+          value: "73676745",
+          type: "text",
+          displayName: "Teléfono",
+          sortOrder: 4,
+        },
+        {
+          section: "contact",
+          key: "payment_methods",
+          value: "SINPE Móvil o efectivo",
+          type: "text",
+          displayName: "Métodos de Pago",
+          sortOrder: 5,
+        },
+        {
+          section: "contact",
+          key: "footerBackground",
+          value: '{"type":"color","mode":"both","value":"#1f2937"}',
+          type: "background",
+          displayName: "Fondo del Footer",
+          sortOrder: 6,
+        },
       ];
-      
+
       await this.bulkUpsertHomePageContent(footerContentData);
     }
-    
+
     // Initialize hero background data
-    const existingHero = await this.getHomePageContentBySection('hero');
+    const existingHero = await this.getHomePageContentBySection("hero");
     if (existingHero.length === 0) {
       const heroContentData: InsertHomePageContent[] = [
-        { section: 'hero', key: 'title', value: 'Strawberry Essentials', type: 'text', displayName: 'Título Principal', sortOrder: 1 },
-        { section: 'hero', key: 'subtitle', value: 'Tu belleza natural, potenciada', type: 'text', displayName: 'Subtítulo', sortOrder: 2 },
-        { section: 'hero', key: 'description', value: 'Descubre nuestra colección cuidadosamente seleccionada de productos de belleza que realzan tu belleza natural. Calidad premium, resultados excepcionales.', type: 'text', displayName: 'Descripción', sortOrder: 3 },
-        { section: 'hero', key: 'backgroundStyle', value: '{"type":"gradient","mode":"both","gradient":{"from":"#fce7f3","to":"#fed7d7","direction":"to-br"}}', type: 'background', displayName: 'Fondo de la Sección', sortOrder: 4 },
-        { section: 'hero', key: 'image1', value: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 1', sortOrder: 5 },
-        { section: 'hero', key: 'image2', value: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 2', sortOrder: 6 },
-        { section: 'hero', key: 'image3', value: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 3', sortOrder: 7 },
-        { section: 'hero', key: 'image4', value: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300', type: 'image', displayName: 'Imagen 4', sortOrder: 8 },
-        { section: 'site', key: 'favicon', value: '/favicon.ico', type: 'image', displayName: 'Favicon', sortOrder: 1 },
-        { section: 'site', key: 'navbarLogo', value: '', type: 'image', displayName: 'Logo del Navbar', sortOrder: 2 }
+        {
+          section: "hero",
+          key: "title",
+          value: "Strawberry Essentials",
+          type: "text",
+          displayName: "Título Principal",
+          sortOrder: 1,
+        },
+        {
+          section: "hero",
+          key: "subtitle",
+          value: "Tu belleza natural, potenciada",
+          type: "text",
+          displayName: "Subtítulo",
+          sortOrder: 2,
+        },
+        {
+          section: "hero",
+          key: "description",
+          value:
+            "Descubre nuestra colección cuidadosamente seleccionada de productos de belleza que realzan tu belleza natural. Calidad premium, resultados excepcionales.",
+          type: "text",
+          displayName: "Descripción",
+          sortOrder: 3,
+        },
+        {
+          section: "hero",
+          key: "backgroundStyle",
+          value:
+            '{"type":"gradient","mode":"both","gradient":{"from":"#fce7f3","to":"#fed7d7","direction":"to-br"}}',
+          type: "background",
+          displayName: "Fondo de la Sección",
+          sortOrder: 4,
+        },
+        {
+          section: "hero",
+          key: "image1",
+          value:
+            "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+          type: "image",
+          displayName: "Imagen 1",
+          sortOrder: 5,
+        },
+        {
+          section: "hero",
+          key: "image2",
+          value:
+            "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+          type: "image",
+          displayName: "Imagen 2",
+          sortOrder: 6,
+        },
+        {
+          section: "hero",
+          key: "image3",
+          value:
+            "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+          type: "image",
+          displayName: "Imagen 3",
+          sortOrder: 7,
+        },
+        {
+          section: "hero",
+          key: "image4",
+          value:
+            "https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+          type: "image",
+          displayName: "Imagen 4",
+          sortOrder: 8,
+        },
+        {
+          section: "site",
+          key: "favicon",
+          value: "/favicon.ico",
+          type: "image",
+          displayName: "Favicon",
+          sortOrder: 1,
+        },
+        {
+          section: "site",
+          key: "navbarLogo",
+          value: "",
+          type: "image",
+          displayName: "Logo del Navbar",
+          sortOrder: 2,
+        },
       ];
-      
+
       await this.bulkUpsertHomePageContent(heroContentData);
     }
 
     // Initialize sidebar content
-    const existingSidebar = await this.getHomePageContentBySection('sidebar');
+    const existingSidebar = await this.getHomePageContentBySection("sidebar");
     if (existingSidebar.length === 0) {
       const sidebarContentData: InsertHomePageContent[] = [
-        { section: 'sidebar', key: 'background_color', value: '#ffffff', type: 'color', displayName: 'Color de Fondo del Sidebar', sortOrder: 1 },
-        { section: 'sidebar', key: 'background_color_dark', value: '#1f2937', type: 'color', displayName: 'Color de Fondo del Sidebar (Modo Oscuro)', sortOrder: 2 },
-        { section: 'sidebar', key: 'text_color', value: '#374151', type: 'color', displayName: 'Color de Texto del Sidebar', sortOrder: 3 },
-        { section: 'sidebar', key: 'text_color_dark', value: '#f3f4f6', type: 'color', displayName: 'Color de Texto del Sidebar (Modo Oscuro)', sortOrder: 4 },
-        { section: 'sidebar', key: 'border_color', value: '#e5e7eb', type: 'color', displayName: 'Color de Bordes del Sidebar', sortOrder: 5 },
-        { section: 'sidebar', key: 'border_color_dark', value: '#4b5563', type: 'color', displayName: 'Color de Bordes del Sidebar (Modo Oscuro)', sortOrder: 6 },
-        { section: 'sidebar', key: 'hover_color', value: '#f3f4f6', type: 'color', displayName: 'Color de Hover del Sidebar', sortOrder: 7 },
-        { section: 'sidebar', key: 'hover_color_dark', value: '#374151', type: 'color', displayName: 'Color de Hover del Sidebar (Modo Oscuro)', sortOrder: 8 }
+        {
+          section: "sidebar",
+          key: "background_color",
+          value: "#ffffff",
+          type: "color",
+          displayName: "Color de Fondo del Sidebar",
+          sortOrder: 1,
+        },
+        {
+          section: "sidebar",
+          key: "background_color_dark",
+          value: "#1f2937",
+          type: "color",
+          displayName: "Color de Fondo del Sidebar (Modo Oscuro)",
+          sortOrder: 2,
+        },
+        {
+          section: "sidebar",
+          key: "text_color",
+          value: "#374151",
+          type: "color",
+          displayName: "Color de Texto del Sidebar",
+          sortOrder: 3,
+        },
+        {
+          section: "sidebar",
+          key: "text_color_dark",
+          value: "#f3f4f6",
+          type: "color",
+          displayName: "Color de Texto del Sidebar (Modo Oscuro)",
+          sortOrder: 4,
+        },
+        {
+          section: "sidebar",
+          key: "border_color",
+          value: "#e5e7eb",
+          type: "color",
+          displayName: "Color de Bordes del Sidebar",
+          sortOrder: 5,
+        },
+        {
+          section: "sidebar",
+          key: "border_color_dark",
+          value: "#4b5563",
+          type: "color",
+          displayName: "Color de Bordes del Sidebar (Modo Oscuro)",
+          sortOrder: 6,
+        },
+        {
+          section: "sidebar",
+          key: "hover_color",
+          value: "#f3f4f6",
+          type: "color",
+          displayName: "Color de Hover del Sidebar",
+          sortOrder: 7,
+        },
+        {
+          section: "sidebar",
+          key: "hover_color_dark",
+          value: "#374151",
+          type: "color",
+          displayName: "Color de Hover del Sidebar (Modo Oscuro)",
+          sortOrder: 8,
+        },
       ];
-      
+
       await this.bulkUpsertHomePageContent(sidebarContentData);
-      console.log('✅ Sidebar customization options initialized');
+      console.log("✅ Sidebar customization options initialized");
     }
   }
 
@@ -347,11 +382,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user || undefined;
   }
 
-  async createUser(userData: { username: string; password: string; email?: string; firstName?: string; lastName?: string; role?: string }): Promise<User> {
+  async createUser(userData: {
+    username: string;
+    password: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+  }): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
@@ -364,71 +409,94 @@ export class DatabaseStorage implements IStorage {
 
   // Product operations
   async getProducts(): Promise<Product[]> {
-    return await db.select()
+    return await db
+      .select()
       .from(productsTable)
-      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .leftJoin(
+        categoriesTable,
+        eq(productsTable.categoryId, categoriesTable.id),
+      )
       .orderBy(productsTable.createdAt)
-      .then(results => 
-        results.map(result => ({
+      .then((results) =>
+        results.map((result) => ({
           ...result.products,
-          category: result.categories?.name || null // Backward compatibility
-        }))
+          category: result.categories?.name || null, // Backward compatibility
+        })),
       );
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
-    const [product] = await db.select().from(productsTable).where(eq(productsTable.id, id));
+    const [product] = await db
+      .select()
+      .from(productsTable)
+      .where(eq(productsTable.id, id));
     return product || undefined;
   }
 
   async getProductsByCategory(categorySlugOrName: string): Promise<Product[]> {
     // First, try to find the category by slug to get the proper ID
-    const categoryRecord = await db.select()
+    const categoryRecord = await db
+      .select()
       .from(categoriesTable)
       .where(eq(categoriesTable.slug, categorySlugOrName))
       .limit(1);
-    
+
     // If not found by slug, try by name for backward compatibility
     if (!categoryRecord[0]) {
-      const categoryByName = await db.select()
+      const categoryByName = await db
+        .select()
         .from(categoriesTable)
         .where(eq(categoriesTable.name, categorySlugOrName))
         .limit(1);
-      
+
       if (!categoryByName[0]) {
         return []; // Category not found
       }
-      
-      return await db.select()
+
+      return await db
+        .select()
         .from(productsTable)
-        .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+        .leftJoin(
+          categoriesTable,
+          eq(productsTable.categoryId, categoriesTable.id),
+        )
         .where(eq(productsTable.categoryId, categoryByName[0].id))
-        .then(results => 
-          results.map(result => ({
+        .then((results) =>
+          results.map((result) => ({
             ...result.products,
-            category: result.categories?.name || null // Backward compatibility
-          }))
+            category: result.categories?.name || null, // Backward compatibility
+          })),
         );
     }
-    
-    return await db.select()
+
+    return await db
+      .select()
       .from(productsTable)
-      .leftJoin(categoriesTable, eq(productsTable.categoryId, categoriesTable.id))
+      .leftJoin(
+        categoriesTable,
+        eq(productsTable.categoryId, categoriesTable.id),
+      )
       .where(eq(productsTable.categoryId, categoryRecord[0].id))
-      .then(results => 
-        results.map(result => ({
+      .then((results) =>
+        results.map((result) => ({
           ...result.products,
-          category: result.categories?.name || null // Backward compatibility
-        }))
+          category: result.categories?.name || null, // Backward compatibility
+        })),
       );
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(productsTable).values(product).returning();
+    const [newProduct] = await db
+      .insert(productsTable)
+      .values(product)
+      .returning();
     return newProduct;
   }
 
-  async updateProduct(id: string, productData: Partial<InsertProduct>): Promise<Product | undefined> {
+  async updateProduct(
+    id: string,
+    productData: Partial<InsertProduct>,
+  ): Promise<Product | undefined> {
     const [updatedProduct] = await db
       .update(productsTable)
       .set(productData)
@@ -438,22 +506,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProduct(id: string): Promise<boolean> {
-    const result = await db.delete(productsTable).where(eq(productsTable.id, id));
+    const result = await db
+      .delete(productsTable)
+      .where(eq(productsTable.id, id));
     return (result.rowCount || 0) > 0;
   }
 
   // Categories operations
   async getCategories(): Promise<Category[]> {
-    return await db.select().from(categoriesTable).where(eq(categoriesTable.isActive, true)).orderBy(categoriesTable.sortOrder, categoriesTable.name);
+    return await db
+      .select()
+      .from(categoriesTable)
+      .where(eq(categoriesTable.isActive, true))
+      .orderBy(categoriesTable.sortOrder, categoriesTable.name);
   }
 
   async getCategoryById(id: string): Promise<Category | undefined> {
-    const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, id));
+    const [category] = await db
+      .select()
+      .from(categoriesTable)
+      .where(eq(categoriesTable.id, id));
     return category || undefined;
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.slug, slug));
+    const [category] = await db
+      .select()
+      .from(categoriesTable)
+      .where(eq(categoriesTable.slug, slug));
     return category || undefined;
   }
 
@@ -465,7 +545,10 @@ export class DatabaseStorage implements IStorage {
     return category;
   }
 
-  async updateCategory(id: string, updates: Partial<InsertCategory>): Promise<Category | undefined> {
+  async updateCategory(
+    id: string,
+    updates: Partial<InsertCategory>,
+  ): Promise<Category | undefined> {
     const [category] = await db
       .update(categoriesTable)
       .set({ ...updates, updatedAt: new Date() })
@@ -475,7 +558,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCategory(id: string): Promise<boolean> {
-    const result = await db.delete(categoriesTable).where(eq(categoriesTable.id, id));
+    const result = await db
+      .delete(categoriesTable)
+      .where(eq(categoriesTable.id, id));
     return (result.rowCount || 0) > 0;
   }
 
@@ -485,7 +570,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrderById(id: string): Promise<Order | undefined> {
-    const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+    const [order] = await db
+      .select()
+      .from(ordersTable)
+      .where(eq(ordersTable.id, id));
     return order || undefined;
   }
 
@@ -494,7 +582,10 @@ export class DatabaseStorage implements IStorage {
     return newOrder;
   }
 
-  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
+  async updateOrderStatus(
+    id: string,
+    status: string,
+  ): Promise<Order | undefined> {
     const [updatedOrder] = await db
       .update(ordersTable)
       .set({ status })
@@ -502,8 +593,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedOrder || undefined;
   }
-
-
 
   async updateUser(id: string, data: Partial<User>): Promise<User> {
     const [user] = await db
@@ -516,23 +605,39 @@ export class DatabaseStorage implements IStorage {
 
   // Home Page Content Management
   async getHomePageContent(): Promise<HomePageContent[]> {
-    return await db.select().from(homePageContent).orderBy(homePageContent.section, homePageContent.sortOrder);
+    return await db
+      .select()
+      .from(homePageContent)
+      .orderBy(homePageContent.section, homePageContent.sortOrder);
   }
 
-  async getHomePageContentBySection(section: string): Promise<HomePageContent[]> {
-    return await db.select().from(homePageContent)
+  async getHomePageContentBySection(
+    section: string,
+  ): Promise<HomePageContent[]> {
+    return await db
+      .select()
+      .from(homePageContent)
       .where(eq(homePageContent.section, section))
       .orderBy(homePageContent.sortOrder);
   }
 
-  async getHomePageContentByKey(section: string, key: string): Promise<HomePageContent | undefined> {
-    const [content] = await db.select().from(homePageContent)
-      .where(and(eq(homePageContent.section, section), eq(homePageContent.key, key)))
+  async getHomePageContentByKey(
+    section: string,
+    key: string,
+  ): Promise<HomePageContent | undefined> {
+    const [content] = await db
+      .select()
+      .from(homePageContent)
+      .where(
+        and(eq(homePageContent.section, section), eq(homePageContent.key, key)),
+      )
       .limit(1);
     return content;
   }
 
-  async createHomePageContent(content: InsertHomePageContent): Promise<HomePageContent> {
+  async createHomePageContent(
+    content: InsertHomePageContent,
+  ): Promise<HomePageContent> {
     const [newContent] = await db
       .insert(homePageContent)
       .values(content)
@@ -540,7 +645,10 @@ export class DatabaseStorage implements IStorage {
     return newContent;
   }
 
-  async updateHomePageContent(id: string, content: Partial<InsertHomePageContent>): Promise<HomePageContent | undefined> {
+  async updateHomePageContent(
+    id: string,
+    content: Partial<InsertHomePageContent>,
+  ): Promise<HomePageContent | undefined> {
     const [updatedContent] = await db
       .update(homePageContent)
       .set({ ...content, updatedAt: new Date() })
@@ -556,10 +664,15 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  async bulkUpsertHomePageContent(contentList: InsertHomePageContent[]): Promise<HomePageContent[]> {
+  async bulkUpsertHomePageContent(
+    contentList: InsertHomePageContent[],
+  ): Promise<HomePageContent[]> {
     const results: HomePageContent[] = [];
     for (const content of contentList) {
-      const existing = await this.getHomePageContentByKey(content.section, content.key);
+      const existing = await this.getHomePageContentByKey(
+        content.section,
+        content.key,
+      );
       if (existing) {
         const updated = await this.updateHomePageContent(existing.id, content);
         if (updated) results.push(updated);
@@ -570,18 +683,26 @@ export class DatabaseStorage implements IStorage {
     }
     return results;
   }
-  
+
   // Deployment History
   async getDeploymentHistory(): Promise<DeploymentHistory[]> {
-    return await db.select().from(deploymentHistory).orderBy(deploymentHistory.startedAt);
+    return await db
+      .select()
+      .from(deploymentHistory)
+      .orderBy(deploymentHistory.startedAt);
   }
 
   async getDeploymentById(id: string): Promise<DeploymentHistory | undefined> {
-    const [deployment] = await db.select().from(deploymentHistory).where(eq(deploymentHistory.id, id));
+    const [deployment] = await db
+      .select()
+      .from(deploymentHistory)
+      .where(eq(deploymentHistory.id, id));
     return deployment || undefined;
   }
 
-  async createDeployment(deployment: InsertDeploymentHistory): Promise<DeploymentHistory> {
+  async createDeployment(
+    deployment: InsertDeploymentHistory,
+  ): Promise<DeploymentHistory> {
     const [newDeployment] = await db
       .insert(deploymentHistory)
       .values(deployment)
@@ -589,7 +710,10 @@ export class DatabaseStorage implements IStorage {
     return newDeployment;
   }
 
-  async updateDeployment(id: string, deployment: Partial<InsertDeploymentHistory>): Promise<DeploymentHistory | undefined> {
+  async updateDeployment(
+    id: string,
+    deployment: Partial<InsertDeploymentHistory>,
+  ): Promise<DeploymentHistory | undefined> {
     const [updatedDeployment] = await db
       .update(deploymentHistory)
       .set(deployment)
@@ -599,74 +723,103 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Password Reset Token methods
-  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
-    const [newToken] = await db.insert(passwordResetTokens)
+  async createPasswordResetToken(
+    token: InsertPasswordResetToken,
+  ): Promise<PasswordResetToken> {
+    const [newToken] = await db
+      .insert(passwordResetTokens)
       .values(token)
       .returning();
     return newToken;
   }
 
-  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
-    const [resetToken] = await db.select()
+  async getPasswordResetToken(
+    token: string,
+  ): Promise<PasswordResetToken | undefined> {
+    const [resetToken] = await db
+      .select()
       .from(passwordResetTokens)
-      .where(and(
-        eq(passwordResetTokens.token, token),
-        eq(passwordResetTokens.used, false)
-      ));
+      .where(
+        and(
+          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.used, false),
+        ),
+      );
     return resetToken;
   }
 
   async markPasswordResetTokenUsed(id: string): Promise<void> {
-    await db.update(passwordResetTokens)
+    await db
+      .update(passwordResetTokens)
       .set({ used: true })
       .where(eq(passwordResetTokens.id, id));
   }
 
   async cleanupExpiredPasswordResetTokens(): Promise<void> {
-    await db.delete(passwordResetTokens)
+    await db
+      .delete(passwordResetTokens)
       .where(lt(passwordResetTokens.expiresAt, new Date()));
   }
 
   // Email Verification Token methods
-  async createEmailVerificationToken(token: InsertEmailVerificationToken): Promise<EmailVerificationToken> {
-    const [newToken] = await db.insert(emailVerificationTokens)
+  async createEmailVerificationToken(
+    token: InsertEmailVerificationToken,
+  ): Promise<EmailVerificationToken> {
+    const [newToken] = await db
+      .insert(emailVerificationTokens)
       .values(token)
       .returning();
     return newToken;
   }
 
-  async getEmailVerificationToken(token: string): Promise<EmailVerificationToken | undefined> {
-    const [verifyToken] = await db.select()
+  async getEmailVerificationToken(
+    token: string,
+  ): Promise<EmailVerificationToken | undefined> {
+    const [verifyToken] = await db
+      .select()
       .from(emailVerificationTokens)
-      .where(and(
-        eq(emailVerificationTokens.token, token),
-        eq(emailVerificationTokens.used, false)
-      ));
+      .where(
+        and(
+          eq(emailVerificationTokens.token, token),
+          eq(emailVerificationTokens.used, false),
+        ),
+      );
     return verifyToken;
   }
 
   async markEmailVerificationTokenUsed(id: string): Promise<void> {
-    await db.update(emailVerificationTokens)
+    await db
+      .update(emailVerificationTokens)
       .set({ used: true })
       .where(eq(emailVerificationTokens.id, id));
   }
 
   async cleanupExpiredEmailVerificationTokens(): Promise<void> {
-    await db.delete(emailVerificationTokens)
+    await db
+      .delete(emailVerificationTokens)
       .where(lt(emailVerificationTokens.expiresAt, new Date()));
   }
 
   // User Profile Management methods
-  async updateUserProfile(id: string, data: { firstName?: string; lastName?: string; email?: string; username?: string }): Promise<User> {
+  async updateUserProfile(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      username?: string;
+    },
+  ): Promise<User> {
     const updateData: any = { updatedAt: new Date() };
-    
+
     // Map camelCase to snake_case for database fields
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
     if (data.lastName !== undefined) updateData.lastName = data.lastName;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.username !== undefined) updateData.username = data.username;
-    
-    const [user] = await db.update(users)
+
+    const [user] = await db
+      .update(users)
       .set(updateData)
       .where(eq(users.id, id))
       .returning();
@@ -674,7 +827,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async changeUserPassword(id: string, hashedPassword: string): Promise<User> {
-    const [user] = await db.update(users)
+    const [user] = await db
+      .update(users)
       .set({ password: hashedPassword, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
@@ -682,9 +836,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select()
-      .from(users)
-      .where(eq(users.email, email));
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 }
