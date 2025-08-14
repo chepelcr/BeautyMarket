@@ -7,11 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ObjectUploader } from "@/components/ObjectUploader";
+import { ImageUpload } from "@/components/image-upload";
 import { insertProductSchema, validCategories, type Product, type InsertProduct, type Category } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { UploadResult } from "@uppy/core";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useLocation } from "wouter";
 
@@ -23,7 +22,6 @@ interface ProductFormProps {
 export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   // Fetch categories dynamically from database
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
@@ -102,40 +100,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
     },
   });
 
-  const handleGetUploadParameters = async () => {
-    const response = await apiRequest("POST", "/api/objects/upload", {
-      fileName: 'product-image.jpg',
-      fileType: 'image/jpeg',
-      folder: 'images'
-    });
-    const data = await response.json();
-    
-    // Store the CloudFront URL for later use in completion handler
-    pendingCloudFrontUrl = data.fileUrl;
-    
-    return {
-      method: "PUT" as const,
-      url: data.uploadUrl,
-    };
-  };
-
-  let pendingCloudFrontUrl = '';
-
-  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful[0] && pendingCloudFrontUrl) {
-      // Use the CloudFront URL we stored from the presigned request
-      setUploadedImageUrl(pendingCloudFrontUrl);
-      form.setValue("imageUrl", pendingCloudFrontUrl);
-      pendingCloudFrontUrl = ''; // Clear after use
-    }
-  };
-
   const onSubmit = (data: InsertProduct) => {
-    // Use uploaded image URL if available
-    if (uploadedImageUrl) {
-      data.imageUrl = uploadedImageUrl;
-    }
-
     if (product) {
       updateMutation.mutate(data);
     } else {
@@ -231,35 +196,23 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
           )}
         />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Imagen del Producto
-          </label>
-          {form.getValues("imageUrl") && (
-            <div className="mb-4">
-              <img
-                src={form.getValues("imageUrl") || undefined}
-                alt="Preview"
-                className="w-32 h-32 object-cover rounded-lg"
-              />
-            </div>
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <ImageUpload
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  label="Imagen del Producto"
+                  folder="products"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-pink-primary transition-colors">
-            <ObjectUploader
-              maxNumberOfFiles={1}
-              maxFileSize={5 * 1024 * 1024} // 5MB
-              onGetUploadParameters={handleGetUploadParameters}
-              onComplete={handleUploadComplete}
-              buttonClassName="bg-transparent hover:bg-transparent text-gray-700 border-none shadow-none p-0 h-auto"
-            >
-              <div className="flex flex-col items-center space-y-2">
-                <i className="fas fa-cloud-upload-alt text-gray-400 text-3xl"></i>
-                <p className="text-gray-500">Haz clic para subir una imagen</p>
-                <p className="text-sm text-gray-400">PNG, JPG hasta 5MB</p>
-              </div>
-            </ObjectUploader>
-          </div>
-        </div>
+        />
 
         <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline" onClick={onSuccess}>

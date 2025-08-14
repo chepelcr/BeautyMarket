@@ -10,8 +10,7 @@ import { insertCategorySchema, type InsertCategory, type Category } from "@share
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ObjectUploader } from "@/components/ObjectUploader";
-import type { UploadResult } from "@uppy/core";
+import { ImageUpload } from "@/components/image-upload";
 
 interface CategoryFormProps {
   category?: Category;
@@ -102,32 +101,6 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
 
   const onSubmit = (data: InsertCategory) => {
     mutation.mutate(data);
-  };
-
-  const handleImageUpload = async (fieldName: 'image1Url' | 'image2Url') => {
-    const data = await apiRequest('POST', '/api/objects/upload', {
-      fileName: `category-${fieldName}.jpg`,
-      fileType: 'image/jpeg',
-      folder: 'images'
-    }).then(res => res.json());
-    
-    // Store the CloudFront URL for later use in completion handler
-    pendingCloudFrontUrls.current[fieldName] = data.fileUrl;
-    
-    return {
-      method: 'PUT' as const,
-      url: data.uploadUrl,
-    };
-  };
-
-  const pendingCloudFrontUrls = useRef<{[key: string]: string}>({});
-
-  const handleUploadComplete = (fieldName: 'image1Url' | 'image2Url') => (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful[0] && pendingCloudFrontUrls.current[fieldName]) {
-      // Use the CloudFront URL we stored from the presigned request
-      setValue(fieldName, pendingCloudFrontUrls.current[fieldName]);
-      delete pendingCloudFrontUrls.current[fieldName]; // Clear after use
-    }
   };
 
   const CategoryPreview = () => (
@@ -282,35 +255,21 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Imagen 1</Label>
-                  <ObjectUploader
-                    maxNumberOfFiles={1}
-                    maxFileSize={5242880} // 5MB
-                    onGetUploadParameters={() => handleImageUpload('image1Url')}
-                    onComplete={handleUploadComplete('image1Url')}
-                    buttonClassName="w-full"
-                  >
-                    <span>Subir Imagen 1</span>
-                  </ObjectUploader>
-                  {watchedValues.image1Url && (
-                    <p className="text-sm text-gray-500 mt-1">Imagen cargada</p>
-                  )}
+                  <ImageUpload
+                    value={watchedValues.image1Url || ''}
+                    onChange={(url) => setValue('image1Url', url)}
+                    label="Imagen 1"
+                    folder="categories"
+                  />
                 </div>
 
                 <div>
-                  <Label>Imagen 2</Label>
-                  <ObjectUploader
-                    maxNumberOfFiles={1}
-                    maxFileSize={5242880} // 5MB
-                    onGetUploadParameters={() => handleImageUpload('image2Url')}
-                    onComplete={handleUploadComplete('image2Url')}
-                    buttonClassName="w-full"
-                  >
-                    <span>Subir Imagen 2</span>
-                  </ObjectUploader>
-                  {watchedValues.image2Url && (
-                    <p className="text-sm text-gray-500 mt-1">Imagen cargada</p>
-                  )}
+                  <ImageUpload
+                    value={watchedValues.image2Url || ''}
+                    onChange={(url) => setValue('image2Url', url)}
+                    label="Imagen 2"
+                    folder="categories"
+                  />
                 </div>
               </div>
 
