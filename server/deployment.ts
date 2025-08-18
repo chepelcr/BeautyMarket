@@ -83,6 +83,32 @@ async function uploadFile(filePath: string, key: string): Promise<void> {
   await s3.upload(params).promise();
 }
 
+async function generateStaticData(): Promise<void> {
+  console.log('📄 Generating static JSON files...');
+  
+  try {
+    const [products, categories, cmsContent] = await Promise.all([
+      storage.getProducts(),
+      storage.getCategories(),
+      storage.getHomePageContent()
+    ]);
+    
+    const dataDir = './dist/public/data';
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(path.join(dataDir, 'products.json'), JSON.stringify(products, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'categories.json'), JSON.stringify(categories, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'cms.json'), JSON.stringify(cmsContent, null, 2));
+    
+    console.log('✅ Static JSON files generated');
+  } catch (error) {
+    console.error('❌ Failed to generate static data:', error);
+    throw error;
+  }
+}
+
 async function uploadDirectory(dirPath: string, prefix = '', preserveImages = true): Promise<void> {
   const files = fs.readdirSync(dirPath);
   
@@ -192,6 +218,9 @@ export async function deployToS3(buildId: string = Date.now().toString()): Promi
       throw new Error('Build folder not found. Build may have failed.');
     }
 
+    // Generate static JSON files
+    await generateStaticData();
+    
     // Clean up existing assets (but preserve images)
     await deleteExistingAssets();
     

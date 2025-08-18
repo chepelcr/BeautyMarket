@@ -107,9 +107,6 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       createMutation.mutate(data);
     }
   };
-
-
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

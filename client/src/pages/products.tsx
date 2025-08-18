@@ -1,12 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import ProductCard from "@/components/products/product-card";
 import ProductFilters from "@/components/products/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/store/cart";
-import type { Product } from "@shared/schema";
+import type { Product, Category } from "@shared/schema";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Products() {
   const params = useParams();
@@ -38,20 +38,42 @@ export default function Products() {
     }
   };
 
-  const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products", selectedCategory],
-    queryFn: async () => {
-      const queryParams = new URLSearchParams();
-      if (selectedCategory !== "all") {
-        queryParams.append("category", selectedCategory);
-      }
-      const response = await fetch(`/api/products?${queryParams}`);
-      if (!response.ok) throw new Error("Failed to fetch products");
-      return response.json();
-    }
-  });
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredProducts = products || [];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          apiRequest('GET', '/api/products'),
+          apiRequest('GET', '/api/categories')
+        ]);
+        setAllProducts(await productsRes.json());
+        setCategories(await categoriesRes.json());
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    if (!allProducts) return [];
+    
+    if (selectedCategory === "all") {
+      return allProducts;
+    }
+    
+    // Find category by slug to get ID
+    const category = categories?.find(cat => cat.slug === selectedCategory);
+    if (!category) return [];
+    
+    return allProducts.filter(product => product.categoryId === category.id);
+  }, [allProducts, categories, selectedCategory]);
 
   if (isLoading) {
     return (

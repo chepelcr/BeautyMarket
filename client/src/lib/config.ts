@@ -19,7 +19,9 @@ export const config = {
     !import.meta.env.DEV &&
     (window.location.hostname.includes("github.io") ||
       window.location.hostname.includes("netlify.app") ||
-      window.location.hostname.includes("vercel.app")),
+      window.location.hostname.includes("vercel.app")) ||
+        //cloudfront.net
+    window.location.hostname.includes("cloudfront.net"),
 };
 
 export default config;
