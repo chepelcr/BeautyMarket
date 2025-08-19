@@ -166,9 +166,9 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="py-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center py-20">
+          <div className="flex justify-center items-center py-5">
             <div className="text-lg">Cargando información del perfil...</div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="py-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
           <div className="p-8">

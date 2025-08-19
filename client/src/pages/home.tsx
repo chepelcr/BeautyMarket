@@ -56,7 +56,7 @@ export default function Home() {
           </svg>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
@@ -138,7 +138,7 @@ export default function Home() {
       {/* Category Showcase */}
       <BackgroundSection 
         section="categories"
-        className="py-20 relative"
+        className="py-5 relative"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">

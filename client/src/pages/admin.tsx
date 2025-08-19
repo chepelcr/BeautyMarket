@@ -162,7 +162,7 @@ export default function Admin() {
 
     if (productsLoading) {
         return (
-            <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
+            <div className="py-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
                         <div className="p-8">
@@ -187,7 +187,7 @@ export default function Admin() {
     }
 
     return (
-        <div className="py-20 bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <div className="py-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
                     {/* Admin Content */}
