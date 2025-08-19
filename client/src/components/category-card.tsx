@@ -29,11 +29,11 @@ export default function CategoryCard({ category }: CategoryCardProps) {
 
   return (
     <Card 
-      className="rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group"
+      className="rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group w-full"
       style={{ backgroundColor: category.backgroundColor }}
     >
-      <CardContent className="p-8">
-        <div className="space-y-6">
+      <CardContent className="p-8 h-full">
+        <div className="flex flex-col h-full justify-between space-y-6">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
@@ -100,7 +100,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           </div>
 
           {/* Button */}
-          <div className="pt-2">
+          <div className="pt-2 mt-auto">
             <Link href={`/products/${category.slug}`}>
               <Button 
                 className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"
