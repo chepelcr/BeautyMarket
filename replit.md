@@ -65,6 +65,7 @@ Preferred communication style: Simple, everyday language.
 - **✅ Unified Deploy Endpoint**: Pre-deployment system uses existing `/api/deploy` endpoint with proper authentication
 - **✅ S3 Integration**: Pre-deployments marked as published during S3 upload process automatically
 - **✅ Admin Authentication**: Publish button only visible to authenticated admin users with proper messaging
+- **✅ CloudFront Cache Invalidation**: Automatic CloudFront cache invalidation during deployment for immediate content updates
 
 # System Architecture
 

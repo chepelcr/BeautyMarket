@@ -14,7 +14,14 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION || 'us-east-1',
 });
 
+const cloudfront = new AWS.CloudFront({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
+const CLOUDFRONT_DISTRIBUTION_ID = process.env.AWS_CLOUDFRONT_DISTRIBUTION_ID;
 
 async function configureBucketWebsite(): Promise<void> {
   if (!BUCKET_NAME) return;
@@ -130,6 +137,34 @@ async function uploadDirectory(dirPath: string, prefix = '', preserveImages = tr
   }
 }
 
+async function invalidateCloudFront(paths: string[] = ['/*']): Promise<void> {
+  if (!CLOUDFRONT_DISTRIBUTION_ID) {
+    console.log('⚠️  CloudFront distribution ID not configured, skipping cache invalidation');
+    return;
+  }
+  
+  console.log('🔄 Invalidating CloudFront cache...');
+  
+  try {
+    const invalidationParams = {
+      DistributionId: CLOUDFRONT_DISTRIBUTION_ID,
+      InvalidationBatch: {
+        CallerReference: `deployment-${Date.now()}`,
+        Paths: {
+          Quantity: paths.length,
+          Items: paths
+        }
+      }
+    };
+    
+    const result = await cloudfront.createInvalidation(invalidationParams).promise();
+    console.log(`✅ CloudFront invalidation created: ${result.Invalidation?.Id}`);
+  } catch (error) {
+    console.error('❌ Failed to invalidate CloudFront cache:', error.message);
+    throw error;
+  }
+}
+
 async function deleteExistingAssets(): Promise<void> {
   if (!BUCKET_NAME) return;
   
@@ -160,6 +195,9 @@ async function deleteExistingAssets(): Promise<void> {
       
       await s3.deleteObjects(deleteParams).promise();
       console.log(`✅ Deleted ${objectsToDelete.length} existing assets (preserved images directory)`);
+      
+      // Invalidate CloudFront cache after deleting assets
+      await invalidateCloudFront();
     }
   }
 }
@@ -230,6 +268,10 @@ export async function deployToS3(buildId: string = Date.now().toString()): Promi
     // Upload to S3
     console.log('📤 Uploading to S3...');
     await uploadDirectory(distFolder);
+
+    // Invalidate CloudFront cache after successful upload
+    console.log('🔄 Invalidating CloudFront cache for fresh content...');
+    await invalidateCloudFront();
 
     // Mark active pre-deployment as published
     await markPreDeploymentAsPublished();
