@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Loader2, Upload, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -35,9 +34,7 @@ export function PreDeploymentBanner() {
   // Mutation for publishing pre-deployment
   const publishMutation = useMutation({
     mutationFn: async (preDeploymentId: string) => {
-      return apiRequest(`/api/pre-deployments/${preDeploymentId}/publish`, {
-        method: "POST",
-      });
+      return await apiRequest(`/api/pre-deployments/${preDeploymentId}/publish`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
@@ -53,9 +50,7 @@ export function PreDeploymentBanner() {
   // Mutation for dismissing pre-deployment
   const dismissMutation = useMutation({
     mutationFn: async (preDeploymentId: string) => {
-      return apiRequest(`/api/pre-deployments/${preDeploymentId}`, {
-        method: "DELETE",
-      });
+      return await apiRequest(`/api/pre-deployments/${preDeploymentId}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
@@ -63,25 +58,28 @@ export function PreDeploymentBanner() {
   });
 
   const handlePublish = async () => {
-    if (activePreDeployment && activePreDeployment.id) {
+    if (preDeployment?.id) {
       setIsPublishing(true);
-      publishMutation.mutate(activePreDeployment.id);
+      publishMutation.mutate(preDeployment.id);
     }
   };
 
   const handleDismiss = async () => {
-    if (activePreDeployment && activePreDeployment.id) {
-      dismissMutation.mutate(activePreDeployment.id);
+    if (preDeployment?.id) {
+      dismissMutation.mutate(preDeployment.id);
     }
   };
 
+  // Type guard and early return
+  const preDeployment = activePreDeployment as PreDeployment;
+  
   // Don't show banner if no active pre-deployment or if it's published
-  if (isLoading || !activePreDeployment || activePreDeployment.status === 'published') {
+  if (isLoading || !preDeployment || preDeployment.status === 'published') {
     return null;
   }
 
   const getStatusIcon = () => {
-    switch (activePreDeployment.status) {
+    switch (preDeployment.status) {
       case 'ready':
         return <CheckCircle2 className="h-4 w-4" />;
       case 'pending':
@@ -94,7 +92,7 @@ export function PreDeploymentBanner() {
   };
 
   const getStatusColor = () => {
-    switch (activePreDeployment.status) {
+    switch (preDeployment.status) {
       case 'ready':
         return 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200';
       case 'pending':
@@ -107,25 +105,25 @@ export function PreDeploymentBanner() {
   };
 
   return (
-    <div className={`border rounded-lg p-4 m-4 ${getStatusColor()}`}>
+    <Card className={`p-4 m-4 ${getStatusColor()}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             {getStatusIcon()}
-            <Badge variant="outline" className="text-xs">
-              {activePreDeployment.triggerType === 'product' && 'Producto'}
-              {activePreDeployment.triggerType === 'category' && 'Categoría'}
-              {activePreDeployment.triggerType === 'cms' && 'Contenido'}
-            </Badge>
+            <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md font-medium">
+              {preDeployment.triggerType === 'product' && 'Producto'}
+              {preDeployment.triggerType === 'category' && 'Categoría'}
+              {preDeployment.triggerType === 'cms' && 'Contenido'}
+            </span>
           </div>
           <div>
             <p className="font-medium text-sm">
-              {activePreDeployment.message}
+              {preDeployment.message}
             </p>
             <p className="text-xs opacity-75">
-              {activePreDeployment.status === 'ready' 
+              {preDeployment.status === 'ready' 
                 ? 'Los cambios están listos para publicar en el sitio web'
-                : activePreDeployment.status === 'pending'
+                : preDeployment.status === 'pending'
                 ? 'Preparando cambios para publicación...'
                 : 'Error en la preparación de cambios'
               }
@@ -134,7 +132,7 @@ export function PreDeploymentBanner() {
         </div>
 
         <div className="flex items-center gap-2">
-          {activePreDeployment.status === 'ready' && (
+          {preDeployment.status === 'ready' && (
             <Button
               onClick={handlePublish}
               disabled={isPublishing || publishMutation.isPending}
@@ -166,12 +164,12 @@ export function PreDeploymentBanner() {
         </div>
       </div>
 
-      {activePreDeployment.errorDetails && (
+      {preDeployment.errorDetails && (
         <div className="mt-3 p-3 bg-background/50 rounded border text-sm">
           <p className="font-medium text-destructive mb-1">Error:</p>
-          <p className="text-muted-foreground">{activePreDeployment.errorDetails}</p>
+          <p className="text-muted-foreground">{preDeployment.errorDetails}</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
