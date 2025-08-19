@@ -92,7 +92,7 @@ export default function Navbar() {
           {/* Auth Section, Cart & Mobile Menu */}
           <div className="flex items-center space-x-4">
             {/* User dropdown for authenticated users */}
-            {isAuthenticated && user && (
+            {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -126,6 +126,17 @@ export default function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            ) : !isLoading && (
+              // Login button for desktop
+              <Link href="/login">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="hidden md:flex"
+                >
+                  Iniciar Sesión
+                </Button>
+              </Link>
             )}
 
             <Button
@@ -173,7 +184,7 @@ export default function Navbar() {
               ))}
               
               {/* Mobile auth section */}
-              {isAuthenticated && user && (
+              {isAuthenticated && user ? (
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
                   <div className="text-gray-700 dark:text-gray-300 text-sm">
                     Hola, {String((user as any)?.firstName || (user as any)?.username || 'Usuario')}
@@ -206,6 +217,18 @@ export default function Navbar() {
                     <LogOut className="w-4 h-4 mr-2" />
                     Cerrar Sesión
                   </Button>
+                </div>
+              ) : !isLoading && (
+                // Login option for mobile
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <Link
+                    href="/login"
+                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Iniciar Sesión / Administrar
+                  </Link>
                 </div>
               )}
             </div>
