@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Upload, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface PreDeployment {
   id: string;
@@ -26,6 +27,7 @@ export function PreDeploymentBanner() {
   const [isPublishing, setIsPublishing] = useState(false);
   const queryClient = useQueryClient();
   const { user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   // Query for active pre-deployment
   const { data: activePreDeployment, isLoading } = useQuery({
@@ -42,10 +44,19 @@ export function PreDeploymentBanner() {
       queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
       queryClient.invalidateQueries({ queryKey: ['/api/deploy/status'] });
       setIsPublishing(false);
+      toast({
+        title: "¡Despliegue Exitoso!",
+        description: "Los cambios han sido publicados correctamente en el sitio web.",
+      });
     },
     onError: (error) => {
       console.error('Error publishing pre-deployment:', error);
       setIsPublishing(false);
+      toast({
+        title: "Error en Despliegue",
+        description: "Hubo un problema al publicar los cambios. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -113,7 +124,7 @@ export function PreDeploymentBanner() {
   };
 
   return (
-    <Card className={`p-4 m-4 ${getStatusColor()}`}>
+    <Card className={`p-4 mx-4 mb-4 ${getStatusColor()}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
