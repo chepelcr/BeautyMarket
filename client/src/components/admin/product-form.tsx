@@ -171,9 +171,9 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                 </FormControl>
                 <SelectContent>
                   {categoriesLoading ? (
-                    <SelectItem value="" disabled>Cargando categorías...</SelectItem>
+                    <SelectItem value="loading" disabled>Cargando categorías...</SelectItem>
                   ) : categories.length === 0 ? (
-                    <SelectItem value="" disabled>No hay categorías disponibles</SelectItem>
+                    <SelectItem value="empty" disabled>No hay categorías disponibles</SelectItem>
                   ) : (
                     categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
