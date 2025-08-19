@@ -38,10 +38,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-cream dark:bg-gray-900">
+        <div className="min-h-screen bg-cream dark:bg-gray-900 flex flex-col">
           <Navbar />
           <PreDeploymentBanner />
-          <Router />
+          <main className="flex-grow">
+            <Router />
+          </main>
           <DynamicFooter />
           <CartSidebar />
           <CheckoutModal />
