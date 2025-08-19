@@ -155,8 +155,8 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
           <Button 
             className="w-full py-3 rounded-xl font-medium transition-colors"
             style={{ 
-              backgroundColor: watchedValues.buttonColor,
-              color: getContrastingColor(watchedValues.buttonColor)
+              backgroundColor: watchedValues.buttonColor || "#e91e63",
+              color: getContrastingColor(watchedValues.buttonColor || "#e91e63")
             }}
           >
             Ver Productos
