@@ -662,7 +662,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                         handleInputChange(section, item.key, JSON.stringify(bgData));
                       }}
                       label="Imagen de fondo"
-                      folder={`${section}-backgrounds`}
+                      folder={`images/${section}-backgrounds`}
                     />
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">Transparencia: {Math.round((bgData.image?.opacity || 1) * 100)}%</Label>
@@ -709,7 +709,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             value={value}
             onChange={(url) => handleInputChange(section, item.key, url)}
             label=""
-            folder={`${section}-images`}
+            folder={`images/${section}-images`}
           />
         );
       default:

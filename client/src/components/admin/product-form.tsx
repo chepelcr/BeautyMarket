@@ -5,10 +5,29 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { ImageUpload } from "@/components/image-upload";
-import { insertProductSchema, validCategories, type Product, type InsertProduct, type Category } from "@shared/schema";
+import {
+  insertProductSchema,
+  validCategories,
+  type Product,
+  type InsertProduct,
+  type Category,
+} from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -29,15 +48,15 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await apiRequest('GET', '/api/categories');
+        const response = await apiRequest("GET", "/api/categories");
         setCategories(await response.json());
       } catch (error) {
-        console.error('Failed to load categories:', error);
+        console.error("Failed to load categories:", error);
       } finally {
         setCategoriesLoading(false);
       }
     };
-    
+
     loadCategories();
   }, []);
 
@@ -54,7 +73,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertProduct) => apiRequest("POST", "/api/products", data),
+    mutationFn: (data: InsertProduct) =>
+      apiRequest("POST", "/api/products", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       toast({
@@ -84,7 +104,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: InsertProduct) => apiRequest("PUT", `/api/products/${product?.id}`, data),
+    mutationFn: (data: InsertProduct) =>
+      apiRequest("PUT", `/api/products/${product?.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       toast({
@@ -144,11 +165,13 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
               <FormItem>
                 <FormLabel>Precio (₡)</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="5000" 
+                  <Input
+                    type="number"
+                    placeholder="5000"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value) || 0)
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -171,9 +194,13 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                 </FormControl>
                 <SelectContent>
                   {categoriesLoading ? (
-                    <SelectItem value="loading" disabled>Cargando categorías...</SelectItem>
+                    <SelectItem value="loading" disabled>
+                      Cargando categorías...
+                    </SelectItem>
                   ) : categories.length === 0 ? (
-                    <SelectItem value="empty" disabled>No hay categorías disponibles</SelectItem>
+                    <SelectItem value="empty" disabled>
+                      No hay categorías disponibles
+                    </SelectItem>
                   ) : (
                     categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
@@ -213,10 +240,10 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
             <FormItem>
               <FormControl>
                 <ImageUpload
-                  value={field.value || ''}
+                  value={field.value || ""}
                   onChange={field.onChange}
                   label="Imagen del Producto"
-                  folder="products"
+                  folder="images/products"
                 />
               </FormControl>
               <FormMessage />

@@ -259,7 +259,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
                     value={watchedValues.image1Url || ''}
                     onChange={(url) => setValue('image1Url', url)}
                     label="Imagen 1"
-                    folder="categories"
+                    folder="images/categories"
                   />
                 </div>
 
@@ -268,7 +268,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
                     value={watchedValues.image2Url || ''}
                     onChange={(url) => setValue('image2Url', url)}
                     label="Imagen 2"
-                    folder="categories"
+                    folder="images/categories"
                   />
                 </div>
               </div>
