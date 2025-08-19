@@ -786,7 +786,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             <span className="hidden md:inline">Guardar Cambios</span>
             <span className="md:hidden">Guardar</span>
           </Button>
-          <DeployButton disabled={hasChanges} className="w-full sm:flex-1 lg:w-auto" />
+
           <Link href="/admin/deployments" className="w-full sm:flex-1 lg:w-auto">
             <Button
               variant="outline"

@@ -8,6 +8,7 @@ import { setupAuth } from "./auth";
 import { setupUserManagement } from "./user-management";
 import { handlePresignedUpload } from "./s3-upload";
 import { triggerAutoDeployment, getDeploymentStatus } from "./deployment";
+import { triggerPreDeployment } from "./pre-deployment";
 import { 
   authenticateServerless, 
   requireAdminServerless, 
@@ -177,6 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const category = await storage.createCategory(categoryData);
+      
+      // Trigger pre-deployment for new category
+      await triggerPreDeployment('category', 'create', category.id, 'category', categoryData);
+      
       res.status(201).json(category);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -204,6 +209,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!category) {
         return res.status(404).json({ error: "Category not found" });
       }
+      
+      // Trigger pre-deployment for updated category
+      await triggerPreDeployment('category', 'update', req.params.id, 'category', updates);
+      
       res.json(category);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -220,6 +229,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!deleted) {
         return res.status(404).json({ error: "Category not found" });
       }
+      
+      // Trigger pre-deployment for deleted category
+      await triggerPreDeployment('category', 'delete', req.params.id, 'category', {});
+      
       res.json({ message: "Category deleted successfully" });
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -268,6 +281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const product = await storage.createProduct(productData);
+      
+      // Trigger pre-deployment for new product
+      await triggerPreDeployment('product', 'create', product.id, 'product', productData);
+      
       res.status(201).json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -294,6 +311,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
+      
+      // Trigger pre-deployment for updated product
+      await triggerPreDeployment('product', 'update', req.params.id, 'product', updates);
+      
       res.json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -310,6 +331,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!deleted) {
         return res.status(404).json({ error: "Product not found" });
       }
+      
+      // Trigger pre-deployment for deleted product
+      await triggerPreDeployment('product', 'delete', req.params.id, 'product', {});
+      
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -415,6 +440,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!content) {
         return res.status(404).json({ error: "Contenido no encontrado" });
       }
+      
+      // Trigger pre-deployment for updated CMS content
+      await triggerPreDeployment('cms', 'update', req.params.id, 'homepage_content', req.body);
+      
       res.json(content);
     } catch (error) {
       console.error("Error updating home content:", error);
@@ -426,6 +455,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const contentList = req.body;
       const results = await storage.bulkUpsertHomePageContent(contentList);
+      
+      // Trigger pre-deployment for bulk CMS updates
+      await triggerPreDeployment('cms', 'update', 'bulk', 'homepage_content', { count: contentList.length });
+      
       res.json(results);
     } catch (error) {
       console.error("Error bulk updating home content:", error);
@@ -442,6 +475,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message: "Contenido eliminado correctamente" });
     } catch (error) {
       console.error("Error deleting home content:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  // Pre-Deployment Management API
+  app.get("/api/pre-deployments", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+    try {
+      const preDeployments = await storage.getPreDeployments();
+      res.json(preDeployments);
+    } catch (error) {
+      console.error("Error getting pre-deployments:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.get("/api/pre-deployments/active", async (req, res) => {
+    try {
+      const activePreDeployment = await storage.getActivePreDeployment();
+      res.json(activePreDeployment || null);
+    } catch (error) {
+      console.error("Error getting active pre-deployment:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.post("/api/pre-deployments/:id/publish", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+    try {
+      const preDeployment = await storage.getPreDeployments();
+      const target = preDeployment.find(p => p.id === req.params.id);
+      
+      if (!target) {
+        return res.status(404).json({ error: "Pre-deployment no encontrado" });
+      }
+
+      // Mark as published and trigger deployment
+      await storage.updatePreDeployment(req.params.id, {
+        status: 'published',
+        publishedAt: new Date()
+      });
+
+      // Trigger actual deployment
+      await triggerAutoDeployment();
+      
+      res.json({ success: true, message: "Deployment iniciado exitosamente" });
+    } catch (error) {
+      console.error("Error publishing pre-deployment:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
+  app.delete("/api/pre-deployments/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
+    try {
+      const success = await storage.deletePreDeployment(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Pre-deployment no encontrado" });
+      }
+      res.json({ success: true, message: "Pre-deployment eliminado" });
+    } catch (error) {
+      console.error("Error deleting pre-deployment:", error);
       res.status(500).json({ error: "Error interno del servidor" });
     }
   });

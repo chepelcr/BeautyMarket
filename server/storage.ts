@@ -11,6 +11,8 @@ import {
   type InsertHomePageContent,
   type DeploymentHistory,
   type InsertDeploymentHistory,
+  type PreDeployment,
+  type InsertPreDeployment,
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type EmailVerificationToken,
@@ -27,6 +29,7 @@ import {
   categoriesTable,
   homePageContent,
   deploymentHistory,
+  preDeployments,
   passwordResetTokens,
   emailVerificationTokens,
   provinces,
@@ -108,6 +111,16 @@ export interface IStorage {
     id: string,
     deployment: Partial<InsertDeploymentHistory>,
   ): Promise<DeploymentHistory | undefined>;
+
+  // Pre-Deployment Management
+  getPreDeployments(): Promise<PreDeployment[]>;
+  getActivePreDeployment(): Promise<PreDeployment | undefined>;
+  createPreDeployment(preDeployment: InsertPreDeployment): Promise<PreDeployment>;
+  updatePreDeployment(
+    id: string,
+    preDeployment: Partial<InsertPreDeployment>,
+  ): Promise<PreDeployment | undefined>;
+  deletePreDeployment(id: string): Promise<boolean>;
 
   // Password Reset Tokens
   createPasswordResetToken(
@@ -720,6 +733,51 @@ export class DatabaseStorage implements IStorage {
       .where(eq(deploymentHistory.id, id))
       .returning();
     return updatedDeployment || undefined;
+  }
+
+  // Pre-Deployment Management
+  async getPreDeployments(): Promise<PreDeployment[]> {
+    return await db
+      .select()
+      .from(preDeployments)
+      .orderBy(preDeployments.createdAt);
+  }
+
+  async getActivePreDeployment(): Promise<PreDeployment | undefined> {
+    const [deployment] = await db
+      .select()
+      .from(preDeployments)
+      .where(eq(preDeployments.status, "ready"))
+      .orderBy(preDeployments.createdAt)
+      .limit(1);
+    return deployment || undefined;
+  }
+
+  async createPreDeployment(preDeployment: InsertPreDeployment): Promise<PreDeployment> {
+    const [newPreDeployment] = await db
+      .insert(preDeployments)
+      .values(preDeployment)
+      .returning();
+    return newPreDeployment;
+  }
+
+  async updatePreDeployment(
+    id: string,
+    preDeployment: Partial<InsertPreDeployment>,
+  ): Promise<PreDeployment | undefined> {
+    const [updatedPreDeployment] = await db
+      .update(preDeployments)
+      .set({ ...preDeployment, updatedAt: new Date() })
+      .where(eq(preDeployments.id, id))
+      .returning();
+    return updatedPreDeployment || undefined;
+  }
+
+  async deletePreDeployment(id: string): Promise<boolean> {
+    const result = await db
+      .delete(preDeployments)
+      .where(eq(preDeployments.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   // Password Reset Token methods

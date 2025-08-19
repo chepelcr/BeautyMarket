@@ -211,7 +211,7 @@ export function DeployButton({ disabled, onDeployStart, onDeployComplete, classN
 
               {deploymentStatus.status === 'success' && (
                 <Button 
-                  onClick={() => window.open(`https://${process.env.AWS_S3_BUCKET_NAME}.s3-website.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com`, '_blank')}
+                  onClick={() => window.open(`https://${import.meta.env.VITE_AWS_S3_BUCKET_NAME || 'strawberryessentials'}.s3-website.${import.meta.env.VITE_AWS_REGION || 'us-east-1'}.amazonaws.com`, '_blank')}
                   className="w-full"
                 >
                   <Globe className="w-4 h-4 mr-2" />

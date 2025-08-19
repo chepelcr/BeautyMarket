@@ -211,6 +211,32 @@ export const insertDeploymentHistorySchema = createInsertSchema(deploymentHistor
 export type InsertDeploymentHistory = z.infer<typeof insertDeploymentHistorySchema>;
 export type DeploymentHistory = typeof deploymentHistory.$inferSelect;
 
+// Pre-Deployment Management Schema
+export const preDeployments = pgTable("pre_deployments", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // 'pending', 'ready', 'published', 'error'
+  triggerType: varchar("trigger_type", { length: 50 }).notNull(), // 'product', 'category', 'cms'
+  triggerAction: varchar("trigger_action", { length: 50 }).notNull(), // 'create', 'update', 'delete'
+  entityId: varchar("entity_id", { length: 100 }), // ID of the affected entity
+  entityType: varchar("entity_type", { length: 50 }), // 'product', 'category', 'homepage_content'
+  changes: jsonb("changes"), // JSON object with the changes made
+  buildId: varchar("build_id", { length: 100 }),
+  message: text("message").default("Cambios pendientes de publicar"),
+  errorDetails: text("error_details"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  publishedAt: timestamp("published_at"),
+});
+
+export const insertPreDeploymentSchema = createInsertSchema(preDeployments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPreDeployment = z.infer<typeof insertPreDeploymentSchema>;
+export type PreDeployment = typeof preDeployments.$inferSelect;
+
 // Password Reset Schema
 export const passwordResetTokens = pgTable("password_reset_tokens", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),

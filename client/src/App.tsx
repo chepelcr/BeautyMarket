@@ -14,6 +14,7 @@ import Navbar from "@/components/layout/navbar";
 import { DynamicFooter } from "@/components/dynamic-footer";
 import CartSidebar from "@/components/cart/cart-sidebar";
 import CheckoutModal from "@/components/cart/checkout-modal";
+import { PreDeploymentBanner } from "@/components/pre-deployment-banner";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function App() {
       <TooltipProvider>
         <div className="min-h-screen bg-cream dark:bg-gray-900">
           <Navbar />
+          <PreDeploymentBanner />
           <Router />
           <DynamicFooter />
           <CartSidebar />
