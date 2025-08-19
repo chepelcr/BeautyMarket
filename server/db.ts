@@ -18,7 +18,8 @@ import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
-const connectionString = process.env.DATABASE_URL || ''
+// Use NEW_DATABASE_URL (Supabase) as primary, fallback to DATABASE_URL (Neon) for migration
+const connectionString = process.env.NEW_DATABASE_URL || process.env.DATABASE_URL || ''
 
 //config({ path: '.env' }); // or .env.local
 // Disable prefetch as it is not supported for "Transaction" pool mode
