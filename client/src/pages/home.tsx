@@ -24,7 +24,8 @@ export default function Home() {
     const fetchCategories = async () => {
       try {
         setIsLoading(true);
-        const data = await apiRequest<Category[]>("/api/categories");
+        const response = await apiRequest("GET", "/api/categories");
+        const data = await response.json();
         setCategories(data || []);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
