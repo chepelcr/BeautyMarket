@@ -105,7 +105,7 @@ export default function Products() {
   }
 
   return (
-    <div className="py-20 bg-cream dark:bg-gray-900 min-h-screen">
+    <div className="py-5 bg-cream dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">Nuestros Productos</h1>
@@ -118,7 +118,7 @@ export default function Products() {
         </div>
         
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-5">
             <div className="max-w-md mx-auto">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-search text-gray-400 text-2xl"></i>
