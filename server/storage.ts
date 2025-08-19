@@ -522,7 +522,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(productsTable)
       .where(eq(productsTable.id, id));
-    return (result.rowCount || 0) > 0;
+    return result.length > 0;
   }
 
   // Categories operations
@@ -574,7 +574,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(categoriesTable)
       .where(eq(categoriesTable.id, id));
-    return (result.rowCount || 0) > 0;
+    return result.length > 0;
   }
 
   // Order operations
@@ -674,7 +674,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(homePageContent)
       .where(eq(homePageContent.id, id));
-    return (result.rowCount || 0) > 0;
+    return result.length > 0;
   }
 
   async bulkUpsertHomePageContent(
@@ -777,7 +777,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(preDeployments)
       .where(eq(preDeployments.id, id));
-    return (result.rowCount || 0) > 0;
+    return result.length > 0;
   }
 
   // Password Reset Token methods
