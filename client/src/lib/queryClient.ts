@@ -53,6 +53,8 @@ async function handleStaticModeRequest(
             result = await offlineData.getProductsByCategory(categoryId!);
         } else if (url === '/api/categories' && method === 'GET') {
             result = await offlineData.getCategories();
+        } else if (url === '/api/home-content' && method === 'GET') {
+            result = await offlineData.getCMSContent();
         } else {
             throw new Error('Not found');
         }
