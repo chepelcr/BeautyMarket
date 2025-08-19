@@ -28,9 +28,9 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   const buttonTextColor = getContrastingTextColor(category.buttonColor);
 
   return (
-    <Link href={`/products/${category.slug}`} className="block w-full">
+    <Link href={`/products/${category.slug}`} className="block h-full">
       <Card 
-        className="rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group w-full"
+        className="rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group h-full"
         style={{ backgroundColor: category.backgroundColor }}
       >
       <CardContent className="p-8 h-full">

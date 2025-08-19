@@ -159,9 +159,7 @@ export default function Home() {
           ) : categories.length > 0 ? (
             <div className="grid md:grid-cols-3 gap-8 items-stretch">
               {categories.map((category) => (
-                <div key={category.id} className="flex">
-                  <CategoryCard category={category} />
-                </div>
+                <CategoryCard key={category.id} category={category} />
               ))}
             </div>
           ) : (
