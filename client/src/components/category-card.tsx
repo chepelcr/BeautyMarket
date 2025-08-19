@@ -62,12 +62,12 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           <div className="flex-1"></div>
 
           {/* Images - Centered */}
-          <div className="flex justify-center items-center mb-6">
-            {category.image1Url && (
-              <div className="w-32 h-32 bg-white bg-opacity-20 rounded-xl overflow-hidden relative mx-auto">
+          <div className="flex justify-center items-center space-x-4 mb-6">
+            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
+              {category.image1Url ? (
                 <img 
                   src={normalizeImageUrl(category.image1Url) || ''} 
-                  alt={`${category.name} imagen principal`} 
+                  alt={`${category.name} imagen 1`} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -76,20 +76,33 @@ export default function CategoryCard({ category }: CategoryCardProps) {
                     if (fallback) fallback.classList.remove('hidden');
                   }}
                 />
-                <div className={`fallback-icon absolute inset-0 flex items-center justify-center hidden`}>
-                  <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center shadow-sm">
-                    <span className="text-2xl">🍓</span>
-                  </div>
+              ) : null}
+              <div className={`fallback-icon absolute inset-0 flex items-center justify-center ${category.image1Url ? 'hidden' : ''}`}>
+                <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-xl">🍓</span>
                 </div>
               </div>
-            )}
-            {!category.image1Url && (
-              <div className="w-32 h-32 bg-white bg-opacity-20 rounded-xl overflow-hidden relative mx-auto flex items-center justify-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center shadow-sm">
-                  <span className="text-2xl">🍓</span>
+            </div>
+            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
+              {category.image2Url ? (
+                <img 
+                  src={normalizeImageUrl(category.image2Url) || ''} 
+                  alt={`${category.name} imagen 2`} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.parentElement?.querySelector('.fallback-icon');
+                    if (fallback) fallback.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`fallback-icon absolute inset-0 flex items-center justify-center ${category.image2Url ? 'hidden' : ''}`}>
+                <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-xl">🍓</span>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Button */}
