@@ -1,50 +1,44 @@
 import { useCmsContent } from "@/hooks/use-cms-content";
-import { FaInstagram, FaWhatsapp, FaPhone } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
-import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 
 export function DynamicFooter() {
   const { getContent } = useCmsContent();
-  
-  // Check if user is authenticated (admin)
-  const { data: user } = useQuery<{ id: string; username: string; role: string } | null>({
-    queryKey: ["/api/user"],
-    retry: false,
-  });
 
-  const footerBg = getContent('contact', 'footerBackground');
-  const companyName = getContent('contact', 'companyName') || 'Strawberry Essentials';
-  const footerText = getContent('contact', 'footerText') || 'Tu belleza, nuestra pasión';
-  const instagramHandle = getContent('contact', 'instagram') || '@strawberry.essentials';
-  const phone = getContent('contact', 'phone') || '73676745';
+  const footerBg = getContent("contact", "footerBackground");
+  const companyName =
+    getContent("contact", "companyName") || "Strawberry Essentials";
+  const footerText =
+    getContent("contact", "footerText") || "Tu belleza, nuestra pasión";
+  const instagramHandle =
+    getContent("contact", "instagram") || "@strawberry.essentials";
+  const phone = getContent("contact", "phone") || "73676745";
 
   const renderBackground = (bgValue: string) => {
     try {
       const bgData = JSON.parse(bgValue);
-      const isDark = document.documentElement.classList.contains('dark');
-      
-      if (bgData.mode === 'light' && isDark) return {};
-      if (bgData.mode === 'dark' && !isDark) return {};
-      
-      if (bgData.type === 'color') {
+      const isDark = document.documentElement.classList.contains("dark");
+
+      if (bgData.mode === "light" && isDark) return {};
+      if (bgData.mode === "dark" && !isDark) return {};
+
+      if (bgData.type === "color") {
         return { backgroundColor: bgData.value };
-      } else if (bgData.type === 'gradient') {
+      } else if (bgData.type === "gradient") {
         const { from, to, direction } = bgData.gradient;
-        if (direction === 'radial') {
+        if (direction === "radial") {
           return { background: `radial-gradient(circle, ${from}, ${to})` };
         } else {
-          return { background: `linear-gradient(${direction}, ${from}, ${to})` };
+          return {
+            background: `linear-gradient(${direction}, ${from}, ${to})`,
+          };
         }
-      } else if (bgData.type === 'image') {
+      } else if (bgData.type === "image") {
         const { url, opacity } = bgData.image;
         return {
           backgroundImage: `url(${url})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: opacity
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: opacity,
         };
       }
     } catch (e) {
@@ -54,7 +48,7 @@ export function DynamicFooter() {
   };
 
   return (
-    <footer 
+    <footer
       className="bg-gray-900 dark:bg-black text-white py-8"
       style={footerBg ? renderBackground(footerBg) : undefined}
     >
@@ -63,18 +57,18 @@ export function DynamicFooter() {
           <h3 className="text-xl font-serif font-bold mb-2">{companyName}</h3>
           <p className="text-gray-300 dark:text-gray-400">{footerText}</p>
         </div>
-        
+
         <div className="flex justify-center items-center space-x-6 mb-4">
-          <a 
-            href={`https://instagram.com/${instagramHandle.replace('@', '')}`} 
-            target="_blank" 
+          <a
+            href={`https://instagram.com/${instagramHandle.replace("@", "")}`}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-pink-400 hover:text-pink-300 transition-colors"
           >
             <i className="fab fa-instagram text-xl mr-2"></i>
             {instagramHandle}
           </a>
-          <a 
+          <a
             href={`tel:${phone}`}
             className="text-pink-400 hover:text-pink-300 transition-colors"
           >
@@ -82,14 +76,13 @@ export function DynamicFooter() {
             {phone}
           </a>
         </div>
-        
+
         <div className="pt-4 border-t border-gray-700 dark:border-gray-800">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
             <p className="text-sm text-gray-400 dark:text-gray-500">
-              © {new Date().getFullYear()} {companyName}. Todos los derechos reservados.
+              © {new Date().getFullYear()} {companyName}. Todos los derechos
+              reservados.
             </p>
-            
-
           </div>
         </div>
       </div>

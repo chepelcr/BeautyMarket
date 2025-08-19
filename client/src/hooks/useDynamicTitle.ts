@@ -1,15 +1,11 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { HomePageContent } from '@shared/schema';
+import { useCmsContent } from './use-cms-content';
 
 export function useDynamicTitle(pageTitle?: string) {
-  const { data: homeContent } = useQuery<HomePageContent[]>({
-    queryKey: ["/api/home-content"],
-  });
+  const { getContent } = useCmsContent();
 
   useEffect(() => {
-    const siteContent = homeContent?.filter(item => item.section === 'site') || [];
-    const siteTitle = siteContent.find(item => item.key === 'title')?.value || 'Strawberry Essentials';
+    const siteTitle = getContent('site', 'title', 'Strawberry Essentials');
     
     // Update document title
     if (pageTitle) {
@@ -19,12 +15,12 @@ export function useDynamicTitle(pageTitle?: string) {
     }
 
     // Update favicon if available
-    const favicon = siteContent.find(item => item.key === 'favicon')?.value;
+    const favicon = getContent('site', 'favicon', '');
     if (favicon) {
       const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
       if (link) {
         link.href = favicon;
       }
     }
-  }, [homeContent, pageTitle]);
+  }, [getContent, pageTitle]);
 }

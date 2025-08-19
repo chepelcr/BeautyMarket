@@ -7,19 +7,35 @@ import { useCmsContent } from "@/hooks/use-cms-content";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 import { BackgroundSection } from "@/components/ui/background-section";
 import { normalizeImageUrl } from "@/lib/image-utils";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
   const { getContent, getSectionStyles, getButtonStyles, getTextStyles } = useCmsContent();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Set dynamic page title
   useDynamicTitle();
 
-  // Fetch categories using React Query
-  const { data: categories = [], isLoading } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
+  // Fetch categories using apiRequest
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const data = await apiRequest<Category[]>("/api/categories");
+        setCategories(data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        setCategories([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
