@@ -62,6 +62,9 @@ Preferred communication style: Simple, everyday language.
 - **✅ Global Publish Banner**: Pre-deployment banner component integrated into main app layout for site-wide visibility
 - **✅ Automated Change Tracking**: Product, category, and CMS changes automatically trigger pre-deployment entries
 - **✅ Deploy Button Migration**: Moved publish functionality from CMS admin panel to global banner for better UX
+- **✅ Unified Deploy Endpoint**: Pre-deployment system uses existing `/api/deploy` endpoint with proper authentication
+- **✅ S3 Integration**: Pre-deployments marked as published during S3 upload process automatically
+- **✅ Admin Authentication**: Publish button only visible to authenticated admin users with proper messaging
 
 # System Architecture
 

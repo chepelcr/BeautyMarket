@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, Upload, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PreDeployment {
   id: string;
@@ -24,6 +25,7 @@ interface PreDeployment {
 export function PreDeploymentBanner() {
   const [isPublishing, setIsPublishing] = useState(false);
   const queryClient = useQueryClient();
+  const { user, isLoading: authLoading } = useAuth();
 
   // Query for active pre-deployment
   const { data: activePreDeployment, isLoading } = useQuery({
@@ -75,6 +77,9 @@ export function PreDeploymentBanner() {
   if (isLoading || !preDeployment || preDeployment.status === 'published') {
     return null;
   }
+
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
 
   const getStatusIcon = () => {
     switch (preDeployment.status) {
@@ -130,7 +135,7 @@ export function PreDeploymentBanner() {
         </div>
 
         <div className="flex items-center gap-2">
-          {preDeployment.status === 'ready' && (
+          {preDeployment.status === 'ready' && isAdmin && (
             <Button
               onClick={handlePublish}
               disabled={isPublishing || publishMutation.isPending}
@@ -151,14 +156,22 @@ export function PreDeploymentBanner() {
             </Button>
           )}
           
-          <Button
-            onClick={handleDismiss}
-            disabled={dismissMutation.isPending}
-            variant="ghost"
-            size="sm"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          {!isAdmin && preDeployment.status === 'ready' && (
+            <p className="text-sm text-muted-foreground">
+              Inicia sesión como administrador para publicar cambios
+            </p>
+          )}
+          
+          {isAdmin && (
+            <Button
+              onClick={handleDismiss}
+              disabled={dismissMutation.isPending}
+              variant="ghost"
+              size="sm"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
