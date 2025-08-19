@@ -66,6 +66,7 @@ Preferred communication style: Simple, everyday language.
 - **✅ S3 Integration**: Pre-deployments marked as published during S3 upload process automatically
 - **✅ Admin Authentication**: Publish button only visible to authenticated admin users with proper messaging
 - **✅ CloudFront Cache Invalidation**: Automatic CloudFront cache invalidation during deployment for immediate content updates
+- **✅ API Request Migration**: Migrated home page and product filters to use React Query instead of direct API calls for offline static mode compatibility
 
 # System Architecture
 

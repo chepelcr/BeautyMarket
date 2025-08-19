@@ -1,14 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useCartStore } from "@/store/cart";
-import { useState, useEffect } from "react";
 import type { Category } from "@shared/schema";
 import CategoryCard from "@/components/category-card";
 import { useCmsContent } from "@/hooks/use-cms-content";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 import { BackgroundSection } from "@/components/ui/background-section";
 import { normalizeImageUrl } from "@/lib/image-utils";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
@@ -17,23 +16,10 @@ export default function Home() {
   // Set dynamic page title
   useDynamicTitle();
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await apiRequest('GET', '/api/categories');
-        setCategories(await response.json());
-      } catch (error) {
-        console.error('Failed to load categories:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadCategories();
-  }, []);
+  // Fetch categories using React Query
+  const { data: categories = [], isLoading } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
