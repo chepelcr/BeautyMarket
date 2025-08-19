@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
-import { useQuery } from "@tanstack/react-query";
 import { HomePageContent } from "@shared/schema";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut, Shield } from "lucide-react";
@@ -21,9 +20,20 @@ export default function Navbar() {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   // Load dynamic site content
-  const { data: homeContent } = useQuery<HomePageContent[]>({
-    queryKey: ["/api/home-content"],
-  });
+  const [homeContent, setHomeContent] = useState<HomePageContent[]>([]);
+
+  useEffect(() => {
+    const loadHomeContent = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/home-content');
+        setHomeContent(await response.json());
+      } catch (error) {
+        console.error('Failed to load home content:', error);
+      }
+    };
+    
+    loadHomeContent();
+  }, []);
 
   // Get dynamic site title and logo
   const siteContent = homeContent?.filter(item => item.section === 'site') || [];

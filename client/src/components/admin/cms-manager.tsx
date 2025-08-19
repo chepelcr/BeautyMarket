@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,38 +43,44 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   const [hasChanges, setHasChanges] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeSection, setActiveSection] = useState(defaultActiveSection);
-  const queryClient = useQueryClient();
+  const [content, setContent] = useState<HomePageContent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data: content, isLoading } = useQuery<HomePageContent[]>({
-    queryKey: ["/api/home-content"],
-  });
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/home-content');
+        setContent(await response.json());
+      } catch (error) {
+        console.error('Failed to load content:', error);
+        setContent([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadContent();
+  }, []);
 
-  const updateMutation = useMutation({
-    mutationFn: async (contentList: any[]) => {
-      const response = await fetch("/api/home-content/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contentList),
-      });
-      if (!response.ok) throw new Error("Error al actualizar contenido");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/home-content"] });
+  const handleSaveChanges = async (contentList: any[]) => {
+    try {
+      await apiRequest("POST", "/api/home-content/bulk", contentList);
+      // Reload content
+      const response = await apiRequest('GET', '/api/home-content');
+      setContent(await response.json());
       toast({
         title: "Contenido actualizado",
         description: "Los cambios se han guardado correctamente",
       });
       setHasChanges(false);
-    },
-    onError: () => {
+    } catch (error) {
       toast({
         title: "Error",
         description: "No se pudo actualizar el contenido",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
   // Group content by sections
   useEffect(() => {
@@ -123,7 +129,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
         sortOrder: item.sortOrder
       }));
     
-    updateMutation.mutate(updates);
+    handleSaveChanges(updates);
   };
 
   const handleReset = () => {
@@ -774,15 +780,11 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={!hasChanges || updateMutation.isPending}
+            disabled={!hasChanges}
             size="sm"
             className="w-full sm:flex-1 lg:w-auto"
           >
-            {updateMutation.isPending ? (
-              <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-1 sm:mr-2" />
-            )}
+            <Save className="w-4 h-4 mr-1 sm:mr-2" />
             <span className="hidden md:inline">Guardar Cambios</span>
             <span className="md:hidden">Guardar</span>
           </Button>

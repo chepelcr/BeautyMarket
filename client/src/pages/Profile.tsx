@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,9 +50,24 @@ export default function Profile() {
   useDynamicTitle("Mi Perfil");
 
   // Get current user data
-  const { data: user, isLoading } = useQuery<any>({
-    queryKey: ["/api/user"],
-  });
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/user');
+        setUser(await response.json());
+      } catch (error) {
+        console.error('Failed to load user:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadUser();
+  }, []);
 
   // Profile update form
   const profileForm = useForm<ProfileUpdateForm>({
@@ -96,73 +111,63 @@ export default function Profile() {
     }
   }, [user, profileForm, forgotPasswordForm]);
 
-  // Profile update mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: ProfileUpdateForm) => {
+  const handleProfileUpdate = async (data: ProfileUpdateForm) => {
+    try {
       const response = await apiRequest("PATCH", "/api/user/profile", data);
-      return response.json();
-    },
-    onSuccess: () => {
+      await response.json();
       toast({
         title: "Perfil actualizado",
         description: "Tu información ha sido actualizada exitosamente",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      // Reload user data
+      const userResponse = await apiRequest('GET', '/api/user');
+      setUser(await userResponse.json());
       setIsEditingProfile(false);
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Error al actualizar",
         description: error.message || "No se pudo actualizar tu perfil",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  // Change password mutation
-  const changePasswordMutation = useMutation({
-    mutationFn: async (data: ChangePasswordForm) => {
+  const handlePasswordChange = async (data: ChangePasswordForm) => {
+    try {
       const response = await apiRequest("POST", "/api/user/change-password", data);
-      return response.json();
-    },
-    onSuccess: () => {
+      await response.json();
       toast({
         title: "Contraseña cambiada",
         description: "Tu contraseña ha sido actualizada exitosamente",
       });
       passwordForm.reset();
       setSecurityOption('menu');
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Error al cambiar contraseña",
         description: error.message || "No se pudo cambiar tu contraseña",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  // Forgot password mutation
-  const forgotPasswordMutation = useMutation({
-    mutationFn: async (data: ForgotPasswordForm) => {
+  const handleForgotPassword = async (data: ForgotPasswordForm) => {
+    try {
       const response = await apiRequest("POST", "/api/auth/forgot-password", data);
-      return response.json();
-    },
-    onSuccess: () => {
+      await response.json();
       toast({
         title: "Email enviado",
         description: "Revisa tu email para instrucciones de restablecimiento",
       });
       setSecurityOption('menu');
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Error al enviar email",
         description: error.message || "No se pudo enviar el email de restablecimiento",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -245,9 +250,7 @@ export default function Profile() {
                     // Edit mode
                     <Form {...profileForm}>
                       <form
-                        onSubmit={profileForm.handleSubmit((data) =>
-                          updateProfileMutation.mutate(data)
-                        )}
+                        onSubmit={profileForm.handleSubmit(handleProfileUpdate)}
                         className="space-y-4"
                       >
                         <FormField
@@ -400,9 +403,7 @@ export default function Profile() {
                       
                       <Form {...passwordForm}>
                         <form
-                          onSubmit={passwordForm.handleSubmit((data) =>
-                            changePasswordMutation.mutate(data)
-                          )}
+                          onSubmit={passwordForm.handleSubmit(handlePasswordChange)}
                           className="space-y-4"
                         >
                           <FormField
@@ -506,10 +507,10 @@ export default function Profile() {
 
                           <Button
                             type="submit"
-                            disabled={changePasswordMutation.isPending}
+                            disabled={false}
                             className="w-full bg-pink-primary hover:bg-pink-600"
                           >
-                            {changePasswordMutation.isPending ? "Cambiando..." : "Cambiar Contraseña"}
+                            Cambiar Contraseña
                           </Button>
                         </form>
                       </Form>
@@ -535,9 +536,7 @@ export default function Profile() {
                       
                       <Form {...forgotPasswordForm}>
                         <form
-                          onSubmit={forgotPasswordForm.handleSubmit((data) =>
-                            forgotPasswordMutation.mutate(data)
-                          )}
+                          onSubmit={forgotPasswordForm.handleSubmit(handleForgotPassword)}
                           className="space-y-4"
                         >
                           <FormField
@@ -556,11 +555,11 @@ export default function Profile() {
 
                           <Button
                             type="submit"
-                            disabled={forgotPasswordMutation.isPending}
+                            disabled={false}
                             className="w-full bg-pink-primary hover:bg-pink-600"
                           >
                             <Send className="w-4 h-4 mr-2" />
-                            {forgotPasswordMutation.isPending ? "Enviando..." : "Enviar Enlace de Restablecimiento"}
+                            Enviar Enlace de Restablecimiento
                           </Button>
                         </form>
                       </Form>

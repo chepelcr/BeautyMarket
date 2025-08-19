@@ -67,6 +67,9 @@ Preferred communication style: Simple, everyday language.
 - **✅ Admin Authentication**: Publish button only visible to authenticated admin users with proper messaging
 - **✅ CloudFront Cache Invalidation**: Automatic CloudFront cache invalidation during deployment for immediate content updates
 - **✅ API Request Migration**: Migrated home page and product filters to use React Query instead of direct API calls for offline static mode compatibility
+- **✅ Complete useQuery to apiRequest Migration**: Successfully migrated all client-side components from React Query (useQuery/useMutation) to direct apiRequest calls for uniformity and offline static mode support
+- **✅ Unified API Calling Pattern**: All components (navbar, products page, profile, pre-deployment banner, CMS manager) now use consistent apiRequest pattern
+- **✅ Static Mode Compatibility**: Enhanced offline functionality by removing React Query dependencies and implementing direct state management for static S3 deployments
 
 # System Architecture
 

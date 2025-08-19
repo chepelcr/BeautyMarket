@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/store/cart";
 import type { Product, Category } from "@shared/schema";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
-import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Products() {
   const params = useParams();
@@ -38,17 +38,31 @@ export default function Products() {
     }
   };
 
-  // Fetch products using React Query
-  const { data: allProducts = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
-  });
+  // State for products and categories
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch categories using React Query
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
-
-  const isLoading = productsLoading || categoriesLoading;
+  // Fetch products and categories using apiRequest
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          apiRequest('GET', '/api/products'),
+          apiRequest('GET', '/api/categories')
+        ]);
+        
+        setAllProducts(await productsResponse.json());
+        setCategories(await categoriesResponse.json());
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!allProducts) return [];

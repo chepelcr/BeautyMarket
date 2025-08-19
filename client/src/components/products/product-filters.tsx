@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Category } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ProductFiltersProps {
   selectedCategory: string;
@@ -9,10 +10,23 @@ interface ProductFiltersProps {
 }
 
 export default function ProductFilters({ selectedCategory, onCategoryChange }: ProductFiltersProps) {
-  // Fetch categories using React Query
-  const { data: categories = [], isLoading } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/categories');
+        setCategories(await response.json());
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadCategories();
+  }, []);
 
   if (isLoading) {
     return (

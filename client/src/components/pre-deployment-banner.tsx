@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, Upload, X, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -25,31 +24,49 @@ interface PreDeployment {
 
 export function PreDeploymentBanner() {
   const [isPublishing, setIsPublishing] = useState(false);
-  const queryClient = useQueryClient();
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
 
-  // Query for active pre-deployment
-  const { data: activePreDeployment, isLoading } = useQuery({
-    queryKey: ['/api/pre-deployments/active'],
-    refetchInterval: 5000, // Poll every 5 seconds
-  });
+  // State for active pre-deployment
+  const [activePreDeployment, setActivePreDeployment] = useState<PreDeployment | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mutation for publishing pre-deployment (uses existing deploy endpoint)
-  const publishMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/deploy", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/deploy/status'] });
+  // Load active pre-deployment with polling
+  useEffect(() => {
+    const loadActivePreDeployment = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/pre-deployments/active');
+        const data = await response.json();
+        setActivePreDeployment(data);
+      } catch (error) {
+        console.error('Failed to load active pre-deployment:', error);
+        setActivePreDeployment(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadActivePreDeployment();
+    
+    // Poll every 5 seconds
+    const interval = setInterval(loadActivePreDeployment, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      await apiRequest("POST", "/api/deploy", {});
       setIsPublishing(false);
       toast({
         title: "¡Despliegue Exitoso!",
         description: "Los cambios han sido publicados correctamente en el sitio web.",
       });
-    },
-    onError: (error) => {
+      // Refresh the active pre-deployment status
+      const response = await apiRequest('GET', '/api/pre-deployments/active');
+      const data = await response.json();
+      setActivePreDeployment(data);
+    } catch (error) {
       console.error('Error publishing pre-deployment:', error);
       setIsPublishing(false);
       toast({
@@ -57,27 +74,23 @@ export function PreDeploymentBanner() {
         description: "Hubo un problema al publicar los cambios. Inténtalo de nuevo.",
         variant: "destructive",
       });
-    },
-  });
-
-  // Mutation for dismissing pre-deployment
-  const dismissMutation = useMutation({
-    mutationFn: async (preDeploymentId: string) => {
-      return await apiRequest("DELETE", `/api/pre-deployments/${preDeploymentId}`, {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
-    },
-  });
-
-  const handlePublish = async () => {
-    setIsPublishing(true);
-    publishMutation.mutate();
+    }
   };
 
-  const handleDismiss = async () => {
-    if (preDeployment?.id) {
-      dismissMutation.mutate(preDeployment.id);
+  const handleDismiss = async (preDeploymentId: string) => {
+    try {
+      await apiRequest("DELETE", `/api/pre-deployments/${preDeploymentId}`, {});
+      // Refresh the active pre-deployment status
+      const response = await apiRequest('GET', '/api/pre-deployments/active');
+      const data = await response.json();
+      setActivePreDeployment(data);
+    } catch (error) {
+      console.error('Error dismissing pre-deployment:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo descartar la pre-implementación.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -154,11 +167,11 @@ export function PreDeploymentBanner() {
           {preDeployment.status === 'ready' && isAdmin && (
             <Button
               onClick={handlePublish}
-              disabled={isPublishing || publishMutation.isPending}
+              disabled={isPublishing}
               size="sm"
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {isPublishing || publishMutation.isPending ? (
+              {isPublishing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Publicando...
@@ -180,8 +193,8 @@ export function PreDeploymentBanner() {
           
           {isAdmin && (
             <Button
-              onClick={handleDismiss}
-              disabled={dismissMutation.isPending}
+              onClick={() => handleDismiss(preDeployment.id)}
+              disabled={isPublishing}
               variant="ghost"
               size="sm"
             >
