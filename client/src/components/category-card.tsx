@@ -33,30 +33,35 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       style={{ backgroundColor: category.backgroundColor }}
     >
       <CardContent className="p-8 h-full">
-        <div className="flex flex-col h-full justify-between space-y-6">
+        <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex-1">
               <h3 
                 className="font-serif text-2xl font-bold mb-2"
                 style={{ color: textColor }}
               >
                 {category.name}
               </h3>
-              <p 
-                className="leading-relaxed"
-                style={{ color: textColor, opacity: 0.8 }}
-              >
-                {category.description}
-              </p>
+              {category.description && (
+                <p 
+                  className="leading-relaxed"
+                  style={{ color: textColor, opacity: 0.8 }}
+                >
+                  {category.description}
+                </p>
+              )}
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
               <span className="text-2xl">🍓</span>
             </div>
           </div>
 
+          {/* Spacer to push images and button to bottom */}
+          <div className="flex-1"></div>
+
           {/* Images */}
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-center space-x-4 mb-6">
             <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
               {category.image1Url ? (
                 <img 
@@ -100,7 +105,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           </div>
 
           {/* Button */}
-          <div className="pt-2 mt-auto">
+          <div className="pt-2">
             <Link href={`/products/${category.slug}`}>
               <Button 
                 className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"

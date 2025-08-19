@@ -180,7 +180,7 @@ export default function Home() {
         </div>
       </BackgroundSection>
       {/* How to Buy Section */}
-      <section id="como-comprar" className="py-20 bg-white dark:bg-gray-900">
+      <section id="como-comprar" className="py-5 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">¿Cómo Comprar?</h2>
