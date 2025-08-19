@@ -62,7 +62,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           <div className="flex-1"></div>
 
           {/* Images - Centered */}
-          <div className="flex justify-center items-center space-x-4 mb-6">
+          <div className="flex justify-between items-center px-8 mb-6">
             <div className="w-24 h-24 bg-white bg-opacity-20 rounded-xl overflow-hidden relative">
               {category.image1Url ? (
                 <img 
