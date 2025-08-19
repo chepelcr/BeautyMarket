@@ -76,7 +76,11 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
     mutationFn: (data: InsertProduct) =>
       apiRequest("POST", "/api/products", data),
     onSuccess: () => {
+      // Invalidate multiple related queries to ensure all data is fresh
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      // Force refetch of all product-related queries
+      queryClient.refetchQueries({ queryKey: ["/api/products"] });
       toast({
         title: "Producto creado",
         description: "El producto ha sido creado exitosamente",
@@ -107,7 +111,11 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
     mutationFn: (data: InsertProduct) =>
       apiRequest("PUT", `/api/products/${product?.id}`, data),
     onSuccess: () => {
+      // Invalidate multiple related queries to ensure all data is fresh
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      // Force refetch of all product-related queries
+      queryClient.refetchQueries({ queryKey: ["/api/products"] });
       toast({
         title: "Producto actualizado",
         description: "El producto ha sido actualizado exitosamente",
