@@ -28,7 +28,7 @@ export default function AboutPage() {
   // If no about content exists, show a fallback
   if (!content || Object.keys(aboutContent).length === 0) {
     return (
-      <div className="flex items-center justify-center py-4 min-h-[50vh]">
+      <div className="flex items-center justify-center py-4">
         <div className="container mx-auto px-4">
           <div className="max-w-lg mx-auto text-center bg-card p-6 rounded-2xl shadow-lg border">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Acerca de Nosotros</h1>
@@ -45,7 +45,7 @@ export default function AboutPage() {
   }
 
   return (
-    <div className="flex items-center justify-center py-4 min-h-[50vh]">
+    <div className="flex items-center justify-center py-4">
       <div className="container mx-auto px-4">
         <div className="max-w-lg mx-auto text-center bg-card p-6 rounded-2xl shadow-lg border">
           {/* Page Header */}
