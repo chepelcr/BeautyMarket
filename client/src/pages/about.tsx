@@ -23,32 +23,51 @@ export default function AboutPage() {
     );
   }
 
-  const aboutContent = content?.acerca || {};
+  const aboutContent = content?.about || {};
+  
+  // If no about content exists, show a fallback
+  if (!content || Object.keys(aboutContent).length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl font-bold text-foreground mb-4">Acerca de Nosotros</h1>
+            <p className="text-muted-foreground mb-8">
+              El contenido de la página "Acerca" aún no ha sido configurado en el CMS.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Secciones CMS disponibles: {Object.keys(content || {}).join(', ') || 'Ninguna'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Page Header */}
-          {aboutContent.titulo && (
+          {(aboutContent.title || aboutContent.titulo) && (
             <div className="text-center mb-12">
               <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                {aboutContent.titulo}
+                {aboutContent.title || aboutContent.titulo}
               </h1>
-              {aboutContent.subtitulo && (
+              {(aboutContent.subtitle || aboutContent.subtitulo) && (
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  {aboutContent.subtitulo}
+                  {aboutContent.subtitle || aboutContent.subtitulo}
                 </p>
               )}
             </div>
           )}
 
           {/* Hero Image */}
-          {aboutContent.imagen_principal && (
+          {(aboutContent.imagen_principal || aboutContent.image) && (
             <div className="mb-12 rounded-lg overflow-hidden shadow-lg">
               <img
-                src={aboutContent.imagen_principal}
-                alt={aboutContent.titulo || "Acerca de nosotros"}
+                src={aboutContent.imagen_principal || aboutContent.image}
+                alt={aboutContent.title || aboutContent.titulo || "Acerca de nosotros"}
                 className="w-full h-64 md:h-96 object-cover"
               />
             </div>
@@ -56,10 +75,10 @@ export default function AboutPage() {
 
           {/* Main Content */}
           <div className="prose prose-lg max-w-none dark:prose-invert">
-            {aboutContent.descripcion && (
+            {(aboutContent.description || aboutContent.descripcion) && (
               <div className="mb-8">
                 <p className="text-lg leading-relaxed text-foreground">
-                  {aboutContent.descripcion}
+                  {aboutContent.description || aboutContent.descripcion}
                 </p>
               </div>
             )}
