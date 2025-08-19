@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,10 +23,23 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
-  // Fetch categories dynamically from database
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/categories');
+        setCategories(await response.json());
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    
+    loadCategories();
+  }, []);
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),

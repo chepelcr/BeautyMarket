@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Category } from "@shared/schema";
@@ -14,9 +14,23 @@ export default function CategoriesManager() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | undefined>();
 
-  const { data: categories = [], isLoading } = useQuery({
-    queryKey: ["/api/categories"],
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/categories');
+        setCategories(await response.json());
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadCategories();
+  }, []);
 
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
