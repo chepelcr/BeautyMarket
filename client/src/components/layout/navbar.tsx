@@ -88,7 +88,7 @@ export default function Navbar() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full text-white hover:from-pink-600 hover:to-coral-dark"
+                    className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full text-white hover:from-pink-600 hover:to-coral-dark shadow-md"
                   >
                     <User className="w-4 h-4" />
                     <span className="text-sm font-medium">
