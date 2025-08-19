@@ -78,9 +78,9 @@ export default function Home() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/products">
+                <Link href="/products" className="w-full sm:w-auto">
                   <Button 
-                    className="text-white px-8 py-4 h-auto font-medium hover:opacity-90 transition-opacity"
+                    className="w-full text-white px-8 py-4 h-auto font-medium hover:opacity-90 transition-opacity"
                     style={getButtonStyles('hero')}
                   >
                     {getContent('hero', 'cta_text', 'Ver Productos')}
@@ -88,7 +88,7 @@ export default function Home() {
                 </Link>
                 <Button 
                   variant="outline" 
-                  className="border-2 border-pink-primary text-pink-primary hover:bg-pink-primary hover:text-white px-8 py-4 h-auto font-medium"
+                  className="w-full sm:w-auto border-2 border-pink-primary text-pink-primary hover:bg-pink-primary hover:text-white px-8 py-4 h-auto font-medium"
                   onClick={() => document.getElementById('como-comprar')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   ¿Cómo Comprar?
