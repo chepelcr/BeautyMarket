@@ -124,7 +124,7 @@ export function PreDeploymentBanner() {
   };
 
   return (
-    <Card className={`p-4 mx-4 mb-4 ${getStatusColor()}`}>
+    <Card className={`p-4 mx-4 mt-4 mb-4 ${getStatusColor()}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
