@@ -28,10 +28,11 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   const buttonTextColor = getContrastingTextColor(category.buttonColor);
 
   return (
-    <Card 
-      className="rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group w-full"
-      style={{ backgroundColor: category.backgroundColor }}
-    >
+    <Link href={`/products/${category.slug}`} className="block w-full">
+      <Card 
+        className="rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group w-full"
+        style={{ backgroundColor: category.backgroundColor }}
+      >
       <CardContent className="p-8 h-full">
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -106,20 +107,19 @@ export default function CategoryCard({ category }: CategoryCardProps) {
 
           {/* Button */}
           <div className="pt-2">
-            <Link href={`/products/${category.slug}`}>
-              <Button 
-                className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"
-                style={{ 
-                  backgroundColor: category.buttonColor,
-                  color: buttonTextColor
-                }}
-              >
-                Ver Productos
-              </Button>
-            </Link>
+            <Button 
+              className="w-full py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg"
+              style={{ 
+                backgroundColor: category.buttonColor,
+                color: buttonTextColor
+              }}
+            >
+              Ver Productos
+            </Button>
           </div>
         </div>
       </CardContent>
     </Card>
+    </Link>
   );
 }
