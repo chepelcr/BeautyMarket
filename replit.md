@@ -8,7 +8,7 @@ This is a full-stack e-commerce application for "Strawberry Essentials," a beaut
 
 Preferred communication style: Simple, everyday language.
 
-# Recent Changes (August 13, 2025)
+# Recent Changes (August 19, 2025)
 
 - **✅ Foreign Key Category Management**: Migrated from string-based category matching to proper foreign key relationships between products and categories tables
 - **✅ Database Schema Migration**: Updated products table to use `category_id` foreign key instead of `category` string field with proper constraints
@@ -56,6 +56,12 @@ Preferred communication style: Simple, everyday language.
 - **✅ S3 SPA Routing Fix**: Added proper S3 bucket website configuration and error document handling for client-side routing support
 - **⚠️ CloudFront SPA Configuration Required**: Manual CloudFront error page configuration needed for direct route access
 - **✅ API Configuration Update**: Frontend now points to development server for S3 deployment with production config guide
+- **✅ Pre-Deployment System**: Complete workflow for tracking and publishing content changes outside CMS interface
+- **✅ Pre-Deployment Database**: Added pre_deployments table with status tracking and change management
+- **✅ Pre-Deployment API**: Full REST API for managing pre-deployment entries and publishing workflow
+- **✅ Global Publish Banner**: Pre-deployment banner component integrated into main app layout for site-wide visibility
+- **✅ Automated Change Tracking**: Product, category, and CMS changes automatically trigger pre-deployment entries
+- **✅ Deploy Button Migration**: Moved publish functionality from CMS admin panel to global banner for better UX
 
 # System Architecture
 

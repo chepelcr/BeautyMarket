@@ -34,7 +34,7 @@ export function PreDeploymentBanner() {
   // Mutation for publishing pre-deployment
   const publishMutation = useMutation({
     mutationFn: async (preDeploymentId: string) => {
-      return await apiRequest(`/api/pre-deployments/${preDeploymentId}/publish`, "POST");
+      return await apiRequest("POST", `/api/pre-deployments/${preDeploymentId}/publish`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
@@ -50,7 +50,7 @@ export function PreDeploymentBanner() {
   // Mutation for dismissing pre-deployment
   const dismissMutation = useMutation({
     mutationFn: async (preDeploymentId: string) => {
-      return await apiRequest(`/api/pre-deployments/${preDeploymentId}`, "DELETE");
+      return await apiRequest("DELETE", `/api/pre-deployments/${preDeploymentId}`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
