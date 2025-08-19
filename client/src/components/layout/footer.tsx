@@ -49,9 +49,6 @@ export default function Footer() {
               <Link href="/products" className="block text-gray-400 hover:text-white transition-colors">
                 Productos
               </Link>
-              <Link href="/admin" className="block text-gray-400 hover:text-white transition-colors">
-                Admin
-              </Link>
             </div>
           </div>
           
