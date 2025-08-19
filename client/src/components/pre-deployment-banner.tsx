@@ -31,10 +31,10 @@ export function PreDeploymentBanner() {
     refetchInterval: 5000, // Poll every 5 seconds
   });
 
-  // Mutation for publishing pre-deployment
+  // Mutation for publishing pre-deployment (uses existing deploy endpoint)
   const publishMutation = useMutation({
-    mutationFn: async (preDeploymentId: string) => {
-      return await apiRequest("POST", `/api/pre-deployments/${preDeploymentId}/publish`, {});
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/deploy", {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pre-deployments/active'] });
@@ -58,10 +58,8 @@ export function PreDeploymentBanner() {
   });
 
   const handlePublish = async () => {
-    if (preDeployment?.id) {
-      setIsPublishing(true);
-      publishMutation.mutate(preDeployment.id);
-    }
+    setIsPublishing(true);
+    publishMutation.mutate();
   };
 
   const handleDismiss = async () => {

@@ -500,30 +500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pre-deployments/:id/publish", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
-    try {
-      const preDeployment = await storage.getPreDeployments();
-      const target = preDeployment.find(p => p.id === req.params.id);
-      
-      if (!target) {
-        return res.status(404).json({ error: "Pre-deployment no encontrado" });
-      }
 
-      // Mark as published and trigger deployment
-      await storage.updatePreDeployment(req.params.id, {
-        status: 'published',
-        publishedAt: new Date()
-      });
-
-      // Trigger actual deployment
-      await triggerAutoDeployment();
-      
-      res.json({ success: true, message: "Deployment iniciado exitosamente" });
-    } catch (error) {
-      console.error("Error publishing pre-deployment:", error);
-      res.status(500).json({ error: "Error interno del servidor" });
-    }
-  });
 
   app.delete("/api/pre-deployments/:id", authenticateServerless, requireAdminServerless, async (req: AuthenticatedRequest, res) => {
     try {

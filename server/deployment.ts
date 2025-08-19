@@ -231,6 +231,9 @@ export async function deployToS3(buildId: string = Date.now().toString()): Promi
     console.log('📤 Uploading to S3...');
     await uploadDirectory(distFolder);
 
+    // Mark active pre-deployment as published
+    await markPreDeploymentAsPublished();
+
     const deployUrl = `https://${BUCKET_NAME}.s3-website.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com`;
 
     // Update deployment record to success
@@ -292,6 +295,22 @@ async function countFiles(dirPath: string): Promise<number> {
   }
   
   return count;
+}
+
+// Function to mark active pre-deployment as published
+async function markPreDeploymentAsPublished(): Promise<void> {
+  try {
+    const activePreDeployment = await storage.getActivePreDeployment();
+    if (activePreDeployment) {
+      await storage.updatePreDeployment(activePreDeployment.id, {
+        status: 'published',
+        publishedAt: new Date()
+      });
+      console.log('✅ Pre-deployment marked as published:', activePreDeployment.id);
+    }
+  } catch (error) {
+    console.warn('⚠️ Could not update pre-deployment status:', error.message);
+  }
 }
 
 // Auto-deploy function that can be called from CMS
