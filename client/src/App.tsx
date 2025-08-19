@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Products from "@/pages/products";
+import About from "@/pages/about";
 import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import DeploymentHistory from "./pages/DeploymentHistory";
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/products" component={Products} />
       <Route path="/products/:category" component={Products} />
+      <Route path="/about" component={About} />
       <Route path="/admin/deployments" component={DeploymentHistory} />
       <Route path="/admin/profile" component={Profile} />
       <Route path="/reset-password" component={ResetPassword} />

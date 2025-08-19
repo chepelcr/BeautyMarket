@@ -33,6 +33,7 @@ export default function Navbar() {
   const navItems = [
     { href: "/", label: "Inicio", id: "home" },
     { href: "/products", label: "Productos", id: "productos" },
+    { href: "/about", label: "Acerca", id: "acerca" },
   ];
 
   const handleLogout = async () => {
