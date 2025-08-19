@@ -73,8 +73,13 @@ export function PreDeploymentBanner() {
   // Type guard and early return
   const preDeployment = activePreDeployment as PreDeployment;
   
-  // Don't show banner if no active pre-deployment or if it's published
-  if (isLoading || !preDeployment || preDeployment.status === 'published') {
+  // Don't show banner if no active pre-deployment, if it's published, or if not authenticated
+  if (isLoading || !preDeployment || preDeployment.status === 'published' || authLoading) {
+    return null;
+  }
+
+  // Show banner to all authenticated users, but only admins can publish
+  if (!user) {
     return null;
   }
 
@@ -158,7 +163,7 @@ export function PreDeploymentBanner() {
           
           {!isAdmin && preDeployment.status === 'ready' && (
             <p className="text-sm text-muted-foreground">
-              Inicia sesión como administrador para publicar cambios
+              Solo los administradores pueden publicar cambios
             </p>
           )}
           
