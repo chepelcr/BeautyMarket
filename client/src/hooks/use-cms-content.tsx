@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { generateBackgroundStyle } from "@/utils/background-styles";
+import { apiRequest } from "@/lib/queryClient";
 
 export interface CmsContent {
   id: string;
@@ -20,9 +20,25 @@ export interface CmsContentMap {
 }
 
 export function useCmsContent() {
-  const { data: rawContent, isLoading, error } = useQuery<CmsContent[]>({
-    queryKey: ["/api/home-content"],
-  });
+  const [rawContent, setRawContent] = useState<CmsContent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/home-content');
+        setRawContent(await response.json());
+      } catch (err) {
+        setError(err as Error);
+        console.error('Failed to load CMS content:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadContent();
+  }, []);
 
   const content = useMemo(() => {
     if (!rawContent || !Array.isArray(rawContent)) return {};

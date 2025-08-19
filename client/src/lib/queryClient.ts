@@ -17,7 +17,7 @@ export async function apiRequest(
 ): Promise<Response> {
     // Handle static mode requests
     if (config.staticMode) {
-      return handleStaticModeRequest(method, url, data);
+        return handleStaticModeRequest(method, url, data);
     }
 
     const res = await fetch(url, {
@@ -47,7 +47,7 @@ async function handleStaticModeRequest(
 
             const categorySlug = url.split('/').pop();
 
-            const categoryId =  categories.find((category: { slug: string; }) => category.slug === categorySlug)?.id;
+            const categoryId = categories.find((category: { slug: string; }) => category.slug === categorySlug)?.id;
 
 
             result = await offlineData.getProductsByCategory(categoryId!);
