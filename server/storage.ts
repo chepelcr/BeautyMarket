@@ -680,19 +680,15 @@ export class DatabaseStorage implements IStorage {
   async bulkUpsertHomePageContent(
     contentList: InsertHomePageContent[],
   ): Promise<HomePageContent[]> {
-    const results: HomePageContent[] = [];
-    for (const content of contentList) {
-      const existing = await this.getHomePageContentByKey(
-        content.section,
-        content.key,
-      );
-      if (existing) {
-        const updated = await this.deleteHomePageContent(existing.id);
-      }
-
-      const created = await this.createHomePageContent(content);
-      results.push(created);
-    }
+    // Delete all existing records
+    await db.delete(homePageContent);
+    
+    // Insert all new records
+    const results = await db
+      .insert(homePageContent)
+      .values(contentList)
+      .returning();
+    
     return results;
   }
 
