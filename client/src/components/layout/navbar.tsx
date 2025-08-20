@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
-import { HomePageContent } from "@shared/schema";
+import { useCmsContent } from "@/hooks/use-cms-content";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut, Shield } from "lucide-react";
 import strawberryLogo from "@assets/image_1755019713048.png";
@@ -19,26 +19,11 @@ export default function Navbar() {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Load dynamic site content
-  const [homeContent, setHomeContent] = useState<HomePageContent[]>([]);
-
-  useEffect(() => {
-    const loadHomeContent = async () => {
-      try {
-        const response = await apiRequest('GET', '/api/home-content');
-        setHomeContent(await response.json());
-      } catch (error) {
-        console.error('Failed to load home content:', error);
-      }
-    };
-    
-    loadHomeContent();
-  }, []);
+  const { getContent } = useCmsContent();
 
   // Get dynamic site title and logo
-  const siteContent = homeContent?.filter(item => item.section === 'site') || [];
-  const siteTitle = siteContent.find(item => item.key === 'title')?.value || 'Strawberry Essentials';
-  const siteLogo = siteContent.find(item => item.key === 'logo')?.value || strawberryLogo;
+  const siteTitle = getContent('site', 'title', 'Strawberry Essentials');
+  const siteLogo = getContent('site', 'logo', strawberryLogo);
 
   const navItems = [
     { href: "/", label: "Inicio", id: "home" },
