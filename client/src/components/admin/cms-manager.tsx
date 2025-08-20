@@ -665,7 +665,23 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                       onChange={(url) => {
                         bgData.image = bgData.image || {};
                         bgData.image.url = url;
-                        handleInputChange(section, item.key, JSON.stringify(bgData));
+                        const newValue = JSON.stringify(bgData);
+                        handleInputChange(section, item.key, newValue);
+                        // Auto-save when background image is uploaded
+                        setTimeout(() => {
+                          const updates = Object.values(contentData)
+                            .flatMap(section => Object.values(section))
+                            .map(contentItem => ({
+                              section: contentItem.section,
+                              key: contentItem.key,
+                              value: contentItem.key === item.key && contentItem.section === section ? newValue : contentItem.value,
+                              type: contentItem.type,
+                              displayName: contentItem.displayName,
+                              description: contentItem.description,
+                              sortOrder: contentItem.sortOrder
+                            }));
+                          handleSaveChanges(updates);
+                        }, 100);
                       }}
                       label="Imagen de fondo"
                       folder={`images/${section}-backgrounds`}
@@ -713,7 +729,24 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
         return (
           <ImageUpload
             value={value}
-            onChange={(url) => handleInputChange(section, item.key, url)}
+            onChange={(url) => {
+              handleInputChange(section, item.key, url);
+              // Auto-save when image is uploaded
+              setTimeout(() => {
+                const updates = Object.values(contentData)
+                  .flatMap(section => Object.values(section))
+                  .map(item => ({
+                    section: item.section,
+                    key: item.key,
+                    value: item.key === item.key && item.section === section ? url : item.value,
+                    type: item.type,
+                    displayName: item.displayName,
+                    description: item.description,
+                    sortOrder: item.sortOrder
+                  }));
+                handleSaveChanges(updates);
+              }, 100);
+            }}
             label=""
             folder={`images/${section}-images`}
           />
