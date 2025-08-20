@@ -10,7 +10,7 @@ export function DynamicFooter() {
     getContent("contact", "footerText") || "Tu belleza, nuestra pasión";
   const instagramHandle =
     getContent("contact", "instagram") || "@strawberry.essentials";
-  const phone = getContent("contact", "phone") || "73676745";
+  const phone = getContent("contact", "phone") || "72676745";
 
   const renderBackground = (bgValue: string) => {
     try {

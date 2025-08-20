@@ -687,12 +687,11 @@ export class DatabaseStorage implements IStorage {
         content.key,
       );
       if (existing) {
-        const updated = await this.updateHomePageContent(existing.id, content);
-        if (updated) results.push(updated);
-      } else {
-        const created = await this.createHomePageContent(content);
-        results.push(created);
+        const updated = await this.deleteHomePageContent(existing.id);
       }
+
+      const created = await this.createHomePageContent(content);
+      results.push(created);
     }
     return results;
   }

@@ -1,16 +1,28 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCartStore } from "@/store/cart";
 import { generateWhatsAppMessage } from "@/lib/whatsapp";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  getProvinces, 
-  getCantonsByProvinceCode, 
+import { useCmsContent } from "@/hooks/use-cms-content";
+import {
+  getProvinces,
+  getCantonsByProvinceCode,
   getDistrictsByCantonCode,
   getProvinceByCode,
   getCantonByCode,
@@ -18,11 +30,12 @@ import {
   formatLocationString,
   type Province,
   type Canton,
-  type District 
+  type District,
 } from "@/data/locations";
 
 export default function CheckoutModal() {
-  const { showCheckout, setShowCheckout, items, total, clearCart } = useCartStore();
+  const { showCheckout, setShowCheckout, items, total, clearCart } =
+    useCartStore();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -34,6 +47,9 @@ export default function CheckoutModal() {
     address: "",
     deliveryMethod: "",
   });
+
+  const { getContent, getSectionStyles, getButtonStyles, getTextStyles } =
+    useCmsContent();
 
   // Get location data from client-side source
   const provinces = getProvinces();
@@ -48,23 +64,26 @@ export default function CheckoutModal() {
     } else {
       setCantons([]);
     }
-    setFormData(prev => ({ ...prev, canton: "", distrito: "" }));
+    setFormData((prev) => ({ ...prev, canton: "", distrito: "" }));
     setDistricts([]);
   }, [formData.provincia]);
 
   // Update districts when canton changes
   useEffect(() => {
     if (formData.provincia && formData.canton) {
-      const newDistricts = getDistrictsByCantonCode(formData.provincia, formData.canton);
+      const newDistricts = getDistrictsByCantonCode(
+        formData.provincia,
+        formData.canton,
+      );
       setDistricts(newDistricts);
     } else {
       setDistricts([]);
     }
-    setFormData(prev => ({ ...prev, distrito: "" }));
+    setFormData((prev) => ({ ...prev, distrito: "" }));
   }, [formData.canton]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,12 +92,12 @@ export default function CheckoutModal() {
     // Validation
     const requiredFields = [
       "customerName",
-      "customerPhone", 
+      "customerPhone",
       "provincia",
       "canton",
       "distrito",
       "address",
-      "deliveryMethod"
+      "deliveryMethod",
     ];
 
     for (const field of requiredFields) {
@@ -104,7 +123,11 @@ export default function CheckoutModal() {
     // Generate WhatsApp message with location names
     const province = getProvinceByCode(formData.provincia);
     const canton = getCantonByCode(formData.provincia, formData.canton);
-    const district = getDistrictByCode(formData.provincia, formData.canton, formData.distrito);
+    const district = getDistrictByCode(
+      formData.provincia,
+      formData.canton,
+      formData.distrito,
+    );
 
     const message = generateWhatsAppMessage({
       items,
@@ -122,13 +145,15 @@ export default function CheckoutModal() {
       },
     });
 
-    const whatsappUrl = `https://wa.me/50673676745?text=${encodeURIComponent(message)}`;
+    const phone = getContent("contact", "phone") || "72676745";
+
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
 
     // Clear cart and close modal
     clearCart();
     setShowCheckout(false);
-    
+
     // Reset form
     setFormData({
       customerName: "",
@@ -150,7 +175,7 @@ export default function CheckoutModal() {
     const labels = {
       correos: "Correos Costa Rica",
       "uber-flash": "Uber Flash",
-      personal: "Entrega Personal"
+      personal: "Entrega Personal",
     };
     return labels[method as keyof typeof labels] || method;
   };
@@ -159,20 +184,26 @@ export default function CheckoutModal() {
     <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">Finalizar Compra</DialogTitle>
+          <DialogTitle className="font-serif text-2xl">
+            Finalizar Compra
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
           <div>
-            <h5 className="font-medium text-gray-900 mb-4">Información Personal</h5>
+            <h5 className="font-medium text-gray-900 mb-4">
+              Información Personal
+            </h5>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="customerName">Nombre Completo</Label>
                 <Input
                   id="customerName"
                   value={formData.customerName}
-                  onChange={(e) => handleInputChange("customerName", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("customerName", e.target.value)
+                  }
                   placeholder="Tu nombre completo"
                   required
                 />
@@ -183,7 +214,9 @@ export default function CheckoutModal() {
                   id="customerPhone"
                   type="tel"
                   value={formData.customerPhone}
-                  onChange={(e) => handleInputChange("customerPhone", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("customerPhone", e.target.value)
+                  }
                   placeholder="8888-8888"
                   required
                 />
@@ -193,11 +226,18 @@ export default function CheckoutModal() {
 
           {/* Delivery Information */}
           <div>
-            <h5 className="font-medium text-gray-900 mb-4">Información de Entrega</h5>
+            <h5 className="font-medium text-gray-900 mb-4">
+              Información de Entrega
+            </h5>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="provincia">Provincia</Label>
-                <Select value={formData.provincia} onValueChange={(value) => handleInputChange("provincia", value)}>
+                <Select
+                  value={formData.provincia}
+                  onValueChange={(value) =>
+                    handleInputChange("provincia", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona provincia" />
                   </SelectTrigger>
@@ -212,8 +252,8 @@ export default function CheckoutModal() {
               </div>
               <div>
                 <Label htmlFor="canton">Cantón</Label>
-                <Select 
-                  value={formData.canton} 
+                <Select
+                  value={formData.canton}
                   onValueChange={(value) => handleInputChange("canton", value)}
                   disabled={!formData.provincia}
                 >
@@ -233,9 +273,11 @@ export default function CheckoutModal() {
             <div className="grid md:grid-cols-2 gap-4 mt-4">
               <div>
                 <Label htmlFor="distrito">Distrito</Label>
-                <Select 
-                  value={formData.distrito} 
-                  onValueChange={(value) => handleInputChange("distrito", value)}
+                <Select
+                  value={formData.distrito}
+                  onValueChange={(value) =>
+                    handleInputChange("distrito", value)
+                  }
                   disabled={!formData.canton}
                 >
                   <SelectTrigger>
@@ -252,7 +294,12 @@ export default function CheckoutModal() {
               </div>
               <div>
                 <Label htmlFor="deliveryMethod">Método de Entrega</Label>
-                <Select value={formData.deliveryMethod} onValueChange={(value) => handleInputChange("deliveryMethod", value)}>
+                <Select
+                  value={formData.deliveryMethod}
+                  onValueChange={(value) =>
+                    handleInputChange("deliveryMethod", value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona método" />
                   </SelectTrigger>
