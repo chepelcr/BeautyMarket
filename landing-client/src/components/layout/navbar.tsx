@@ -6,7 +6,11 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { Store, Menu, X, ChevronDown } from "lucide-react";
 import { useState, useRef } from "react";
 
-export default function LandingNavbar() {
+interface LandingNavbarProps {
+  transitionStage?: string;
+}
+
+export default function LandingNavbar({ transitionStage = '' }: LandingNavbarProps) {
   const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [businessDropdownOpen, setBusinessDropdownOpen] = useState(false);
@@ -59,7 +63,7 @@ export default function LandingNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60 border-b">
+    <header className={`sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60 border-b ${transitionStage}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}

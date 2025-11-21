@@ -45,9 +45,7 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <div className={`relative ${isLayoutSwitch ? transitionStage : ''}`}>
-                    <LandingNavbar />
-                  </div>
+                  <LandingNavbar transitionStage={isLayoutSwitch ? transitionStage : ''} />
                   <main className={`flex-grow ${transitionStage}`}>
                     <Router displayLocation={displayLocation} />
                   </main>
