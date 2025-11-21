@@ -9,6 +9,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <script>
+      // Handle redirect from GitHub Pages 404.html for SPA routing
+      // When a route is accessed directly, GitHub Pages serves 404.html
+      // which redirects to index.html but stores the original path in sessionStorage
+      (function() {
+        const redirectPath = sessionStorage.getItem('redirect_path');
+        if (redirectPath && redirectPath !== '/' && window.location.pathname !== redirectPath) {
+          // Clear the redirect path from sessionStorage
+          sessionStorage.removeItem('redirect_path');
+          // Replace the current history entry to restore the original path
+          window.history.replaceState(null, '', redirectPath);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
