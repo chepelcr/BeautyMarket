@@ -4,6 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { buildOrgApiUrl } from '@/lib/apiUtils';
+import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 
 interface ImageUploadProps {
   value?: string;
@@ -26,6 +29,9 @@ export function ImageUpload({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   const uploadFile = async (file: File) => {
     if (file.size > maxSize * 1024 * 1024) {
@@ -37,11 +43,20 @@ export function ImageUpload({
       return;
     }
 
+    if (!user?.id || !defaultOrg?.id) {
+      toast({
+        title: "Error",
+        description: "No se pudo obtener el contexto de usuario u organización",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
-    
+
     try {
       // Get presigned URL using the S3 upload endpoint
-      const response = await fetch('/api/objects/upload', {
+      const response = await fetch(buildOrgApiUrl(user.id, defaultOrg.id, '/objects/upload'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

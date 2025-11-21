@@ -4,9 +4,12 @@ import ProductCard from "@/components/products/product-card";
 import ProductFilters from "@/components/products/product-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/store/cart";
-import type { Product, Category } from "@shared/schema";
+import type { Product, Category } from "@/models";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 import { apiRequest } from "@/lib/queryClient";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export default function Products() {
   const params = useParams();
@@ -14,7 +17,10 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const activeCategory = useCartStore((state) => state.activeCategory);
   const clearActiveCategory = useCartStore((state) => state.clearActiveCategory);
-  
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
+
   // Set dynamic page title
   useDynamicTitle("Productos");
 
@@ -45,13 +51,15 @@ export default function Products() {
 
   // Fetch products and categories using apiRequest
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadData = async () => {
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
-          apiRequest('GET', '/api/products'),
-          apiRequest('GET', '/api/categories')
+          apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/products')),
+          apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/categories'))
         ]);
-        
+
         setAllProducts(await productsResponse.json());
         setCategories(await categoriesResponse.json());
       } catch (error) {
@@ -60,9 +68,9 @@ export default function Products() {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   const filteredProducts = useMemo(() => {
     if (!allProducts) return [];
@@ -84,7 +92,7 @@ export default function Products() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">Nuestros Productos</h1>
-            <p className="text-gray-600 dark:text-gray-300">Descubre nuestra selección de productos de belleza premium</p>
+            <p className="text-gray-600 dark:text-gray-300">Explora nuestro catálogo de productos</p>
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -112,7 +120,7 @@ export default function Products() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="font-serif text-4xl font-bold text-gray-900 dark:text-white mb-4">Nuestros Productos</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-8">Descubre nuestra selección de productos de belleza premium</p>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">Explora nuestro catálogo de productos</p>
           
           <ProductFilters 
             selectedCategory={selectedCategory} 

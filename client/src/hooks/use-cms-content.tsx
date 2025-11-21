@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
 import { generateBackgroundStyle } from "@/utils/background-styles";
 import { apiRequest } from "@/lib/queryClient";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export interface CmsContent {
   id: string;
@@ -23,11 +26,16 @@ export function useCmsContent() {
   const [rawContent, setRawContent] = useState<CmsContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadContent = async () => {
       try {
-        const response = await apiRequest('GET', '/api/home-content');
+        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/home-content'));
         setRawContent(await response.json());
       } catch (err) {
         setError(err as Error);
@@ -36,9 +44,9 @@ export function useCmsContent() {
         setIsLoading(false);
       }
     };
-    
+
     loadContent();
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   const content = useMemo(() => {
     if (!rawContent || !Array.isArray(rawContent)) return {};

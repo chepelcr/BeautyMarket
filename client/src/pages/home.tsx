@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useCartStore } from "@/store/cart";
-import type { Category } from "@shared/schema";
+import type { Category } from "@/models";
 import CategoryCard from "@/components/category-card";
 import { useCmsContent } from "@/hooks/use-cms-content";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
@@ -9,22 +9,44 @@ import { BackgroundSection } from "@/components/ui/background-section";
 import { normalizeImageUrl } from "@/lib/image-utils";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubdomainContext } from "@/App";
 
 export default function Home() {
   const setActiveCategory = useCartStore((state) => state.setActiveCategory);
   const { getContent, getSectionStyles, getButtonStyles, getTextStyles } = useCmsContent();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { user } = useAuth();
+  const { organization: subdomainOrg, isLoading: isLoadingOrg } = useSubdomainContext();
+
   // Set dynamic page title
   useDynamicTitle();
 
-  // Fetch categories using apiRequest
+  // Fetch categories using apiRequest with subdomain organization
   useEffect(() => {
+    // If still loading org context, wait
+    if (isLoadingOrg) return;
+
+    // For subdomain-based access, use subdomain org
+    // For direct access (no subdomain), we need auth
+    const orgId = subdomainOrg?.id;
+    const userId = user?.id;
+
+    if (!orgId) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchCategories = async () => {
       try {
         setIsLoading(true);
-        const response = await apiRequest("GET", "/api/categories");
+        // Use userId if authenticated, otherwise use a public endpoint pattern
+        const endpoint = userId
+          ? buildOrgApiUrl(userId, orgId, "/categories")
+          : `/api/organizations/${orgId}/public/categories`;
+        const response = await apiRequest("GET", endpoint);
         const data = await response.json();
         setCategories(data || []);
       } catch (error) {
@@ -36,7 +58,7 @@ export default function Home() {
     };
 
     fetchCategories();
-  }, []);
+  }, [user?.id, subdomainOrg?.id, isLoadingOrg]);
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
@@ -68,15 +90,15 @@ export default function Home() {
                   style={getTextStyles('hero', 'title')}
                 >
                   {getContent('hero', 'title', 'Strawberry Essentials')}
-                  <span 
+                  <span
                     className="text-pink-primary block"
                     style={getTextStyles('hero', 'subtitle')}
                   >
-                    {getContent('hero', 'subtitle', 'Tu belleza natural, potenciada')}
+                    {getContent('hero', 'subtitle', 'Tu éxito en línea')}
                   </span>
                 </h1>
                 <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {getContent('hero', 'description', 'Descubre nuestra colección de productos de belleza cuidadosamente seleccionados para realzar tu belleza natural. Calidad premium, resultados visibles.')}
+                  {getContent('hero', 'description', 'Descubre nuestra plataforma de e-commerce cuidadosamente diseñada para potenciar tu negocio online. Herramientas completas, resultados visibles.')}
                 </p>
               </div>
               
@@ -250,7 +272,7 @@ export default function Home() {
               <div className="flex-shrink-0 w-12 h-12 bg-pink-primary text-white rounded-full flex items-center justify-center font-bold text-lg">5</div>
               <div>
                 <h3 className="font-serif text-xl font-semibold text-gray-900 dark:text-white mb-2">Recibe tus productos y disfruta</h3>
-                <p className="text-gray-600 dark:text-gray-300">¡Recibe tus productos de belleza y disfruta de tu nueva rutina!</p>
+                <p className="text-gray-600 dark:text-gray-300">¡Recibe tus productos y disfruta de tus ventas!</p>
               </div>
             </div>
           </div>

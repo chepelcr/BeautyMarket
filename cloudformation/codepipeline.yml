@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  CodePipelineNameParam:
+    Type: String
+    Description: CodePipeline Name Parameter
+    Default: jmarkets-codepipeline
+
+  GitHubConnectionParam:
+    Type: String
+    Description: GitHub Connection Parameter
+    Default: arn:aws:codeconnections:us-east-1:938590657428:connection/7ae71074-d735-4d99-badf-8cbfe8b99589
+
+  GitHubRepositoryParam:
+    Type: String
+    Description: GitHub Full Repository Parameter
+    Default: chepelcr/JMarkets
+
+  CodeBuildProjectNameParam:
+    Type: String
+    Description: CodeBuild Project Name Parameter
+    Default: JMarkets-CodeBuild
+
+  CodeBuildDescriptionParam:
+    Type: String
+    Description: CodeBuild Project Name Parameter
+    Default: JMarkets CodeBuild
+
+  PipelineRolesStackName:
+    Type: String
+    Description: Pipeline Roles Stack Name
+    Default: jmarkets-pipeline-roles-stack
+
+  LambdaFunctionName:
+    Type: String
+    Description: Lambda function name for API
+    Default: jmarkets-server-prod
+
+Resources:
+  CodeBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref CodeBuildProjectNameParam
+      Description: !Ref CodeBuildDescriptionParam
+      ServiceRole:
+        Fn::ImportValue: !Sub ${PipelineRolesStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Type: PLAINTEXT
+            Value: !Ref "AWS::Region"
+          - Name: AWS_ACCOUNT_ID
+            Type: PLAINTEXT
+            Value: !Ref "AWS::AccountId"
+          - Name: LAMBDA_FUNCTION_NAME
+            Type: PLAINTEXT
+            Value: !Ref LambdaFunctionName
+      Source:
+        GitCloneDepth: 1
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+      TimeoutInMinutes: 20
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Sub /aws/codebuild/${CodeBuildProjectNameParam}
+          Status: ENABLED
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Ref CodePipelineNameParam
+      RoleArn:
+        Fn::ImportValue: !Sub ${PipelineRolesStackName}-CodePipelineServiceRoleArn
+      ArtifactStore:
+        Location:
+          Fn::ImportValue: !Sub ${PipelineRolesStackName}-CodePipelineArtifactsBucket
+        Type: S3
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              Namespace: SourceVariables
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: "1"
+              Configuration:
+                BranchName: main
+                ConnectionArn: !Ref GitHubConnectionParam
+                FullRepositoryId: !Ref GitHubRepositoryParam
+                OutputArtifactFormat: CODE_ZIP
+              InputArtifacts: []
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Region: !Ref "AWS::Region"
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: Build
+              Namespace: BuildVariables
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref CodeBuildProjectNameParam
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
+              Region: !Ref "AWS::Region"
+              RunOrder: 1
+
+Outputs:
+  CodePipelineName:
+    Description: CodePipeline Name
+    Value: !Ref CodePipeline
+    Export:
+      Name: !Sub ${AWS::StackName}-CodePipelineName
+
+  CodeBuildProjectName:
+    Description: CodeBuild Project Name
+    Value: !Ref CodeBuild
+    Export:
+      Name: !Sub ${AWS::StackName}-CodeBuildProjectName

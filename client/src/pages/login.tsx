@@ -4,36 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Eye, EyeOff, Home, Loader2 } from "lucide-react";
 import { useDynamicTitle } from "@/hooks/useDynamicTitle";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-const forgotPasswordSchema = z.object({
   email: z.string().email("Email válido requerido"),
+  password: z.string().min(1, "Contraseña requerida"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
-type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export default function Login() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, login, forceLogout } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  // Landing page URL for registration
+  const landingUrl = import.meta.env.VITE_LANDING_URL || 'https://www.jmarkets.jcampos.dev';
 
   // Set dynamic page title
   useDynamicTitle("Iniciar Sesión");
@@ -41,57 +34,15 @@ export default function Login() {
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
-  const forgotPasswordForm = useForm<ForgotPasswordForm>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginForm) => {
-      const response = await apiRequest("POST", "/api/login", data);
-      return await response.json();
-    },
-    onSuccess: (user) => {
-      queryClient.setQueryData(["/api/user"], user);
-      navigate("/admin");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error de inicio de sesión",
-        description: error.message || "Credenciales incorrectas",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const forgotPasswordMutation = useMutation({
-    mutationFn: async (data: ForgotPasswordForm) => {
-      const response = await apiRequest("POST", "/api/auth/forgot-password", data);
-      return await response.json();
-    },
-    onSuccess: (result) => {
-      toast({
-        title: "Email enviado",
-        description: result.message || "Si existe una cuenta con ese email, se ha enviado un enlace de recuperación",
-      });
-      setShowForgotPassword(false);
-      forgotPasswordForm.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo enviar el email de recuperación",
-        variant: "destructive",
-      });
-    },
-  });
+  // Force logout on page load to clear stale sessions
+  useEffect(() => {
+    forceLogout();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -99,12 +50,44 @@ export default function Login() {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
-  };
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      const result = await login.mutateAsync(data);
 
-  const onForgotPasswordSubmit = (data: ForgotPasswordForm) => {
-    forgotPasswordMutation.mutate(data);
+      if (result.needsVerification) {
+        // Redirect to landing page for verification
+        toast({
+          title: "Verificación requerida",
+          description: "Por favor verifica tu email en la página principal",
+        });
+        window.location.href = `${landingUrl}/register`;
+        return;
+      }
+
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Bienvenido de vuelta",
+      });
+      navigate("/admin");
+    } catch (error: any) {
+      const errorMessage = error.message || "Credenciales incorrectas";
+
+      // Handle specific Cognito errors
+      if (errorMessage.includes('UserNotConfirmedException')) {
+        toast({
+          title: "Verificación requerida",
+          description: "Por favor verifica tu email antes de iniciar sesión",
+        });
+        window.location.href = `${landingUrl}/register`;
+        return;
+      }
+
+      toast({
+        title: "Error de inicio de sesión",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -117,36 +100,48 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      {/* Back to Home Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 left-4 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+        onClick={() => window.location.href = landingUrl}
+      >
+        <Home className="w-4 h-4 mr-2" />
+        Volver al inicio
+      </Button>
+
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-pink-primary">
-            Strawberry Essentials
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center text-pink-primary">
+            Administración
           </CardTitle>
-          <CardDescription className="text-lg">
-            Panel de Administración
+          <CardDescription className="text-center">
+            Panel de control de tu tienda
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Usuario</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Ingresa tu usuario" 
-                        {...field} 
-                        disabled={loginMutation.isPending}
+                      <Input
+                        type="email"
+                        placeholder="tu@email.com"
+                        {...field}
+                        disabled={login.isPending}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
@@ -155,11 +150,11 @@ export default function Login() {
                     <FormLabel>Contraseña</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input 
+                        <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="Ingresa tu contraseña"
                           {...field}
-                          disabled={loginMutation.isPending}
+                          disabled={login.isPending}
                         />
                         <Button
                           type="button"
@@ -167,7 +162,7 @@ export default function Login() {
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
-                          disabled={loginMutation.isPending}
+                          disabled={login.isPending}
                         >
                           {showPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -181,83 +176,39 @@ export default function Login() {
                   </FormItem>
                 )}
               />
-              
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 className="w-full bg-pink-primary hover:bg-pink-600 text-white"
-                size="lg"
-                disabled={loginMutation.isPending}
+                disabled={login.isPending}
               >
-                {loginMutation.isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
+                {login.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {login.isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </Form>
-          
-          <div className="text-center space-y-2">
-            <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-              <DialogTrigger asChild>
-                <Button variant="link" className="text-sm text-pink-primary hover:text-pink-600">
-                  ¿Olvidaste tu contraseña?
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-pink-primary" />
-                    Recuperar Contraseña
-                  </DialogTitle>
-                  <DialogDescription>
-                    Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <Form {...forgotPasswordForm}>
-                  <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
-                    <FormField
-                      control={forgotPasswordForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="email"
-                              placeholder="tu@email.com" 
-                              {...field} 
-                              disabled={forgotPasswordMutation.isPending}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="flex gap-2">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setShowForgotPassword(false)}
-                        className="flex-1"
-                        disabled={forgotPasswordMutation.isPending}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        className="flex-1 bg-pink-primary hover:bg-pink-600 text-white"
-                        disabled={forgotPasswordMutation.isPending}
-                      >
-                        {forgotPasswordMutation.isPending ? "Enviando..." : "Enviar Email"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-            
+
+          <div className="mt-4 text-center text-sm space-y-2">
             <div>
-              <a href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                ← Volver al sitio principal
+              <Button
+                variant="link"
+                className="p-0 h-auto font-medium text-pink-primary hover:text-pink-600"
+                onClick={() => navigate("/forgot-password")}
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </div>
+            <div>
+              <span className="text-muted-foreground">
+                ¿No tienes cuenta?{" "}
+              </span>
+              <a
+                href={`${landingUrl}/register`}
+                className="font-medium text-pink-primary hover:text-pink-600"
+              >
+                Regístrate
               </a>
             </div>
           </div>

@@ -14,6 +14,9 @@ import { Separator } from "@/components/ui/separator";
 import { Loader2, Save, RotateCcw, Eye, X, History } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface HomePageContent {
   id: string;
@@ -45,11 +48,16 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   const [activeSection, setActiveSection] = useState(defaultActiveSection);
   const [content, setContent] = useState<HomePageContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadContent = async () => {
       try {
-        const response = await apiRequest('GET', '/api/home-content');
+        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/home-content'));
         setContent(await response.json());
       } catch (error) {
         console.error('Failed to load content:', error);
@@ -58,15 +66,17 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
         setIsLoading(false);
       }
     };
-    
+
     loadContent();
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   const handleSaveChanges = async (contentList: any[]) => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     try {
-      await apiRequest("POST", "/api/home-content/bulk", contentList);
+      await apiRequest("POST", buildOrgApiUrl(user.id, defaultOrg.id, "/home-content/bulk"), contentList);
       // Reload content
-      const response = await apiRequest('GET', '/api/home-content');
+      const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/home-content'));
       setContent(await response.json());
       toast({
         title: "Contenido actualizado",

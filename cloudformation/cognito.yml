@@ -1,0 +1,277 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: JMarkets AWS CloudFormation for Cognito User Pool and Client Application
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource naming.
+
+  Region:
+    Type: String
+    Default: us-east-1
+    AllowedValues:
+      - us-east-1
+      - us-west-1
+      - eu-west-1
+    Description: AWS region where the resources will be deployed.
+
+  EmailSourceArn:
+    Type: String
+    Description: ARN of the SES identity to send emails.
+    Default: arn:aws:ses:us-east-1:938590657428:identity/jcampos.dev
+
+  ConfigurationSet:
+    Type: String
+    Description: Name of the SES Configuration Set.
+    Default: jmarkets-config
+
+  UserPoolName:
+    Type: String
+    Description: Name of the Cognito User Pool.
+    Default: jmarkets-user-pool
+
+  CognitoTriggerFunctionArn:
+    Type: String
+    Description: ARN of the Lambda function for Cognito triggers
+    Default: ''
+
+  UserPoolDomain:
+    Type: String
+    Description: Domain for the Cognito User Pool.
+    Default: jmarkets-auth
+
+  UserPoolClientName:
+    Type: String
+    Description: Name of the User Pool Client Application.
+    Default: jmarkets-web-client
+
+  IdentityPoolName:
+    Type: String
+    Description: Name of the Cognito Identity Pool.
+    Default: jmarkets-identity-pool
+
+Conditions:
+  HasCognitoTrigger: !Not [!Equals [!Ref CognitoTriggerFunctionArn, '']]
+
+Resources:
+  # SES Configuration Set
+  SESConfigurationSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: !Ref ConfigurationSet
+
+  # Cognito User Pool
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref UserPoolName
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+          TemporaryPasswordValidityDays: 7
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+          StringAttributeConstraints:
+            MinLength: '0'
+            MaxLength: '2048'
+        - Name: email_verified
+          AttributeDataType: Boolean
+          Mutable: true
+          Required: false
+        - Name: given_name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+          StringAttributeConstraints:
+            MinLength: '1'
+            MaxLength: '256'
+        - Name: family_name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+          StringAttributeConstraints:
+            MinLength: '1'
+            MaxLength: '256'
+        - Name: phone_number
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: '0'
+            MaxLength: '2048'
+      EmailConfiguration:
+        EmailSendingAccount: DEVELOPER
+        SourceArn: !Ref EmailSourceArn
+        From: no-reply@jcampos.dev
+        ConfigurationSet: !Ref ConfigurationSet
+      LambdaConfig: !If
+        - HasCognitoTrigger
+        - CustomMessage: !Ref CognitoTriggerFunctionArn
+        - {}
+      MfaConfiguration: 'OFF'
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      AutoVerifiedAttributes:
+        - email
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+      UserPoolTags: {}
+  # User Pool Domain
+  CognitoUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref UserPoolDomain
+      UserPoolId: !Ref CognitoUserPool
+
+  # User Pool Client
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Ref UserPoolClientName
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_USER_SRP_AUTH
+      AllowedOAuthFlowsUserPoolClient: false
+      AccessTokenValidity: 120 # in minutes
+      IdTokenValidity: 120 # in minutes
+      RefreshTokenValidity: 60 # in days
+      AuthSessionValidity: 3 # in days
+      EnableTokenRevocation: true
+      PreventUserExistenceErrors: ENABLED
+      EnablePropagateAdditionalUserContextData: false
+      ReadAttributes:
+        - email
+        - email_verified
+        - given_name
+        - family_name
+        - phone_number
+      WriteAttributes:
+        - email
+        - given_name
+        - family_name
+        - phone_number
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  CognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Ref IdentityPoolName
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref CognitoUserPoolClient
+          ProviderName: !GetAtt CognitoUserPool.ProviderName
+
+  # IAM Role for authenticated users
+  CognitoAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-CognitoAuthenticatedRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref CognitoIdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+        - PolicyName: CognitoAuthenticatedPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-sync:*
+                  - cognito-identity:*
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - execute-api:Invoke
+                Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*'
+
+  # Attach roles to identity pool
+  CognitoIdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref CognitoIdentityPool
+      Roles:
+        authenticated: !GetAtt CognitoAuthenticatedRole.Arn
+
+  # Lambda permission for Cognito to invoke the trigger function
+  CognitoTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Condition: HasCognitoTrigger
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CognitoTriggerFunctionArn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt CognitoUserPool.Arn
+
+Outputs:
+  UserPoolId:
+    Description: ID of the Cognito User Pool
+    Value: !Ref CognitoUserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolId'
+
+  UserPoolArn:
+    Description: ARN of the Cognito User Pool
+    Value: !GetAtt CognitoUserPool.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolArn'
+
+  UserPoolDomain:
+    Description: Domain of the Cognito User Pool
+    Value: !Ref CognitoUserPoolDomain
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolDomain'
+
+  UserPoolClientId:
+    Description: ID of the User Pool Client Application
+    Value: !Ref CognitoUserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolClientId'
+
+  IdentityPoolId:
+    Description: ID of the Cognito Identity Pool
+    Value: !Ref CognitoIdentityPool
+    Export:
+      Name: !Sub '${AWS::StackName}-IdentityPoolId'
+
+  Region:
+    Description: AWS Region
+    Value: !Ref Region
+    Export:
+      Name: !Sub '${AWS::StackName}-Region'

@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Category } from "@shared/schema";
+import type { Category } from "@/models";
 import { apiRequest } from "@/lib/queryClient";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface ProductFiltersProps {
   selectedCategory: string;
@@ -12,11 +15,16 @@ interface ProductFiltersProps {
 export default function ProductFilters({ selectedCategory, onCategoryChange }: ProductFiltersProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadCategories = async () => {
       try {
-        const response = await apiRequest('GET', '/api/categories');
+        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/categories'));
         setCategories(await response.json());
       } catch (error) {
         console.error('Failed to load categories:', error);
@@ -24,9 +32,9 @@ export default function ProductFilters({ selectedCategory, onCategoryChange }: P
         setIsLoading(false);
       }
     };
-    
+
     loadCategories();
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   if (isLoading) {
     return (

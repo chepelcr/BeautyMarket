@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo Installing SAM CLI...
+      - pip3 install aws-sam-cli
+      - echo Installing dependencies...
+      - npm ci
+
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - echo "Building with SAM..."
+      - sam build --template cloudformation/template.yaml
+      - echo "Build completed on `date`"
+
+  post_build:
+    commands:
+      - echo "Deploying Lambda with SAM..."
+      - sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+      - echo "Lambda deployment completed on `date`"
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '.aws-sam/**/*'

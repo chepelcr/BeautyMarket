@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -17,25 +17,26 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
 
     - name: Install dependencies
       run: npm ci
 
-    - name: Build static site
+    - name: Build landing page
       run: |
-        npx vite build
-        cp -r attached_assets dist/public/ 2>/dev/null || :
-        
+        cd landing-client
+        npm ci
+        npm run build
+
     - name: Setup Pages
       uses: actions/configure-pages@v4
-      
+
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./dist/public
-        
+        path: ./dist/landing
+
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4

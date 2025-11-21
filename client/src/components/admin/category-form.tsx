@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCategorySchema, type InsertCategory, type Category } from "@shared/schema";
+import { insertCategorySchema, type InsertCategory, type Category } from "@/models";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface CategoryFormProps {
   category?: Category;
@@ -38,6 +41,9 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
   const queryClient = useQueryClient();
   const [showPreview, setShowPreview] = useState(false);
   const isEditing = !!category;
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   const {
     register,
@@ -78,12 +84,15 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
 
   const mutation = useMutation({
     mutationFn: async (data: InsertCategory) => {
-      const url = isEditing ? `/api/categories/${category!.id}` : "/api/categories";
+      if (!user?.id || !defaultOrg?.id) throw new Error("Missing context");
+      const url = isEditing
+        ? buildOrgApiUrl(user.id, defaultOrg.id, `/categories/${category!.id}`)
+        : buildOrgApiUrl(user.id, defaultOrg.id, "/categories");
       const method = isEditing ? "PUT" : "POST";
       return await apiRequest(method, url, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: isEditing ? "Categoría actualizada" : "Categoría creada",
         description: `La categoría "${watchedValues.name}" ha sido ${isEditing ? 'actualizada' : 'creada'} exitosamente.`,
@@ -220,7 +229,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
                 <Textarea
                   id="description"
                   {...register("description")}
-                  placeholder="Labiales, correctores y productos para realzar tu belleza natural"
+                  placeholder="Describe los productos en esta categoría"
                 />
                 {errors.description && (
                   <p className="text-sm text-red-600">{errors.description.message}</p>

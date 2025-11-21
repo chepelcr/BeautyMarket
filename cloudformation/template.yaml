@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: JMarkets Lambda Function
+
+Parameters:
+  SessionSecretParam:
+    Type: String
+    NoEcho: true
+  DatabaseURLParam:
+    Type: String
+    NoEcho: true
+  CloudfrontURLParam:
+    Type: String
+    Default: "https://cloudfront.dev.jmarkets.io"
+  CognitoUserPoolIdParam:
+    Type: String
+    NoEcho: true
+  CognitoClientIdParam:
+    Type: String
+    NoEcho: true
+  SesSmtpUsernameParam:
+    Type: String
+    NoEcho: true
+  SesSmtpPasswordParam:
+    Type: String
+    NoEcho: true
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs20.x
+
+Resources:
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: jmarkets-api-handler
+      CodeUri: ./
+      Handler: dist/lambda.handler
+      Environment:
+        Variables:
+          NODE_ENV: production
+          SESSION_SECRET: !Ref SessionSecretParam
+          NEW_DATABASE_URL: !Ref DatabaseURLParam
+          AWS_CLOUDFRONT_URL: !Ref CloudfrontURLParam
+          AWS_COGNITO_USER_POOL_ID: !Ref CognitoUserPoolIdParam
+          AWS_COGNITO_CLIENT_ID: !Ref CognitoClientIdParam
+          SES_SMTP_USERNAME: !Ref SesSmtpUsernameParam
+          SES_SMTP_PASSWORD: !Ref SesSmtpPasswordParam
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminUpdateUserAttributes
+                - cognito-idp:AdminGetUser
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - sqs:ReceiveMessage
+                - sqs:DeleteMessage
+                - sqs:GetQueueAttributes
+                - sns:Publish
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:CreateSecret
+                - secretsmanager:UpdateSecret
+                - secretsmanager:PutSecretValue
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: '*'
+
+Outputs:
+  LambdaFunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt ApiFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaArn

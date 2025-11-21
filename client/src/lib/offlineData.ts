@@ -1,4 +1,4 @@
-import type { Product, Category, HomePageContent } from '@shared/schema';
+import type { Product, Category, HomePageContent } from '@/models';
 
 class OfflineDataService {
   private cache = new Map<string, any>();

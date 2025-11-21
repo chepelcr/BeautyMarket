@@ -5,6 +5,8 @@ import { Loader2, Upload, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface PreDeployment {
   id: string;
@@ -26,6 +28,8 @@ export function PreDeploymentBanner() {
   const [isPublishing, setIsPublishing] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   // State for active pre-deployment
   const [activePreDeployment, setActivePreDeployment] = useState<PreDeployment | null>(null);
@@ -33,9 +37,11 @@ export function PreDeploymentBanner() {
 
   // Load active pre-deployment with polling
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadActivePreDeployment = async () => {
       try {
-        const response = await apiRequest('GET', '/api/pre-deployments/active');
+        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/pre-deployments/active'));
         const data = await response.json();
         setActivePreDeployment(data);
       } catch (error) {
@@ -47,23 +53,25 @@ export function PreDeploymentBanner() {
     };
 
     loadActivePreDeployment();
-    
+
     // Poll every 5 seconds
     const interval = setInterval(loadActivePreDeployment, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   const handlePublish = async () => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     setIsPublishing(true);
     try {
-      await apiRequest("POST", "/api/deploy", {});
+      await apiRequest("POST", buildOrgApiUrl(user.id, defaultOrg.id, "/deployments"), {});
       setIsPublishing(false);
       toast({
         title: "¡Despliegue Exitoso!",
         description: "Los cambios han sido publicados correctamente en el sitio web.",
       });
       // Refresh the active pre-deployment status
-      const response = await apiRequest('GET', '/api/pre-deployments/active');
+      const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/pre-deployments/active'));
       const data = await response.json();
       setActivePreDeployment(data);
     } catch (error) {
@@ -78,10 +86,12 @@ export function PreDeploymentBanner() {
   };
 
   const handleDismiss = async (preDeploymentId: string) => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     try {
-      await apiRequest("DELETE", `/api/pre-deployments/${preDeploymentId}`, {});
+      await apiRequest("DELETE", buildOrgApiUrl(user.id, defaultOrg.id, `/pre-deployments/${preDeploymentId}`), {});
       // Refresh the active pre-deployment status
-      const response = await apiRequest('GET', '/api/pre-deployments/active');
+      const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/pre-deployments/active'));
       const data = await response.json();
       setActivePreDeployment(data);
     } catch (error) {

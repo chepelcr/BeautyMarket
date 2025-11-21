@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/store/cart";
-import type { Product } from "@shared/schema";
+import type { Product } from "@/models";
 import { normalizeImageUrl } from "@/lib/image-utils";
 
 interface ProductCardProps {

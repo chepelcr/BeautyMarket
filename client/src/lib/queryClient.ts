@@ -2,6 +2,7 @@ import {QueryClient, QueryFunction} from "@tanstack/react-query";
 import config from './config';
 //import { staticDataService } from './static-data';
 import {offlineData} from './offlineData';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 async function throwIfResNotOk(res: Response) {
     if (!res.ok) {
@@ -20,9 +21,27 @@ export async function apiRequest(
         return handleStaticModeRequest(method, url, data);
     }
 
+    // Build headers with Content-Type if data is provided
+    const headers: Record<string, string> = {};
+    if (data) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    // Add Cognito authentication token
+    try {
+        const session = await fetchAuthSession();
+        const idToken = session.tokens?.idToken?.toString();
+        if (idToken) {
+            headers.Authorization = `Bearer ${idToken}`;
+        }
+    } catch (error) {
+        // No auth session available, continue without token
+        console.warn('No auth session available for API request');
+    }
+
     const res = await fetch(url, {
         method,
-        headers: data ? {"Content-Type": "application/json"} : {},
+        headers,
         body: data ? JSON.stringify(data) : undefined,
         credentials: "include",
     });
@@ -80,8 +99,21 @@ export const getQueryFn: <T>(options: {
             const endpoint = queryKey.join("/") as string;
 
             try {
+                // Build headers with auth token
+                const headers: Record<string, string> = {};
+                try {
+                    const session = await fetchAuthSession();
+                    const idToken = session.tokens?.idToken?.toString();
+                    if (idToken) {
+                        headers.Authorization = `Bearer ${idToken}`;
+                    }
+                } catch (error) {
+                    // No auth session available
+                }
+
                 const res = await fetch(endpoint, {
                     credentials: "include",
+                    headers,
                 });
 
                 if (unauthorizedBehavior === "returnNull" && res.status === 401) {

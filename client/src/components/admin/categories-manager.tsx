@@ -5,22 +5,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Category } from "@shared/schema";
+import type { Category } from "@/models";
 import CategoryForm from "./category-form";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export default function CategoriesManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | undefined>();
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadCategories = async () => {
       try {
-        const response = await apiRequest('GET', '/api/categories');
+        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/categories'));
         setCategories(await response.json());
       } catch (error) {
         console.error('Failed to load categories:', error);
@@ -28,16 +36,17 @@ export default function CategoriesManager() {
         setIsLoading(false);
       }
     };
-    
+
     loadCategories();
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      return await apiRequest("DELETE", `/api/categories/${categoryId}`);
+      if (!user?.id || !defaultOrg?.id) throw new Error("Missing context");
+      return await apiRequest("DELETE", buildOrgApiUrl(user.id, defaultOrg.id, `/categories/${categoryId}`));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Categoría eliminada",
         description: "La categoría ha sido eliminada exitosamente.",

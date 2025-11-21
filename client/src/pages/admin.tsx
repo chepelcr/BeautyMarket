@@ -14,10 +14,11 @@ import {
 import ProductForm from "@/components/admin/product-form";
 import CategoriesManager from "@/components/admin/categories-manager";
 import {CmsManager} from "@/components/admin/cms-manager";
+import OrganizationSettingsManager from "@/components/admin/organization-settings-manager";
 import {Badge} from "@/components/ui/badge";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Skeleton} from "@/components/ui/skeleton";
-import type {Product, Category} from "@shared/schema";
+import type {Product, Category} from "@/models";
 import {apiRequest} from "@/lib/queryClient";
 import {queryClient} from "@/lib/queryClient";
 import {useToast} from "@/hooks/use-toast";
@@ -26,16 +27,23 @@ import {useLocation} from "wouter";
 import {isUnauthorizedError} from "@/lib/authUtils";
 import {SimpleThemeToggle} from "@/components/simple-theme-toggle";
 import {useDynamicTitle} from "@/hooks/useDynamicTitle";
+import {buildOrgApiUrl} from "@/lib/apiUtils";
+import {useOrganization} from "@/hooks/useOrganization";
 
 export default function Admin() {
     const [showProductForm, setShowProductForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-    const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'content'>('products');
+    const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'content' | 'organization'>('products');
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const {toast} = useToast();
     const {isAuthenticated, isLoading, user} = useAuth();
     const [, navigate] = useLocation();
+
+    // Get organization context
+    const {useDefaultOrganization} = useOrganization();
+    const {data: defaultOrg} = useDefaultOrganization(user?.id);
+    const organizationId = defaultOrg?.id;
 
     // Set dynamic page title
     useDynamicTitle("Administración");
@@ -57,13 +65,13 @@ export default function Admin() {
     const [productsLoading, setProductsLoading] = useState(true);
 
     useEffect(() => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || !user?.id || !organizationId) return;
 
         const loadData = async () => {
             try {
                 const [productsRes, categoriesRes] = await Promise.all([
-                    apiRequest('GET', '/api/products'),
-                    apiRequest('GET', '/api/categories')
+                    apiRequest('GET', buildOrgApiUrl(user.id, organizationId, '/products')),
+                    apiRequest('GET', buildOrgApiUrl(user.id, organizationId, '/categories'))
                 ]);
                 setProducts(await productsRes.json());
                 setCategories(await categoriesRes.json());
@@ -86,7 +94,7 @@ export default function Admin() {
         };
 
         loadData();
-    }, [isAuthenticated, toast, navigate]);
+    }, [isAuthenticated, user?.id, organizationId, toast, navigate]);
 
     const handleDeleteProduct = (product: Product) => {
         setProductToDelete(product);
@@ -94,11 +102,11 @@ export default function Admin() {
     };
 
     const confirmDeleteProduct = async () => {
-        if (!productToDelete) return;
+        if (!productToDelete || !user?.id || !organizationId) return;
 
         try {
-            await apiRequest("DELETE", `/api/products/${productToDelete.id}`);
-            queryClient.invalidateQueries({queryKey: ["/api/products"]});
+            await apiRequest("DELETE", buildOrgApiUrl(user.id, organizationId, `/products/${productToDelete.id}`));
+            queryClient.invalidateQueries({queryKey: ["products"]});
             toast({
                 title: "Producto eliminado",
                 description: "El producto ha sido eliminado exitosamente.",
@@ -228,6 +236,17 @@ export default function Admin() {
                                 <i className="fas fa-edit mr-1 sm:mr-2"></i>
                                 Contenido
                             </button>
+                            <button
+                                onClick={() => setActiveTab('organization')}
+                                className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                                    activeTab === 'organization'
+                                        ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
+                                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                            >
+                                <i className="fas fa-building mr-1 sm:mr-2"></i>
+                                Organización
+                            </button>
                         </div>
 
                         {activeTab === 'products' && (
@@ -235,8 +254,7 @@ export default function Admin() {
                                 <div>
                                     <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión
                                         de Productos</h2>
-                                    <p className="text-gray-600 dark:text-gray-300">Administra tu catálogo de productos
-                                        de belleza</p>
+                                    <p className="text-gray-600 dark:text-gray-300">Administra tu catálogo de productos</p>
                                 </div>
 
                                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -336,6 +354,13 @@ export default function Admin() {
 
                         {activeTab === 'content' && (
                             <CmsManager defaultActiveSection="hero"/>
+                        )}
+
+                        {activeTab === 'organization' && user?.id && organizationId && (
+                            <OrganizationSettingsManager
+                                userId={user.id}
+                                organizationId={organizationId}
+                            />
                         )}
                     </div>
                 </div>

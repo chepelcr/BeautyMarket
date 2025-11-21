@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import type { Category } from "@shared/schema";
+import type { Category } from "@/models";
 import { normalizeImageUrl } from "@/lib/image-utils";
 
 interface CategoryCardProps {

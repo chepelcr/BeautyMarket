@@ -1,0 +1,415 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Colors - Blue + Lime Green Palette */
+    --brand-blue-50: 217 100% 97%;
+    --brand-blue-100: 217 100% 94%;
+    --brand-blue-500: 217 91% 60%;
+    --brand-blue-600: 217 91% 52%;
+    --brand-blue-700: 217 91% 44%;
+    --brand-lime-50: 84 100% 95%;
+    --brand-lime-100: 84 90% 90%;
+    --brand-lime-500: 84 81% 44%;
+    --brand-lime-600: 84 81% 38%;
+    --brand-lime-700: 84 81% 32%;
+
+    /* Semantic Colors - Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 84 81% 44%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 84 81% 44%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Brand Colors - Dark Mode */
+    --brand-blue-50: 217 91% 80%;
+    --brand-blue-100: 217 91% 70%;
+    --brand-blue-500: 217 91% 60%;
+    --brand-blue-600: 217 91% 52%;
+    --brand-blue-700: 217 91% 44%;
+    --brand-lime-50: 84 81% 60%;
+    --brand-lime-100: 84 81% 52%;
+    --brand-lime-500: 84 81% 44%;
+    --brand-lime-600: 84 81% 38%;
+    --brand-lime-700: 84 81% 32%;
+
+    /* Semantic Colors - Dark Mode */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 84 81% 44%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 84 81% 44%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217 91% 60%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Custom Utility Classes - Button Variants */
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .btn-primary:hover {
+    background-color: hsl(var(--primary) / 0.9);
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+  }
+
+  .btn-secondary:hover {
+    background-color: hsl(var(--secondary) / 0.9);
+  }
+
+  .btn-accent {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
+  .btn-accent:hover {
+    background-color: hsl(var(--accent) / 0.9);
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+    color: hsl(var(--foreground));
+  }
+
+  .btn-ghost:hover {
+    background-color: hsl(var(--accent) / 0.1);
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 rounded-md font-medium transition-colors border;
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary));
+  }
+
+  .btn-outline:hover {
+    background-color: hsl(var(--primary) / 0.1);
+  }
+
+  /* Card Variants */
+  .card-primary {
+    @apply rounded-lg border transition-colors;
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
+  .dark .card-primary {
+    background-color: #1e293b;
+  }
+
+  .card-primary:hover {
+    border-color: hsl(var(--primary) / 0.4);
+  }
+
+  .card-accent {
+    @apply rounded-lg border transition-colors;
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--accent) / 0.2);
+  }
+
+  .dark .card-accent {
+    background-color: #1e293b;
+  }
+
+  .card-accent:hover {
+    border-color: hsl(var(--accent) / 0.4);
+  }
+
+  .card-subtle {
+    @apply rounded-lg border;
+    background-color: hsl(var(--muted) / 0.3);
+    border-color: hsl(var(--border));
+  }
+
+  .dark .card-subtle {
+    background-color: hsl(var(--muted) / 0.2);
+  }
+
+  /* Text Variants */
+  .text-primary {
+    color: hsl(var(--primary));
+  }
+
+  .text-secondary {
+    color: hsl(var(--secondary));
+  }
+
+  .text-accent {
+    color: hsl(var(--accent));
+  }
+
+  /* Background Variants */
+  .bg-primary-light {
+    background-color: hsl(var(--primary) / 0.1);
+  }
+
+  .dark .bg-primary-light {
+    background-color: hsl(var(--primary) / 0.2);
+  }
+
+  .bg-accent-light {
+    background-color: hsl(var(--accent) / 0.1);
+  }
+
+  .dark .bg-accent-light {
+    background-color: hsl(var(--accent) / 0.2);
+  }
+
+  .bg-secondary-light {
+    background-color: hsl(var(--secondary) / 0.1);
+  }
+
+  .dark .bg-secondary-light {
+    background-color: hsl(var(--secondary) / 0.2);
+  }
+
+  /* Gradient Variants */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.05) 100%);
+  }
+
+  .dark .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--primary) / 0.1) 100%);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--accent) / 0.2) 0%, hsl(var(--accent) / 0.05) 100%);
+  }
+
+  .dark .gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--accent) / 0.3) 0%, hsl(var(--accent) / 0.1) 100%);
+  }
+
+  .gradient-primary-accent {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  }
+
+  /* Border Variants */
+  .border-primary {
+    border-color: hsl(var(--primary));
+  }
+
+  .border-accent {
+    border-color: hsl(var(--accent));
+  }
+
+  .border-primary-light {
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
+  .border-accent-light {
+    border-color: hsl(var(--accent) / 0.2);
+  }
+
+  /* Icon Variants */
+  .icon-primary {
+    color: hsl(var(--primary));
+  }
+
+  .icon-accent {
+    color: hsl(var(--accent));
+  }
+
+  .icon-muted {
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Focus States */
+  .focus-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
+  }
+
+  .focus-accent:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--accent));
+  }
+}
+
+/* Enhanced smooth theme transitions */
+*,
+*::before,
+*::after {
+  transition: background-color 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+              color 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+              border-color 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+              fill 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+              stroke 0.8s cubic-bezier(0.23, 1, 0.32, 1),
+              background-image 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Language transition effects */
+.language-transitioning {
+  animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+.slide-in {
+  animation: slideInLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideOutRight {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.95);
+    filter: blur(2px);
+  }
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px) scale(0.95);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Theme transition overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, hsl(var(--background)) 0%, hsl(var(--background)) 50%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+  transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+body.theme-transitioning::before {
+  opacity: 0.15;
+}
+
+/* Page transition effects */
+.page-enter {
+  animation: pageEnter 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.page-exit {
+  animation: pageExit 0.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* Flash overlay for smooth transitions - root level */
+.page-transition-overlay-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: hsl(var(--background));
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: none;
+}
+
+.page-transition-overlay-root.active {
+  animation: transitionFlash 1.05s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes transitionFlash {
+  /* Fade in during page exit (0-500ms) */
+  0% {
+    opacity: 0;
+  }
+  /* Reach full opacity by midpoint */
+  48% {
+    opacity: 1;
+  }
+  /* Stay opaque during content swap */
+  50% {
+    opacity: 1;
+  }
+  /* Start fading out during page enter (500-1050ms) */
+  52% {
+    opacity: 1;
+  }
+  /* Complete fade out at end */
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}

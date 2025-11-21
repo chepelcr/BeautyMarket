@@ -23,15 +23,17 @@ import {
 import { ImageUpload } from "@/components/image-upload";
 import {
   insertProductSchema,
-  validCategories,
   type Product,
   type InsertProduct,
   type Category,
-} from "@shared/schema";
+} from "@/models";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useLocation } from "wouter";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface ProductFormProps {
   product?: Product | null;
@@ -41,14 +43,19 @@ interface ProductFormProps {
 export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.id || !defaultOrg?.id) return;
+
     const loadCategories = async () => {
       try {
-        const response = await apiRequest("GET", "/api/categories");
+        const response = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/categories"));
         setCategories(await response.json());
       } catch (error) {
         console.error("Failed to load categories:", error);
@@ -58,7 +65,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
     };
 
     loadCategories();
-  }, []);
+  }, [user?.id, defaultOrg?.id]);
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
@@ -73,14 +80,14 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertProduct) =>
-      apiRequest("POST", "/api/products", data),
+    mutationFn: (data: InsertProduct) => {
+      if (!user?.id || !defaultOrg?.id) throw new Error("Missing user or organization context");
+      return apiRequest("POST", buildOrgApiUrl(user.id, defaultOrg.id, "/products"), data);
+    },
     onSuccess: () => {
       // Invalidate multiple related queries to ensure all data is fresh
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      // Force refetch of all product-related queries
-      queryClient.refetchQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Producto creado",
         description: "El producto ha sido creado exitosamente",
@@ -108,14 +115,14 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: InsertProduct) =>
-      apiRequest("PUT", `/api/products/${product?.id}`, data),
+    mutationFn: (data: InsertProduct) => {
+      if (!user?.id || !defaultOrg?.id) throw new Error("Missing user or organization context");
+      return apiRequest("PUT", buildOrgApiUrl(user.id, defaultOrg.id, `/products/${product?.id}`), data);
+    },
     onSuccess: () => {
       // Invalidate multiple related queries to ensure all data is fresh
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      // Force refetch of all product-related queries
-      queryClient.refetchQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Producto actualizado",
         description: "El producto ha sido actualizado exitosamente",
