@@ -13,7 +13,7 @@ export class OrganizationController {
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
-    // User-scoped organization routes (mounted at /api/user/:userId/organizations)
+    // User-scoped organization routes (mounted at /api/users/:userId/organizations)
     router.get('/', this.getAll.bind(this));
     router.get('/:id', this.getById.bind(this));
     router.post('/', this.create.bind(this));
@@ -240,7 +240,7 @@ export class OrganizationController {
    */
   async create(req: Request, res: Response) {
     try {
-      const { ownerId, ...data } = req.body;
+      const { ownerId, contactSettings, templateId, ...data } = req.body;
 
       if (!ownerId) {
         return res.status(400).json({ error: 'Owner ID is required' });
@@ -250,7 +250,12 @@ export class OrganizationController {
         return res.status(400).json({ error: 'Name and slug are required' });
       }
 
-      const organization = await this.organizationService.create(data, ownerId);
+      // Create organization with contact settings
+      const organization = await this.organizationService.create(data, ownerId, contactSettings);
+
+      // TODO: If templateId is provided, trigger template cloning
+      // This can be implemented in Phase 2 or later
+
       res.status(201).json(organization);
     } catch (error: any) {
       console.error('Error creating organization:', error);

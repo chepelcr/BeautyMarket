@@ -24,6 +24,13 @@ Parameters:
   SesSmtpPasswordParam:
     Type: String
     NoEcho: true
+  IAMStackName:
+    Type: String
+    Description: Name of the IAM CloudFormation stack
+    Default: 'jmarkets-iam-dev'
+
+Conditions:
+  UseExternalPolicy: !Not [!Equals [!Ref IAMStackName, '']]
 
 Globals:
   Function:
@@ -50,35 +57,60 @@ Resources:
           AWS_COGNITO_CLIENT_ID: !Ref CognitoClientIdParam
           SES_SMTP_USERNAME: !Ref SesSmtpUsernameParam
           SES_SMTP_PASSWORD: !Ref SesSmtpPasswordParam
-      Policies:
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - cognito-idp:AdminCreateUser
-                - cognito-idp:AdminSetUserPassword
-                - cognito-idp:AdminUpdateUserAttributes
-                - cognito-idp:AdminGetUser
-              Resource: '*'
-            - Effect: Allow
-              Action:
-                - sqs:ReceiveMessage
-                - sqs:DeleteMessage
-                - sqs:GetQueueAttributes
-                - sns:Publish
-              Resource: '*'
-            - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
-                - secretsmanager:CreateSecret
-                - secretsmanager:UpdateSecret
-                - secretsmanager:PutSecretValue
-              Resource: '*'
-            - Effect: Allow
-              Action:
-                - ses:SendEmail
-                - ses:SendRawEmail
-              Resource: '*'
+      Policies: !If
+        - UseExternalPolicy
+        - - Fn::ImportValue: !Sub '${IAMStackName}-BackendPolicyArn'
+        - - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:AdminSetUserPassword
+                  - cognito-idp:AdminUpdateUserAttributes
+                  - cognito-idp:AdminGetUser
+                  - cognito-idp:AdminInitiateAuth
+                  - cognito-idp:AdminRespondToAuthChallenge
+                  - cognito-idp:ListUsers
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sns:Publish
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:CreateSecret
+                  - secretsmanager:UpdateSecret
+                  - secretsmanager:PutSecretValue
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                  - s3:CopyObject
+                Resource:
+                  - 'arn:aws:s3:::jmarkets-*'
+                  - 'arn:aws:s3:::jmarkets-*/*'
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                  - cloudfront:GetDistribution
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - route53:ChangeResourceRecordSets
+                  - route53:GetChange
+                Resource: '*'
 
 Outputs:
   LambdaFunctionArn:

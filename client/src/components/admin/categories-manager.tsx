@@ -10,6 +10,7 @@ import CategoryForm from "./category-form";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CategoriesManager() {
   const { toast } = useToast();
@@ -19,6 +20,7 @@ export default function CategoriesManager() {
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  const { t } = useLanguage();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,13 +50,13 @@ export default function CategoriesManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
-        title: "Categoría eliminada",
-        description: "La categoría ha sido eliminada exitosamente.",
+        title: t('categories.deleted'),
+        description: t('categories.deletedDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -72,7 +74,7 @@ export default function CategoriesManager() {
   };
 
   const handleDeleteCategory = (category: Category) => {
-    if (confirm(`¿Estás seguro de que quieres eliminar la categoría "${category.name}"?`)) {
+    if (confirm(t('categories.deleteConfirm'))) {
       deleteMutation.mutate(category.id);
     }
   };
@@ -88,14 +90,14 @@ export default function CategoriesManager() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Cargando categorías...</div>;
+    return <div className="p-6">{t('common.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión de Categorías</h2>
-        <p className="text-gray-600 dark:text-gray-300">Administra las categorías de productos y su apariencia</p>
+        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">{t('categories.title')}</h2>
+        <p className="text-gray-600 dark:text-gray-300">{t('categories.subtitle')}</p>
       </div>
 
       {categories.length === 0 ? (
@@ -106,11 +108,11 @@ export default function CategoriesManager() {
                 <i className="fas fa-folder-open text-gray-400 text-2xl"></i>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No hay categorías</h3>
-                <p className="text-gray-600 dark:text-gray-300">Crea tu primera categoría para organizar los productos</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('categories.noCategories')}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{t('categories.subtitle')}</p>
               </div>
               <Button onClick={handleCreateCategory}>
-                Crear Primera Categoría
+                {t('categories.addCategory')}
               </Button>
             </div>
           </CardContent>
@@ -128,8 +130,8 @@ export default function CategoriesManager() {
                   <i className="fas fa-plus text-pink-primary dark:text-pink-400 text-2xl"></i>
                 </div>
                 <div>
-                  <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white">Nueva Categoría</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">Agregar una nueva categoría</p>
+                  <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white">{t('categories.addCategory')}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">{t('categories.create')}</p>
                 </div>
               </div>
             </CardContent>
@@ -188,7 +190,7 @@ export default function CategoriesManager() {
                       className="flex-1"
                     >
                       <i className="fas fa-edit mr-1"></i>
-                      Editar
+                      {t('common.edit')}
                     </Button>
                     <Button
                       variant="outline"
@@ -211,7 +213,7 @@ export default function CategoriesManager() {
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
+              {editingCategory ? t('categories.update') : t('categories.create')}
             </DialogTitle>
           </DialogHeader>
           <CategoryForm

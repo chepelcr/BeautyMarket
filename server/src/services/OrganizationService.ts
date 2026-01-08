@@ -1,7 +1,8 @@
-import type { Organization, InsertOrganization, OrganizationSettings } from "../entities";
+import type { Organization, InsertOrganization, OrganizationSettings, InsertContactSettings } from "../entities";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { OrganizationMemberRepository } from "../repositories/OrganizationMemberRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
+import type { ContactSettingsRepository } from "../repositories/ContactSettingsRepository";
 
 export interface IOrganizationService {
   getById(id: string): Promise<Organization | null>;
@@ -9,7 +10,7 @@ export interface IOrganizationService {
   getBySubdomain(subdomain: string): Promise<Organization | null>;
   getByCustomDomain(customDomain: string): Promise<Organization | null>;
   getAll(): Promise<Organization[]>;
-  create(data: InsertOrganization, ownerId: string): Promise<Organization>;
+  create(data: InsertOrganization, ownerId: string, contactSettings?: Omit<InsertContactSettings, 'organizationId'>): Promise<Organization>;
   update(id: string, data: Partial<InsertOrganization>): Promise<Organization | null>;
   delete(id: string): Promise<boolean>;
   checkSubdomainAvailable(subdomain: string, excludeId?: string): Promise<boolean>;
@@ -22,7 +23,8 @@ export class OrganizationService implements IOrganizationService {
   constructor(
     private organizationRepo: OrganizationRepository,
     private memberRepo: OrganizationMemberRepository,
-    private rbacRepo: RBACRepository
+    private rbacRepo: RBACRepository,
+    private contactSettingsRepo: ContactSettingsRepository
   ) {}
 
   async getById(id: string): Promise<Organization | null> {
@@ -45,7 +47,7 @@ export class OrganizationService implements IOrganizationService {
     return this.organizationRepo.findAll();
   }
 
-  async create(data: InsertOrganization, ownerId: string): Promise<Organization> {
+  async create(data: InsertOrganization, ownerId: string, contactSettings?: Omit<InsertContactSettings, 'organizationId'>): Promise<Organization> {
     // Check slug availability
     const slugAvailable = await this.checkSlugAvailable(data.slug);
     if (!slugAvailable) {
@@ -62,6 +64,14 @@ export class OrganizationService implements IOrganizationService {
 
     // Create organization
     const organization = await this.organizationRepo.create(data);
+
+    // Create contact settings if provided
+    if (contactSettings) {
+      await this.contactSettingsRepo.create({
+        ...contactSettings,
+        organizationId: organization.id,
+      });
+    }
 
     // Get owner role
     const ownerRole = await this.rbacRepo.findRoleByName("owner", null);

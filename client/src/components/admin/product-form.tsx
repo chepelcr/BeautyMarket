@@ -34,6 +34,7 @@ import { useLocation } from "wouter";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProductFormProps {
   product?: Product | null;
@@ -46,6 +47,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  const { t } = useLanguage();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -89,8 +91,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
-        title: "Producto creado",
-        description: "El producto ha sido creado exitosamente",
+        title: t('products.created'),
+        description: t('products.createdDesc'),
       });
       onSuccess();
     },
@@ -107,8 +109,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
         return;
       }
       toast({
-        title: "Error",
-        description: error.message || "Error al crear el producto",
+        title: t('products.error'),
+        description: error.message || t('products.errorDesc'),
         variant: "destructive",
       });
     },
@@ -124,8 +126,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
-        title: "Producto actualizado",
-        description: "El producto ha sido actualizado exitosamente",
+        title: t('products.updated'),
+        description: t('products.updatedDesc'),
       });
       onSuccess();
     },
@@ -142,8 +144,8 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
         return;
       }
       toast({
-        title: "Error",
-        description: error.message || "Error al actualizar el producto",
+        title: t('products.error'),
+        description: error.message || t('products.errorDesc'),
         variant: "destructive",
       });
     },
@@ -165,9 +167,9 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre del Producto</FormLabel>
+                <FormLabel>{t('products.form.name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ej. Labial Mate Rosa" {...field} />
+                  <Input placeholder={t('products.form.namePlaceholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -178,11 +180,11 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Precio (₡)</FormLabel>
+                <FormLabel>{t('products.form.price')}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="5000"
+                    placeholder={t('products.form.pricePlaceholder')}
                     {...field}
                     onChange={(e) =>
                       field.onChange(parseInt(e.target.value) || 0)
@@ -200,21 +202,21 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
           name="categoryId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Categoría</FormLabel>
+              <FormLabel>{t('products.form.category')}</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una categoría" />
+                    <SelectValue placeholder={t('products.form.categoryPlaceholder')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {categoriesLoading ? (
                     <SelectItem value="loading" disabled>
-                      Cargando categorías...
+                      {t('common.loading')}
                     </SelectItem>
                   ) : categories.length === 0 ? (
                     <SelectItem value="empty" disabled>
-                      No hay categorías disponibles
+                      {t('categories.noCategories')}
                     </SelectItem>
                   ) : (
                     categories.map((category) => (
@@ -235,10 +237,10 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>{t('products.form.description')}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Descripción del producto..."
+                  placeholder={t('products.form.descriptionPlaceholder')}
                   rows={4}
                   {...field}
                 />
@@ -257,7 +259,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
                 <ImageUpload
                   value={field.value || ""}
                   onChange={field.onChange}
-                  label="Imagen del Producto"
+                  label={t('products.form.image')}
                   folder="images/products"
                 />
               </FormControl>
@@ -268,7 +270,7 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
 
         <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline" onClick={onSuccess}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"
@@ -278,12 +280,12 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
             {createMutation.isPending || updateMutation.isPending ? (
               <>
                 <i className="fas fa-spinner fa-spin mr-2"></i>
-                Guardando...
+                {t('products.form.saving')}
               </>
             ) : product ? (
-              "Actualizar Producto"
+              t('products.update')
             ) : (
-              "Crear Producto"
+              t('products.create')
             )}
           </Button>
         </div>

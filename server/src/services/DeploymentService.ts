@@ -4,8 +4,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { DeploymentRepository, PreDeploymentRepository } from '../repositories';
 import { productRepository, categoryRepository, homePageContentRepository } from '../dependency_injection';
-import { AwsS3Service } from './AwsS3Service';
-import { AwsCloudFrontService } from './AwsCloudFrontService';
+import { S3Dao, CloudFrontDao } from '../aws-daos';
 import type { Organization } from '../entities';
 
 const execAsync = promisify(exec);
@@ -19,18 +18,18 @@ export interface DeploymentStatus {
 }
 
 export class DeploymentService {
-  private s3Service: AwsS3Service;
-  private cloudfrontService: AwsCloudFrontService;
+  private s3Dao: S3Dao;
+  private cloudfrontDao: CloudFrontDao;
   private currentDeployments: Map<string, DeploymentStatus> = new Map();
 
   constructor(
     private deploymentRepository: DeploymentRepository,
     private preDeploymentRepository: PreDeploymentRepository,
-    s3Service?: AwsS3Service,
-    cloudfrontService?: AwsCloudFrontService
+    s3Dao?: S3Dao,
+    cloudfrontDao?: CloudFrontDao
   ) {
-    this.s3Service = s3Service || new AwsS3Service();
-    this.cloudfrontService = cloudfrontService || new AwsCloudFrontService();
+    this.s3Dao = s3Dao || new S3Dao();
+    this.cloudfrontDao = cloudfrontDao || new CloudFrontDao();
   }
 
   private getDeploymentStatusForOrg(organizationId: string): DeploymentStatus {
@@ -94,7 +93,7 @@ export class DeploymentService {
     console.log(`🌐 Configuring S3 bucket ${bucketName} for website hosting...`);
 
     try {
-      await this.s3Service.setBucketWebsite({
+      await this.s3Dao.setBucketWebsite({
         bucket: bucketName,
         indexDocument: 'index.html',
         errorDocument: 'index.html', // Serve index.html for all 404s to enable SPA routing
@@ -118,7 +117,7 @@ export class DeploymentService {
       cacheControl = 'max-age=31536000'; // 1 year
     }
 
-    await this.s3Service.uploadFile({
+    await this.s3Dao.uploadFile({
       bucket: bucketName,
       key,
       body: fileContent,
@@ -183,7 +182,7 @@ export class DeploymentService {
     console.log('🔄 Invalidating CloudFront cache...');
 
     try {
-      const result = await this.cloudfrontService.createInvalidation({
+      const result = await this.cloudfrontDao.createInvalidation({
         distributionId: cloudfrontDistributionId,
         paths,
         callerReference: `deployment-${Date.now()}`,
@@ -201,7 +200,7 @@ export class DeploymentService {
     console.log('🗑️  Cleaning up existing client assets...');
 
     // List all objects
-    const result = await this.s3Service.listObjects({
+    const result = await this.s3Dao.listObjects({
       bucket: bucketName,
       prefix: '',
     });
@@ -213,7 +212,7 @@ export class DeploymentService {
         .map(obj => obj.key);
 
       if (keysToDelete.length > 0) {
-        await this.s3Service.deleteObjects(bucketName, keysToDelete);
+        await this.s3Dao.deleteObjects(bucketName, keysToDelete);
         console.log(`✅ Deleted ${keysToDelete.length} existing assets (preserved images directory)`);
 
         // Invalidate CloudFront cache after deleting assets

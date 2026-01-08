@@ -33,6 +33,8 @@ export const APP_CONFIG = {
     // CORS Configuration
     ALLOWED_ORIGINS: [
         'http://localhost:3000',
+        'http://localhost:3001', // Landing client dev server
+        'http://localhost:3002', // Dashboard dev server
         'http://localhost:5000',
         'http://localhost:9000',
         //'https://a84950eb-2031-40c4-8a39-1789c99c8ca2-00-2c46rofc44noa.spock.replit.dev',

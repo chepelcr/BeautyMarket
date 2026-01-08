@@ -117,6 +117,13 @@ Resources:
           StringAttributeConstraints:
             MinLength: '0'
             MaxLength: '2048'
+        - Name: gender
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: '0'
+            MaxLength: '50'
       EmailConfiguration:
         EmailSendingAccount: DEVELOPER
         SourceArn: !Ref EmailSourceArn
@@ -170,11 +177,15 @@ Resources:
         - given_name
         - family_name
         - phone_number
+        - preferred_username
+        - gender
       WriteAttributes:
         - email
         - given_name
         - family_name
         - phone_number
+        - preferred_username
+        - gender
       TokenValidityUnits:
         AccessToken: minutes
         IdToken: minutes

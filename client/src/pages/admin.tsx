@@ -29,8 +29,10 @@ import {SimpleThemeToggle} from "@/components/simple-theme-toggle";
 import {useDynamicTitle} from "@/hooks/useDynamicTitle";
 import {buildOrgApiUrl} from "@/lib/apiUtils";
 import {useOrganization} from "@/hooks/useOrganization";
+import {useLanguage} from "@/contexts/LanguageContext";
 
 export default function Admin() {
+    const {t} = useLanguage();
     const [showProductForm, setShowProductForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'content' | 'organization'>('products');
@@ -46,7 +48,7 @@ export default function Admin() {
     const organizationId = defaultOrg?.id;
 
     // Set dynamic page title
-    useDynamicTitle("Administración");
+    useDynamicTitle(t('nav.dashboard'));
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -78,8 +80,8 @@ export default function Admin() {
             } catch (error) {
                 if (isUnauthorizedError(error as Error)) {
                     toast({
-                        title: "Unauthorized",
-                        description: "You are logged out. Logging in again...",
+                        title: t('auth.unauthorized'),
+                        description: t('auth.loggedOut'),
                         variant: "destructive",
                     });
                     setTimeout(() => {
@@ -108,16 +110,16 @@ export default function Admin() {
             await apiRequest("DELETE", buildOrgApiUrl(user.id, organizationId, `/products/${productToDelete.id}`));
             queryClient.invalidateQueries({queryKey: ["products"]});
             toast({
-                title: "Producto eliminado",
-                description: "El producto ha sido eliminado exitosamente.",
+                title: t('products.deleted'),
+                description: t('products.deletedDesc'),
             });
             setShowDeleteDialog(false);
             setProductToDelete(null);
         } catch (error) {
             if (isUnauthorizedError(error as Error)) {
                 toast({
-                    title: "Unauthorized",
-                    description: "You are logged out. Logging in again...",
+                    title: t('auth.unauthorized'),
+                    description: t('auth.loggedOut'),
                     variant: "destructive",
                 });
                 setTimeout(() => {
@@ -126,8 +128,8 @@ export default function Admin() {
                 return;
             }
             toast({
-                title: "Error",
-                description: "No se pudo eliminar el producto. Inténtalo de nuevo.",
+                title: t('products.error'),
+                description: t('products.errorDesc'),
                 variant: "destructive",
             });
             console.error("Error deleting product:", error);
@@ -146,7 +148,7 @@ export default function Admin() {
 
     const getCategoryLabel = (categoryId: string) => {
         const category = categories.find(cat => cat.id === categoryId);
-        return category?.name || "Sin categoría";
+        return category?.name || t('categories.noCategories');
     };
 
     const getCategoryColor = (categoryId: string) => {
@@ -212,7 +214,7 @@ export default function Admin() {
                                 }`}
                             >
                                 <i className="fas fa-box mr-1 sm:mr-2"></i>
-                                Productos
+                                {t('nav.products')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('categories')}
@@ -223,7 +225,7 @@ export default function Admin() {
                                 }`}
                             >
                                 <i className="fas fa-tags mr-1 sm:mr-2"></i>
-                                Categorías
+                                {t('nav.categories')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('content')}
@@ -234,7 +236,7 @@ export default function Admin() {
                                 }`}
                             >
                                 <i className="fas fa-edit mr-1 sm:mr-2"></i>
-                                Contenido
+                                {t('nav.content')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('organization')}
@@ -245,16 +247,15 @@ export default function Admin() {
                                 }`}
                             >
                                 <i className="fas fa-building mr-1 sm:mr-2"></i>
-                                Organización
+                                {t('organizations.select.title')}
                             </button>
                         </div>
 
                         {activeTab === 'products' && (
                             <div className="space-y-6">
                                 <div>
-                                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Gestión
-                                        de Productos</h2>
-                                    <p className="text-gray-600 dark:text-gray-300">Administra tu catálogo de productos</p>
+                                    <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">{t('products.title')}</h2>
+                                    <p className="text-gray-600 dark:text-gray-300">{t('products.subtitle')}</p>
                                 </div>
 
                                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -270,10 +271,10 @@ export default function Admin() {
                                                 <i className="fas fa-plus text-pink-600 dark:text-pink-400 text-2xl"></i>
                                             </div>
                                             <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                                Agregar Producto
+                                                {t('products.addProduct')}
                                             </h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                                                Haz clic para crear un nuevo producto en tu catálogo
+                                                {t('dashboard.quickActions.addProductDesc')}
                                             </p>
                                         </CardContent>
                                     </Card>
@@ -307,7 +308,7 @@ export default function Admin() {
                                                             {getCategoryLabel(product.categoryId)}
                                                         </Badge>
                                                         <Badge variant={product.isActive ? "default" : "secondary"}>
-                                                            {product.isActive ? "Activo" : "Inactivo"}
+                                                            {product.isActive ? t('products.active') : t('products.inactive')}
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -328,7 +329,7 @@ export default function Admin() {
                                                             className="flex-1"
                                                         >
                                                             <i className="fas fa-edit mr-1"></i>
-                                                            Editar
+                                                            {t('common.edit')}
                                                         </Button>
                                                         <Button
                                                             variant="outline"
@@ -337,7 +338,7 @@ export default function Admin() {
                                                             className="flex-1 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
                                                         >
                                                             <i className="fas fa-trash mr-1"></i>
-                                                            Eliminar
+                                                            {t('common.delete')}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -371,7 +372,7 @@ export default function Admin() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="font-serif text-2xl">
-                            {editingProduct ? "Editar Producto" : "Agregar Producto"}
+                            {editingProduct ? t('products.update') : t('products.addProduct')}
                         </DialogTitle>
                     </DialogHeader>
                     <ProductForm
@@ -385,10 +386,9 @@ export default function Admin() {
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('products.delete')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            ¿Estás seguro de que quieres eliminar "{productToDelete?.name}"? Esta acción no se puede
-                            deshacer.
+                            {t('products.deleteConfirm')} "{productToDelete?.name}"? {t('products.deleteConfirmDesc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -396,13 +396,13 @@ export default function Admin() {
                             setShowDeleteDialog(false);
                             setProductToDelete(null);
                         }}>
-                            Cancelar
+                            {t('common.cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDeleteProduct}
                             className="bg-red-600 hover:bg-red-700 text-white"
                         >
-                            Eliminar
+                            {t('common.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

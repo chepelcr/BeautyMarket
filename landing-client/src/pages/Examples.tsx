@@ -4,22 +4,63 @@ import { Badge } from "@/components/ui/badge";
 import { CTASecuritySection } from "@/components/sections/cta-security-section";
 import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
 import {
   ExternalLink,
   Store,
+  Smartphone,
+  Shirt,
+  Paintbrush,
+  UtensilsCrossed,
+  Dumbbell,
+  PawPrint,
   Sparkles,
-  Leaf,
-  Crown,
-  Heart,
-  Scissors,
-  Star
+  Loader2,
+  AlertCircle
 } from "lucide-react";
+
+interface Template {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  category: string;
+  thumbnailUrl?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+interface ExampleStore {
+  id: string;
+  displayName: string;
+  description: string;
+  category: string;
+  url: string;
+  icon: React.ReactNode;
+  featured: boolean;
+}
+
+// Icon mapping based on category
+const getCategoryIcon = (category: string): React.ReactNode => {
+  const iconMap: Record<string, React.ReactNode> = {
+    demo: <Store className="h-6 w-6" />,
+    electronics: <Smartphone className="h-6 w-6" />,
+    fashion: <Shirt className="h-6 w-6" />,
+    crafts: <Paintbrush className="h-6 w-6" />,
+    food: <UtensilsCrossed className="h-6 w-6" />,
+    sports: <Dumbbell className="h-6 w-6" />,
+    pets: <PawPrint className="h-6 w-6" />,
+    beauty: <Sparkles className="h-6 w-6" />,
+  };
+  return iconMap[category] || <Store className="h-6 w-6" />;
+};
+
+// Featured templates (by name)
+const featuredTemplateNames = ['jmarkets-demo', 'tech-gadgets', 'vintage-fashion'];
 
 export default function Examples() {
   const { t } = useLanguage();
-
-  // Demo URL from environment variable, defaults to localhost for development
-  const demoUrl = import.meta.env.VITE_DEMO_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
   useEffect(() => {
     document.title = t('examples.title') + " | JMarkets";
@@ -27,72 +68,21 @@ export default function Examples() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [t]);
 
-  // Example store data with translation keys
-  const exampleStores = [
-    {
-      id: "basic-example",
-      titleKey: "examples.stores.demo.title",
-      descriptionKey: "examples.stores.demo.description",
-      categoryKey: "examples.stores.demo.category",
-      url: demoUrl,
-      icon: <Store className="h-6 w-6" />,
-      featured: true
-    },
-    {
-      id: "bella-natural",
-      titleKey: "examples.stores.bellaNatural.title",
-      descriptionKey: "examples.stores.bellaNatural.description",
-      categoryKey: "examples.stores.bellaNatural.category",
-      url: "https://bella-natural.jmarkets.jcampos.dev",
-      icon: <Leaf className="h-6 w-6" />,
-      featured: false
-    },
-    {
-      id: "glam-studio",
-      titleKey: "examples.stores.glamStudio.title",
-      descriptionKey: "examples.stores.glamStudio.description",
-      categoryKey: "examples.stores.glamStudio.category",
-      url: "https://glam-studio.jmarkets.jcampos.dev",
-      icon: <Sparkles className="h-6 w-6" />,
-      featured: false
-    },
-    {
-      id: "royal-hair",
-      titleKey: "examples.stores.royalHair.title",
-      descriptionKey: "examples.stores.royalHair.description",
-      categoryKey: "examples.stores.royalHair.category",
-      url: "https://royal-hair.jmarkets.jcampos.dev",
-      icon: <Crown className="h-6 w-6" />,
-      featured: true
-    },
-    {
-      id: "skin-love",
-      titleKey: "examples.stores.skinLove.title",
-      descriptionKey: "examples.stores.skinLove.description",
-      categoryKey: "examples.stores.skinLove.category",
-      url: "https://skin-love.jmarkets.jcampos.dev",
-      icon: <Heart className="h-6 w-6" />,
-      featured: false
-    },
-    {
-      id: "pro-nails",
-      titleKey: "examples.stores.proNails.title",
-      descriptionKey: "examples.stores.proNails.description",
-      categoryKey: "examples.stores.proNails.category",
-      url: "https://pro-nails.jmarkets.jcampos.dev",
-      icon: <Star className="h-6 w-6" />,
-      featured: false
-    },
-    {
-      id: "beauty-salon",
-      titleKey: "examples.stores.beautySalon.title",
-      descriptionKey: "examples.stores.beautySalon.description",
-      categoryKey: "examples.stores.beautySalon.category",
-      url: "https://beauty-salon.jmarkets.jcampos.dev",
-      icon: <Scissors className="h-6 w-6" />,
-      featured: true
-    }
-  ];
+  // Fetch templates from API
+  const { data: templates, isLoading, isError, error } = useQuery<Template[]>({
+    queryKey: [`${API_BASE_URL}/api/templates?activeOnly=true`],
+  });
+
+  // Transform templates to example stores
+  const exampleStores: ExampleStore[] = (templates || []).map((template) => ({
+    id: template.id,
+    displayName: template.displayName,
+    description: template.description,
+    category: template.category,
+    url: `https://${template.name}-example.jmarkets.jcampos.dev`,
+    icon: getCategoryIcon(template.category),
+    featured: featuredTemplateNames.includes(template.name),
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -117,11 +107,46 @@ export default function Examples() {
       {/* Examples Grid */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {exampleStores.map((store) => (
-              <ExampleCard key={store.id} store={store} t={t} />
-            ))}
-          </div>
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-3 text-gray-600 dark:text-gray-300">
+                Loading templates...
+              </span>
+            </div>
+          )}
+
+          {isError && (
+            <div className="flex flex-col justify-center items-center py-20 text-center">
+              <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Failed to Load Templates
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                {error instanceof Error ? error.message : 'An error occurred while loading templates. Please try again later.'}
+              </p>
+            </div>
+          )}
+
+          {!isLoading && !isError && exampleStores.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {exampleStores.map((store) => (
+                <ExampleCard key={store.id} store={store} />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && !isError && exampleStores.length === 0 && (
+            <div className="flex flex-col justify-center items-center py-20 text-center">
+              <Store className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No Templates Available
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                There are currently no example stores to display.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -130,7 +155,7 @@ export default function Examples() {
         titleKey="examples.cta.title"
         subtitleKey="examples.cta.subtitle"
         buttonTextKey="examples.cta.button"
-        onClick={() => window.location.href = '/organizations/new'}
+        onClick={() => window.location.href = 'https://admin.jmarkets.jcampos.dev/register'}
         buttonIcon={null}
         variant="light"
       />
@@ -139,25 +164,13 @@ export default function Examples() {
 }
 
 // Example Card Component
-function ExampleCard({ store, t }: {
-  store: {
-    id: string;
-    titleKey: string;
-    descriptionKey: string;
-    categoryKey: string;
-    url: string;
-    icon: React.ReactNode;
-    featured: boolean;
-    isInternal?: boolean;
-  };
-  t: (key: string) => string;
+function ExampleCard({ store }: {
+  store: ExampleStore;
 }) {
+  const { t } = useLanguage();
+
   const handleVisit = () => {
-    if (store.isInternal) {
-      window.open(store.url, '_blank');
-    } else {
-      window.open(store.url, '_blank', 'noopener,noreferrer');
-    }
+    window.open(store.url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -172,11 +185,11 @@ function ExampleCard({ store, t }: {
           <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-lg w-fit">
             <div className="text-primary">{store.icon}</div>
           </div>
-          <Badge variant="outline">{t(store.categoryKey)}</Badge>
+          <Badge variant="outline" className="capitalize">{store.category}</Badge>
         </div>
-        <CardTitle className="mt-4">{t(store.titleKey)}</CardTitle>
+        <CardTitle className="mt-4">{store.displayName}</CardTitle>
         <CardDescription className="line-clamp-3 text-justify">
-          {t(store.descriptionKey)}
+          {store.description}
         </CardDescription>
       </CardHeader>
       <CardContent>

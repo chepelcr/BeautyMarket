@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Fitness Hub Theme Colors */
+    /* Primary: Energetic Red #dc2626 */
+    /* Secondary: Bold Orange #ea580c */
+    /* Accent: Deep Black #0a0a0a */
+
+    /* Background & Foreground */
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 4%; /* Near Black #0a0a0a */
+
+    /* Card */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 4%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+
+    /* Primary: Energetic Red */
+    --primary: 0 72% 51%; /* #dc2626 - Red 600 */
+    --primary-foreground: 0 0% 100%; /* White text on red */
+
+    /* Secondary: Bold Orange */
+    --secondary: 20 91% 48%; /* #ea580c - Orange 600 */
+    --secondary-foreground: 0 0% 100%; /* White text on orange */
+
+    /* Accent: Deep Black */
+    --accent: 0 0% 4%; /* #0a0a0a - Near black */
+    --accent-foreground: 0 0% 100%; /* White text on black */
+
+    /* Muted */
+    --muted: 0 0% 96%; /* Gray 50 */
+    --muted-foreground: 0 0% 45%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%; /* Red 500 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border, Input, Ring */
+    --border: 0 0% 90%; /* Gray 200 */
+    --input: 0 0% 90%;
+    --ring: 0 72% 51%; /* Primary red for focus rings */
+
+    /* Border Radius */
+    --radius: 0.5rem;
+
+    /* Brand Colors for Explicit Control */
+    /* Energetic Red */
+    --brand-red-50: 0 86% 97%;
+    --brand-red-100: 0 93% 94%;
+    --brand-red-500: 0 72% 51%;
+    --brand-red-600: 0 72% 51%; /* Primary */
+    --brand-red-700: 0 74% 42%;
+    --brand-red-800: 0 70% 35%;
+    --brand-red-900: 0 63% 31%;
+
+    /* Bold Orange */
+    --brand-orange-50: 24 100% 97%;
+    --brand-orange-100: 24 100% 93%;
+    --brand-orange-500: 21 90% 48%;
+    --brand-orange-600: 20 91% 48%; /* Secondary */
+    --brand-orange-700: 16 84% 40%;
+    --brand-orange-800: 15 79% 34%;
+  }
+
+  .dark {
+    /* Dark Mode: High-contrast gym aesthetic */
+    --background: 0 0% 4%; /* Near black */
+    --foreground: 0 0% 98%; /* Off-white */
+
+    --card: 222 47% 11%; /* Dark slate */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 72% 51%; /* Keep energetic red */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 91% 48%; /* Keep bold orange */
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 222 47% 11%; /* Dark slate for accent */
+    --accent-foreground: 0 0% 98%;
+
+    --muted: 217 33% 17%; /* Dark gray */
+    --muted-foreground: 215 20% 65%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 0 72% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  /* Fitness-specific utility classes */
+  .text-energy {
+    @apply text-red-600 font-bold;
+  }
+
+  .text-motivational {
+    @apply text-orange-600 font-extrabold uppercase tracking-wide;
+  }
+
+  .gradient-energy {
+    @apply bg-gradient-to-r from-red-600 to-orange-600;
+  }
+
+  .gradient-dark {
+    @apply bg-gradient-to-b from-gray-900 to-gray-800;
+  }
+
+  .btn-energy {
+    @apply bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply bg-orange-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-orange-700 transition-all transform hover:scale-105 active:scale-95;
+  }
+
+  .card-fitness {
+    @apply bg-card border border-border rounded-lg shadow-lg hover:shadow-xl transition-shadow;
+  }
+
+  /* Progress bar styles */
+  .progress-energy {
+    @apply h-2 bg-gradient-to-r from-red-600 to-orange-600 rounded-full;
+  }
+}

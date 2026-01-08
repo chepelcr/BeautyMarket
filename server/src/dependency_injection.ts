@@ -10,13 +10,23 @@ import {
   OrganizationRepository,
   OrganizationMemberRepository,
   OrganizationInvitationRepository,
-  RBACRepository
+  RBACRepository,
+  ThemeSettingsRepository,
+  ContactSettingsRepository,
+  PaymentSettingsRepository,
+  ShippingSettingsRepository,
+  TemplateRepository,
+  ComponentRepository,
+  PageRepository,
+  PageSectionRepository,
+  SectionContentRepository
 } from './repositories';
+
+// AWS DAOs
+import { S3Dao, CloudFrontDao } from './aws-daos';
 
 // Services
 import {
-  AwsS3Service,
-  AwsCloudFrontService,
   ProductService,
   CategoryService,
   OrderService,
@@ -30,7 +40,14 @@ import {
   InvitationService,
   RBACService,
   EmailService,
-  OrganizationInfrastructureService
+  OrganizationInfrastructureService,
+  ThemeSettingsService,
+  ContactSettingsService,
+  PaymentSettingsService,
+  ShippingSettingsService,
+  TemplateService,
+  PageService,
+  ComponentService
 } from './services';
 
 // Controllers
@@ -46,7 +63,16 @@ import {
   OrganizationController,
   MembershipController,
   InvitationController,
-  RBACController
+  RBACController,
+  ThemeSettingsController,
+  ContactSettingsController,
+  PaymentSettingsController,
+  ShippingSettingsController,
+  TemplateController,
+  PageController,
+  SectionController,
+  SectionContentController,
+  ComponentController
 } from './controllers';
 
 // Create repositories
@@ -64,9 +90,22 @@ export const organizationMemberRepository = new OrganizationMemberRepository();
 export const organizationInvitationRepository = new OrganizationInvitationRepository();
 export const rbacRepository = new RBACRepository();
 
-// Create centralized AWS services (shared across all services)
-export const awsS3Service = new AwsS3Service();
-export const awsCloudFrontService = new AwsCloudFrontService();
+// Settings repositories
+export const themeSettingsRepository = new ThemeSettingsRepository();
+export const contactSettingsRepository = new ContactSettingsRepository();
+export const paymentSettingsRepository = new PaymentSettingsRepository();
+export const shippingSettingsRepository = new ShippingSettingsRepository();
+
+// Template and Page repositories
+export const templateRepository = new TemplateRepository();
+export const componentRepository = new ComponentRepository();
+export const pageRepository = new PageRepository();
+export const pageSectionRepository = new PageSectionRepository();
+export const sectionContentRepository = new SectionContentRepository();
+
+// Create centralized AWS DAOs (shared across all services)
+export const s3Dao = new S3Dao();
+export const cloudfrontDao = new CloudFrontDao();
 
 // Create services
 export const productService = new ProductService(productRepository, categoryRepository);
@@ -75,11 +114,11 @@ export const orderService = new OrderService(orderRepository);
 export const deploymentService = new DeploymentService(
   deploymentRepository,
   preDeploymentRepository,
-  awsS3Service,
-  awsCloudFrontService
+  s3Dao,
+  cloudfrontDao
 );
 export const preDeploymentService = new PreDeploymentService(preDeploymentRepository);
-export const s3UploadService = new S3UploadService(awsS3Service);
+export const s3UploadService = new S3UploadService(s3Dao);
 export const cognitoService = new CognitoService();
 export const userService = new UserService(userRepository, cognitoService);
 export const emailService = new EmailService();
@@ -88,7 +127,8 @@ export const emailService = new EmailService();
 export const organizationService = new OrganizationService(
   organizationRepository,
   organizationMemberRepository,
-  rbacRepository
+  rbacRepository,
+  contactSettingsRepository
 );
 export const membershipService = new MembershipService(
   organizationMemberRepository,
@@ -108,9 +148,20 @@ export const rbacService = new RBACService(
 );
 export const organizationInfrastructureService = new OrganizationInfrastructureService(
   organizationRepository,
-  awsS3Service,
-  awsCloudFrontService
+  s3Dao,
+  cloudfrontDao
 );
+
+// Settings services
+export const themeSettingsService = new ThemeSettingsService(themeSettingsRepository);
+export const contactSettingsService = new ContactSettingsService(contactSettingsRepository);
+export const paymentSettingsService = new PaymentSettingsService(paymentSettingsRepository);
+export const shippingSettingsService = new ShippingSettingsService(shippingSettingsRepository);
+
+// Template and Page services
+export const templateService = new TemplateService(templateRepository);
+export const pageService = new PageService(pageRepository);
+export const componentService = new ComponentService(componentRepository);
 
 // Create controllers
 export const productController = new ProductController(productService, preDeploymentService);
@@ -131,6 +182,19 @@ export const organizationController = new OrganizationController(
 export const membershipController = new MembershipController(membershipService, rbacService);
 export const invitationController = new InvitationController(invitationService);
 export const rbacController = new RBACController(rbacService);
+
+// Settings controllers
+export const themeSettingsController = new ThemeSettingsController(themeSettingsRepository);
+export const contactSettingsController = new ContactSettingsController(contactSettingsRepository);
+export const paymentSettingsController = new PaymentSettingsController(paymentSettingsRepository);
+export const shippingSettingsController = new ShippingSettingsController(shippingSettingsRepository);
+
+// Template and Page controllers
+export const templateController = new TemplateController(templateRepository, pageRepository, organizationRepository);
+export const pageController = new PageController(pageRepository);
+export const sectionController = new SectionController(pageSectionRepository, pageRepository);
+export const sectionContentController = new SectionContentController(sectionContentRepository, pageSectionRepository, preDeploymentService);
+export const componentController = new ComponentController(componentRepository);
 
 // Middleware factories
 import {

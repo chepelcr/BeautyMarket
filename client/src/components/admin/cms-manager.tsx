@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,20 +18,46 @@ import { toast } from "@/hooks/use-toast";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-interface HomePageContent {
+// New API structure types
+interface Page {
   id: string;
-  section: string;
+  organizationId: string;
+  type: string;
+  slug: string;
+  title: string;
+  metaDescription?: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PageSection {
+  id: string;
+  pageId: string;
+  sectionType: string;
+  name: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SectionContent {
+  id: string;
+  sectionId: string;
   key: string;
   value: string;
-  type: string;
+  valueType: string;
   displayName: string;
   description?: string;
   sortOrder: number;
 }
 
 interface ContentSection {
-  [key: string]: HomePageContent;
+  [key: string]: SectionContent;
 }
 
 interface ContentData {
@@ -46,62 +73,109 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   const [hasChanges, setHasChanges] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeSection, setActiveSection] = useState(defaultActiveSection);
-  const [content, setContent] = useState<HomePageContent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
-  useEffect(() => {
-    if (!user?.id || !defaultOrg?.id) return;
+  // Fetch home page
+  const { data: homePage, isLoading: isLoadingPage } = useQuery<Page>({
+    queryKey: ['page', 'home', defaultOrg?.id],
+    queryFn: async () => {
+      if (!user?.id || !defaultOrg?.id) throw new Error('User or organization not found');
+      const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/pages?type=home'));
+      const pages = await response.json();
+      return pages[0]; // Get first home page
+    },
+    enabled: !!user?.id && !!defaultOrg?.id,
+  });
 
-    const loadContent = async () => {
-      try {
-        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/home-content'));
-        setContent(await response.json());
-      } catch (error) {
-        console.error('Failed to load content:', error);
-        setContent([]);
-      } finally {
-        setIsLoading(false);
+  // Fetch sections for the home page
+  const { data: sections, isLoading: isLoadingSections } = useQuery<PageSection[]>({
+    queryKey: ['sections', homePage?.id],
+    queryFn: async () => {
+      if (!user?.id || !defaultOrg?.id || !homePage?.id) throw new Error('Missing required data');
+      const response = await apiRequest(
+        'GET',
+        buildOrgApiUrl(user.id, defaultOrg.id, `/pages/${homePage.id}/sections`)
+      );
+      return response.json();
+    },
+    enabled: !!user?.id && !!defaultOrg?.id && !!homePage?.id,
+  });
+
+  // Fetch content for all sections
+  const { data: allContent, isLoading: isLoadingContent } = useQuery<Record<string, SectionContent[]>>({
+    queryKey: ['content', sections?.map(s => s.id)],
+    queryFn: async () => {
+      if (!user?.id || !defaultOrg?.id || !homePage?.id || !sections) {
+        throw new Error('Missing required data');
       }
-    };
 
-    loadContent();
-  }, [user?.id, defaultOrg?.id]);
+      const contentBySection: Record<string, SectionContent[]> = {};
 
-  const handleSaveChanges = async (contentList: any[]) => {
-    if (!user?.id || !defaultOrg?.id) return;
+      for (const section of sections) {
+        const response = await apiRequest(
+          'GET',
+          buildOrgApiUrl(user.id, defaultOrg.id, `/pages/${homePage.id}/sections/${section.id}/content`)
+        );
+        contentBySection[section.sectionType] = await response.json();
+      }
 
-    try {
-      await apiRequest("POST", buildOrgApiUrl(user.id, defaultOrg.id, "/home-content/bulk"), contentList);
-      // Reload content
-      const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/home-content'));
-      setContent(await response.json());
+      return contentBySection;
+    },
+    enabled: !!user?.id && !!defaultOrg?.id && !!homePage?.id && !!sections && sections.length > 0,
+  });
+
+  const isLoading = isLoadingPage || isLoadingSections || isLoadingContent;
+
+  // Mutation for bulk updating content
+  const updateContentMutation = useMutation({
+    mutationFn: async (updates: { sectionId: string; sectionType: string; content: any[] }) => {
+      if (!user?.id || !defaultOrg?.id || !homePage?.id) throw new Error('Missing required data');
+
+      const response = await apiRequest(
+        "POST",
+        buildOrgApiUrl(user.id, defaultOrg.id, `/pages/${homePage.id}/sections/${updates.sectionId}/content/bulk`),
+        { content: updates.content }
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch content
+      queryClient.invalidateQueries({ queryKey: ['content'] });
       toast({
-        title: "Contenido actualizado",
-        description: "Los cambios se han guardado correctamente",
+        title: t('content.updated'),
+        description: t('content.updatedDesc'),
       });
       setHasChanges(false);
-    } catch (error) {
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
       toast({
-        title: "Error",
-        description: "No se pudo actualizar el contenido",
+        title: t('common.error'),
+        description: t('products.errorDesc'),
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
-  // Group content by sections
+  // Transform content data into editable structure
   useEffect(() => {
-    if (content) {
-      const grouped = content.reduce((acc, item) => {
-        if (!acc[item.section]) acc[item.section] = {};
-        acc[item.section][item.key] = item;
-        return acc;
-      }, {} as ContentData);
+    if (allContent && sections) {
+      const grouped: ContentData = {};
+
+      sections.forEach(section => {
+        const sectionContents = allContent[section.sectionType] || [];
+        grouped[section.sectionType] = sectionContents.reduce((acc, item) => {
+          acc[item.key] = item;
+          return acc;
+        }, {} as ContentSection);
+      });
+
       setContentData(grouped);
-      
+
       // Set active section based on prop if available in content
       if (defaultActiveSection && grouped[defaultActiveSection]) {
         setActiveSection(defaultActiveSection);
@@ -110,7 +184,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
         setActiveSection(Object.keys(grouped)[0]);
       }
     }
-  }, [content, defaultActiveSection]);
+  }, [allContent, sections, defaultActiveSection]);
 
   const handleInputChange = (section: string, key: string, value: string) => {
     setContentData(prev => ({
@@ -127,28 +201,47 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   };
 
   const handleSave = () => {
-    const updates = Object.values(contentData)
-      .flatMap(section => Object.values(section))
-      .map(item => ({
-        section: item.section,
+    if (!sections) return;
+
+    // Group updates by section
+    const updatesBySectionType: Record<string, any[]> = {};
+
+    Object.entries(contentData).forEach(([sectionType, sectionItems]) => {
+      updatesBySectionType[sectionType] = Object.values(sectionItems).map(item => ({
         key: item.key,
         value: item.value,
-        type: item.type,
+        valueType: item.valueType,
         displayName: item.displayName,
         description: item.description,
         sortOrder: item.sortOrder
       }));
-    
-    handleSaveChanges(updates);
+    });
+
+    // Update each section's content
+    sections.forEach(section => {
+      const updates = updatesBySectionType[section.sectionType];
+      if (updates && updates.length > 0) {
+        updateContentMutation.mutate({
+          sectionId: section.id,
+          sectionType: section.sectionType,
+          content: updates
+        });
+      }
+    });
   };
 
   const handleReset = () => {
-    if (content) {
-      const grouped = content.reduce((acc, item) => {
-        if (!acc[item.section]) acc[item.section] = {};
-        acc[item.section][item.key] = item;
-        return acc;
-      }, {} as ContentData);
+    if (allContent && sections) {
+      const grouped: ContentData = {};
+
+      sections.forEach(section => {
+        const sectionContents = allContent[section.sectionType] || [];
+        grouped[section.sectionType] = sectionContents.reduce((acc, item) => {
+          acc[item.key] = item;
+          return acc;
+        }, {} as ContentSection);
+      });
+
       setContentData(grouped);
       setHasChanges(false);
     }
@@ -185,7 +278,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
 
     // Update all color fields mode
     Object.entries(sectionData).forEach(([key, item]) => {
-      if (item.type === 'color') {
+      if (item.valueType === 'color') {
         try {
           const colorData = JSON.parse(item.value || '{}');
           colorData.mode = newMode;
@@ -218,10 +311,10 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
     });
   };
 
-  const renderInput = (item: HomePageContent, section: string) => {
+  const renderInput = (item: SectionContent, section: string) => {
     const value = contentData[section]?.[item.key]?.value || "";
-    
-    switch (item.type) {
+
+    switch (item.valueType) {
       case "color":
         const sectionMode = getSectionMode(section);
         return (
@@ -748,22 +841,22 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
 
   // Define proper section order matching the home page
   const sectionOrder = ['hero', 'categories', 'about', 'contact', 'site'];
-  const sections = sectionOrder.filter(section => contentData[section]);
-  
+  const availableSections = sectionOrder.filter(section => contentData[section]);
+
   // Ensure active section is valid, default to first available or hero
-  const validActiveSection = sections.includes(activeSection) 
-    ? activeSection 
-    : (sections.includes('hero') ? 'hero' : sections[0]);
+  const validActiveSection = availableSections.includes(activeSection)
+    ? activeSection
+    : (availableSections.includes('hero') ? 'hero' : availableSections[0]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 dark:text-white">
-            Editor de Contenido
+            {t('content.editor')}
           </h2>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            Edita todos los textos, colores y contenido de la página principal
+            {t('content.subtitle')}
           </p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:flex sm:flex-row sm:flex-wrap lg:flex-nowrap">
@@ -774,8 +867,8 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             className="w-full sm:flex-1 lg:w-auto"
           >
             <Eye className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden md:inline">Vista Previa</span>
-            <span className="md:hidden">Previa</span>
+            <span className="hidden md:inline">{t('content.preview')}</span>
+            <span className="md:hidden">{t('content.preview')}</span>
           </Button>
           <Button
             onClick={handleReset}
@@ -785,8 +878,8 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             className="w-full sm:flex-1 lg:w-auto"
           >
             <RotateCcw className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden md:inline">Descartar</span>
-            <span className="md:hidden">Reset</span>
+            <span className="hidden md:inline">{t('common.cancel')}</span>
+            <span className="md:hidden">{t('common.cancel')}</span>
           </Button>
           <Button
             onClick={handleSave}
@@ -795,8 +888,8 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             className="w-full sm:flex-1 lg:w-auto"
           >
             <Save className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden md:inline">Guardar Cambios</span>
-            <span className="md:hidden">Guardar</span>
+            <span className="hidden md:inline">{t('common.save')}</span>
+            <span className="md:hidden">{t('common.save')}</span>
           </Button>
 
           <Link href="/admin/deployments" className="w-full sm:flex-1 lg:w-auto">
@@ -806,8 +899,8 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
               className="w-full py-2"
             >
               <History className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden md:inline">Historial</span>
-              <span className="md:hidden">Log</span>
+              <span className="hidden md:inline">{t('content.history')}</span>
+              <span className="md:hidden">{t('content.history')}</span>
             </Button>
           </Link>
         </div>
@@ -816,20 +909,20 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
       {hasChanges && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-            Tienes cambios sin guardar. Haz clic en "Guardar Cambios" para aplicarlos.
+            {t('content.saving')}
           </p>
         </div>
       )}
 
       <Tabs defaultValue={validActiveSection} key={validActiveSection} className="w-full">
         <TabsList className="grid grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
-          {sections.map((section) => (
-            <TabsTrigger 
-              key={section} 
-              value={section} 
+          {availableSections.map((section) => (
+            <TabsTrigger
+              key={section}
+              value={section}
               className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200"
             >
-              {section === 'hero' ? 'Inicio' : 
+              {section === 'hero' ? 'Inicio' :
                section === 'about' ? 'Acerca' :
                section === 'contact' ? 'Contacto' :
                section === 'categories' ? 'Categorías' :
@@ -838,7 +931,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
           ))}
         </TabsList>
 
-        {sections.map((section) => (
+        {availableSections.map((section) => (
           <TabsContent key={section} value={section} className="mt-6">
             <Card className="dark:bg-gray-800 dark:border-gray-700">
               <CardHeader>
@@ -862,16 +955,16 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                         <Label htmlFor={item.id} className="font-medium">
                           {item.displayName}
                         </Label>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={
-                            item.type === 'color' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                            item.type === 'background' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                            item.type === 'text' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                            item.valueType === 'color' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                            item.valueType === 'background' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                            item.valueType === 'text' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
                             'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                           }
                         >
-                          {item.type === 'background' ? 'fondo' : item.type}
+                          {item.valueType === 'background' ? 'fondo' : item.valueType}
                         </Badge>
                       </div>
                       {item.description && (

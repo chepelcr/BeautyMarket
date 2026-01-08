@@ -1,4 +1,4 @@
-import { AwsS3Service } from './AwsS3Service';
+import { S3Dao } from '../aws-daos';
 
 export interface UploadResponse {
   success: boolean;
@@ -7,12 +7,12 @@ export interface UploadResponse {
 }
 
 export class S3UploadService {
-  private s3Service: AwsS3Service;
+  private s3Dao: S3Dao;
   private bucketName: string;
   private cloudfrontDomain: string;
 
-  constructor(s3Service?: AwsS3Service) {
-    this.s3Service = s3Service || new AwsS3Service();
+  constructor(s3Dao?: S3Dao) {
+    this.s3Dao = s3Dao || new S3Dao();
     this.bucketName = process.env.AWS_S3_BUCKET_NAME || '';
     this.cloudfrontDomain = process.env.CLOUDFRONT_DOMAIN || 'd1taomm62uzhjk.cloudfront.net';
   }
@@ -27,7 +27,7 @@ export class S3UploadService {
     const actualFolder = folder === 'uploads' ? 'images' : folder;
     const key = `${actualFolder}/${Date.now()}-${fileName}`;
 
-    const uploadUrl = await this.s3Service.getPresignedUploadUrl({
+    const uploadUrl = await this.s3Dao.getPresignedUploadUrl({
       bucket: this.bucketName,
       key,
       contentType: fileType,
@@ -46,10 +46,10 @@ export class S3UploadService {
       if (!fileUrl || !this.bucketName) return false;
 
       // Extract key from URL using the centralized service
-      const key = this.s3Service.extractKeyFromUrl(fileUrl, this.bucketName);
+      const key = this.s3Dao.extractKeyFromUrl(fileUrl, this.bucketName);
       if (!key) return false;
 
-      await this.s3Service.deleteObject(this.bucketName, key);
+      await this.s3Dao.deleteObject(this.bucketName, key);
 
       return true;
     } catch (error) {

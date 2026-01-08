@@ -1,0 +1,27 @@
+🚀 Setting up template buckets and CloudFront distributions for all template organizations
+
+📋 Template organizations: 7
+🌍 Base domain: jmarkets.jcampos.dev
+
+📦 Setting up main template bucket...
+
+📦 Creating template bucket: jmarkets-template-market
+✅ Bucket created: jmarkets-template-market
+🔒 Blocking public access on jmarkets-template-market
+✅ Public access blocked
+
+📤 Uploading client files from ./dist/public
+✅ Client files uploaded to template bucket
+
+📋 Template bucket contents:
+   Total files: 71
+
+🔐 Checking for existing wildcard certificate for *.jmarkets.jcampos.dev...
+  ✅ Found existing certificate: arn:aws:acm:us-east-1:938590657428:certificate/153c4324-5958-4711-b4a9-7830f4954cbb
+  📊 Certificate status: PENDING_VALIDATION
+  ⏳ Certificate is pending validation, will add DNS records...
+  📝 Adding DNS validation records to Route53...
+  ⚠️  Warning: Failed to add DNS validation records: UnknownError
+  ℹ️  You may need to manually add the validation records
+  ⏳ Waiting for certificate validation (max 10 minutes)...
+  ⏳ Still pending... (attempt 1, elapsed 0s)  ⏳ Still pending... (attempt 2, elapsed 30s)  ⏳ Still pending... (attempt 3, elapsed 60s)  ⏳ Still pending... (attempt 4, elapsed 91s)  ⏳ Still pending... (attempt 5, elapsed 121s)  ⏳ Still pending... (attempt 6, elapsed 152s)  ⏳ Still pending... (attempt 7, elapsed 182s)  ⏳ Still pending... (attempt 8, elapsed 212s)

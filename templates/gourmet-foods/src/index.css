@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ===== Gourmet Foods Color Palette ===== */
+    /* Primary: Rich Red - Appetite stimulation, culinary passion */
+    --primary: 0 84% 60%;           /* #dc2626 red-600 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Deep Green - Fresh, organic, farm-to-table */
+    --secondary: 145 80% 25%;       /* #166534 green-800 */
+    --secondary-foreground: 0 0% 100%;
+
+    /* Accent: Amber Gold - Premium gourmet appeal */
+    --accent: 32 95% 44%;           /* #d97706 amber-600 */
+    --accent-foreground: 0 0% 100%;
+
+    /* Neutral Palette - Clean, food-safe */
+    --background: 0 0% 100%;        /* #ffffff white */
+    --foreground: 24 10% 10%;       /* #1c1917 stone-900 */
+
+    --card: 0 0% 100%;              /* #ffffff white */
+    --card-foreground: 24 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+
+    --muted: 60 5% 96%;             /* #f5f5f4 stone-100 */
+    --muted-foreground: 25 5% 45%;  /* #78716c stone-500 */
+
+    --border: 20 6% 90%;            /* #e7e5e4 stone-200 */
+    --input: 60 5% 96%;             /* #f5f5f4 stone-100 */
+    --ring: 0 84% 60%;              /* #dc2626 matches primary */
+
+    --destructive: 0 84% 60%;       /* #dc2626 red-600 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Gourmet-specific colors */
+    --gourmet-red: 0 84% 60%;       /* #dc2626 */
+    --gourmet-green: 145 80% 25%;   /* #166534 */
+    --gourmet-gold: 32 95% 44%;     /* #d97706 */
+    --gourmet-cream: 55 92% 95%;    /* #fefce8 yellow-50 */
+
+    /* ===== Typography Variables ===== */
+    /* Fonts */
+    --font-sans: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-serif: "Playfair Display", Georgia, serif;
+    --font-display: "Playfair Display", Georgia, serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    /* Font Sizes */
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.25rem;      /* 20px */
+    --text-2xl: 1.5rem;      /* 24px */
+    --text-3xl: 1.875rem;    /* 30px */
+    --text-4xl: 2.25rem;     /* 36px */
+    --text-5xl: 3rem;        /* 48px */
+    --text-6xl: 3.75rem;     /* 60px */
+
+    /* Font Weights */
+    --font-light: 300;
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    /* Line Heights */
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.75;
+
+    /* Border Radius */
+    --radius: 0.5rem;        /* 8px - Subtle elegance */
+  }
+
+  /* Dark mode (not recommended for food, but included for flexibility) */
+  .dark {
+    --background: 24 10% 10%;
+    --foreground: 60 5% 96%;
+
+    --card: 24 10% 12%;
+    --card-foreground: 60 5% 96%;
+
+    --popover: 24 10% 12%;
+    --popover-foreground: 60 5% 96%;
+
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 145 80% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 32 95% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 25 5% 20%;
+    --muted-foreground: 25 5% 60%;
+
+    --border: 25 5% 25%;
+    --input: 25 5% 20%;
+    --ring: 0 84% 60%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  /* Headings use Playfair Display for elegant, gourmet feel */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-semibold;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+
+  /* Body text uses Source Sans Pro for readability */
+  p {
+    @apply text-base leading-relaxed;
+  }
+
+  /* Links */
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Gourmet-specific utility classes */
+  .gourmet-gradient {
+    background: linear-gradient(135deg, hsl(var(--gourmet-red)) 0%, hsl(var(--gourmet-gold)) 100%);
+  }
+
+  .fresh-gradient {
+    background: linear-gradient(135deg, hsl(var(--gourmet-green)) 0%, hsl(var(--gourmet-gold)) 100%);
+  }
+
+  .premium-shadow {
+    box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.1),
+                0 2px 4px -1px rgba(220, 38, 38, 0.06);
+  }
+
+  .fresh-shadow {
+    box-shadow: 0 4px 6px -1px rgba(22, 101, 52, 0.1),
+                0 2px 4px -1px rgba(22, 101, 52, 0.06);
+  }
+
+  /* Recipe card styling */
+  .recipe-card {
+    @apply bg-white rounded-lg overflow-hidden premium-shadow transition-transform duration-300 hover:scale-[1.02];
+  }
+
+  /* Ingredient badge */
+  .ingredient-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .ingredient-badge-organic {
+    @apply bg-green-100 text-green-800 border border-green-200;
+  }
+
+  .ingredient-badge-premium {
+    @apply bg-amber-100 text-amber-800 border border-amber-200;
+  }
+
+  .ingredient-badge-fresh {
+    @apply bg-red-50 text-red-700 border border-red-200;
+  }
+
+  /* Gold accent for premium items */
+  .gold-accent {
+    position: relative;
+  }
+
+  .gold-accent::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, hsl(var(--gourmet-gold)) 0%, hsl(var(--accent)) 100%);
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+}
+
+@layer utilities {
+  /* Text gradient utilities */
+  .text-gourmet-gradient {
+    @apply bg-gradient-to-r from-red-600 to-amber-600 bg-clip-text text-transparent;
+  }
+
+  .text-fresh-gradient {
+    @apply bg-gradient-to-r from-green-800 to-green-600 bg-clip-text text-transparent;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.8s ease-out;
+  }
+}

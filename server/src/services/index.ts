@@ -1,7 +1,3 @@
-// AWS Centralized Services
-export * from './AwsS3Service';
-export * from './AwsCloudFrontService';
-
 export * from './EmailService';
 export * from './ProductService';
 export * from './CategoryService';
@@ -18,3 +14,15 @@ export * from './MembershipService';
 export * from './InvitationService';
 export * from './RBACService';
 export * from './OrganizationInfrastructureService';
+
+// Settings Services
+export * from './ThemeSettingsService';
+export * from './ContactSettingsService';
+export * from './PaymentSettingsService';
+export * from './ShippingSettingsService';
+
+// Template & Page System Services
+export * from './TemplateService';
+export * from './PageService';
+export * from './ComponentService';
+export * from './TemplateCloneService';

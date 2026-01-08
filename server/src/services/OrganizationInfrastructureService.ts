@@ -1,15 +1,4 @@
-import {
-  Route53Client,
-  ChangeResourceRecordSetsCommand,
-} from '@aws-sdk/client-route-53';
-import {
-  ACMClient,
-  RequestCertificateCommand,
-  DescribeCertificateCommand,
-  DeleteCertificateCommand,
-} from '@aws-sdk/client-acm';
-import { AwsS3Service } from './AwsS3Service';
-import { AwsCloudFrontService } from './AwsCloudFrontService';
+import { S3Dao, CloudFrontDao, Route53Dao, AcmDao, StsDao } from '../aws-daos';
 import type { Organization, ACMValidationRecord, InfrastructureStatus } from '../entities';
 import type { OrganizationRepository } from '../repositories/OrganizationRepository';
 
@@ -46,10 +35,11 @@ export interface IOrganizationInfrastructureService {
 }
 
 export class OrganizationInfrastructureService implements IOrganizationInfrastructureService {
-  private s3Service: AwsS3Service;
-  private cloudfrontService: AwsCloudFrontService;
-  private route53Client: Route53Client;
-  private acmClient: ACMClient;
+  private s3Dao: S3Dao;
+  private cloudfrontDao: CloudFrontDao;
+  private route53Dao: Route53Dao;
+  private acmDao: AcmDao;
+  private stsDao: StsDao;
   private region: string;
   private hostedZoneId: string;
   private baseDomain: string;
@@ -57,8 +47,8 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
 
   constructor(
     private organizationRepo: OrganizationRepository,
-    s3Service?: AwsS3Service,
-    cloudfrontService?: AwsCloudFrontService
+    s3Dao?: S3Dao,
+    cloudfrontDao?: CloudFrontDao
   ) {
     this.region = process.env.AWS_REGION || 'us-east-1';
 
@@ -67,15 +57,20 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     };
 
-    this.s3Service = s3Service || new AwsS3Service({ credentials, region: this.region });
-    this.cloudfrontService = cloudfrontService || new AwsCloudFrontService({ credentials, region: this.region });
-    this.route53Client = new Route53Client({ credentials, region: this.region });
+    this.s3Dao = s3Dao || new S3Dao({ credentials, region: this.region });
+    this.cloudfrontDao = cloudfrontDao || new CloudFrontDao({ credentials, region: this.region });
+    this.route53Dao = new Route53Dao({ credentials, region: this.region });
     // ACM must be in us-east-1 for CloudFront
-    this.acmClient = new ACMClient({ credentials, region: 'us-east-1' });
+    this.acmDao = new AcmDao({ credentials, region: 'us-east-1' });
+    this.stsDao = new StsDao({ credentials, region: this.region });
 
     this.hostedZoneId = process.env.ROUTE53_HOSTED_ZONE_ID || '';
-    this.baseDomain = process.env.BASE_DOMAIN || 'jmarkets.jcampos.dev';
+    this.baseDomain = process.env.BASE_DOMAIN || 'jcampos.dev';
     this.templateSourceBucket = process.env.TEMPLATE_SOURCE_BUCKET || 'jmarkets-template-market';
+  }
+
+  private async getAccountId(): Promise<string> {
+    return this.stsDao.getAccountId();
   }
 
   async provisionInfrastructure(organization: Organization): Promise<ProvisioningResult> {
@@ -158,10 +153,10 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
 
   private async createS3Bucket(bucketName: string): Promise<void> {
     // Create bucket
-    await this.s3Service.createBucket(bucketName);
+    await this.s3Dao.createBucket(bucketName);
 
     // Block all public access (CloudFront will use OAC)
-    await this.s3Service.setPublicAccessBlock({
+    await this.s3Dao.setPublicAccessBlock({
       bucket: bucketName,
       blockPublicAcls: true,
       ignorePublicAcls: true,
@@ -175,7 +170,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
       console.log(`Deploying template market from ${this.templateSourceBucket} to ${targetBucketName}`);
 
       // List all objects in source bucket
-      const objects = await this.s3Service.listAllObjects(this.templateSourceBucket);
+      const objects = await this.s3Dao.listAllObjects(this.templateSourceBucket);
 
       if (!objects || objects.length === 0) {
         return {
@@ -190,7 +185,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
       for (const obj of objects) {
         if (!obj.key) continue;
 
-        await this.s3Service.copyObject({
+        await this.s3Dao.copyObject({
           sourceBucket: this.templateSourceBucket,
           sourceKey: obj.key,
           destinationBucket: targetBucketName,
@@ -217,7 +212,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   }
 
   private async createOriginAccessControl(slug: string): Promise<string> {
-    return this.cloudfrontService.createOriginAccessControl({
+    return this.cloudfrontDao.createOriginAccessControl({
       name: `oac-${slug}`,
       description: `OAC for ${slug} organization`,
     });
@@ -231,7 +226,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
     // Get ACM certificate for the subdomain
     const certificateArn = await this.getOrCreateWildcardCertificate();
 
-    const result = await this.cloudfrontService.createDistribution({
+    const result = await this.cloudfrontDao.createDistribution({
       bucketName,
       bucketRegion: this.region,
       subdomain,
@@ -248,7 +243,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   }
 
   private async updateBucketPolicyForCloudFront(bucketName: string, distributionId: string): Promise<void> {
-    const accountId = process.env.AWS_ACCOUNT_ID;
+    const accountId = await this.getAccountId();
 
     const policy = {
       Version: '2012-10-17',
@@ -268,7 +263,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
       }],
     };
 
-    await this.s3Service.setBucketPolicy({
+    await this.s3Dao.setBucketPolicy({
       bucket: bucketName,
       policy,
     });
@@ -277,25 +272,19 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   private async createRoute53Record(subdomain: string, cloudfrontDomain: string): Promise<string> {
     const recordName = `${subdomain}.${this.baseDomain}`;
 
-    const response = await this.route53Client.send(new ChangeResourceRecordSetsCommand({
-      HostedZoneId: this.hostedZoneId,
-      ChangeBatch: {
-        Changes: [{
-          Action: 'CREATE',
-          ResourceRecordSet: {
-            Name: recordName,
-            Type: 'A',
-            AliasTarget: {
-              HostedZoneId: 'Z2FDTNDATAQYW2', // CloudFront hosted zone ID (global)
-              DNSName: cloudfrontDomain,
-              EvaluateTargetHealth: false,
-            },
-          },
-        }],
+    const response = await this.route53Dao.createRecord({
+      hostedZoneId: this.hostedZoneId,
+      recordName,
+      recordType: 'A',
+      target: cloudfrontDomain,
+      aliasTarget: {
+        hostedZoneId: 'Z2FDTNDATAQYW2', // CloudFront hosted zone ID (global)
+        dnsName: cloudfrontDomain,
+        evaluateTargetHealth: false,
       },
-    }));
+    });
 
-    return response.ChangeInfo!.Id!;
+    return response.changeId;
   }
 
   private async getOrCreateWildcardCertificate(): Promise<string> {
@@ -315,24 +304,22 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   ): Promise<CustomDomainResult> {
     try {
       // Request ACM certificate
-      const response = await this.acmClient.send(new RequestCertificateCommand({
-        DomainName: customDomain,
-        ValidationMethod: 'DNS',
-        SubjectAlternativeNames: [`www.${customDomain}`],
-      }));
+      const response = await this.acmDao.requestCertificate({
+        domainName: customDomain,
+        subjectAlternativeNames: [`www.${customDomain}`],
+        validationMethod: 'DNS',
+      });
 
-      const certificateArn = response.CertificateArn!;
+      const certificateArn = response.certificateArn;
 
       // Wait a moment for AWS to generate validation records
       await new Promise(resolve => setTimeout(resolve, 5000));
 
       // Get validation records
-      const certDetails = await this.acmClient.send(new DescribeCertificateCommand({
-        CertificateArn: certificateArn,
-      }));
+      const certDetails = await this.acmDao.describeCertificate(certificateArn);
 
       const validationRecords: ACMValidationRecord[] = (
-        certDetails.Certificate?.DomainValidationOptions || []
+        certDetails.DomainValidationOptions || []
       ).map(opt => ({
         name: opt.ResourceRecord?.Name || '',
         type: opt.ResourceRecord?.Type || '',
@@ -365,11 +352,8 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   }
 
   async checkCertificateStatus(certificateArn: string): Promise<string> {
-    const response = await this.acmClient.send(new DescribeCertificateCommand({
-      CertificateArn: certificateArn,
-    }));
-
-    return response.Certificate?.Status || 'UNKNOWN';
+    const response = await this.acmDao.getCertificateStatus(certificateArn);
+    return response.status;
   }
 
   async attachCustomDomainToDistribution(organizationId: string): Promise<boolean> {
@@ -386,7 +370,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
 
     try {
       // Get current distribution config
-      const { config: distributionConfig, etag } = await this.cloudfrontService.getDistributionConfig(
+      const { config: distributionConfig, etag } = await this.cloudfrontDao.getDistributionConfig(
         organization.cloudfrontDistributionId
       );
 
@@ -396,7 +380,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
         currentAliases.push(organization.customDomain);
       }
 
-      await this.cloudfrontService.updateAliases({
+      await this.cloudfrontDao.updateAliases({
         distributionId: organization.cloudfrontDistributionId,
         aliases: currentAliases,
         certificateArn: organization.acmCertificateArn!,
@@ -443,9 +427,7 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
 
       // Delete ACM certificate if exists
       if (organization.acmCertificateArn) {
-        await this.acmClient.send(new DeleteCertificateCommand({
-          CertificateArn: organization.acmCertificateArn,
-        }));
+        await this.acmDao.deleteCertificate(organization.acmCertificateArn);
       }
 
       // Clear infrastructure fields
@@ -471,34 +453,28 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   private async deleteRoute53Record(subdomain: string, cloudfrontDomain: string): Promise<void> {
     const recordName = `${subdomain}.${this.baseDomain}`;
 
-    await this.route53Client.send(new ChangeResourceRecordSetsCommand({
-      HostedZoneId: this.hostedZoneId,
-      ChangeBatch: {
-        Changes: [{
-          Action: 'DELETE',
-          ResourceRecordSet: {
-            Name: recordName,
-            Type: 'A',
-            AliasTarget: {
-              HostedZoneId: 'Z2FDTNDATAQYW2',
-              DNSName: cloudfrontDomain,
-              EvaluateTargetHealth: false,
-            },
-          },
-        }],
+    await this.route53Dao.deleteRecord({
+      hostedZoneId: this.hostedZoneId,
+      recordName,
+      recordType: 'A',
+      target: cloudfrontDomain,
+      aliasTarget: {
+        hostedZoneId: 'Z2FDTNDATAQYW2',
+        dnsName: cloudfrontDomain,
+        evaluateTargetHealth: false,
       },
-    }));
+    });
   }
 
   private async deleteCloudFrontDistribution(distributionId: string): Promise<void> {
-    await this.cloudfrontService.deleteDistribution(distributionId);
+    await this.cloudfrontDao.deleteDistribution(distributionId);
   }
 
   private async deleteS3Bucket(bucketName: string): Promise<void> {
     // Empty bucket first (delete all objects)
-    await this.s3Service.emptyBucket(bucketName);
+    await this.s3Dao.emptyBucket(bucketName);
 
     // Delete bucket
-    await this.s3Service.deleteBucket(bucketName);
+    await this.s3Dao.deleteBucket(bucketName);
   }
 }

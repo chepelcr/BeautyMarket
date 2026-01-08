@@ -1,5 +1,5 @@
 import { eq, and, lt } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { db } from "../config/database";
 import {
   organizationInvitations,
   type OrganizationInvitation,
@@ -34,10 +34,8 @@ export interface IOrganizationInvitationRepository {
 }
 
 export class OrganizationInvitationRepository implements IOrganizationInvitationRepository {
-  constructor(private db: PostgresJsDatabase) {}
-
   async findById(id: string): Promise<OrganizationInvitation | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizationInvitations)
       .where(eq(organizationInvitations.id, id))
@@ -46,7 +44,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
   }
 
   async findByToken(token: string): Promise<OrganizationInvitation | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizationInvitations)
       .where(eq(organizationInvitations.token, token))
@@ -55,7 +53,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
   }
 
   async findByOrganizationId(organizationId: string): Promise<OrganizationInvitationWithDetails[]> {
-    const result = await this.db
+    const result = await db
       .select({
         id: organizationInvitations.id,
         organizationId: organizationInvitations.organizationId,
@@ -87,7 +85,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
   }
 
   async findPendingByEmail(email: string): Promise<OrganizationInvitation[]> {
-    return this.db
+    return db
       .select()
       .from(organizationInvitations)
       .where(
@@ -105,7 +103,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
 
-    const result = await this.db
+    const result = await db
       .insert(organizationInvitations)
       .values({
         ...data,
@@ -118,7 +116,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
   }
 
   async updateStatus(id: string, status: string): Promise<OrganizationInvitation | null> {
-    const result = await this.db
+    const result = await db
       .update(organizationInvitations)
       .set({ status })
       .where(eq(organizationInvitations.id, id))
@@ -127,7 +125,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(organizationInvitations)
       .where(eq(organizationInvitations.id, id))
       .returning();
@@ -135,7 +133,7 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
   }
 
   async expireOldInvitations(): Promise<number> {
-    const result = await this.db
+    const result = await db
       .update(organizationInvitations)
       .set({ status: "expired" })
       .where(

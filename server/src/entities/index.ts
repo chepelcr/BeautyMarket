@@ -10,6 +10,19 @@ export { actions, type Action, type InsertAction } from "./Action";
 export { roles, type Role, type InsertRole } from "./Role";
 export { rolePermissions, type RolePermission, type InsertRolePermission } from "./RolePermission";
 
+// Settings (Normalized from Organization.settings JSONB)
+export { themeSettings, type ThemeSettings, type InsertThemeSettings } from "./ThemeSettings";
+export { contactSettings, type ContactSettings, type InsertContactSettings } from "./ContactSettings";
+export { paymentSettings, type PaymentSettings, type InsertPaymentSettings } from "./PaymentSettings";
+export { shippingSettings, type ShippingSettings, type InsertShippingSettings } from "./ShippingSettings";
+
+// Template & Page System
+export { templates, type Template, type InsertTemplate } from "./Template";
+export { pages, type Page, type InsertPage, type PageType } from "./Page";
+export { pageSections, type PageSection, type InsertPageSection } from "./PageSection";
+export { components, type Component, type InsertComponent, type ComponentConfig } from "./Component";
+export { sectionContent, type SectionContent, type InsertSectionContent, type ValueType } from "./SectionContent";
+
 // Core entity tables
 export { products, type Product } from "./Product";
 export { orders, type Order, deliveryMethods, type DeliveryMethod } from "./Order";

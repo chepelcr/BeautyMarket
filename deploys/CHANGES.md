@@ -63,7 +63,44 @@ Safely delete all AWS infrastructure with multiple confirmations.
 ./deploys/delete-all.sh
 ```
 
+#### `deploys/add-ses-emails.sh` ✨ NEW
+Automate SES email verification for development environment.
+
+**Features:**
+- Check email verification status in SES
+- Add new emails and send verification
+- Resend verification for pending emails
+- Handle failed/temporary failure statuses
+- Interactive mode or file-based batch processing
+- Email format validation
+- Detailed status reporting
+
+**Usage:**
+```bash
+# Interactive mode
+./deploys/add-ses-emails.sh
+
+# Use email list file
+# Edit deploys/ses-emails.txt first, then select option 2
+./deploys/add-ses-emails.sh
+```
+
 ### 3. Documentation Created
+
+#### `CLAUDE.md` ✨ NEW
+Comprehensive documentation for Claude Code instances working in this repository.
+
+**Covers:**
+- Development commands and workflows
+- Multi-tenant architecture patterns
+- API route structure (3-tier URL pattern)
+- Backend architecture (Controllers → Services → Repositories)
+- Frontend architecture (dual client setup)
+- Database patterns with Drizzle ORM
+- AWS deployment architecture and CloudFormation stacks
+- Critical patterns (organization context, RBAC, auth token injection)
+
+### 4. Documentation Created (Deployment-Specific)
 
 #### `deploys/README.md` ✨ NEW
 Comprehensive deployment guide covering:
@@ -113,15 +150,18 @@ BeautyMarket/
 │   ├── deploy-all.sh            ✅ Existing
 │   ├── deploy-api-gateway.sh    ✅ Existing
 │   ├── deploy-client.sh         ✨ NEW
-│   ├── deploy-cognito.sh        ✅ Existing
+│   ├── deploy-cognito.sh        ✅ Updated (AWS_PROFILE support)
 │   ├── deploy-lambda.sh         ✅ Existing
 │   ├── deploy-pipeline-roles.sh ✅ Existing
 │   ├── deploy-pipeline.sh       ✅ Existing
 │   ├── deploy-static-website.sh ✅ Existing
+│   ├── add-ses-emails.sh        ✨ NEW (SES email verification)
 │   ├── delete-all.sh            ✨ NEW
 │   ├── update-lambda.sh         ✨ NEW
+│   ├── ses-emails.txt           ✨ NEW (email list template)
 │   ├── CHANGES.md               ✨ NEW (this file)
 │   └── README.md                ✨ NEW
+├── CLAUDE.md                    ✨ NEW (Claude Code documentation)
 └── buildspec.yml                ✅ Existing
 ```
 
@@ -256,6 +296,32 @@ For issues or questions:
 
 ## Changelog
 
+### January 2026
+- ✨ Added `CLAUDE.md` - Comprehensive documentation for Claude Code
+  - Multi-tenant architecture patterns
+  - API route structure and middleware
+  - Backend three-tier architecture
+  - Frontend dual-client setup
+  - Database and deployment guides
+- ✨ Added `add-ses-emails.sh` - SES email verification automation
+  - Check email verification status
+  - Add new emails to SES
+  - Resend verification for pending emails
+  - Handle failed/temporary failures
+  - Interactive and file-based modes
+- ✨ Added `ses-emails.txt` - Template file for SES email list
+- ✅ Refactored `deploy-cognito.sh` to use `AWS_PROFILE` variable
+  - Consistent with other deployment scripts
+  - Supports environment variable override
+  - Default profile: J-CAMPOS
+- ✅ Deployed Cognito authentication stack
+  - User Pool and Client created
+  - Identity Pool configured
+  - Credentials stored in .env files
+- ✅ Updated `.env` files in root, client, and landing-client
+  - Cognito credentials propagated to all environments
+  - Ready for authentication testing
+
 ### December 2024
 - ✨ Added `update-lambda.sh` for quick Lambda updates
 - ✨ Added `deploy-client.sh` for client deployment
@@ -268,5 +334,5 @@ For issues or questions:
 ---
 
 **Status:** ✅ Ready for deployment
-**Last Updated:** December 2024
+**Last Updated:** January 2, 2026
 **Maintained by:** Development Team

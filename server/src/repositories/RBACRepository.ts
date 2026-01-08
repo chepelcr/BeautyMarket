@@ -1,5 +1,5 @@
 import { eq, and, isNull, or } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { db } from "../config/database";
 import {
   roles,
   modules,
@@ -46,11 +46,9 @@ export interface IRBACRepository {
 }
 
 export class RBACRepository implements IRBACRepository {
-  constructor(private db: PostgresJsDatabase) {}
-
   // Roles
   async findRoleById(id: string): Promise<Role | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(roles)
       .where(eq(roles.id, id))
@@ -61,7 +59,7 @@ export class RBACRepository implements IRBACRepository {
   async findRolesByOrganization(organizationId: string | null): Promise<Role[]> {
     if (organizationId) {
       // Return org-specific roles + system roles
-      return this.db
+      return db
         .select()
         .from(roles)
         .where(
@@ -73,7 +71,7 @@ export class RBACRepository implements IRBACRepository {
         .orderBy(roles.name);
     } else {
       // Return only system roles
-      return this.db
+      return db
         .select()
         .from(roles)
         .where(isNull(roles.organizationId))
@@ -82,7 +80,7 @@ export class RBACRepository implements IRBACRepository {
   }
 
   async findSystemRoles(): Promise<Role[]> {
-    return this.db
+    return db
       .select()
       .from(roles)
       .where(eq(roles.isSystem, true))
@@ -102,7 +100,7 @@ export class RBACRepository implements IRBACRepository {
       conditions.push(isNull(roles.organizationId));
     }
 
-    const result = await this.db
+    const result = await db
       .select()
       .from(roles)
       .where(and(...conditions))
@@ -111,7 +109,7 @@ export class RBACRepository implements IRBACRepository {
   }
 
   async createRole(data: InsertRole): Promise<Role> {
-    const result = await this.db
+    const result = await db
       .insert(roles)
       .values(data)
       .returning();
@@ -119,7 +117,7 @@ export class RBACRepository implements IRBACRepository {
   }
 
   async updateRole(id: string, data: Partial<InsertRole>): Promise<Role | null> {
-    const result = await this.db
+    const result = await db
       .update(roles)
       .set(data)
       .where(eq(roles.id, id))
@@ -132,7 +130,7 @@ export class RBACRepository implements IRBACRepository {
     const role = await this.findRoleById(id);
     if (role?.isSystem) return false;
 
-    const result = await this.db
+    const result = await db
       .delete(roles)
       .where(eq(roles.id, id))
       .returning();
@@ -141,13 +139,13 @@ export class RBACRepository implements IRBACRepository {
 
   // Modules
   async findAllModules(): Promise<ModuleWithSubmodules[]> {
-    const allModules = await this.db
+    const allModules = await db
       .select()
       .from(modules)
       .where(eq(modules.isActive, true))
       .orderBy(modules.sortOrder);
 
-    const allSubmodules = await this.db
+    const allSubmodules = await db
       .select()
       .from(submodules)
       .where(eq(submodules.isActive, true))
@@ -160,7 +158,7 @@ export class RBACRepository implements IRBACRepository {
   }
 
   async findModuleById(id: string): Promise<Module | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(modules)
       .where(eq(modules.id, id))
@@ -169,7 +167,7 @@ export class RBACRepository implements IRBACRepository {
   }
 
   async findModuleByName(name: string): Promise<Module | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(modules)
       .where(eq(modules.name, name))
@@ -179,14 +177,14 @@ export class RBACRepository implements IRBACRepository {
 
   // Actions
   async findAllActions(): Promise<Action[]> {
-    return this.db
+    return db
       .select()
       .from(actions)
       .orderBy(actions.name);
   }
 
   async findActionById(id: string): Promise<Action | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(actions)
       .where(eq(actions.id, id))
@@ -195,7 +193,7 @@ export class RBACRepository implements IRBACRepository {
   }
 
   async findActionByName(name: string): Promise<Action | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(actions)
       .where(eq(actions.name, name))
@@ -205,7 +203,7 @@ export class RBACRepository implements IRBACRepository {
 
   // Permissions
   async findPermissionsByRole(roleId: string): Promise<RolePermission[]> {
-    return this.db
+    return db
       .select()
       .from(rolePermissions)
       .where(eq(rolePermissions.roleId, roleId));
@@ -213,13 +211,13 @@ export class RBACRepository implements IRBACRepository {
 
   async setRolePermissions(roleId: string, permissions: InsertRolePermission[]): Promise<void> {
     // Delete existing permissions
-    await this.db
+    await db
       .delete(rolePermissions)
       .where(eq(rolePermissions.roleId, roleId));
 
     // Insert new permissions
     if (permissions.length > 0) {
-      await this.db
+      await db
         .insert(rolePermissions)
         .values(permissions);
     }
@@ -245,7 +243,7 @@ export class RBACRepository implements IRBACRepository {
     ];
 
     // Check for permission
-    let result = await this.db
+    let result = await db
       .select()
       .from(rolePermissions)
       .where(and(...conditions))
@@ -253,7 +251,7 @@ export class RBACRepository implements IRBACRepository {
 
     // If submodule specified, also check submodule-specific or module-wide permission
     if (submoduleName && result.length === 0) {
-      const submodule = await this.db
+      const submodule = await db
         .select()
         .from(submodules)
         .where(
@@ -265,7 +263,7 @@ export class RBACRepository implements IRBACRepository {
         .limit(1);
 
       if (submodule[0]) {
-        result = await this.db
+        result = await db
           .select()
           .from(rolePermissions)
           .where(

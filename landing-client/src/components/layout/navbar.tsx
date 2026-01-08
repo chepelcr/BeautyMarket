@@ -140,16 +140,16 @@ export default function LandingNavbar({ transitionStage = '' }: LandingNavbarPro
           <div className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="/login">
+            <a href="https://admin.jmarkets.jcampos.dev">
               <Button variant="ghost" size="sm">
                 {t('nav.login')}
               </Button>
-            </Link>
-            <Link href="/register">
+            </a>
+            <a href="https://admin.jmarkets.jcampos.dev/register">
               <Button size="sm" className="btn-primary">
                 {t('nav.register')}
               </Button>
-            </Link>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -242,16 +242,16 @@ export default function LandingNavbar({ transitionStage = '' }: LandingNavbarPro
               </Link>
 
               <div className="flex flex-col gap-2 pt-4 border-t">
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                <a href="https://admin.jmarkets.jcampos.dev" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full">
                     {t('nav.login')}
                   </Button>
-                </Link>
-                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                </a>
+                <a href="https://admin.jmarkets.jcampos.dev/register" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full btn-primary">
                     {t('nav.register')}
                   </Button>
-                </Link>
+                </a>
               </div>
             </nav>
           </div>

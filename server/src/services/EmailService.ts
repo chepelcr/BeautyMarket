@@ -1,18 +1,9 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { SesDao } from '../aws-daos';
 import {
   generateVerificationEmailHtml,
   generatePasswordResetEmailHtml,
   generateWelcomeEmailHtml
 } from '../templates/emails';
-
-// Configure AWS SES
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@jcampos.dev';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://jmarkets.jcampos.dev';
@@ -32,32 +23,22 @@ export interface IEmailService {
 }
 
 export class EmailService implements IEmailService {
+  private dao: SesDao;
+
+  constructor() {
+    this.dao = new SesDao();
+  }
+
   async sendEmail(template: EmailTemplate): Promise<boolean> {
     try {
-      const command = new SendEmailCommand({
-        Source: FROM_EMAIL,
-        Destination: {
-          ToAddresses: [template.to],
-        },
-        Message: {
-          Subject: {
-            Data: template.subject,
-            Charset: 'UTF-8',
-          },
-          Body: {
-            Html: {
-              Data: template.htmlBody,
-              Charset: 'UTF-8',
-            },
-            Text: {
-              Data: template.textBody,
-              Charset: 'UTF-8',
-            },
-          },
-        },
+      await this.dao.sendEmail({
+        from: FROM_EMAIL,
+        to: template.to,
+        subject: template.subject,
+        htmlBody: template.htmlBody,
+        textBody: template.textBody,
       });
 
-      await sesClient.send(command);
       console.log('Email sent successfully to:', template.to);
       return true;
     } catch (error) {

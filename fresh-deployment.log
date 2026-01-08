@@ -1,0 +1,111 @@
+🚀 Setting up template buckets and CloudFront distributions for all template organizations
+
+📋 Template organizations: 7
+🌍 Base domain: jmarkets.jcampos.dev
+
+📦 Setting up main template bucket...
+
+📦 Creating template bucket: jmarkets-template-market
+✅ Bucket created: jmarkets-template-market
+🔒 Blocking public access on jmarkets-template-market
+✅ Public access blocked
+
+📤 Uploading client files from ./dist/public
+✅ Client files uploaded to template bucket
+
+📋 Template bucket contents:
+   Total files: 71
+
+🔐 Checking for existing wildcard certificate for *.jmarkets.jcampos.dev...
+  📝 Requesting new wildcard certificate for *.jmarkets.jcampos.dev...
+  ✅ Certificate requested: arn:aws:acm:us-east-1:938590657428:certificate/cc67da08-a116-4562-a46a-cbc4483f0de6
+  ⏳ Waiting for validation records to be generated...
+  📝 Adding DNS validation records to Route53...
+  ⚠️  Warning: Failed to add DNS validation records: UnknownError
+  ℹ️  You may need to manually add the validation records
+  ⏳ Waiting for certificate validation (max 10 minutes)...
+  ⏳ Still pending... (attempt 1, elapsed 0s)  ⏳ Still pending... (attempt 2, elapsed 30s)  ⏳ Still pending... (attempt 3, elapsed 61s)  ⏳ Still pending... (attempt 4, elapsed 91s)  ⏳ Still pending... (attempt 5, elapsed 122s)  ⏳ Still pending... (attempt 6, elapsed 152s)  ⏳ Still pending... (attempt 7, elapsed 182s)  ⏳ Still pending... (attempt 8, elapsed 213s)  ⏳ Still pending... (attempt 9, elapsed 243s)  ⏳ Still pending... (attempt 10, elapsed 274s)  ⏳ Still pending... (attempt 11, elapsed 304s)  ⏳ Still pending... (attempt 12, elapsed 335s)  ⏳ Still pending... (attempt 13, elapsed 365s)  ⏳ Still pending... (attempt 14, elapsed 395s)  ⏳ Still pending... (attempt 15, elapsed 426s)  ⏳ Still pending... (attempt 16, elapsed 456s)  ⏳ Still pending... (attempt 17, elapsed 487s)  ⏳ Still pending... (attempt 18, elapsed 517s)  ⏳ Still pending... (attempt 19, elapsed 548s)  ⏳ Still pending... (attempt 20, elapsed 578s)
+  ⏰ Timeout waiting for certificate validation after 10 minutes
+  ℹ️  Certificate validation may still complete. Check ACM console.
+
+🏗️  Setting up infrastructure for: jmarkets-demo-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: jmarkets-demo-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup jmarkets-demo-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup jmarkets-demo-example, continuing with next...
+
+🏗️  Setting up infrastructure for: tech-gadgets-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: tech-gadgets-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup tech-gadgets-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup tech-gadgets-example, continuing with next...
+
+🏗️  Setting up infrastructure for: vintage-fashion-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: vintage-fashion-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup vintage-fashion-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup vintage-fashion-example, continuing with next...
+
+🏗️  Setting up infrastructure for: artisan-crafts-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: artisan-crafts-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup artisan-crafts-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup artisan-crafts-example, continuing with next...
+
+🏗️  Setting up infrastructure for: gourmet-foods-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: gourmet-foods-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup gourmet-foods-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup gourmet-foods-example, continuing with next...
+
+🏗️  Setting up infrastructure for: fitness-hub-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: fitness-hub-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup fitness-hub-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup fitness-hub-example, continuing with next...
+
+🏗️  Setting up infrastructure for: pet-care-example.jmarkets.jcampos.dev
+  ✅ Bucket already exists: pet-care-example-jmarkets-jcampos-dev
+✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
+  🔐 Creating distribution with SSL certificate
+  ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup pet-care-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+Failed to setup pet-care-example, continuing with next...
+
+
+📊 SETUP SUMMARY
+================================================================================
+✅ Main template bucket: jmarkets-template-market
+✅ Template organizations processed: 7/7
+
+
+
+❌ FAILED DEPLOYMENTS (7):
+  jmarkets-demo-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  tech-gadgets-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  vintage-fashion-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  artisan-crafts-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  gourmet-foods-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  fitness-hub-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  pet-care-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+
+
+📝 NEXT STEPS:
+  1. If certificates were requested, validate them in AWS ACM Console
+  2. Update CloudFront distributions with validated certificates
+  3. Update HOSTED_ZONE_ID in .env if you want automatic DNS record creation
+  4. Update AWS_ACCOUNT_ID in .env for automatic bucket policy creation
+
+🎉 Setup completed!

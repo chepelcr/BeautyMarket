@@ -8,11 +8,13 @@ export class UserController {
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
-    // Routes are now relative to /api/user/:userId/profile
-    // so we don't need :userId in the paths
-    router.get('/', this.getProfile.bind(this));
-    router.put('/', this.updateProfile.bind(this));
-    router.post('/verify-email-complete', this.verifyEmailComplete.bind(this));
+    // All routes are relative to /api/users
+    // Profile routes
+    router.get('/:userId/profile', this.getProfile.bind(this));
+    router.put('/:userId/profile', this.updateProfile.bind(this));
+
+    // Email verification route
+    router.post('/:userId/verify-email-complete', this.verifyEmailComplete.bind(this));
 
     return router;
   }
@@ -32,6 +34,8 @@ export class UserController {
    *     responses:
    *       200:
    *         description: User profile data
+   *       403:
+   *         description: Email not verified
    *       404:
    *         description: User not found
    */
@@ -46,7 +50,16 @@ export class UserController {
       }
 
       res.json(profile);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle email not verified error
+      if (error.name === 'EMAIL_NOT_VERIFIED') {
+        return res.status(403).json({
+          error: 'Email not verified',
+          needsVerification: true,
+          email: error.email,
+        });
+      }
+
       console.error('Error fetching user profile:', error);
       res.status(500).json({ error: 'Failed to fetch user profile' });
     }
@@ -105,7 +118,7 @@ export class UserController {
    * @swagger
    * /api/users/{userId}/verify-email-complete:
    *   post:
-   *     summary: Complete email verification process
+   *     summary: Complete email verification process (fetches user data from Cognito by userId)
    *     tags: [Users]
    *     parameters:
    *       - in: path
@@ -113,43 +126,22 @@ export class UserController {
    *         required: true
    *         schema:
    *           type: string
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               email:
-   *                 type: string
-   *               username:
-   *                 type: string
-   *               firstName:
-   *                 type: string
-   *               lastName:
-   *                 type: string
+   *         description: Cognito user ID (sub)
    *     responses:
    *       200:
    *         description: Email verification completed
-   *       400:
-   *         description: Invalid request
+   *       404:
+   *         description: User not found in Cognito
+   *       500:
+   *         description: Server error
    */
   async verifyEmailComplete(req: AuthRequest, res: Response) {
     try {
       const { userId } = req.params;
-      const { email, username, firstName, lastName, gender } = req.body;
 
-      if (!email || !username) {
-        return res.status(400).json({ error: 'Email and username are required' });
-      }
-
+      // Backend trusts userId from route (API Gateway validates JWT)
       const result = await this.userService.completeEmailVerification({
         userId,
-        email,
-        username,
-        firstName,
-        lastName,
-        gender,
       });
 
       res.json(result);

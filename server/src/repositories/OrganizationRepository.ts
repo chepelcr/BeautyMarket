@@ -1,5 +1,5 @@
 import { eq, and, or, ilike } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { db } from "../config/database";
 import { organizations, type Organization, type InsertOrganization } from "../entities";
 
 export interface IOrganizationRepository {
@@ -17,10 +17,8 @@ export interface IOrganizationRepository {
 }
 
 export class OrganizationRepository implements IOrganizationRepository {
-  constructor(private db: PostgresJsDatabase) {}
-
   async findById(id: string): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizations)
       .where(eq(organizations.id, id))
@@ -29,7 +27,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async findBySlug(slug: string): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizations)
       .where(eq(organizations.slug, slug))
@@ -38,7 +36,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async findBySubdomain(subdomain: string): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizations)
       .where(eq(organizations.subdomain, subdomain))
@@ -47,7 +45,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async findByCustomDomain(customDomain: string): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizations)
       .where(eq(organizations.customDomain, customDomain))
@@ -56,14 +54,14 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async findAll(): Promise<Organization[]> {
-    return this.db
+    return db
       .select()
       .from(organizations)
       .orderBy(organizations.name);
   }
 
   async create(data: InsertOrganization): Promise<Organization> {
-    const result = await this.db
+    const result = await db
       .insert(organizations)
       .values(data)
       .returning();
@@ -71,7 +69,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async update(id: string, data: Partial<InsertOrganization>): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .update(organizations)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(organizations.id, id))
@@ -80,7 +78,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(organizations)
       .where(eq(organizations.id, id))
       .returning();
@@ -90,7 +88,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   async checkSubdomainAvailable(subdomain: string, excludeId?: string): Promise<boolean> {
     const conditions = [eq(organizations.subdomain, subdomain)];
 
-    const result = await this.db
+    const result = await db
       .select({ id: organizations.id })
       .from(organizations)
       .where(and(...conditions))
@@ -102,7 +100,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async checkSlugAvailable(slug: string, excludeId?: string): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .select({ id: organizations.id })
       .from(organizations)
       .where(eq(organizations.slug, slug))
@@ -114,7 +112,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async search(query: string): Promise<Organization[]> {
-    return this.db
+    return db
       .select()
       .from(organizations)
       .where(
@@ -135,7 +133,7 @@ export class OrganizationRepository implements IOrganizationRepository {
       cloudfrontDomain?: string;
     }
   ): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .update(organizations)
       .set({ ...resources, updatedAt: new Date() })
       .where(eq(organizations.id, id))
@@ -144,7 +142,7 @@ export class OrganizationRepository implements IOrganizationRepository {
   }
 
   async verifyDomain(id: string): Promise<Organization | null> {
-    const result = await this.db
+    const result = await db
       .update(organizations)
       .set({ domainVerified: true, updatedAt: new Date() })
       .where(eq(organizations.id, id))

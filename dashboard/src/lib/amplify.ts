@@ -1,0 +1,28 @@
+import { Amplify } from 'aws-amplify';
+import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
+import { CookieStorage } from 'aws-amplify/utils';
+
+const amplifyConfig = {
+  Auth: {
+    Cognito: {
+      region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
+      userPoolId: import.meta.env.VITE_AWS_COGNITO_USER_POOL_ID || '',
+      userPoolClientId: import.meta.env.VITE_AWS_COGNITO_CLIENT_ID || '',
+      signUpVerificationMethod: 'code' as const,
+      loginWith: {
+        email: true,
+        username: false,
+      },
+    },
+  },
+};
+
+Amplify.configure(amplifyConfig);
+
+// Configure token storage to use localStorage for persistence across page refreshes
+// This ensures the user session is maintained even after browser refresh
+cognitoUserPoolsTokenProvider.setKeyValueStorage(
+  typeof window !== 'undefined' ? window.localStorage : undefined as any
+);
+
+export default amplifyConfig;

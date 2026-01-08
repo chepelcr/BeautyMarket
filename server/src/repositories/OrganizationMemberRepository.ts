@@ -1,5 +1,5 @@
 import { eq, and } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { db } from "../config/database";
 import {
   organizationMembers,
   type OrganizationMember,
@@ -38,10 +38,8 @@ export interface IOrganizationMemberRepository {
 }
 
 export class OrganizationMemberRepository implements IOrganizationMemberRepository {
-  constructor(private db: PostgresJsDatabase) {}
-
   async findById(id: string): Promise<OrganizationMember | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizationMembers)
       .where(eq(organizationMembers.id, id))
@@ -50,7 +48,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async findByOrganizationId(organizationId: string): Promise<OrganizationMemberWithDetails[]> {
-    const result = await this.db
+    const result = await db
       .select({
         id: organizationMembers.id,
         organizationId: organizationMembers.organizationId,
@@ -82,14 +80,14 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async findByUserId(userId: string): Promise<OrganizationMember[]> {
-    return this.db
+    return db
       .select()
       .from(organizationMembers)
       .where(eq(organizationMembers.userId, userId));
   }
 
   async findByUserAndOrganization(userId: string, organizationId: string): Promise<OrganizationMember | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizationMembers)
       .where(
@@ -103,7 +101,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async findUserDefaultOrganization(userId: string): Promise<OrganizationMember | null> {
-    const result = await this.db
+    const result = await db
       .select()
       .from(organizationMembers)
       .where(
@@ -117,7 +115,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async create(data: InsertOrganizationMember): Promise<OrganizationMember> {
-    const result = await this.db
+    const result = await db
       .insert(organizationMembers)
       .values(data)
       .returning();
@@ -125,7 +123,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async updateRole(id: string, roleId: string): Promise<OrganizationMember | null> {
-    const result = await this.db
+    const result = await db
       .update(organizationMembers)
       .set({ roleId })
       .where(eq(organizationMembers.id, id))
@@ -135,13 +133,13 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
 
   async setDefault(userId: string, organizationId: string): Promise<OrganizationMember | null> {
     // First, unset all defaults for this user
-    await this.db
+    await db
       .update(organizationMembers)
       .set({ isDefault: false })
       .where(eq(organizationMembers.userId, userId));
 
     // Then set the new default
-    const result = await this.db
+    const result = await db
       .update(organizationMembers)
       .set({ isDefault: true })
       .where(
@@ -155,7 +153,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(organizationMembers)
       .where(eq(organizationMembers.id, id))
       .returning();
@@ -163,7 +161,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async deleteByUserAndOrganization(userId: string, organizationId: string): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(organizationMembers)
       .where(
         and(
@@ -176,7 +174,7 @@ export class OrganizationMemberRepository implements IOrganizationMemberReposito
   }
 
   async countByOrganization(organizationId: string): Promise<number> {
-    const result = await this.db
+    const result = await db
       .select({ id: organizationMembers.id })
       .from(organizationMembers)
       .where(eq(organizationMembers.organizationId, organizationId));

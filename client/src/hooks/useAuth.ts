@@ -21,8 +21,6 @@ interface RegisterData {
   firstName: string;
   lastName: string;
   username: string;
-  gender?: string;
-  genderOther?: string;
 }
 
 interface LoginData {
@@ -140,26 +138,16 @@ export function useAuth() {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const userAttributes: any = {
-        email: data.email,
-        given_name: data.firstName,
-        family_name: data.lastName,
-        preferred_username: data.username,
-      };
-
-      // Add gender if provided
-      if (data.gender) {
-        const genderValue = data.gender === 'other' && data.genderOther
-          ? data.genderOther
-          : data.gender;
-        userAttributes['custom:gender'] = genderValue;
-      }
-
       const result = await signUp({
         username: data.email,
         password: data.password,
         options: {
-          userAttributes,
+          userAttributes: {
+            email: data.email,
+            given_name: data.firstName,
+            family_name: data.lastName,
+            preferred_username: data.username,
+          },
         },
       });
 
@@ -234,27 +222,16 @@ export function useAuth() {
       username: string;
       firstName: string;
       lastName: string;
-      gender?: string;
-      genderOther?: string;
     }) => {
-      const body: any = {
-        email: data.email,
-        username: data.username,
-        firstName: data.firstName,
-        lastName: data.lastName,
-      };
-
-      // Add gender if provided
-      if (data.gender) {
-        body.gender = data.gender === 'other' && data.genderOther
-          ? data.genderOther
-          : data.gender;
-      }
-
       const response = await authenticatedRequest(
         'POST',
         buildUserApiUrl(data.userId, '/profile/verify-email-complete'),
-        body
+        {
+          email: data.email,
+          username: data.username,
+          firstName: data.firstName,
+          lastName: data.lastName,
+        }
       );
 
       if (!response.ok) {

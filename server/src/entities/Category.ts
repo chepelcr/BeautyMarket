@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, pgPolicy, text, varchar, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, pgPolicy, text, varchar, integer, timestamp, boolean, unique } from "drizzle-orm/pg-core";
 import { organizations } from "./Organization";
 
 // Categories table for dynamic category management
@@ -7,7 +7,7 @@ export const categoriesTable = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   organizationId: varchar("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  slug: varchar("slug", { length: 50 }).unique().notNull(),
+  slug: varchar("slug", { length: 50 }).notNull(), // Removed global unique constraint
   description: text("description").notNull(),
   backgroundColor: varchar("background_color", { length: 7 }).notNull(), // Hex color
   buttonColor: varchar("button_color", { length: 7 }).notNull(), // Hex color
@@ -18,6 +18,8 @@ export const categoriesTable = pgTable("categories", {
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 }, (table) => [
+  // Composite unique constraint: slug must be unique per organization
+  unique().on(table.organizationId, table.slug),
   pgPolicy("categories_authenticated_access", {
     as: "permissive",
     to: "authenticated",

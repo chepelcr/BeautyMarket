@@ -2,7 +2,7 @@
  * API URL builder utilities for domain-based routing
  *
  * These utilities construct URLs following the pattern:
- * /api/user/{userId}/organization/{orgId}/{resource}
+ * /api/users/{userId}/organization/{orgId}/{resource}
  */
 
 /**
@@ -18,7 +18,7 @@ export function buildOrgApiUrl(
   endpoint: string
 ): string {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `/api/user/${userId}/organization/${organizationId}${cleanEndpoint}`;
+  return `/api/users/${userId}/organization/${organizationId}${cleanEndpoint}`;
 }
 
 /**
@@ -29,7 +29,7 @@ export function buildOrgApiUrl(
  */
 export function buildUserApiUrl(userId: string, endpoint: string): string {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `/api/user/${userId}${cleanEndpoint}`;
+  return `/api/users/${userId}${cleanEndpoint}`;
 }
 
 /**
@@ -96,7 +96,7 @@ export function parseApiUrl(url: string): {
   organizationId?: string;
   endpoint: string;
 } {
-  const userOrgMatch = url.match(/^\/api\/user\/([^\/]+)\/organization\/([^\/]+)(.*)$/);
+  const userOrgMatch = url.match(/^\/api\/users\/([^\/]+)\/organization\/([^\/]+)(.*)$/);
   if (userOrgMatch) {
     return {
       userId: userOrgMatch[1],
@@ -105,7 +105,7 @@ export function parseApiUrl(url: string): {
     };
   }
 
-  const userMatch = url.match(/^\/api\/user\/([^\/]+)(.*)$/);
+  const userMatch = url.match(/^\/api\/users\/([^\/]+)(.*)$/);
   if (userMatch) {
     return {
       userId: userMatch[1],

@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
-import { useDynamicTitle } from '@/hooks/useDynamicTitle';
 import { Loader2, Check, X, Building2 } from 'lucide-react';
 
 export default function CreateOrganization() {
@@ -24,12 +23,12 @@ export default function CreateOrganization() {
   const { createOrganization, checkSlugAvailable, checkSubdomainAvailable } = useOrganization();
   const [, navigate] = useLocation();
 
-  useDynamicTitle('Crear Organización');
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
 
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      navigate('/login');
+      navigate('/register');
     }
   }, [isAuthenticated, authLoading, navigate]);
 
@@ -85,7 +84,7 @@ export default function CreateOrganization() {
     if (!user?.id) {
       toast({
         title: 'Error',
-        description: 'Debes iniciar sesión para crear una organización',
+        description: 'You must be logged in to create an organization',
         variant: 'destructive',
       });
       return;
@@ -94,7 +93,7 @@ export default function CreateOrganization() {
     if (!slugAvailable) {
       toast({
         title: 'Error',
-        description: 'El slug no está disponible',
+        description: 'The slug is not available',
         variant: 'destructive',
       });
       return;
@@ -103,7 +102,7 @@ export default function CreateOrganization() {
     if (subdomain && !subdomainAvailable) {
       toast({
         title: 'Error',
-        description: 'El subdominio no está disponible',
+        description: 'The subdomain is not available',
         variant: 'destructive',
       });
       return;
@@ -118,15 +117,17 @@ export default function CreateOrganization() {
       });
 
       toast({
-        title: 'Organización creada',
-        description: `${organization.name} ha sido creada exitosamente`,
+        title: 'Organization created',
+        description: `${organization.name} has been created successfully`,
       });
 
-      navigate(`/organizations/${organization.id}/settings`);
+      // Redirect to the organization's subdomain
+      const orgSubdomain = organization.subdomain || organization.slug;
+      window.location.href = `https://${orgSubdomain}.${baseDomain}`;
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo crear la organización',
+        description: error.message || 'Could not create organization',
         variant: 'destructive',
       });
     }
@@ -141,39 +142,39 @@ export default function CreateOrganization() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto py-10 px-4">
-      <Card>
+    <div className="container max-w-2xl mx-auto py-10 px-4 min-h-screen flex items-center">
+      <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
             <Building2 className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Crear Nueva Organización</CardTitle>
+          <CardTitle className="text-2xl">Create New Organization</CardTitle>
           <CardDescription>
-            Configura tu tienda en línea con su propio subdominio
+            Set up your online store with its own subdomain
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la Organización *</Label>
+              <Label htmlFor="name">Organization Name *</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Mi Tienda"
+                placeholder="My Store"
                 required
                 minLength={3}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Identificador (slug) *</Label>
+              <Label htmlFor="slug">Identifier (slug) *</Label>
               <div className="relative">
                 <Input
                   id="slug"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="mi-tienda"
+                  placeholder="my-store"
                   required
                   minLength={3}
                   className="pr-10"
@@ -185,19 +186,19 @@ export default function CreateOrganization() {
                 </div>
               </div>
               {slugAvailable === false && (
-                <p className="text-sm text-red-500">Este identificador ya está en uso</p>
+                <p className="text-sm text-red-500">This identifier is already in use</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subdomain">Subdominio</Label>
+              <Label htmlFor="subdomain">Subdomain</Label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
                   <Input
                     id="subdomain"
                     value={subdomain}
                     onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                    placeholder="mi-tienda"
+                    placeholder="my-store"
                     minLength={3}
                     className="pr-10"
                   />
@@ -207,13 +208,13 @@ export default function CreateOrganization() {
                     {!checkingSubdomain && subdomainAvailable === false && <X className="h-4 w-4 text-red-500" />}
                   </div>
                 </div>
-                <span className="text-muted-foreground">.jmarkets.jcampos.dev</span>
+                <span className="text-muted-foreground">.{baseDomain}</span>
               </div>
               {subdomainAvailable === false && (
-                <p className="text-sm text-red-500">Este subdominio ya está en uso o es reservado</p>
+                <p className="text-sm text-red-500">This subdomain is already in use or reserved</p>
               )}
               <p className="text-sm text-muted-foreground">
-                Tu tienda estará disponible en {subdomain || 'tu-tienda'}.jmarkets.jcampos.dev
+                Your store will be available at {subdomain || 'your-store'}.{baseDomain}
               </p>
             </div>
 
@@ -225,12 +226,18 @@ export default function CreateOrganization() {
               {createOrganization.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creando...
+                  Creating...
                 </>
               ) : (
-                'Crear Organización'
+                'Create Organization'
               )}
             </Button>
+
+            <div className="text-center">
+              <a href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                Back to home
+              </a>
+            </div>
           </form>
         </CardContent>
       </Card>

@@ -10,7 +10,7 @@ export class InvitationController {
     const router = Router({ mergeParams: true });
 
     // Organization-scoped invitation routes
-    // (mounted at /api/user/:userId/organization/:orgId/invitations)
+    // (mounted at /api/users/:userId/organization/:orgId/invitations)
     router.get('/', this.getOrganizationInvitations.bind(this));
     router.get('/pending/:email', this.getPendingByEmail.bind(this));
     router.get('/:id', this.getById.bind(this));

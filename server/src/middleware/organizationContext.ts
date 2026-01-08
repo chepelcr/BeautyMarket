@@ -103,7 +103,7 @@ export function createOrganizationContextMiddleware(
 
 /**
  * Middleware to extract user context from route parameters.
- * Used for user-scoped routes like /api/user/:userId/...
+ * Used for user-scoped routes like /api/users/:userId/...
  */
 export function createUserContextMiddleware() {
   return (req: AuthRequest, res: Response, next: NextFunction) => {

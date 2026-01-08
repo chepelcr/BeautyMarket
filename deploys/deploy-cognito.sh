@@ -9,6 +9,7 @@ STACK_NAME="jmarkets-cognito"
 TEMPLATE_FILE="cloudformation/cognito.yml"
 REGION="us-east-1"
 ENVIRONMENT="dev"
+AWS_PROFILE=${AWS_PROFILE:-"J-CAMPOS"}
 
 # Colors for output
 RED='\033[0;31m'
@@ -36,7 +37,7 @@ fi
 
 # Validate CloudFormation template
 echo -e "${YELLOW}🔍 Validating CloudFormation template...${NC}"
-aws cloudformation validate-template --template-body file://$TEMPLATE_FILE --region $REGION --profile J-CAMPOS --output text --query 'Description' >/dev/null
+aws cloudformation validate-template --template-body file://$TEMPLATE_FILE --region $REGION --profile $AWS_PROFILE --output text --query 'Description' >/dev/null
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Template validation successful${NC}"
@@ -48,7 +49,7 @@ fi
 # Check if stack exists
 echo -e "${YELLOW}🔍 Checking if stack exists...${NC}"
 set +e
-aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS >/dev/null 2>&1
+aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE >/dev/null 2>&1
 STACK_CHECK_EXIT_CODE=$?
 set -e
 
@@ -77,7 +78,7 @@ aws cloudformation $OPERATION \
         ParameterKey=Environment,ParameterValue=$ENVIRONMENT \
         ParameterKey=Region,ParameterValue=$REGION \
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-    --region $REGION --profile J-CAMPOS
+    --region $REGION --profile $AWS_PROFILE
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Stack deployment initiated successfully${NC}"
@@ -89,9 +90,9 @@ fi
 # Wait for stack operation to complete
 echo -e "${YELLOW}⏳ Waiting for stack operation to complete...${NC}"
 if [ "$OPERATION" = "create-stack" ]; then
-    aws cloudformation wait stack-create-complete --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS
+    aws cloudformation wait stack-create-complete --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE
 else
-    aws cloudformation wait stack-update-complete --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS
+    aws cloudformation wait stack-update-complete --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE
 fi
 
 if [ $? -eq 0 ]; then
@@ -103,17 +104,17 @@ fi
 
 # Get stack outputs
 echo -e "${YELLOW}📋 Retrieving stack outputs...${NC}"
-OUTPUTS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS --query 'Stacks[0].Outputs' --output table)
+OUTPUTS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE --query 'Stacks[0].Outputs' --output table)
 
 echo ""
 echo -e "${GREEN}📊 Stack Outputs:${NC}"
 echo "$OUTPUTS"
 
 # Extract specific values for .env file
-USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS --query 'Stacks[0].Outputs[?OutputKey==`UserPoolId`].OutputValue' --output text)
-USER_POOL_ARN=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS --query 'Stacks[0].Outputs[?OutputKey==`UserPoolArn`].OutputValue' --output text)
-CLIENT_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS --query 'Stacks[0].Outputs[?OutputKey==`UserPoolClientId`].OutputValue' --output text)
-IDENTITY_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile J-CAMPOS --query 'Stacks[0].Outputs[?OutputKey==`IdentityPoolId`].OutputValue' --output text)
+USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE --query 'Stacks[0].Outputs[?OutputKey==`UserPoolId`].OutputValue' --output text)
+USER_POOL_ARN=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE --query 'Stacks[0].Outputs[?OutputKey==`UserPoolArn`].OutputValue' --output text)
+CLIENT_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE --query 'Stacks[0].Outputs[?OutputKey==`UserPoolClientId`].OutputValue' --output text)
+IDENTITY_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --region $REGION --profile $AWS_PROFILE --query 'Stacks[0].Outputs[?OutputKey==`IdentityPoolId`].OutputValue' --output text)
 
 echo ""
 echo -e "${GREEN}🔧 Server Environment Variables (.env):${NC}"

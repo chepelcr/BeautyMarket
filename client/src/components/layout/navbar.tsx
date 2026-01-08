@@ -1,225 +1,262 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/store/cart";
-import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
-import { SimpleThemeToggle } from "@/components/simple-theme-toggle";
-import { useCmsContent } from "@/hooks/use-cms-content";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut, Shield } from "lucide-react";
-import strawberryLogo from "@assets/image_1755019713048.png";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { Store, Menu, X, ChevronDown } from "lucide-react";
+import { useState, useRef } from "react";
 
-export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+interface LandingNavbarProps {
+  transitionStage?: string;
+}
+
+export default function LandingNavbar({ transitionStage = '' }: LandingNavbarProps) {
+  const { t } = useLanguage();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [businessDropdownOpen, setBusinessDropdownOpen] = useState(false);
   const [location, navigate] = useLocation();
-  const { items, toggleCart } = useCartStore();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const navigateToSection = (sectionId: string) => {
+    // Check if we're on the home page or a section page
+    const isHomePage = location === "/" || location === "/features" || location === "/pricing";
 
-  const { getContent } = useCmsContent();
+    if (isHomePage) {
+      // Signal that programmatic scrolling is starting
+      window.dispatchEvent(new CustomEvent('programmaticScroll', { detail: { scrolling: true } }));
 
-  // Get dynamic site title and logo
-  const siteTitle = getContent('site', 'title', 'Strawberry Essentials');
-  const siteLogo = getContent('site', 'logo', strawberryLogo);
+      // Already on home page, just scroll
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const headerOffset = 0; // No offset, scroll to section start
+        const elementPosition = element.offsetTop;
+        const offsetPosition = elementPosition - headerOffset;
 
-  const navItems = [
-    { href: "/", label: "Inicio", id: "home" },
-    { href: "/products", label: "Productos", id: "productos" },
-    { href: "/about", label: "Acerca", id: "acerca" },
-  ];
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
 
-  const handleLogout = async () => {
-    try {
-      await apiRequest("POST", "/api/logout");
-      queryClient.setQueryData(["/api/user"], null);
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
+        // Update URL
+        const newPath = sectionId === "home" ? "/" : `/${sectionId}`;
+        window.history.pushState({}, '', newPath);
+
+        // Re-enable scroll spy after animation (give smooth scroll time to complete)
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('programmaticScroll', { detail: { scrolling: false } }));
+        }, 3000);
+      } else {
+        window.dispatchEvent(new CustomEvent('programmaticScroll', { detail: { scrolling: false } }));
+      }
+    } else {
+      // Navigate to section URL - Landing component will handle scrolling
+      const newPath = sectionId === "home" ? "/" : `/${sectionId}`;
+      navigate(newPath);
+
+      // If navigating to home, scroll to top after navigation
+      if (sectionId === "home") {
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      }
     }
   };
 
   return (
-    <nav className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm sticky top-0 z-40">
+    <header className={`sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60 border-b ${transitionStage}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
-              <img 
-                src={siteLogo} 
-                alt={`${siteTitle} Logo`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="font-serif text-xl font-semibold text-gray-900 dark:text-white">
-              {siteTitle}
+          <button
+            onClick={() => navigateToSection('home')}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <Store className="h-6 w-6 text-primary" />
+            <span className="font-serif text-xl font-bold text-gray-900 dark:text-white">
+              JMarkets
             </span>
-          </Link>
+          </button>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors ${
-                  location === item.href ? "text-pink-primary font-medium" : ""
+          <nav className="hidden md:flex items-center gap-6 relative">
+            <button
+              onClick={() => navigateToSection('features')}
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary"
+            >
+              {t('nav.features')}
+            </button>
+            <button
+              onClick={() => navigateToSection('pricing')}
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary"
+            >
+              {t('nav.pricing')}
+            </button>
+            <Link href="/examples" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary">
+              {t('nav.examples')}
+            </Link>
+
+            {/* Business Dropdown */}
+            <div
+              className="relative group"
+              onMouseEnter={() => {
+                if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+                setBusinessDropdownOpen(true);
+              }}
+              onMouseLeave={() => {
+                dropdownTimeoutRef.current = setTimeout(() => {
+                  setBusinessDropdownOpen(false);
+                }, 150);
+              }}
+            >
+              <button
+                onClick={() => setBusinessDropdownOpen(!businessDropdownOpen)}
+                className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary flex items-center gap-1"
+              >
+                {t('nav.business')}
+                <ChevronDown className={`h-4 w-4 transition-transform ${businessDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              <div
+                className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 min-w-max bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 transition-opacity pointer-events-none z-50 ${
+                  businessDropdownOpen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 invisible'
                 }`}
               >
-                {item.label}
-              </Link>
-            ))}
+                <Link href="/about" className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-slate-700">
+                  {t('nav.about')}
+                </Link>
+                <Link href="/contact" className="block px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-slate-700">
+                  {t('nav.contact')}
+                </Link>
+              </div>
+            </div>
+
+            <Link href="/blog" className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary">
+              {t('nav.blog')}
+            </Link>
+          </nav>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                {t('nav.login')}
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button size="sm" className="btn-primary">
+                {t('nav.register')}
+              </Button>
+            </Link>
           </div>
 
-          {/* Auth Section, Cart & Mobile Menu */}
-          <div className="flex items-center space-x-4">
-            {/* User dropdown for authenticated users */}
-            {isAuthenticated && user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-pink-primary to-coral px-4 py-2 rounded-full text-white hover:from-pink-600 hover:to-coral-dark shadow-md"
-                  >
-                    <User className="w-4 h-4" />
-                    <span className="text-sm font-medium">
-                      {String((user as any)?.firstName || (user as any)?.username || 'Usuario')}
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/profile" className="flex items-center cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Mi Perfil
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center cursor-pointer">
-                      <Shield className="w-4 h-4 mr-2" />
-                      Administración
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400 cursor-pointer">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Cerrar Sesión
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : !isLoading && (
-              // Login button for desktop
-              <Link href="/login">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="hidden md:flex"
-                >
-                  Iniciar Sesión
-                </Button>
-              </Link>
-            )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleCart}
-              className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
+          {/* Mobile Menu Button */}
+          <div className="flex md:hidden items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <button
+              className="p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <i className="fas fa-shopping-bag text-xl"></i>
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-coral text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {totalItems}
-                </span>
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
               )}
-            </Button>
-            
-            <SimpleThemeToggle />
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden p-2 text-gray-700 dark:text-gray-300"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <i className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"} text-xl`}></i>
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
-            <div className="flex flex-col space-y-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className={`text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors ${
-                    location === item.href ? "text-pink-primary font-medium" : ""
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t">
+            <nav className="flex flex-col gap-4">
+              <button
+                className="text-sm text-gray-600 dark:text-gray-300 text-left"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigateToSection('features');
+                }}
+              >
+                {t('nav.features')}
+              </button>
+              <button
+                className="text-sm text-gray-600 dark:text-gray-300 text-left"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigateToSection('pricing');
+                }}
+              >
+                {t('nav.pricing')}
+              </button>
+              <Link
+                href="/examples"
+                className="text-sm text-gray-600 dark:text-gray-300"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t('nav.examples')}
+              </Link>
+
+              {/* Mobile Business Menu */}
+              <div className="border-t pt-4">
+                <button
+                  className="text-sm text-gray-600 dark:text-gray-300 text-left font-medium mb-2"
+                  onClick={() => setBusinessDropdownOpen(!businessDropdownOpen)}
                 >
-                  {item.label}
-                </Link>
-              ))}
-              
-              {/* Mobile auth section */}
-              {isAuthenticated && user ? (
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                  <div className="text-gray-700 dark:text-gray-300 text-sm">
-                    Hola, {String((user as any)?.firstName || (user as any)?.username || 'Usuario')}
+                  {t('nav.business')}
+                </button>
+                {businessDropdownOpen && (
+                  <div className="flex flex-col gap-2 pl-4">
+                    <Link
+                      href="/about"
+                      className="text-sm text-gray-600 dark:text-gray-300"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setBusinessDropdownOpen(false);
+                      }}
+                    >
+                      {t('nav.about')}
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="text-sm text-gray-600 dark:text-gray-300"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setBusinessDropdownOpen(false);
+                      }}
+                    >
+                      {t('nav.contact')}
+                    </Link>
                   </div>
-                  <Link
-                    href="/admin/profile"
-                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Mi Perfil
-                  </Link>
-                  <Link
-                    href="/admin"
-                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Administración
-                  </Link>
-                  <Button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Cerrar Sesión
+                )}
+              </div>
+
+              <Link
+                href="/blog"
+                className="text-sm text-gray-600 dark:text-gray-300"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t('nav.blog')}
+              </Link>
+
+              <div className="flex flex-col gap-2 pt-4 border-t">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    {t('nav.login')}
                   </Button>
-                </div>
-              ) : !isLoading && (
-                // Login option for mobile
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Link
-                    href="/login"
-                    className="flex items-center text-gray-700 dark:text-gray-300 hover:text-pink-primary transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Iniciar Sesión / Administrar
-                  </Link>
-                </div>
-              )}
-            </div>
+                </Link>
+                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full btn-primary">
+                    {t('nav.register')}
+                  </Button>
+                </Link>
+              </div>
+            </nav>
           </div>
         )}
       </div>
-    </nav>
+    </header>
   );
 }

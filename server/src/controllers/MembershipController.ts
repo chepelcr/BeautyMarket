@@ -11,7 +11,7 @@ export class MembershipController {
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
-    // User-scoped membership routes (mounted at /api/user/:userId/memberships)
+    // User-scoped membership routes (mounted at /api/users/:userId/memberships)
     // userId comes from parent route params
     router.get('/organizations', this.getUserOrganizations.bind(this));
     router.get('/default', this.getDefaultOrganization.bind(this));

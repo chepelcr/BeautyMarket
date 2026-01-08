@@ -16,11 +16,6 @@ export interface UserProfile {
 
 export interface VerifyEmailRequest {
   userId: string;
-  email: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  gender?: string;
 }
 
 export interface VerifyEmailResult {
@@ -35,27 +30,54 @@ export class UserService {
   ) {}
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
+    console.log(`🔍 [getUserProfile] Starting for userId: ${userId}`);
+
+    // First, check Cognito user status to validate email verification
+    console.log(`🔍 [getUserProfile] Fetching from Cognito...`);
+    const cognitoUser = await this.cognitoService.getUserById(userId);
+
+    if (!cognitoUser) {
+      console.log(`❌ [getUserProfile] User not found in Cognito`);
+      return null;
+    }
+
+    console.log(`✓ [getUserProfile] Found in Cognito:`, {
+      email: cognitoUser.email,
+      username: cognitoUser.username,
+      emailVerified: cognitoUser.emailVerified,
+    });
+
+    // Check if email is verified in Cognito
+    if (!cognitoUser.emailVerified) {
+      console.log(`⚠️ [getUserProfile] Email not verified for ${cognitoUser.email}`);
+      const error = new Error('Email not verified');
+      error.name = 'EMAIL_NOT_VERIFIED';
+      (error as any).email = cognitoUser.email;
+      throw error;
+    }
+
     // Try to get user from database
+    console.log(`🔍 [getUserProfile] Checking database...`);
     let user = await this.userRepository.getUser(userId);
 
-    // If not found, try to sync from Cognito
+    // If not found in DB but verified in Cognito, sync from Cognito
     if (!user) {
-      const cognitoUser = await this.cognitoService.getUserById(userId);
+      console.log(`📝 [getUserProfile] User ${cognitoUser.email} verified in Cognito but not in database. Syncing...`);
 
-      if (!cognitoUser) {
-        return null;
-      }
-
-      // Create user in database from Cognito data
       user = await this.userRepository.createUser({
         id: cognitoUser.id,
         username: cognitoUser.username,
         email: cognitoUser.email,
         firstName: cognitoUser.firstName || null,
         lastName: cognitoUser.lastName || null,
+        gender: cognitoUser.gender || null,
         role: 'customer',
         isActive: true,
       });
+
+      console.log(`✓ [getUserProfile] User ${cognitoUser.email} synced to database`);
+    } else {
+      console.log(`✓ [getUserProfile] User found in database`);
     }
 
     return this.mapUserToProfile(user);
@@ -95,7 +117,7 @@ export class UserService {
   async completeEmailVerification(
     request: VerifyEmailRequest
   ): Promise<VerifyEmailResult> {
-    const { userId, email, username, firstName, lastName, gender } = request;
+    const { userId } = request;
 
     // Check if user already exists in database
     let user = await this.userRepository.getUser(userId);
@@ -108,19 +130,26 @@ export class UserService {
       };
     }
 
-    // Create user in database
+    // Fetch user data from Cognito using userId (sub)
+    const cognitoUser = await this.cognitoService.getUserById(userId);
+
+    if (!cognitoUser) {
+      throw new Error('User not found in Cognito');
+    }
+
+    // Create user in database with data from Cognito
     user = await this.userRepository.createUser({
-      id: userId,
-      username,
-      email,
-      firstName: firstName || null,
-      lastName: lastName || null,
-      gender: gender || null,
+      id: cognitoUser.id, // Use the sub from Cognito
+      username: cognitoUser.username,
+      email: cognitoUser.email,
+      firstName: cognitoUser.firstName || null,
+      lastName: cognitoUser.lastName || null,
+      gender: cognitoUser.gender || null,
       role: 'customer',
       isActive: true,
     });
 
-    console.log(`✓ User ${email} verified and synced to database`);
+    console.log(`✓ User ${cognitoUser.email} verified and synced to database`);
 
     return {
       message: 'Email verification completed successfully',

@@ -13,22 +13,23 @@ import {
   membershipController,
   invitationController,
   rbacController,
-  organizationContextMiddleware,
-  userContextMiddleware,
-  requireAuth,
-  requireOrganization
+  themeSettingsController,
+  contactSettingsController,
+  paymentSettingsController,
+  shippingSettingsController,
+  templateController,
+  pageController,
+  sectionController,
+  sectionContentController,
+  componentController
 } from './dependency_injection';
 
 export function setupRoutes(app: Express): void {
   // ============================================
-  // Domain-based routes: /api/user/:userId/organization/:orgId/...
+  // Domain-based routes: /api/users/:userId/organization/:orgId/...
+  // Security: API Gateway validates JWT + userId matches path, queries enforce user-scoping
   // ============================================
   const orgScopedRouter = Router({ mergeParams: true });
-
-  // Apply middleware to organization-scoped routes
-  orgScopedRouter.use(requireAuth);
-  orgScopedRouter.use(organizationContextMiddleware);
-  orgScopedRouter.use(requireOrganization());
 
   // Mount organization-scoped controllers
   orgScopedRouter.use('/products', productController.getRouter());
@@ -42,20 +43,44 @@ export function setupRoutes(app: Express): void {
   orgScopedRouter.use('/invitations', invitationController.getRouter());
   orgScopedRouter.use('/rbac', rbacController.getRouter());
 
+  // Settings routes
+  orgScopedRouter.use('/settings/theme', themeSettingsController.getRouter());
+  orgScopedRouter.use('/settings/contact', contactSettingsController.getRouter());
+  orgScopedRouter.use('/settings/payment', paymentSettingsController.getRouter());
+  orgScopedRouter.use('/settings/shipping', shippingSettingsController.getRouter());
+
+  // Page management routes with nested section routes
+  const pageRouter = Router({ mergeParams: true });
+  pageRouter.use('/', pageController.getRouter());
+
+  // Nested section routes: /pages/:pageId/sections
+  const sectionRouter = Router({ mergeParams: true });
+  sectionRouter.use('/', sectionController.getRouter());
+
+  // Nested content routes: /pages/:pageId/sections/:sectionId/content
+  sectionRouter.use('/:sectionId/content', sectionContentController.getRouter());
+
+  pageRouter.use('/:pageId/sections', sectionRouter);
+
+  orgScopedRouter.use('/pages', pageRouter);
+
   // Mount organization-scoped router
-  app.use('/api/user/:userId/organization/:orgId', orgScopedRouter);
+  app.use('/api/users/:userId/organization/:orgId', orgScopedRouter);
 
   // ============================================
-  // User-scoped routes: /api/user/:userId/...
+  // User routes: /api/users/...
+  // Security: API Gateway validates JWT + userId matches path, queries enforce user-scoping
+  // ============================================
+  const userRouter = Router({ mergeParams: true });
+
+  // Mount user controller (handles profile and verification routes)
+  app.use('/api/users', userRouter, userController.getRouter());
+
+  // ============================================
+  // User-scoped routes: /api/users/:userId/...
+  // Security: API Gateway validates JWT + userId matches path, queries enforce user-scoping
   // ============================================
   const userScopedRouter = Router({ mergeParams: true });
-
-  // Apply middleware to user-scoped routes
-  userScopedRouter.use(requireAuth);
-  userScopedRouter.use(userContextMiddleware);
-
-  // User profile routes
-  userScopedRouter.use('/profile', userController.getRouter());
 
   // User's organizations
   userScopedRouter.use('/organizations', organizationController.getRouter());
@@ -64,7 +89,14 @@ export function setupRoutes(app: Express): void {
   userScopedRouter.use('/memberships', membershipController.getRouter());
 
   // Mount user-scoped router
-  app.use('/api/user/:userId', userScopedRouter);
+  app.use('/api/users/:userId', userScopedRouter);
+
+  // ============================================
+  // Global routes (auth required, not org-scoped)
+  // ============================================
+
+  // Component routes (global, not organization-specific)
+  app.use('/api/components', componentController.getRouter());
 
   // ============================================
   // Public/flat routes (no auth required)
@@ -78,6 +110,9 @@ export function setupRoutes(app: Express): void {
       environment: process.env.NODE_ENV || 'development'
     });
   });
+
+  // Template routes (public for Examples page)
+  app.use('/api/templates', templateController.getRouter());
 
   // Public invitation endpoints (for accepting invitations without auth)
   app.get('/api/invitations/token/:token', (req, res, next) => {

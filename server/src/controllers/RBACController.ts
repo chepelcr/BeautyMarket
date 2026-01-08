@@ -10,7 +10,7 @@ export class RBACController {
     const router = Router({ mergeParams: true });
 
     // Organization-scoped RBAC routes
-    // (mounted at /api/user/:userId/organization/:orgId/rbac)
+    // (mounted at /api/users/:userId/organization/:orgId/rbac)
 
     // Roles
     router.get('/roles', this.getSystemRoles.bind(this));

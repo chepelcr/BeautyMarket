@@ -146,7 +146,7 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
+              <Link href="https://admin.jmarkets.jcampos.dev/register">
                 <Button
                   size="lg"
                   className="px-8 py-6 text-lg text-white hover:opacity-90 border-0"
@@ -279,7 +279,7 @@ export default function Landing() {
                     <PricingFeature key={i}>{t(`pricing.free.features.${i}`)}</PricingFeature>
                   ))}
                 </ul>
-                <Link href="/register" className="mt-6">
+                <Link href="https://admin.jmarkets.jcampos.dev/register" className="mt-6">
                   <Button className="w-full border border-primary text-primary hover:bg-primary/20 dark:hover:bg-primary/30 bg-primary/10">
                     {t('pricing.cta')}
                   </Button>

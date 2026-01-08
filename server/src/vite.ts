@@ -44,12 +44,17 @@ export async function setupVite(app: Express, server: Server) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
 
+    // Skip API routes
+    if (url.startsWith('/api') || url.startsWith('/health')) {
+      return next();
+    }
+
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,
         "..",
         "..",
-        "client",
+        "dashboard",
         "index.html",
       );
 

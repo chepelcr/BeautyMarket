@@ -86,6 +86,22 @@
 
 /* Custom Utility Classes - Button Variants */
 @layer components {
+  /* Hide native password reveal buttons */
+  .password-input {
+    /* Hide IE/Edge reveal button */
+    &::-ms-reveal {
+      display: none;
+    }
+    /* Hide Chrome/Safari autofill button */
+    &::-webkit-credentials-auto-fill-button {
+      display: none;
+    }
+    /* Hide other webkit decorations */
+    &::-webkit-textfield-decoration-container {
+      display: none;
+    }
+  }
+
   .btn-primary {
     @apply px-4 py-2 rounded-md font-medium transition-colors;
     background-color: hsl(var(--primary));

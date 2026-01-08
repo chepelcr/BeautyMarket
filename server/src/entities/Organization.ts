@@ -24,7 +24,13 @@ export const organizations = pgTable("organizations", {
   infrastructureStatus: varchar("infrastructure_status", { length: 50 }).default("pending"),
 
   // Settings (JSON for theme, logo, colors, payment config, shipping config)
+  // NOTE: This will be deprecated and removed after migration to normalized tables
   settings: jsonb("settings"),
+
+  // Template system fields
+  isTemplate: boolean("is_template").default(false).notNull(),
+  templateId: varchar("template_id", { length: 100 }),
+  clonedFromOrganizationId: varchar("cloned_from_organization_id", { length: 100 }),
 
   // Subscription/Billing
   plan: varchar("plan", { length: 50 }).default("free").notNull(),
