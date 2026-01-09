@@ -25,7 +25,9 @@ export { sectionContent, type SectionContent, type InsertSectionContent, type Va
 
 // Core entity tables
 export { products, type Product } from "./Product";
-export { orders, type Order, deliveryMethods, type DeliveryMethod } from "./Order";
+export { orders, type Order, orderStatuses, type OrderStatus, deliveryMethods, type DeliveryMethod } from "./Order";
+export { orderStatusHistory, type OrderStatusHistory, type InsertOrderStatusHistory } from "./OrderStatusHistory";
+export { customers, type Customer, type InsertCustomer } from "./Customer";
 export { sessions } from "./Session";
 export { users, type User, type UpsertUser } from "./User";
 export { categoriesTable, type Category, validCategories, type ValidCategory } from "./Category";

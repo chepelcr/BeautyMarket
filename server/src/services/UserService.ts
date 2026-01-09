@@ -1,5 +1,6 @@
 import { UserRepository } from '../repositories';
 import { CognitoService } from './CognitoService';
+import { EmailService, type EmailLanguage } from './EmailService';
 import type { User } from '../entities';
 import type { ProfileUpdateRequest } from '../types/auth.types';
 
@@ -26,7 +27,8 @@ export interface VerifyEmailResult {
 export class UserService {
   constructor(
     private userRepository: UserRepository,
-    private cognitoService: CognitoService
+    private cognitoService: CognitoService,
+    private emailService: EmailService
   ) {}
 
   async getUserProfile(userId: string): Promise<UserProfile | null> {
@@ -71,11 +73,18 @@ export class UserService {
         firstName: cognitoUser.firstName || null,
         lastName: cognitoUser.lastName || null,
         gender: cognitoUser.gender || null,
+        language: cognitoUser.language || 'es',
         role: 'customer',
         isActive: true,
       });
 
       console.log(`✓ [getUserProfile] User ${cognitoUser.email} synced to database`);
+
+      // Send welcome email in user's preferred language
+      const userName = user.firstName || user.username;
+      const userLanguage = (user.language as EmailLanguage) || 'es';
+      await this.emailService.sendWelcomeEmail(user.email, userName, userLanguage);
+      console.log(`✓ [getUserProfile] Welcome email sent to ${user.email} in ${userLanguage}`);
     } else {
       console.log(`✓ [getUserProfile] User found in database`);
     }
@@ -145,11 +154,18 @@ export class UserService {
       firstName: cognitoUser.firstName || null,
       lastName: cognitoUser.lastName || null,
       gender: cognitoUser.gender || null,
+      language: cognitoUser.language || 'es',
       role: 'customer',
       isActive: true,
     });
 
     console.log(`✓ User ${cognitoUser.email} verified and synced to database`);
+
+    // Send welcome email in user's preferred language
+    const userName = user.firstName || user.username;
+    const userLanguage = (user.language as EmailLanguage) || 'es';
+    await this.emailService.sendWelcomeEmail(user.email, userName, userLanguage);
+    console.log(`✓ Welcome email sent to ${user.email} in ${userLanguage}`);
 
     return {
       message: 'Email verification completed successfully',

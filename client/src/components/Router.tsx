@@ -10,6 +10,7 @@ const Register = lazy(() => import("@/pages/Register"));
 const VerifyEmail = lazy(() => import("@/pages/verify-email"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const DeploymentHistory = lazy(() => import("@/pages/DeploymentHistory"));
+const CustomersPage = lazy(() => import("@/pages/CustomersPage"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const CreateOrganization = lazy(() => import("@/pages/organizations/CreateOrganization"));
@@ -54,6 +55,7 @@ export function Router({ displayLocation }: RouterProps) {
       {/* Admin routes */}
       <Route path="/admin" component={Admin} />
       <Route path="/admin/deployments" component={DeploymentHistory} />
+      <Route path="/admin/customers" component={CustomersPage} />
       <Route path="/admin/profile" component={Profile} />
 
       {/* Demo routes */}

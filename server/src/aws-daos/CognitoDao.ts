@@ -16,6 +16,7 @@ export interface CognitoUserAttributes {
   family_name?: string;
   preferred_username?: string;
   gender?: string;
+  locale?: string; // Language preference: en, es
   [key: string]: string | undefined;
 }
 
@@ -26,6 +27,7 @@ export interface CognitoUser {
   firstName?: string;
   lastName?: string;
   gender?: string;
+  language?: string; // User's preferred language
   emailVerified: boolean;
 }
 
@@ -36,10 +38,16 @@ export class CognitoDao {
   constructor() {
     this.client = new CognitoIdentityProviderClient({
       region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-      },
+      // In Lambda, use IAM role credentials automatically
+      // Locally, use explicit credentials from environment
+      ...(process.env.AWS_LAMBDA_FUNCTION_NAME
+        ? {}
+        : {
+            credentials: {
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+            },
+          }),
     });
     this.userPoolId = process.env.AWS_COGNITO_USER_POOL_ID || '';
   }
@@ -69,6 +77,7 @@ export class CognitoDao {
         firstName: attributes.given_name,
         lastName: attributes.family_name,
         gender: attributes.gender,
+        language: attributes.locale || 'es', // Default to Spanish if not set
         emailVerified: attributes.email_verified === 'true',
       };
     } catch (error: any) {
@@ -126,6 +135,7 @@ export class CognitoDao {
         firstName: attributes.given_name,
         lastName: attributes.family_name,
         gender: attributes.gender,
+        language: attributes.locale || 'es', // Default to Spanish if not set
         emailVerified: attributes.email_verified === 'true',
       };
     } catch (error: any) {
@@ -165,6 +175,9 @@ export class CognitoDao {
     if (attributes.gender) {
       userAttributes.push({ Name: 'gender', Value: attributes.gender });
     }
+    if (attributes.locale) {
+      userAttributes.push({ Name: 'locale', Value: attributes.locale });
+    }
 
     const command = new AdminCreateUserCommand({
       UserPoolId: this.userPoolId,
@@ -189,6 +202,7 @@ export class CognitoDao {
       firstName: attributes.given_name,
       lastName: attributes.family_name,
       gender: attributes.gender,
+      language: attributes.locale || 'es',
       emailVerified: true,
     };
   }

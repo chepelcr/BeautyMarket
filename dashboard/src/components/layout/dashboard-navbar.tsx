@@ -30,10 +30,17 @@ export function DashboardNavbar() {
       content: "nav.content",
       settings: "nav.settings",
       general: "nav.settings.general",
-      theme: "nav.settings.theme",
-      members: "nav.settings.members",
+      theme: "breadcrumb.themeSettings",
+      members: "breadcrumb.members",
       deployments: "nav.settings.deployments",
       profile: "nav.profile",
+      orders: "breadcrumb.orders",
+      customers: "breadcrumb.customers",
+      analytics: "breadcrumb.analytics",
+      media: "breadcrumb.media",
+      contact: "breadcrumb.contactSettings",
+      payment: "breadcrumb.paymentSettings",
+      shipping: "breadcrumb.shippingSettings",
     };
 
     const breadcrumbs: Array<{ label: string; href: string; isLast: boolean }> = [];

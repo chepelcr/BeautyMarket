@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { buildOrgApiUrl } from '@/lib/apiUtils';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ImageUploadProps {
   value?: string;
@@ -20,7 +21,7 @@ interface ImageUploadProps {
 export function ImageUpload({
   value,
   onChange,
-  label = "Imagen",
+  label,
   accept = "image/*",
   maxSize = 5,
   folder = "images"
@@ -32,12 +33,13 @@ export function ImageUpload({
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  const { t } = useLanguage();
 
   const uploadFile = async (file: File) => {
     if (file.size > maxSize * 1024 * 1024) {
       toast({
-        title: "Error",
-        description: `El archivo debe ser menor a ${maxSize}MB`,
+        title: t("imageUpload.error"),
+        description: t("imageUpload.fileTooLarge", { maxSize: String(maxSize) }),
         variant: "destructive",
       });
       return;
@@ -45,8 +47,8 @@ export function ImageUpload({
 
     if (!user?.id || !defaultOrg?.id) {
       toast({
-        title: "Error",
-        description: "No se pudo obtener el contexto de usuario u organización",
+        title: t("imageUpload.error"),
+        description: t("imageUpload.contextError"),
         variant: "destructive",
       });
       return;
@@ -91,25 +93,25 @@ export function ImageUpload({
 
       onChange(fileUrl);
       toast({
-        title: "Imagen subida",
-        description: "La imagen se ha subido correctamente",
+        title: t("imageUpload.success"),
+        description: t("imageUpload.successDescription"),
       });
     } catch (error) {
       console.error('Upload error:', error);
-      let errorMessage = "No se pudo subir la imagen.";
-      
+      let errorMessage = t("imageUpload.uploadFailed");
+
       if (error instanceof Error) {
         if (error.message.includes('Failed to get upload URL')) {
-          errorMessage = "Error al obtener URL de subida. Verifica la configuración del servidor.";
+          errorMessage = t("imageUpload.urlError");
         } else if (error.message.includes('Failed to upload file')) {
-          errorMessage = "Error al subir archivo a S3. Verifica permisos del bucket.";
+          errorMessage = t("imageUpload.s3Error");
         } else {
-          errorMessage = `Error: ${error.message}`;
+          errorMessage = `${t("imageUpload.error")}: ${error.message}`;
         }
       }
-      
+
       toast({
-        title: "Error de subida",
+        title: t("imageUpload.uploadError"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -153,13 +155,13 @@ export function ImageUpload({
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      
+      <Label>{label || t("imageUpload.label")}</Label>
+
       {value ? (
         <div className="relative group">
           <img
             src={value}
-            alt="Preview"
+            alt={t("imageUpload.preview")}
             className="w-full h-32 object-cover rounded-lg border"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" text-anchor="middle" dy="0.3em" font-family="Arial" font-size="12" fill="%23666">Error</text></svg>';
@@ -190,24 +192,24 @@ export function ImageUpload({
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Subiendo imagen...
+                {t("imageUpload.uploading")}
               </p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
               <Upload className="w-8 h-8 text-gray-400" />
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Arrastra una imagen aquí o{' '}
+                {t("imageUpload.dragText")}{' '}
                 <button
                   type="button"
                   className="text-pink-500 hover:text-pink-600 underline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  selecciona un archivo
+                  {t("imageUpload.selectFile")}
                 </button>
               </p>
               <p className="text-xs text-gray-500">
-                Máximo {maxSize}MB
+                {t("imageUpload.maxSize", { maxSize: String(maxSize) })}
               </p>
             </div>
           )}

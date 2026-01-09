@@ -20,7 +20,9 @@ export * from './SectionContentRepository';
 // Core repositories
 export * from './ProductRepository';
 export * from './CategoryRepository';
+export * from './CustomerRepository';
 export * from './OrderRepository';
+export * from './OrderStatusHistoryRepository';
 export * from './UserRepository';
 export * from './HomePageContentRepository';
 export * from './DeploymentRepository';

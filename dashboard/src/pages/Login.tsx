@@ -135,12 +135,13 @@ export default function Login() {
                           placeholder={t('auth.login.passwordPlaceholder')}
                           {...field}
                           disabled={login.isPending}
+                          className="pr-10"
                         />
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-10"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={login.isPending}
                         >

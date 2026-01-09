@@ -37,8 +37,16 @@ export const APP_CONFIG = {
         'http://localhost:3002', // Dashboard dev server
         'http://localhost:5000',
         'http://localhost:9000',
-        //'https://a84950eb-2031-40c4-8a39-1789c99c8ca2-00-2c46rofc44noa.spock.replit.dev',
-        //'https://video-transcript.jcampos.dev',
-        //'video-transcript.jcampos.dev'
+        'https://jmarkets.jcampos.dev', // Landing page production
+        'https://admin.jmarkets.jcampos.dev', // Dashboard production
+        // Template organization domains
+        'https://jmarkets-demo-example.jmarkets.jcampos.dev',
+        'https://tech-gadgets-example.jmarkets.jcampos.dev',
+        'https://vintage-fashion-example.jmarkets.jcampos.dev',
+        'https://artisan-crafts-example.jmarkets.jcampos.dev',
+        'https://gourmet-foods-example.jmarkets.jcampos.dev',
+        'https://fitness-hub-example.jmarkets.jcampos.dev',
+        'https://pet-care-example.jmarkets.jcampos.dev',
+        'https://beauty-essentials-example.jmarkets.jcampos.dev',
     ]
 } as const;

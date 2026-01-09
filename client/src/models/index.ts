@@ -36,6 +36,7 @@ export {
 // Core models
 export { Product, InsertProduct, insertProductSchema } from "./Product";
 export { Category, InsertCategory, insertCategorySchema } from "./Category";
+export { Customer, CreateCustomerData, UpdateCustomerData, CustomerFilters, CustomersResponse } from "./Customer";
 export { Order, InsertOrder, insertOrderSchema, deliveryMethods, DeliveryMethod } from "./Order";
 export { User } from "./User";
 export { HomePageContent, InsertHomePageContent } from "./HomePageContent";

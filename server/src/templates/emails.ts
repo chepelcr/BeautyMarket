@@ -1,6 +1,94 @@
 // JMarkets Email Templates
 
-export function generateVerificationEmailHtml(code: string): string {
+type Language = 'en' | 'es';
+
+interface EmailTranslations {
+  verification: {
+    title: string;
+    greeting: string;
+    message: string;
+    expiryNote: string;
+    ignoreNote: string;
+  };
+  passwordReset: {
+    title: string;
+    message: string;
+    warning: string;
+    expiryNote: string;
+  };
+  welcome: {
+    greeting: string;
+    message: string;
+    whatYouCanDo: string;
+    feature1: string;
+    feature2: string;
+    feature3: string;
+    feature4: string;
+    buttonText: string;
+    supportMessage: string;
+  };
+  footer: string;
+}
+
+const translations: Record<Language, EmailTranslations> = {
+  en: {
+    verification: {
+      title: 'Welcome!',
+      greeting: 'Welcome!',
+      message: 'Thank you for registering with JMarkets. To complete your registration, please enter the following verification code:',
+      expiryNote: 'This code expires in 24 hours.',
+      ignoreNote: 'If you did not request this code, you can ignore this message.',
+    },
+    passwordReset: {
+      title: 'Reset Password',
+      message: 'We received a request to reset your password. Use the following code to continue:',
+      warning: '<strong>⚠️ Important:</strong> If you did not request a password reset, please ignore this message. Your account is secure.',
+      expiryNote: 'This code expires in 1 hour.',
+    },
+    welcome: {
+      greeting: 'Hello',
+      message: 'Your account has been successfully verified. You can now start selling in your online store.',
+      whatYouCanDo: 'What can you do now?',
+      feature1: 'Set up your store',
+      feature2: 'Add your products',
+      feature3: 'Customize your design',
+      feature4: 'Start selling',
+      buttonText: 'Go to My Store',
+      supportMessage: 'Have questions? Contact us on our social networks.',
+    },
+    footer: '© 2024 JMarkets. All rights reserved.',
+  },
+  es: {
+    verification: {
+      title: '¡Te damos la bienvenida!',
+      greeting: '¡Te damos la bienvenida!',
+      message: 'Gracias por registrarte en JMarkets. Para completar tu registro, ingresa el siguiente código de verificación:',
+      expiryNote: 'Este código expira en 24 horas.',
+      ignoreNote: 'Si no solicitaste este código, puedes ignorar este mensaje.',
+    },
+    passwordReset: {
+      title: 'Restablecer Contraseña',
+      message: 'Recibimos una solicitud para restablecer tu contraseña. Usa el siguiente código para continuar:',
+      warning: '<strong>⚠️ Importante:</strong> Si no solicitaste restablecer tu contraseña, ignora este mensaje. Tu cuenta está segura.',
+      expiryNote: 'Este código expira en 1 hora.',
+    },
+    welcome: {
+      greeting: '¡Hola',
+      message: 'Tu cuenta ha sido verificada exitosamente. Ya puedes comenzar a vender en tu tienda online.',
+      whatYouCanDo: '¿Qué puedes hacer ahora?',
+      feature1: 'Configura tu tienda',
+      feature2: 'Agrega tus productos',
+      feature3: 'Personaliza tu diseño',
+      feature4: 'Comienza a vender',
+      buttonText: 'Ir a Mi Tienda',
+      supportMessage: '¿Tienes preguntas? Contáctanos en nuestras redes sociales.',
+    },
+    footer: '© 2024 JMarkets. Todos los derechos reservados.',
+  },
+};
+
+export function generateVerificationEmailHtml(code: string, language: Language = 'es'): string {
+  const t = translations[language].verification;
   return `
     <!DOCTYPE html>
     <html>
@@ -20,9 +108,9 @@ export function generateVerificationEmailHtml(code: string): string {
               </tr>
               <tr>
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
-                  <h2 style="margin: 0; font-size: 24px; color: #1a1a1a;">¡Te damos la bienvenida!</h2>
+                  <h2 style="margin: 0; font-size: 24px; color: #1a1a1a;">${t.greeting}</h2>
                   <p style="margin: 16px 0 0 0; font-size: 16px; color: #666666; line-height: 1.5;">
-                    Gracias por registrarte en JMarkets. Para completar tu registro, ingresa el siguiente código de verificación:
+                    ${t.message}
                   </p>
                 </td>
               </tr>
@@ -36,15 +124,15 @@ export function generateVerificationEmailHtml(code: string): string {
               <tr>
                 <td style="padding: 0 40px 40px 40px; text-align: center;">
                   <p style="margin: 0; font-size: 14px; color: #999999;">
-                    Este código expira en 24 horas.<br>
-                    Si no solicitaste este código, puedes ignorar este mensaje.
+                    ${t.expiryNote}<br>
+                    ${t.ignoreNote}
                   </p>
                 </td>
               </tr>
               <tr>
                 <td style="padding: 20px 40px; background-color: #f8f8f8; border-radius: 0 0 16px 16px; text-align: center;">
                   <p style="margin: 0; font-size: 12px; color: #999999;">
-                    © 2024 JMarkets. Todos los derechos reservados.
+                    ${translations[language].footer}
                   </p>
                 </td>
               </tr>
@@ -57,7 +145,8 @@ export function generateVerificationEmailHtml(code: string): string {
   `;
 }
 
-export function generatePasswordResetEmailHtml(code: string): string {
+export function generatePasswordResetEmailHtml(code: string, language: Language = 'es'): string {
+  const t = translations[language].passwordReset;
   return `
     <!DOCTYPE html>
     <html>
@@ -77,9 +166,9 @@ export function generatePasswordResetEmailHtml(code: string): string {
               </tr>
               <tr>
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
-                  <h2 style="margin: 0; font-size: 24px; color: #1a1a1a;">Restablecer Contraseña</h2>
+                  <h2 style="margin: 0; font-size: 24px; color: #1a1a1a;">${t.title}</h2>
                   <p style="margin: 16px 0 0 0; font-size: 16px; color: #666666; line-height: 1.5;">
-                    Recibimos una solicitud para restablecer tu contraseña. Usa el siguiente código para continuar:
+                    ${t.message}
                   </p>
                 </td>
               </tr>
@@ -94,7 +183,7 @@ export function generatePasswordResetEmailHtml(code: string): string {
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
                   <div style="background-color: #fff3cd; border-radius: 8px; padding: 16px;">
                     <p style="margin: 0; font-size: 14px; color: #856404;">
-                      <strong>⚠️ Importante:</strong> Si no solicitaste restablecer tu contraseña, ignora este mensaje. Tu cuenta está segura.
+                      ${t.warning}
                     </p>
                   </div>
                 </td>
@@ -102,14 +191,14 @@ export function generatePasswordResetEmailHtml(code: string): string {
               <tr>
                 <td style="padding: 0 40px 40px 40px; text-align: center;">
                   <p style="margin: 0; font-size: 14px; color: #999999;">
-                    Este código expira en 1 hora.
+                    ${t.expiryNote}
                   </p>
                 </td>
               </tr>
               <tr>
                 <td style="padding: 20px 40px; background-color: #f8f8f8; border-radius: 0 0 16px 16px; text-align: center;">
                   <p style="margin: 0; font-size: 12px; color: #999999;">
-                    © 2024 JMarkets. Todos los derechos reservados.
+                    ${translations[language].footer}
                   </p>
                 </td>
               </tr>
@@ -184,7 +273,8 @@ export function generateAdminCreateUserEmailHtml(tempPassword: string, email: st
   `;
 }
 
-export function generateWelcomeEmailHtml(userName: string, frontendUrl: string): string {
+export function generateWelcomeEmailHtml(userName: string, frontendUrl: string, language: Language = 'es'): string {
+  const t = translations[language].welcome;
   return `
     <!DOCTYPE html>
     <html>
@@ -204,21 +294,21 @@ export function generateWelcomeEmailHtml(userName: string, frontendUrl: string):
               </tr>
               <tr>
                 <td style="padding: 0 40px 20px 40px; text-align: center;">
-                  <h2 style="margin: 0; font-size: 24px; color: #1a1a1a;">¡Hola, ${userName}!</h2>
+                  <h2 style="margin: 0; font-size: 24px; color: #1a1a1a;">${t.greeting}, ${userName}!</h2>
                   <p style="margin: 16px 0 0 0; font-size: 16px; color: #666666; line-height: 1.5;">
-                    Tu cuenta ha sido verificada exitosamente. Ya puedes comenzar a vender en tu tienda online.
+                    ${t.message}
                   </p>
                 </td>
               </tr>
               <tr>
                 <td style="padding: 0 40px 30px 40px;">
                   <div style="background-color: #fce7f3; border-radius: 12px; padding: 24px;">
-                    <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #e91e63;">¿Qué puedes hacer ahora?</h3>
+                    <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #e91e63;">${t.whatYouCanDo}</h3>
                     <ul style="margin: 0; padding-left: 20px; color: #666666;">
-                      <li style="margin-bottom: 8px;">Configura tu tienda</li>
-                      <li style="margin-bottom: 8px;">Agrega tus productos</li>
-                      <li style="margin-bottom: 8px;">Personaliza tu diseño</li>
-                      <li>Comienza a vender</li>
+                      <li style="margin-bottom: 8px;">${t.feature1}</li>
+                      <li style="margin-bottom: 8px;">${t.feature2}</li>
+                      <li style="margin-bottom: 8px;">${t.feature3}</li>
+                      <li>${t.feature4}</li>
                     </ul>
                   </div>
                 </td>
@@ -226,17 +316,17 @@ export function generateWelcomeEmailHtml(userName: string, frontendUrl: string):
               <tr>
                 <td style="padding: 0 40px 40px 40px; text-align: center;">
                   <a href="${frontendUrl}" style="display: inline-block; background-color: #e91e63; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                    Ir a Mi Tienda
+                    ${t.buttonText}
                   </a>
                 </td>
               </tr>
               <tr>
                 <td style="padding: 20px 40px; background-color: #f8f8f8; border-radius: 0 0 16px 16px; text-align: center;">
                   <p style="margin: 0 0 8px 0; font-size: 14px; color: #666666;">
-                    ¿Tienes preguntas? Contáctanos en nuestras redes sociales.
+                    ${t.supportMessage}
                   </p>
                   <p style="margin: 0; font-size: 12px; color: #999999;">
-                    © 2024 JMarkets. Todos los derechos reservados.
+                    ${translations[language].footer}
                   </p>
                 </td>
               </tr>

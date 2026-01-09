@@ -2,7 +2,9 @@
 import {
   ProductRepository,
   CategoryRepository,
+  CustomerRepository,
   OrderRepository,
+  OrderStatusHistoryRepository,
   UserRepository,
   HomePageContentRepository,
   DeploymentRepository,
@@ -29,6 +31,7 @@ import { S3Dao, CloudFrontDao } from './aws-daos';
 import {
   ProductService,
   CategoryService,
+  CustomerService,
   OrderService,
   DeploymentService,
   PreDeploymentService,
@@ -54,6 +57,7 @@ import {
 import {
   ProductController,
   CategoryController,
+  CustomerController,
   OrderController,
   HomePageContentController,
   DeploymentController,
@@ -78,7 +82,9 @@ import {
 // Create repositories
 export const productRepository = new ProductRepository();
 export const categoryRepository = new CategoryRepository();
+export const customerRepository = new CustomerRepository();
 export const orderRepository = new OrderRepository();
+export const orderStatusHistoryRepository = new OrderStatusHistoryRepository();
 export const userRepository = new UserRepository();
 export const homePageContentRepository = new HomePageContentRepository();
 export const deploymentRepository = new DeploymentRepository();
@@ -110,7 +116,8 @@ export const cloudfrontDao = new CloudFrontDao();
 // Create services
 export const productService = new ProductService(productRepository, categoryRepository);
 export const categoryService = new CategoryService(categoryRepository);
-export const orderService = new OrderService(orderRepository);
+export const customerService = new CustomerService(customerRepository);
+export const orderService = new OrderService(orderRepository, orderStatusHistoryRepository);
 export const deploymentService = new DeploymentService(
   deploymentRepository,
   preDeploymentRepository,
@@ -120,8 +127,8 @@ export const deploymentService = new DeploymentService(
 export const preDeploymentService = new PreDeploymentService(preDeploymentRepository);
 export const s3UploadService = new S3UploadService(s3Dao);
 export const cognitoService = new CognitoService();
-export const userService = new UserService(userRepository, cognitoService);
 export const emailService = new EmailService();
+export const userService = new UserService(userRepository, cognitoService, emailService);
 
 // Organization and Multi-tenancy services
 export const organizationService = new OrganizationService(
@@ -166,6 +173,7 @@ export const componentService = new ComponentService(componentRepository);
 // Create controllers
 export const productController = new ProductController(productService, preDeploymentService);
 export const categoryController = new CategoryController(categoryService, productService, preDeploymentService);
+export const customerController = new CustomerController(customerService);
 export const orderController = new OrderController(orderService);
 export const homePageContentController = new HomePageContentController(homePageContentRepository, preDeploymentService);
 export const deploymentController = new DeploymentController(deploymentService);

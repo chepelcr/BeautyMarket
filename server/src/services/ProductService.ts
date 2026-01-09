@@ -58,4 +58,60 @@ export class ProductService {
   async deleteProduct(id: string): Promise<boolean> {
     return await this.productRepository.deleteProduct(id);
   }
+
+  // Inventory tracking methods
+  async checkStockAvailability(productId: string, quantity: number): Promise<boolean> {
+    const product = await this.productRepository.getProductById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // If inventory tracking is disabled, stock is always available
+    if (!product.trackInventory) {
+      return true;
+    }
+
+    return (product.stockQuantity ?? 0) >= quantity;
+  }
+
+  async reduceStock(productId: string, quantity: number): Promise<Product> {
+    const product = await this.productRepository.getProductById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // If inventory tracking is disabled, don't reduce stock
+    if (!product.trackInventory) {
+      return product;
+    }
+
+    const currentStock = product.stockQuantity ?? 0;
+    if (currentStock < quantity) {
+      throw new Error('Insufficient stock');
+    }
+
+    const newStock = currentStock - quantity;
+    return await this.productRepository.updateProduct(productId, {
+      stockQuantity: newStock,
+    });
+  }
+
+  async getLowStockProducts(organizationId?: string): Promise<Product[]> {
+    const allProducts = await this.productRepository.getProducts();
+    return allProducts.filter(p => {
+      const meetsOrgFilter = !organizationId || p.organizationId === organizationId;
+      const isLowStock = p.trackInventory &&
+                        (p.stockQuantity ?? 0) <= (p.lowStockThreshold ?? 10);
+      return meetsOrgFilter && isLowStock;
+    });
+  }
+
+  async getOutOfStockProducts(organizationId?: string): Promise<Product[]> {
+    const allProducts = await this.productRepository.getProducts();
+    return allProducts.filter(p => {
+      const meetsOrgFilter = !organizationId || p.organizationId === organizationId;
+      const isOutOfStock = p.trackInventory && (p.stockQuantity ?? 0) === 0;
+      return meetsOrgFilter && isOutOfStock;
+    });
+  }
 }

@@ -61,10 +61,15 @@ export function PreDeploymentBanner() {
 
     loadActivePreDeployment();
 
-    // Poll every 5 seconds
-    const interval = setInterval(loadActivePreDeployment, 5000);
+    // Only poll if there's an active pre-deployment with pending or ready status
+    const interval = setInterval(() => {
+      if (activePreDeployment && (activePreDeployment.status === 'pending' || activePreDeployment.status === 'ready')) {
+        loadActivePreDeployment();
+      }
+    }, 5000);
+
     return () => clearInterval(interval);
-  }, [user?.id, organization?.id]);
+  }, [user?.id, organization?.id, activePreDeployment?.status]);
 
   const handlePublish = async () => {
     if (!user?.id || !organization?.id) return;

@@ -12,6 +12,11 @@ export const products = pgTable("products", {
   categoryId: varchar("category_id", { length: 36 }).notNull().references(() => categoriesTable.id, { onDelete: "restrict" }),
   imageUrl: text("image_url"),
   isActive: boolean("is_active").default(true).notNull(),
+  // Inventory tracking fields
+  sku: varchar("sku", { length: 100 }).unique(),
+  stockQuantity: integer("stock_quantity").default(0).notNull(),
+  lowStockThreshold: integer("low_stock_threshold").default(10).notNull(),
+  trackInventory: boolean("track_inventory").default(true).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 }, (table) => [

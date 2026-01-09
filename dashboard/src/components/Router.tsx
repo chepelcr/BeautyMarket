@@ -19,6 +19,10 @@ const OrganizationSettings = lazy(() => import("@/pages/organizations/Organizati
 const AcceptInvitation = lazy(() => import("@/pages/organizations/AcceptInvitation"));
 const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
+const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
+const OrderDetailsPage = lazy(() => import("@/pages/OrderDetailsPage"));
+const CustomersPage = lazy(() => import("@/pages/CustomersPage"));
+const CustomerDetailsPage = lazy(() => import("@/pages/CustomerDetailsPage"));
 
 // CMS and Settings pages
 const ContentPage = lazy(() => import("@/pages/ContentPage"));
@@ -27,6 +31,7 @@ const ThemeSettingsPage = lazy(() => import("@/pages/settings/ThemeSettingsPage"
 const ContactSettingsPage = lazy(() => import("@/pages/settings/ContactSettingsPage"));
 const PaymentSettingsPage = lazy(() => import("@/pages/settings/PaymentSettingsPage"));
 const ShippingSettingsPage = lazy(() => import("@/pages/settings/ShippingSettingsPage"));
+const TeamMembersPage = lazy(() => import("@/pages/TeamMembersPage"));
 
 // Placeholder pages - will be implemented by parallel agents
 const PlaceholderPage = ({ title }: { title: string }) => {
@@ -80,15 +85,17 @@ export function Router({ displayLocation }: RouterProps) {
         <Route path="/admin" component={Dashboard} />
         <Route path="/admin/products" component={ProductsPage} />
         <Route path="/admin/categories" component={CategoriesPage} />
+        <Route path="/admin/orders" component={OrdersPage} />
+        <Route path="/admin/orders/:orderId" component={OrderDetailsPage} />
+        <Route path="/admin/customers" component={CustomersPage} />
+        <Route path="/admin/customers/:customerId" component={CustomerDetailsPage} />
         <Route path="/admin/content" component={ContentPage} />
         <Route path="/admin/settings/general" component={GeneralSettingsPage} />
         <Route path="/admin/settings/theme" component={ThemeSettingsPage} />
         <Route path="/admin/settings/contact" component={ContactSettingsPage} />
         <Route path="/admin/settings/payment" component={PaymentSettingsPage} />
         <Route path="/admin/settings/shipping" component={ShippingSettingsPage} />
-        <Route path="/admin/members">
-          <PlaceholderPage title="Team Members" />
-        </Route>
+        <Route path="/admin/members" component={TeamMembersPage} />
         <Route path="/admin/profile" component={Profile} />
         <Route path="/admin/deployments" component={DeploymentHistory} />
 

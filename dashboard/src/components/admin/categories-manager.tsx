@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Search, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +26,7 @@ export default function CategoriesManager() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!user?.id || !defaultOrg?.id) return;
@@ -93,8 +96,41 @@ export default function CategoriesManager() {
     return <div className="p-6">{t('categories.loading')}</div>;
   }
 
+  // Filter categories based on search query
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    category.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    category.slug.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
     <div className="space-y-6">
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder={t("categories.searchPlaceholder")}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-9"
+        />
+        {searchQuery && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+            onClick={handleClearSearch}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">{t("categories.clearSearch")}</span>
+          </Button>
+        )}
+      </div>
 
       {categories.length === 0 ? (
         <Card className="dark:bg-gray-800 dark:border-gray-700">
@@ -109,6 +145,23 @@ export default function CategoriesManager() {
               </div>
               <Button onClick={handleCreateCategory}>
                 {t('categories.createFirst')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : filteredCategories.length === 0 ? (
+        <Card className="dark:bg-gray-800 dark:border-gray-700">
+          <CardContent className="p-12 text-center">
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto">
+                <Search className="text-gray-400 w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('categories.noResults')}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{t('categories.noResultsDescription')}</p>
+              </div>
+              <Button variant="outline" onClick={handleClearSearch}>
+                {t('categories.clearSearch')}
               </Button>
             </div>
           </CardContent>
@@ -134,7 +187,7 @@ export default function CategoriesManager() {
           </Card>
 
           {/* Existing Categories */}
-          {categories.map((category: Category) => (
+          {filteredCategories.map((category: Category) => (
             <Card key={category.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700">
               <div 
                 className="h-24 p-4 flex items-center justify-between"

@@ -28,6 +28,10 @@ export const orders = pgTable("orders", {
 
 export type Order = typeof orders.$inferSelect;
 
+// Order status enum
+export const orderStatuses = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
+export type OrderStatus = typeof orderStatuses[number];
+
 // Delivery method enum
 export const deliveryMethods = ["correos", "uber-flash", "personal"] as const;
 export type DeliveryMethod = typeof deliveryMethods[number];

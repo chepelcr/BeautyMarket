@@ -45,11 +45,12 @@ Resources:
       BuildMethod: makefile
     Properties:
       FunctionName: jmarkets-api-handler
-      CodeUri: ./
+      CodeUri: ../
       Handler: dist/lambda.handler
       Environment:
         Variables:
           NODE_ENV: production
+          AWS_REGION: !Ref AWS::Region
           SESSION_SECRET: !Ref SessionSecretParam
           NEW_DATABASE_URL: !Ref DatabaseURLParam
           AWS_CLOUDFRONT_URL: !Ref CloudfrontURLParam

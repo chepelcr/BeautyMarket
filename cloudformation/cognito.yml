@@ -124,6 +124,13 @@ Resources:
           StringAttributeConstraints:
             MinLength: '0'
             MaxLength: '50'
+        - Name: locale
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: '0'
+            MaxLength: '10'
       EmailConfiguration:
         EmailSendingAccount: DEVELOPER
         SourceArn: !Ref EmailSourceArn
@@ -179,6 +186,7 @@ Resources:
         - phone_number
         - preferred_username
         - gender
+        - locale
       WriteAttributes:
         - email
         - given_name
@@ -186,6 +194,7 @@ Resources:
         - phone_number
         - preferred_username
         - gender
+        - locale
       TokenValidityUnits:
         AccessToken: minutes
         IdToken: minutes

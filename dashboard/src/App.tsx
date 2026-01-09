@@ -6,9 +6,14 @@ import { AdminLayout } from "@/components/layout/admin-layout";
 import { PageTransition } from "@/components/PageTransition";
 import { Router } from "@/components/Router";
 import { TransitionOverlay } from "@/components/TransitionOverlay";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export default function App() {
   const [location] = useLocation();
+  const { user } = useAuth();
+  const { useUserOrganizations } = useOrganization();
+  const { data: organizations = [] } = useUserOrganizations(user?.id);
 
   // Pages that should show auth layout with gradient background
   const authPageRoutes = [
@@ -28,6 +33,35 @@ export default function App() {
     location === route || (route !== '/' && location.startsWith(route))
   );
 
+  // Determine navbar button display logic
+  const isOrgSelectionPage = location === '/organizations/select' || location === '/organizations/new';
+  const hasOrganizations = organizations.length > 0;
+
+  const getNavbarProps = () => {
+    // Login page: hide all navigation buttons
+    if (location === '/' || location === '/login') {
+      return { hideNavButton: true };
+    }
+
+    // Verify email page: show logout button only
+    if (location.startsWith('/verify-email')) {
+      return { showLogout: true };
+    }
+
+    // Organization selection/creation pages
+    if (isOrgSelectionPage) {
+      // If user has existing organizations, show both buttons
+      if (hasOrganizations) {
+        return { showBothButtons: true };
+      }
+      // If user is creating their first org, show only logout
+      return { showLogout: true };
+    }
+
+    // Default: show back to home button
+    return {};
+  };
+
   return (
     <>
       <TransitionOverlay />
@@ -38,7 +72,7 @@ export default function App() {
               {isAuthPage ? (
                 <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 to-primary/20 dark:from-slate-900 dark:to-slate-800 relative">
                   <div className={`relative ${isLayoutSwitch ? transitionStage : ''}`}>
-                    <AuthNavbar showLogout={location.startsWith('/verify-email')} />
+                    <AuthNavbar {...getNavbarProps()} />
                   </div>
                   <main className={`flex-grow ${transitionStage}`}>
                     <Router displayLocation={displayLocation} />

@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   productController,
   categoryController,
+  customerController,
   orderController,
   homePageContentController,
   deploymentController,
@@ -34,6 +35,7 @@ export function setupRoutes(app: Express): void {
   // Mount organization-scoped controllers
   orgScopedRouter.use('/products', productController.getRouter());
   orgScopedRouter.use('/categories', categoryController.getRouter());
+  orgScopedRouter.use('/customers', customerController.getRouter());
   orgScopedRouter.use('/orders', orderController.getRouter());
   orgScopedRouter.use('/home-content', homePageContentController.getRouter());
   orgScopedRouter.use('/deployments', deploymentController.getRouter());

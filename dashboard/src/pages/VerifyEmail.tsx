@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Mail, RefreshCw } from "lucide-react";
 import { signIn, getCurrentUser } from 'aws-amplify/auth';
 
@@ -12,6 +13,7 @@ export default function VerifyEmail() {
   const { verifyEmail, completeVerification, resendCode } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
@@ -29,8 +31,8 @@ export default function VerifyEmail() {
   const handleVerify = async () => {
     if (!code || code.length !== 6) {
       toast({
-        title: "Invalid code",
-        description: "Please enter the 6-digit code",
+        title: t('auth.verifyEmail.invalidCode'),
+        description: t('auth.verifyEmail.invalidCodeDescription'),
         variant: "destructive",
       });
       return;
@@ -68,19 +70,19 @@ export default function VerifyEmail() {
       sessionStorage.removeItem('verificationLastName');
 
       toast({
-        title: "Email verified",
-        description: "Your account has been verified successfully",
+        title: t('auth.verifyEmail.success'),
+        description: t('auth.verifyEmail.successDescription'),
       });
 
       // Redirect to organization creation page
       navigate("/organizations/new");
     } catch (error: any) {
-      const errorMessage = error.message || "Verification error";
+      const errorMessage = error.message || t('auth.verifyEmail.error');
 
       if (errorMessage.includes('CodeMismatchException')) {
         toast({
-          title: "Incorrect code",
-          description: "The code entered is not valid",
+          title: t('auth.verifyEmail.incorrectCode'),
+          description: t('auth.verifyEmail.incorrectCodeDescription'),
           variant: "destructive",
         });
         return;
@@ -88,15 +90,15 @@ export default function VerifyEmail() {
 
       if (errorMessage.includes('ExpiredCodeException')) {
         toast({
-          title: "Code expired",
-          description: "The code has expired, request a new one",
+          title: t('auth.verifyEmail.expiredCode'),
+          description: t('auth.verifyEmail.expiredCodeDescription'),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Verification error",
+        title: t('auth.verifyEmail.error'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -108,13 +110,13 @@ export default function VerifyEmail() {
     try {
       await resendCode.mutateAsync(email);
       toast({
-        title: "Code resent",
-        description: "We have sent a new verification code",
+        title: t('auth.verifyEmail.resendSuccess'),
+        description: t('auth.verifyEmail.resendSuccessDescription'),
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Could not resend code",
+        title: t('auth.verifyEmail.resendError'),
+        description: error.message || t('auth.verifyEmail.resendErrorDescription'),
         variant: "destructive",
       });
     } finally {
@@ -130,19 +132,19 @@ export default function VerifyEmail() {
             <Mail className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">
-            Verify your Email
+            {t('auth.verifyEmail.title')}
           </CardTitle>
           <CardDescription>
-            We have sent a 6-digit code to{" "}
+            {t('auth.verifyEmail.subtitle')}{" "}
             <span className="font-medium text-primary">{email}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Verification code</label>
+            <label className="text-sm font-medium">{t('auth.verifyEmail.code')}</label>
             <Input
               type="text"
-              placeholder="000000"
+              placeholder={t('auth.verifyEmail.codePlaceholder')}
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               className="text-center text-2xl tracking-widest"
@@ -158,13 +160,13 @@ export default function VerifyEmail() {
             disabled={verifyEmail.isPending || completeVerification.isPending || code.length !== 6}
           >
             {verifyEmail.isPending || completeVerification.isPending
-              ? "Verifying..."
-              : "Verify Email"}
+              ? t('auth.verifyEmail.submitting')
+              : t('auth.verifyEmail.submit')}
           </Button>
 
           <div className="text-center space-y-2">
             <p className="text-sm text-gray-500">
-              Didn't receive the code?
+              {t('auth.verifyEmail.didntReceive')}
             </p>
             <Button
               variant="outline"
@@ -173,7 +175,7 @@ export default function VerifyEmail() {
               className="gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${isResending ? 'animate-spin' : ''}`} />
-              {isResending ? "Resending..." : "Resend code"}
+              {isResending ? t('auth.verifyEmail.resending') : t('auth.verifyEmail.resendCode')}
             </Button>
           </div>
 
@@ -183,7 +185,7 @@ export default function VerifyEmail() {
               className="text-sm text-gray-500"
               onClick={() => navigate("/register")}
             >
-              Back to registration
+              {t('auth.verifyEmail.backToRegister')}
             </Button>
           </div>
         </CardContent>

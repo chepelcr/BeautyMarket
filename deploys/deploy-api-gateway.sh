@@ -40,11 +40,12 @@ fi
 read_input() {
     local prompt="$1"
     local default="$2"
+    local value
 
     if [ -n "$default" ]; then
-        echo -n -e "${BLUE}${prompt} [${default}]:${NC} "
+        echo -n -e "${BLUE}${prompt} [${default}]:${NC} " >&2
     else
-        echo -n -e "${BLUE}${prompt}:${NC} "
+        echo -n -e "${BLUE}${prompt}:${NC} " >&2
     fi
 
     read value
@@ -228,16 +229,12 @@ EOF
 fi
 
 echo ""
-echo -e "${YELLOW}⚠️  ACM Certificate Validation Required${NC}"
-echo "A new ACM certificate has been created for: $DOMAIN_NAME"
-echo "You must validate this certificate by adding DNS records to your Route53 hosted zone."
+echo -e "${GREEN}✓ ACM Certificate Auto-Validation Configured${NC}"
+echo "The ACM certificate for $DOMAIN_NAME has been configured with automatic DNS validation."
+echo "CloudFormation automatically created the validation records in Route53."
 echo ""
-echo -e "${YELLOW}Steps:${NC}"
-echo "1. Go to AWS Certificate Manager Console"
-echo "2. Find the certificate for: $DOMAIN_NAME"
-echo "3. Click 'Create records in Route53' to auto-validate"
-echo "4. Wait 5-10 minutes for validation to complete"
-echo "5. The custom domain will be available once validated"
+echo -e "${YELLOW}Note:${NC} Certificate validation may take 5-10 minutes to complete."
+echo "The custom domain will be available once the certificate is validated."
 echo ""
 echo -e "${GREEN}✓ Updated .env file${NC}"
 echo ""

@@ -11,6 +11,10 @@ import {
   LogOut,
   ChevronRight,
   Building2,
+  Palette,
+  Mail,
+  CreditCard,
+  Truck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -76,6 +80,26 @@ const settingsNavItems: MenuItem[] = [
     titleKey: "sidebar.settings.general",
     href: "/admin/settings/general",
     icon: Settings,
+  },
+  {
+    titleKey: "sidebar.settings.theme",
+    href: "/admin/settings/theme",
+    icon: Palette,
+  },
+  {
+    titleKey: "sidebar.settings.contact",
+    href: "/admin/settings/contact",
+    icon: Mail,
+  },
+  {
+    titleKey: "sidebar.settings.payment",
+    href: "/admin/settings/payment",
+    icon: CreditCard,
+  },
+  {
+    titleKey: "sidebar.settings.shipping",
+    href: "/admin/settings/shipping",
+    icon: Truck,
   },
   {
     titleKey: "sidebar.settings.teamMembers",

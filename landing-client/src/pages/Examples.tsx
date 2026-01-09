@@ -155,7 +155,7 @@ export default function Examples() {
         titleKey="examples.cta.title"
         subtitleKey="examples.cta.subtitle"
         buttonTextKey="examples.cta.button"
-        onClick={() => window.location.href = 'https://admin.jmarkets.jcampos.dev/register'}
+        onClick={() => window.open('https://admin.jmarkets.jcampos.dev/register', '_blank', 'noopener,noreferrer')}
         buttonIcon={null}
         variant="light"
       />

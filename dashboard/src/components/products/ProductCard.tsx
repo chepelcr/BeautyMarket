@@ -26,6 +26,12 @@ export function ProductCard({
   const { t } = useLanguage();
   const category = categories.find((c) => c.id === product.categoryId);
 
+  // Inventory status helpers
+  const isOutOfStock = product.trackInventory && (product.stockQuantity ?? 0) === 0;
+  const isLowStock = product.trackInventory &&
+                     !isOutOfStock &&
+                     (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 10);
+
   return (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow">
       {/* Selection checkbox */}
@@ -69,6 +75,17 @@ export function ProductCard({
             <Badge variant={product.isActive ? 'default' : 'outline'} className="text-xs">
               {product.isActive ? t('products.filters.active') : t('products.filters.inactive')}
             </Badge>
+            {/* Stock status badges */}
+            {isOutOfStock && (
+              <Badge variant="destructive" className="text-xs">
+                {t('products.inventory.outOfStock')}
+              </Badge>
+            )}
+            {isLowStock && (
+              <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-700">
+                {t('products.inventory.lowStock')}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -85,6 +102,23 @@ export function ProductCard({
         <div className="text-xl font-bold">
           ₡{product.price.toLocaleString()}
         </div>
+
+        {/* Stock information */}
+        {product.trackInventory && (
+          <div className="text-sm text-muted-foreground">
+            {product.sku && (
+              <div className="mb-1">
+                <span className="font-medium">SKU:</span> {product.sku}
+              </div>
+            )}
+            <div>
+              <span className="font-medium">{t('products.inventory.stock')}:</span>{' '}
+              <span className={isOutOfStock ? 'text-destructive font-semibold' : isLowStock ? 'text-yellow-600 dark:text-yellow-400 font-semibold' : ''}>
+                {product.stockQuantity ?? 0} {t('products.inventory.units')}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">

@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   gender: varchar("gender", { length: 20 }), // Optional: male, female, other, prefer_not_to_say
+  language: varchar("language", { length: 5 }).default("es"), // User's preferred language: en, es
   role: varchar("role", { length: 20 }).default("customer").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),

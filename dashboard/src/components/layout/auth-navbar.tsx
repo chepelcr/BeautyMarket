@@ -8,9 +8,11 @@ import { Home, LogOut } from "lucide-react";
 
 interface AuthNavbarProps {
   showLogout?: boolean;
+  hideNavButton?: boolean;
+  showBothButtons?: boolean; // Show both back and logout buttons
 }
 
-export function AuthNavbar({ showLogout = false }: AuthNavbarProps) {
+export function AuthNavbar({ showLogout = false, hideNavButton = false, showBothButtons = false }: AuthNavbarProps) {
   const { t } = useLanguage();
   const { forceLogout } = useAuth();
   const [, navigate] = useLocation();
@@ -22,27 +24,51 @@ export function AuthNavbar({ showLogout = false }: AuthNavbarProps) {
 
   return (
     <>
-      {/* Back/Logout Button */}
-      {showLogout ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 left-4 z-50 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          {t('auth.logout')}
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 left-4 z-50 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
-          onClick={() => navigate("/")}
-        >
-          <Home className="w-4 h-4 mr-2" />
-          {t('auth.login.backToHome')}
-        </Button>
+      {/* Back/Logout Button(s) */}
+      {!hideNavButton && (
+        showBothButtons ? (
+          // Show both buttons when user has existing orgs and is creating/selecting
+          <div className="absolute top-4 left-4 z-50 flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+              onClick={() => navigate("/")}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              {t('auth.login.backToHome')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              {t('auth.logout')}
+            </Button>
+          </div>
+        ) : showLogout ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 left-4 z-50 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            {t('auth.logout')}
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 left-4 z-50 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+            onClick={() => navigate("/")}
+          >
+            <Home className="w-4 h-4 mr-2" />
+            {t('auth.login.backToHome')}
+          </Button>
+        )
       )}
 
       {/* Language and Theme Toggles */}

@@ -1,77 +1,103 @@
 #!/bin/bash
 
-# Deploy Lambda Function with SAM
-# Builds and deploys Lambda using AWS SAM CLI
-
-set -e
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-# Config
+# JMarkets - Lambda Deployment Script (Simple CloudFormation)
 STACK_NAME="jmarkets-lambda"
-AWS_REGION=${AWS_REGION:-"us-east-1"}
-AWS_PROFILE=${AWS_PROFILE:-"J-CAMPOS"}
+PROFILE="J-CAMPOS"
+REGION="us-east-1"
 
-echo -e "${BLUE}=== JMarkets Lambda Deployment (SAM) ===${NC}"
-echo -e "${BLUE}Stack: ${STACK_NAME}${NC}"
-echo -e "${BLUE}Region: ${AWS_REGION}${NC}"
-echo ""
+echo "🚀 JMarkets Lambda Deployment (Simple CloudFormation)"
 
-# Check SAM CLI
-if ! command -v sam &> /dev/null; then
-    echo -e "${RED}✗ SAM CLI not installed${NC}"
-    echo "Install: brew install aws-sam-cli"
+# Check AWS credentials
+echo "Checking AWS credentials..."
+aws sts get-caller-identity --profile $PROFILE --region $REGION
+if [ $? -ne 0 ]; then
+    echo "❌ AWS credentials invalid. Please run: aws configure --profile $PROFILE"
     exit 1
 fi
 
-# Load .env
+# Build and package Lambda function
+echo "📦 Building and packaging Lambda function..."
+cd "$(dirname "$0")/.."
+npm run package:lambda
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to build Lambda package"
+    exit 1
+fi
+
+# Check if lambda-package.zip exists
+if [ ! -f "lambda-package.zip" ]; then
+    echo "❌ lambda-package.zip not found"
+    exit 1
+fi
+
+echo "✅ Lambda package created: $(du -h lambda-package.zip | cut -f1)"
+
+# Load environment variables
 if [ ! -f ".env" ]; then
-    echo -e "${RED}✗ .env file not found${NC}"
+    echo "❌ Missing .env file with required variables"
     exit 1
 fi
-source .env
 
-# Build with SAM
-echo -e "${YELLOW}Building with SAM...${NC}"
-sam build --template cloudformation/template.yaml --profile $AWS_PROFILE
+# Extract variables from .env file
+SESSION_SECRET=$(grep '^SESSION_SECRET=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+DATABASE_URL=$(grep '^NEW_DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+CLOUDFRONT_URL=$(grep '^AWS_CLOUDFRONT_URL=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+COGNITO_USER_POOL_ID=$(grep '^AWS_COGNITO_USER_POOL_ID=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+COGNITO_CLIENT_ID=$(grep '^AWS_COGNITO_CLIENT_ID=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+SES_SMTP_USERNAME=$(grep '^SES_SMTP_USERNAME=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+SES_SMTP_PASSWORD=$(grep '^SES_SMTP_PASSWORD=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
 
-if [ $? -ne 0 ]; then
-    echo -e "${RED}✗ SAM build failed${NC}"
-    exit 1
+# Check if we should use external IAM policy
+IAM_POLICY_ARN=""
+if aws cloudformation describe-stacks --stack-name jmarkets-iam-dev --profile $PROFILE --region $REGION &> /dev/null; then
+    IAM_POLICY_ARN=$(aws cloudformation describe-stacks \
+        --stack-name jmarkets-iam-dev \
+        --profile $PROFILE \
+        --region $REGION \
+        --query 'Stacks[0].Outputs[?OutputKey==`BackendPolicyArn`].OutputValue' \
+        --output text)
+    echo "✅ Found IAM policy: $IAM_POLICY_ARN"
 fi
-echo -e "${GREEN}✓ Build complete${NC}"
-echo ""
 
-# Deploy with SAM
-echo -e "${YELLOW}Deploying with SAM...${NC}"
-sam deploy \
+# Deploy lambda stack with environment variables
+echo "🚀 Deploying $STACK_NAME..."
+aws cloudformation deploy \
+    --template-file cloudformation/lambda.yml \
     --stack-name $STACK_NAME \
-    --capabilities CAPABILITY_IAM \
-    --region $AWS_REGION \
-    --profile $AWS_PROFILE \
-    --no-confirm-changeset \
+    --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
     --parameter-overrides \
-        SessionSecretParam=$SESSION_SECRET \
-        DatabaseURLParam=$NEW_DATABASE_URL \
-        CloudfrontURLParam=$AWS_CLOUDFRONT_URL \
-        CognitoUserPoolIdParam=$AWS_COGNITO_USER_POOL_ID \
-        CognitoClientIdParam=$AWS_COGNITO_CLIENT_ID \
-        SesSmtpUsernameParam=$SES_SMTP_USERNAME \
-        SesSmtpPasswordParam=$SES_SMTP_PASSWORD
+        SessionSecretParam="$SESSION_SECRET" \
+        DatabaseURLParam="$DATABASE_URL" \
+        CloudfrontURLParam="$CLOUDFRONT_URL" \
+        CognitoUserPoolIdParam="$COGNITO_USER_POOL_ID" \
+        CognitoClientIdParam="$COGNITO_CLIENT_ID" \
+        SesSmtpUsernameParam="$SES_SMTP_USERNAME" \
+        SesSmtpPasswordParam="$SES_SMTP_PASSWORD" \
+        IAMPolicyArn="$IAM_POLICY_ARN" \
+    --profile $PROFILE \
+    --region $REGION
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}✗ SAM deploy failed${NC}"
+    echo "❌ Failed to deploy lambda stack"
+    exit 1
+fi
+echo "✅ $STACK_NAME deployed successfully!"
+
+# Update Lambda function code with the actual package
+echo "🔄 Updating Lambda function code..."
+aws lambda update-function-code \
+    --function-name jmarkets-api-handler \
+    --zip-file fileb://lambda-package.zip \
+    --region $REGION \
+    --profile $PROFILE >/dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to update Lambda code"
     exit 1
 fi
 
+echo "✅ Lambda code updated successfully!"
 echo ""
-echo -e "${GREEN}✓ Lambda deployed successfully${NC}"
-echo ""
-echo -e "${YELLOW}Next: Deploy API Gateway${NC}"
-echo "  ./deploys/deploy-api-gateway.sh"
-echo ""
+echo "✅ Lambda deployment completed!"
+echo "📝 Run ./deploys/deploy-api-gateway.sh to deploy API Gateway"

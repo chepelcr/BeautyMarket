@@ -8,6 +8,11 @@ export interface Product {
   categoryId: string;
   imageUrl: string | null;
   isActive: boolean;
+  // Inventory tracking fields
+  sku?: string | null;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  trackInventory?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +24,11 @@ export interface InsertProduct {
   categoryId: string;
   imageUrl?: string | null;
   isActive?: boolean;
+  // Inventory tracking fields
+  sku?: string | null;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  trackInventory?: boolean;
 }
 
 export const insertProductSchema = z.object({
@@ -28,4 +38,9 @@ export const insertProductSchema = z.object({
   categoryId: z.string().min(1),
   imageUrl: z.string().nullable().optional(),
   isActive: z.boolean().optional(),
+  // Inventory tracking fields
+  sku: z.string().nullable().optional(),
+  stockQuantity: z.number().min(0).optional(),
+  lowStockThreshold: z.number().min(0).optional(),
+  trackInventory: z.boolean().optional(),
 });

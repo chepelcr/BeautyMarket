@@ -34,16 +34,26 @@ import {
   ListCertificatesCommand,
   DeleteCertificateCommand,
 } from '@aws-sdk/client-acm';
+import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
+import { fromIni } from '@aws-sdk/credential-providers';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
+// AWS Profile Configuration
+const AWS_PROFILE = 'J-CAMPOS';
+const REGION = process.env.AWS_REGION || 'us-east-1';
+
+// Project Configuration
 const TEMPLATE_BUCKET = process.env.TEMPLATE_SOURCE_BUCKET || 'jmarkets-template-market';
 const CLIENT_DIST_FOLDER = './dist/public';
 const LANDING_DIST_FOLDER = './dist/landing';
-const REGION = process.env.AWS_REGION || 'us-east-1';
+const DASHBOARD_DIST_FOLDER = './dist/dashboard'; // Fixed: dashboard builds to dist/dashboard, not dashboard/dist
 const BASE_DOMAIN = 'jmarkets.jcampos.dev';
 const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID; // Add this to .env file
+
+// Global variable to store AWS Account ID (will be populated on startup)
+let AWS_ACCOUNT_ID = null;
 
 // Template organizations from seed data
 const TEMPLATE_ORGS = [
@@ -69,19 +79,17 @@ const TEMPLATE_BUILD_PATHS = {
   'beauty-essentials-example': './dist/templates/beauty-essentials',
 };
 
-// Configure AWS Clients
+// Configure AWS Clients with Profile
 const awsConfig = {
   region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
+  credentials: fromIni({ profile: AWS_PROFILE }),
 };
 
 const s3Client = new S3Client(awsConfig);
 const cloudFrontClient = new CloudFrontClient(awsConfig);
 const route53Client = new Route53Client(awsConfig);
 const acmClient = new ACMClient(awsConfig);
+const stsClient = new STSClient(awsConfig);
 
 // Resource tracker for rollback on failure
 const resourceTracker = {
@@ -90,6 +98,24 @@ const resourceTracker = {
   dnsRecords: [],        // Route53 DNS records {name, target}
   certificateArn: null,  // ACM certificate ARN (only if newly created)
 };
+
+/**
+ * Get AWS Account ID from the current credentials using STS
+ */
+async function getAwsAccountId() {
+  try {
+    console.log(`🔍 Retrieving AWS Account ID using profile: ${AWS_PROFILE}...`);
+    const command = new GetCallerIdentityCommand({});
+    const response = await stsClient.send(command);
+    const accountId = response.Account;
+    console.log(`✅ AWS Account ID: ${accountId}\n`);
+    return accountId;
+  } catch (error) {
+    console.error('❌ Failed to retrieve AWS Account ID:', error.message);
+    console.error('   Please ensure AWS profile is configured correctly.');
+    throw error;
+  }
+}
 
 /**
  * Cleanup function - removes all tracked resources
@@ -667,7 +693,7 @@ async function createBucketPolicy(bucketName, distributionId) {
           Resource: `arn:aws:s3:::${bucketName}/*`,
           Condition: {
             StringEquals: {
-              'AWS:SourceArn': `arn:aws:cloudfront::${process.env.AWS_ACCOUNT_ID}:distribution/${distributionId}`,
+              'AWS:SourceArn': `arn:aws:cloudfront::${AWS_ACCOUNT_ID}:distribution/${distributionId}`,
             },
           },
         },
@@ -947,10 +973,10 @@ async function setupTemplateOrganization(subdomain, certificateArn = null) {
     const distributionId = await createCloudFrontDistribution(subdomain, bucketName, oacId, certificateArn);
 
     // Step 4: Update bucket policy for CloudFront access
-    if (process.env.AWS_ACCOUNT_ID) {
+    if (AWS_ACCOUNT_ID) {
       await createBucketPolicy(bucketName, distributionId);
     } else {
-      console.log(`  ⚠️  AWS_ACCOUNT_ID not set, skipping bucket policy creation`);
+      console.log(`  ⚠️  AWS Account ID not available, skipping bucket policy creation`);
     }
 
     // Step 5: Get CloudFront domain for DNS
@@ -1163,7 +1189,7 @@ async function setupLandingPage(certificateArn = null) {
     }
 
     // Step 4: Update bucket policy for CloudFront access
-    if (process.env.AWS_ACCOUNT_ID) {
+    if (AWS_ACCOUNT_ID) {
       const policy = {
         Version: '2012-10-17',
         Statement: [
@@ -1177,7 +1203,7 @@ async function setupLandingPage(certificateArn = null) {
             Resource: `arn:aws:s3:::${bucketName}/*`,
             Condition: {
               StringEquals: {
-                'AWS:SourceArn': `arn:aws:cloudfront::${process.env.AWS_ACCOUNT_ID}:distribution/${distributionId}`,
+                'AWS:SourceArn': `arn:aws:cloudfront::${AWS_ACCOUNT_ID}:distribution/${distributionId}`,
               },
             },
           },
@@ -1193,7 +1219,7 @@ async function setupLandingPage(certificateArn = null) {
 
       console.log(`  🔐 Updated bucket policy for CloudFront access`);
     } else {
-      console.log(`  ⚠️  AWS_ACCOUNT_ID not set, skipping bucket policy creation`);
+      console.log(`  ⚠️  AWS Account ID not available, skipping bucket policy creation`);
     }
 
     // Step 5: Create Route53 DNS record for base domain (if HOSTED_ZONE_ID is set)
@@ -1260,18 +1286,285 @@ async function setupLandingPage(certificateArn = null) {
 }
 
 /**
+ * Setup infrastructure for the dashboard at admin.jmarkets.jcampos.dev
+ */
+async function setupDashboard(certificateArn = null) {
+  console.log(`\n🎛️  Setting up dashboard infrastructure for: admin.${BASE_DOMAIN}`);
+
+  try {
+    // Step 1: Create S3 bucket for dashboard
+    const bucketName = `admin-${BASE_DOMAIN.replace(/\./g, '-')}`;
+    const domainName = `admin.${BASE_DOMAIN}`;
+
+    try {
+      await s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
+      console.log(`  ✅ Bucket already exists: ${bucketName}`);
+    } catch (err) {
+      if (err.name !== 'NotFound') {
+        throw err;
+      }
+
+      // Create bucket
+      const params = {
+        Bucket: bucketName,
+        ...(REGION !== 'us-east-1' && {
+          CreateBucketConfiguration: {
+            LocationConstraint: REGION,
+          },
+        }),
+      };
+
+      await s3Client.send(new CreateBucketCommand(params));
+      console.log(`  ✅ Created bucket: ${bucketName}`);
+
+      // Block public access (CloudFront will access via OAC)
+      await s3Client.send(
+        new PutPublicAccessBlockCommand({
+          Bucket: bucketName,
+          PublicAccessBlockConfiguration: {
+            BlockPublicAcls: true,
+            IgnorePublicAcls: true,
+            BlockPublicPolicy: false, // Allow bucket policy for CloudFront
+            RestrictPublicBuckets: false,
+          },
+        })
+      );
+
+      console.log(`  🔒 Configured bucket access settings`);
+    }
+
+    // Step 2: Get or create Origin Access Control
+    const oacId = await getOrCreateOriginAccessControl();
+
+    // Step 3: Create CloudFront distribution for dashboard (with SSL if certificate provided)
+    if (certificateArn) {
+      console.log(`  🔐 Creating distribution with SSL certificate`);
+    } else {
+      console.log(`  ⚠️  Creating distribution without SSL certificate (requires manual setup)`);
+    }
+
+    // Check if distribution already exists
+    const listResponse = await cloudFrontClient.send(new ListDistributionsCommand({}));
+    const existingDist = listResponse.DistributionList?.Items?.find(
+      (dist) => dist.Aliases?.Items?.includes(domainName)
+    );
+
+    let distributionId;
+    let cloudFrontDomain;
+
+    if (existingDist) {
+      console.log(`  ✅ CloudFront distribution already exists: ${existingDist.Id}`);
+      distributionId = existingDist.Id;
+      cloudFrontDomain = existingDist.DomainName;
+    } else {
+      const distributionConfig = {
+        CallerReference: `dashboard-${Date.now()}`,
+        Comment: `Dashboard distribution for ${domainName}`,
+        Enabled: true,
+        DefaultRootObject: 'index.html',
+        Origins: {
+          Quantity: 1,
+          Items: [
+            {
+              Id: `S3-${bucketName}`,
+              DomainName: `${bucketName}.s3.${REGION}.amazonaws.com`,
+              OriginAccessControlId: oacId,
+              S3OriginConfig: {
+                OriginAccessIdentity: '',
+              },
+            },
+          ],
+        },
+        DefaultCacheBehavior: {
+          TargetOriginId: `S3-${bucketName}`,
+          ViewerProtocolPolicy: 'redirect-to-https',
+          AllowedMethods: {
+            Quantity: 3,
+            Items: ['GET', 'HEAD', 'OPTIONS'],
+            CachedMethods: {
+              Quantity: 2,
+              Items: ['GET', 'HEAD'],
+            },
+          },
+          Compress: true,
+          ForwardedValues: {
+            QueryString: false,
+            Cookies: {
+              Forward: 'none',
+            },
+          },
+          MinTTL: 0,
+          DefaultTTL: 86400,
+          MaxTTL: 31536000,
+          TrustedSigners: {
+            Enabled: false,
+            Quantity: 0,
+          },
+        },
+        CustomErrorResponses: {
+          Quantity: 2,
+          Items: [
+            {
+              ErrorCode: 404,
+              ResponseCode: '200',
+              ResponsePagePath: '/index.html',
+              ErrorCachingMinTTL: 300,
+            },
+            {
+              ErrorCode: 403,
+              ResponseCode: '200',
+              ResponsePagePath: '/index.html',
+              ErrorCachingMinTTL: 300,
+            },
+          ],
+        },
+        // SSL Certificate and Custom Domain Configuration
+        ...(certificateArn
+          ? {
+              Aliases: {
+                Quantity: 1,
+                Items: [domainName],
+              },
+              ViewerCertificate: {
+                ACMCertificateArn: certificateArn,
+                SSLSupportMethod: 'sni-only',
+                MinimumProtocolVersion: 'TLSv1.2_2021',
+                Certificate: certificateArn,
+                CertificateSource: 'acm',
+              },
+            }
+          : {
+              ViewerCertificate: {
+                CloudFrontDefaultCertificate: true,
+              },
+            }),
+        PriceClass: 'PriceClass_100',
+      };
+
+      const createResponse = await cloudFrontClient.send(
+        new CreateDistributionCommand({
+          DistributionConfig: distributionConfig,
+        })
+      );
+
+      distributionId = createResponse.Distribution.Id;
+      cloudFrontDomain = createResponse.Distribution.DomainName;
+
+      console.log(`  ✅ Created CloudFront distribution: ${distributionId}`);
+      console.log(`  🌐 CloudFront domain: ${cloudFrontDomain}`);
+    }
+
+    // Step 4: Update bucket policy for CloudFront access
+    if (AWS_ACCOUNT_ID) {
+      const policy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'AllowCloudFrontServicePrincipal',
+            Effect: 'Allow',
+            Principal: {
+              Service: 'cloudfront.amazonaws.com',
+            },
+            Action: 's3:GetObject',
+            Resource: `arn:aws:s3:::${bucketName}/*`,
+            Condition: {
+              StringEquals: {
+                'AWS:SourceArn': `arn:aws:cloudfront::${AWS_ACCOUNT_ID}:distribution/${distributionId}`,
+              },
+            },
+          },
+        ],
+      };
+
+      await s3Client.send(
+        new PutBucketPolicyCommand({
+          Bucket: bucketName,
+          Policy: JSON.stringify(policy),
+        })
+      );
+
+      console.log(`  🔐 Updated bucket policy for CloudFront access`);
+    } else {
+      console.log(`  ⚠️  AWS Account ID not available, skipping bucket policy creation`);
+    }
+
+    // Step 5: Create Route53 DNS record for dashboard (if HOSTED_ZONE_ID is set)
+    if (HOSTED_ZONE_ID) {
+      try {
+        const params = {
+          HostedZoneId: HOSTED_ZONE_ID,
+          ChangeBatch: {
+            Comment: `DNS record for ${domainName}`,
+            Changes: [
+              {
+                Action: 'UPSERT',
+                ResourceRecordSet: {
+                  Name: domainName,
+                  Type: 'A',
+                  AliasTarget: {
+                    HostedZoneId: 'Z2FDTNDATAQYW2', // CloudFront hosted zone ID (constant)
+                    DNSName: cloudFrontDomain,
+                    EvaluateTargetHealth: false,
+                  },
+                },
+              },
+            ],
+          },
+        };
+
+        await route53Client.send(new ChangeResourceRecordSetsCommand(params));
+        console.log(`  ✅ Created Route53 A record: ${domainName} → ${cloudFrontDomain}`);
+      } catch (error) {
+        console.error(`  ⚠️  Warning: Failed to create Route53 record:`, error.message);
+        console.log(`  ℹ️  You may need to manually create the DNS record`);
+      }
+    } else {
+      console.log(`  ⚠️  HOSTED_ZONE_ID not set, skipping Route53 record creation`);
+      console.log(`  ℹ️  Manual action: Create A record for ${domainName} → ${cloudFrontDomain}`);
+    }
+
+    // Step 6: Upload dashboard files
+    console.log(`  📤 Uploading dashboard files to ${bucketName}...`);
+
+    if (!fs.existsSync(DASHBOARD_DIST_FOLDER)) {
+      console.error(`  ⚠️  Dashboard folder ${DASHBOARD_DIST_FOLDER} does not exist`);
+      console.log('   Run "cd dashboard && npm run build" first to build the dashboard.');
+      console.log('   Skipping dashboard file upload...');
+    } else {
+      const uploadPromises = await uploadDirectory(DASHBOARD_DIST_FOLDER, '', bucketName);
+      await Promise.all(uploadPromises);
+      console.log(`  ✅ Dashboard files uploaded to ${bucketName}`);
+    }
+
+    console.log(`  ✅ Dashboard infrastructure setup complete`);
+
+    return {
+      domainName,
+      bucketName,
+      distributionId,
+      cloudFrontDomain,
+      url: `https://${cloudFrontDomain}`,
+      customDomain: `https://${domainName}`,
+    };
+  } catch (error) {
+    console.error(`  ❌ Failed to setup dashboard:`, error.message);
+    throw error;
+  }
+}
+
+/**
  * Main setup function
  */
 async function setup() {
   try {
     console.log('🚀 Setting up template buckets and CloudFront distributions for all template organizations\n');
     console.log(`📋 Template organizations: ${TEMPLATE_ORGS.length}`);
-    console.log(`🌍 Base domain: ${BASE_DOMAIN}\n`);
+    console.log(`🌍 Base domain: ${BASE_DOMAIN}`);
+    console.log(`🔐 AWS Profile: ${AWS_PROFILE}`);
+    console.log(`🌎 AWS Region: ${REGION}\n`);
 
-    // Validate environment variables
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      throw new Error('AWS credentials not found in environment variables');
-    }
+    // Get AWS Account ID from profile
+    AWS_ACCOUNT_ID = await getAwsAccountId();
 
     if (!fs.existsSync(CLIENT_DIST_FOLDER)) {
       console.error(`❌ Client distribution folder ${CLIENT_DIST_FOLDER} does not exist.`);
@@ -1345,6 +1638,15 @@ async function setup() {
       landingPageResult = { error: error.message };
     }
 
+    // Setup dashboard infrastructure
+    let dashboardResult = null;
+    try {
+      dashboardResult = await setupDashboard(certificateArn);
+    } catch (error) {
+      console.error(`Failed to setup dashboard, continuing...`);
+      dashboardResult = { error: error.message };
+    }
+
     // Summary
     console.log('\n\n📊 SETUP SUMMARY');
     console.log('='.repeat(80));
@@ -1354,6 +1656,11 @@ async function setup() {
       console.log(`✅ Landing page deployed: ${landingPageResult.customDomain}`);
     } else if (landingPageResult && landingPageResult.error) {
       console.log(`❌ Landing page failed: ${landingPageResult.error}`);
+    }
+    if (dashboardResult && !dashboardResult.error) {
+      console.log(`✅ Dashboard deployed: ${dashboardResult.customDomain}`);
+    } else if (dashboardResult && dashboardResult.error) {
+      console.log(`❌ Dashboard failed: ${dashboardResult.error}`);
     }
     console.log();
 
@@ -1368,6 +1675,16 @@ async function setup() {
       console.log(`    Distribution ID:  ${landingPageResult.distributionId}`);
       console.log(`    CloudFront URL:   ${landingPageResult.url}`);
       console.log(`    Custom Domain:    ${landingPageResult.customDomain}`);
+    }
+
+    // Show dashboard details
+    if (dashboardResult && !dashboardResult.error) {
+      console.log(`\n🎛️  DASHBOARD:`);
+      console.log(`\n  ${dashboardResult.domainName}`);
+      console.log(`    S3 Bucket:        ${dashboardResult.bucketName}`);
+      console.log(`    Distribution ID:  ${dashboardResult.distributionId}`);
+      console.log(`    CloudFront URL:   ${dashboardResult.url}`);
+      console.log(`    Custom Domain:    ${dashboardResult.customDomain}`);
     }
 
     if (successful.length > 0) {

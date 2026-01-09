@@ -1,6 +1,7 @@
 export * from './EmailService';
 export * from './ProductService';
 export * from './CategoryService';
+export * from './CustomerService';
 export * from './OrderService';
 export * from './DeploymentService';
 export * from './PreDeploymentService';

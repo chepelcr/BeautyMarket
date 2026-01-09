@@ -136,7 +136,7 @@ export function useAuth() {
 
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: async (data: RegisterData) => {
+    mutationFn: async (data: RegisterData & { language?: string }) => {
       const result = await signUp({
         username: data.email,
         password: data.password,
@@ -146,6 +146,7 @@ export function useAuth() {
             given_name: data.firstName,
             family_name: data.lastName,
             preferred_username: data.username,
+            locale: data.language || 'es', // Pass language preference to Cognito
           },
         },
       });
@@ -224,7 +225,7 @@ export function useAuth() {
     }) => {
       const response = await authenticatedRequest(
         'POST',
-        buildUserApiUrl(data.userId, '/profile/verify-email-complete'),
+        buildUserApiUrl(data.userId, '/verify-email-complete'),
         {
           email: data.email,
           username: data.username,

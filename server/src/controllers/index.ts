@@ -1,5 +1,6 @@
 export * from './ProductController';
 export * from './CategoryController';
+export * from './CustomerController';
 export * from './OrderController';
 export * from './HomePageContentController';
 export * from './DeploymentController';

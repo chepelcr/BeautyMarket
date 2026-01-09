@@ -61,7 +61,8 @@ export default function CreateOrganization() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [slug, checkSlugAvailable]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
   // Check subdomain availability with debounce
   useEffect(() => {
@@ -78,7 +79,8 @@ export default function CreateOrganization() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [subdomain, checkSubdomainAvailable]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subdomain]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -430,12 +430,13 @@ export default function Profile() {
                                       {...field}
                                       type={showCurrentPassword ? "text" : "password"}
                                       placeholder={t('profile.currentPasswordPlaceholder')}
+                                      className="pr-10"
                                     />
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="sm"
-                                      className="absolute right-0 top-0 h-full px-3"
+                                      className="absolute right-0 top-0 h-full px-3 z-10"
                                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                                     >
                                       {showCurrentPassword ? (
@@ -463,12 +464,13 @@ export default function Profile() {
                                       {...field}
                                       type={showNewPassword ? "text" : "password"}
                                       placeholder={t('profile.newPasswordPlaceholder')}
+                                      className="pr-10"
                                     />
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="sm"
-                                      className="absolute right-0 top-0 h-full px-3"
+                                      className="absolute right-0 top-0 h-full px-3 z-10"
                                       onClick={() => setShowNewPassword(!showNewPassword)}
                                     >
                                       {showNewPassword ? (
@@ -496,12 +498,13 @@ export default function Profile() {
                                       {...field}
                                       type={showConfirmPassword ? "text" : "password"}
                                       placeholder={t('profile.confirmPasswordPlaceholder')}
+                                      className="pr-10"
                                     />
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="sm"
-                                      className="absolute right-0 top-0 h-full px-3"
+                                      className="absolute right-0 top-0 h-full px-3 z-10"
                                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     >
                                       {showConfirmPassword ? (

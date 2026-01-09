@@ -53,8 +53,10 @@ export class CategoryController {
    *       - in: path
    *         name: id
    *         required: true
+   *         description: The category ID
    *         schema:
    *           type: string
+   *           format: uuid
    *     responses:
    *       200:
    *         description: Category details
@@ -141,6 +143,14 @@ export class CategoryController {
    *     tags: [Categories]
    *     security:
    *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: The category ID
+   *         schema:
+   *           type: string
+   *           format: uuid
    *     responses:
    *       200:
    *         description: Category updated successfully
@@ -175,6 +185,14 @@ export class CategoryController {
    *     tags: [Categories]
    *     security:
    *       - BearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         description: The category ID
+   *         schema:
+   *           type: string
+   *           format: uuid
    *     responses:
    *       200:
    *         description: Category deleted successfully

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,6 +40,7 @@ const passwordSchema = z.string()
 const step1Schema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
+  username: z.string().min(3, 'Username must be at least 3 characters').regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, hyphens and underscores'),
   email: z.string().email('Please enter a valid email address'),
   gender: z.string().optional(),
   genderOther: z.string().optional(),
@@ -69,12 +70,14 @@ export default function Register() {
   const [, navigate] = useLocation();
   const { register, forceLogout } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [currentStep, setCurrentStep] = useState<'info' | 'password' | 'verify'>('info');
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [step1Data, setStep1Data] = useState<Step1Form | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showGenderInput, setShowGenderInput] = useState(false);
+  const selectTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Create localized steps
   const localizedSteps = [
@@ -89,6 +92,7 @@ export default function Register() {
     defaultValues: {
       firstName: '',
       lastName: '',
+      username: '',
       email: '',
       gender: '',
       genderOther: '',
@@ -131,6 +135,7 @@ export default function Register() {
       const fullRegistrationData = {
         ...step1Data,
         ...values,
+        language, // Pass current UI language to Cognito
       };
 
       const result = await register.mutateAsync(fullRegistrationData);
@@ -184,6 +189,10 @@ export default function Register() {
   useEffect(() => {
     if (step1Data && currentStep === 'info') {
       step1Form.reset(step1Data);
+      // Restore gender input state if user had selected "other"
+      if (step1Data.gender === 'other') {
+        setShowGenderInput(true);
+      }
     }
   }, [step1Data, currentStep, step1Form]);
 
@@ -212,6 +221,7 @@ export default function Register() {
           {currentStep === 'info' && (
             <Form {...step1Form}>
               <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-4">
+                {/* First Name and Last Name */}
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={step1Form.control}
@@ -242,6 +252,7 @@ export default function Register() {
                   />
                 </div>
 
+                {/* Email */}
                 <FormField
                   control={step1Form.control}
                   name="email"
@@ -260,45 +271,108 @@ export default function Register() {
                   )}
                 />
 
-                <FormField
-                  control={step1Form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('auth.register.gender')}</FormLabel>
-                      <FormControl>
-                        <Select value={field.value || ''} onValueChange={field.onChange}>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('auth.register.gender.placeholder')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="male">{t('auth.register.gender.male')}</SelectItem>
-                            <SelectItem value="female">{t('auth.register.gender.female')}</SelectItem>
-                            <SelectItem value="other">{t('auth.register.gender.other')}</SelectItem>
-                            <SelectItem value="prefer_not_to_say">{t('auth.register.gender.preferNotToSay')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {step1Form.watch('gender') === 'other' && (
+                {/* Username and Gender */}
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={step1Form.control}
-                    name="genderOther"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('auth.register.gender.otherPlaceholder')}</FormLabel>
+                        <FormLabel>{t('auth.register.username')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Please specify..." {...field} />
+                          <Input placeholder={t('auth.register.usernamePlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
+
+                  {/* Gender field - transforms between Select and Input */}
+                  {!showGenderInput ? (
+                    <FormField
+                      control={step1Form.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('auth.register.gender')}</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value || ''}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                if (value === 'other') {
+                                  setShowGenderInput(true);
+                                  step1Form.setValue('genderOther', '');
+                                }
+                              }}
+                            >
+                              <SelectTrigger ref={selectTriggerRef}>
+                                <SelectValue placeholder={t('auth.register.gender.placeholder')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="male">{t('auth.register.gender.male')}</SelectItem>
+                                <SelectItem value="female">{t('auth.register.gender.female')}</SelectItem>
+                                <SelectItem value="other">{t('auth.register.gender.other')}</SelectItem>
+                                <SelectItem value="prefer_not_to_say">{t('auth.register.gender.preferNotToSay')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <FormField
+                      control={step1Form.control}
+                      name="genderOther"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('auth.register.gender')}</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                placeholder={t('auth.register.gender.otherPlaceholder')}
+                                {...field}
+                                className="pr-10"
+                              />
+                              {/* Chevron button on the right side only */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowGenderInput(false);
+                                  step1Form.setValue('gender', '');
+                                  step1Form.setValue('genderOther', '');
+                                  // Auto-open the select after switching back
+                                  setTimeout(() => {
+                                    selectTriggerRef.current?.click();
+                                  }, 0);
+                                }}
+                                className="absolute right-0 top-0 h-full px-3 flex items-center justify-center hover:bg-accent/10 transition-colors rounded-r-md"
+                                aria-label="Change gender selection"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="opacity-50 hover:opacity-100 transition-opacity"
+                                >
+                                  <path d="m6 9 6 6 6-6" />
+                                </svg>
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
 
                 <Button type="submit" className="w-full btn-primary">
                   <ArrowRight className="mr-2 h-4 w-4" />
@@ -324,12 +398,13 @@ export default function Register() {
                             type={showPassword ? "text" : "password"}
                             placeholder={t('auth.register.passwordPlaceholder')}
                             {...field}
+                            className="pr-10"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-10"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
@@ -362,12 +437,13 @@ export default function Register() {
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder={t('auth.register.confirmPasswordPlaceholder')}
                             {...field}
+                            className="pr-10"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent z-10"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           >
                             {showConfirmPassword ? (

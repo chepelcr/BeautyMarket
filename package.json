@@ -12,8 +12,9 @@
     "build:store": "vite build",
     "build:landing": "cd landing-client && npm run build",
     "build:server": "esbuild server/src/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "build:lambda": "esbuild server/lambda.cts --platform=node --packages=external --bundle --format=cjs --outfile=dist/lambda.js",
-    "package:lambda": "npm run build:lambda && cd dist && zip -r ../lambda-package.zip lambda.js",
+    "build:lambda": "esbuild server/lambda.cts --platform=node --bundle --format=cjs --outfile=dist/lambda.js --external:@aws-sdk/* --external:pg-native --external:@babel/* --external:lightningcss --external:vite",
+    "generate:swagger": "node generate-swagger-spec.cjs",
+    "package:lambda": "npm run generate:swagger && npm run build:lambda && cd dist && zip -r ../lambda-package.zip lambda.js swagger-spec.json",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
@@ -35,7 +36,9 @@
     "build:template:pet-care": "cd templates/pet-care && npm install && npm run build",
     "dev:template:beauty-essentials": "cd templates/beauty-essentials && npm run dev",
     "build:template:beauty-essentials": "cd templates/beauty-essentials && npm install && npm run build",
-    "build:templates": "npm run build:template:jmarkets-demo && npm run build:template:tech-gadgets && npm run build:template:vintage-fashion && npm run build:template:artisan-crafts && npm run build:template:gourmet-foods && npm run build:template:fitness-hub && npm run build:template:pet-care && npm run build:template:beauty-essentials"
+    "build:templates": "npm run build:template:jmarkets-demo && npm run build:template:tech-gadgets && npm run build:template:vintage-fashion && npm run build:template:artisan-crafts && npm run build:template:gourmet-foods && npm run build:template:fitness-hub && npm run build:template:pet-care && npm run build:template:beauty-essentials",
+    "build:dashboard": "cd dashboard && npm run build",
+    "deploy:all-frontend": "npm run build:templates && npm run build:dashboard && node setup-template-bucket.js"
   },
   "dependencies": {
     "@aws-sdk/client-acm": "^3.934.0",
@@ -126,6 +129,7 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
     "serverless": "^4.18.0",
+    "serverless-http": "^4.0.0",
     "serverless-offline": "^14.4.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
@@ -140,6 +144,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@aws-sdk/credential-providers": "^3.965.0",
     "@replit/vite-plugin-cartographer": "^0.2.8",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",

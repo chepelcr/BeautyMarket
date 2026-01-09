@@ -84,7 +84,7 @@ export class ExpressAppConfig {
   }
 
   private _configureRoutes(): void {
-    // Setup Swagger documentation
+    // Setup Swagger documentation (now uses CDN for static assets - works in Lambda!)
     setupSwagger(this.app);
 
     // Setup API routes
