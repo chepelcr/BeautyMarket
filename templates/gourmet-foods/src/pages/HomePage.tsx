@@ -1,11 +1,18 @@
 import Header from '../components/Header';
+import { DynamicIcon } from '@/components/DynamicIcon';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import RecipeCard from '../components/RecipeCard';
 import { ArrowRight, Award, Truck, ShieldCheck, Leaf } from 'lucide-react';
 import { Link } from 'wouter';
+import { useHomePageSections } from '@/hooks/useContent';
+import { useTheme } from "@/hooks/useContent";
+import { getSectionByType } from '@/lib/pageUtils';
 
 export default function HomePage() {
+  const { data: sections = [] } = useHomePageSections();
+  const newsletter = getSectionByType(sections, 'newsletter')?.content || {};
+  
   // Sample data
   const featuredProducts = [
     {
@@ -179,13 +186,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Featured Products */}
+        {/* Productos Destacados */}
         <section id="featured" className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-3xl md:text-4xl font-serif font-bold text-stone-900 mb-2">
-                  Featured Products
+                  Productos Destacados
                 </h2>
                 <p className="text-stone-600">Handpicked premium selection</p>
               </div>
@@ -230,20 +237,19 @@ export default function HomePage() {
         <section className="py-20 bg-stone-900 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
-              Join Our Culinary Community
+              {newsletter.title || 'Join Our Culinary Community'}
             </h2>
             <p className="text-lg text-stone-300 mb-8 max-w-2xl mx-auto">
-              Subscribe to our newsletter for exclusive recipes, product launches, and special
-              offers
+              {newsletter.description || 'Subscribe to our newsletter for exclusive recipes, product launches, and special offers'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={newsletter.placeholder || 'Enter your email'}
                 className="flex-1 px-4 py-3 rounded-lg text-stone-900 focus:outline-none focus:ring-2 focus:ring-gourmet-gold"
               />
               <button className="bg-gourmet-red hover:bg-gourmet-gold px-8 py-3 rounded-lg font-semibold transition-colors shadow-lg">
-                Subscribe
+                {newsletter.buttonText || 'Subscribe'}
               </button>
             </div>
           </div>

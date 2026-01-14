@@ -83,7 +83,7 @@ export default function NotFoundPage() {
               <Link href="/products">
                 <button className="px-6 py-3 bg-card hover:bg-muted border border-border rounded-sm font-medium transition-colors flex items-center space-x-2">
                   <Search className="h-4 w-4" />
-                  <span>Browse Products</span>
+                  <span>Ver Productos</span>
                 </button>
               </Link>
             </div>

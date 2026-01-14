@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization, Organization } from '@/hooks/useOrganization';
-import { Loader2, Building2, ChevronRight, Plus } from 'lucide-react';
+import { Loader2, Building2, ChevronRight, Plus, AlertCircle } from 'lucide-react';
 
 export default function SelectOrganization() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -23,18 +24,37 @@ export default function SelectOrganization() {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
-  // If user has only one organization, redirect directly
+  // If user has only one organization AND it's complete, redirect directly
   useEffect(() => {
     if (organizations && organizations.length === 1) {
       const org = organizations[0];
-      const subdomain = org.subdomain || org.slug;
-      window.location.href = `https://${subdomain}.${baseDomain}`;
+      // Only auto-redirect if onboarding is complete (step 3)
+      if (org.onboardingStep === 3) {
+        const subdomain = org.subdomain || org.slug;
+        window.location.href = `https://${subdomain}.${baseDomain}`;
+      }
+      // If incomplete, let user see the organization and choose to continue setup
     }
   }, [organizations, baseDomain]);
 
   const handleSelectOrganization = (org: Organization) => {
+    // If organization setup is incomplete, redirect to create page to continue
+    if (!org.onboardingStep || org.onboardingStep < 3) {
+      navigate('/organizations/new');
+      return;
+    }
+
+    // Organization is complete, go to subdomain
     const subdomain = org.subdomain || org.slug;
     window.location.href = `https://${subdomain}.${baseDomain}`;
+  };
+
+  const getOnboardingStatus = (org: Organization) => {
+    const step = org.onboardingStep || 0;
+    if (step === 0) return { label: 'Not started', variant: 'secondary' as const };
+    if (step === 1) return { label: 'Basic info complete', variant: 'secondary' as const };
+    if (step === 2) return { label: 'Contact info added', variant: 'secondary' as const };
+    return { label: 'Complete', variant: 'default' as const };
   };
 
   if (authLoading || orgsLoading) {
@@ -103,21 +123,37 @@ export default function SelectOrganization() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {organizations.map((org) => (
-            <button
-              key={org.id}
-              onClick={() => handleSelectOrganization(org)}
-              className="w-full p-4 border rounded-lg hover:bg-accent transition-colors flex items-center justify-between group text-left"
-            >
-              <div>
-                <h3 className="font-semibold">{org.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {org.subdomain || org.slug}.{baseDomain}
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </button>
-          ))}
+          {organizations.map((org) => {
+            const status = getOnboardingStatus(org);
+            const isIncomplete = !org.onboardingStep || org.onboardingStep < 3;
+
+            return (
+              <button
+                key={org.id}
+                onClick={() => handleSelectOrganization(org)}
+                className="w-full p-4 border rounded-lg hover:bg-accent transition-colors flex items-center justify-between group text-left"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold">{org.name}</h3>
+                    <Badge variant={status.variant}>
+                      {status.label}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {org.subdomain || org.slug}.{baseDomain}
+                  </p>
+                  {isIncomplete && (
+                    <p className="text-xs text-orange-500 mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Click to continue setup
+                    </p>
+                  )}
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
+              </button>
+            );
+          })}
 
           <div className="pt-4 border-t">
             <Button

@@ -41,7 +41,7 @@ export default function NotFoundPage() {
               <Link href="/products">
                 <a className="btn-beauty-outline inline-flex items-center gap-2">
                   <Search className="w-5 h-5" />
-                  Browse Products
+                  Ver Productos
                 </a>
               </Link>
             </div>

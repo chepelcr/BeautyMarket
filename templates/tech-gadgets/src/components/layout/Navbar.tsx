@@ -2,11 +2,15 @@ import { Link } from 'wouter';
 import { Zap, ShoppingCart, Menu, X, Search, User } from 'lucide-react';
 import { useState } from 'react';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { items, toggleCart } = useCartStore();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -17,26 +21,31 @@ export default function Navbar() {
           <Link href="/">
             <div className="flex items-center space-x-2 cursor-pointer group">
               <div className="relative">
-                <Zap className="h-8 w-8 text-tech-cyan group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] transition-all" />
+                
+                {theme?.logoUrl ? (
+                  <img src={theme.logoUrl} alt="Logo" className="h-8 w-8" />
+                ) : (
+                  <Zap className="h-8 w-8 text-tech-cyan group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] transition-all" />
+                )}
                 <div className="absolute inset-0 bg-tech-cyan/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <h1 className="text-2xl font-bold animated-gradient-text">TechGadgets</h1>
+              <h1 className="text-2xl font-bold animated-gradient-text">{organization?.name || 'TechGadgets'}</h1>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             <Link href="/products" className="hover:text-tech-cyan transition-colors font-medium">
-              Products
+              Productos
             </Link>
             <Link href="/categories" className="hover:text-tech-cyan transition-colors font-medium">
               Categories
             </Link>
             <Link href="/deals" className="hover:text-tech-cyan transition-colors font-medium">
-              Deals
+              Ofertas
             </Link>
             <Link href="/about" className="hover:text-tech-cyan transition-colors font-medium">
-              About
+              Acerca de
             </Link>
           </div>
 
@@ -115,7 +124,7 @@ export default function Navbar() {
             <div className="flex flex-col space-y-4">
               <Link href="/products">
                 <div className="px-4 py-2 hover:bg-muted rounded-sm transition-colors cursor-pointer">
-                  Products
+                  Productos
                 </div>
               </Link>
               <Link href="/categories">
@@ -125,12 +134,12 @@ export default function Navbar() {
               </Link>
               <Link href="/deals">
                 <div className="px-4 py-2 hover:bg-muted rounded-sm transition-colors cursor-pointer">
-                  Deals
+                  Ofertas
                 </div>
               </Link>
               <Link href="/about">
                 <div className="px-4 py-2 hover:bg-muted rounded-sm transition-colors cursor-pointer">
-                  About
+                  Acerca de
                 </div>
               </Link>
               <Link href="/account">

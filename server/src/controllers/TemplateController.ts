@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { TemplateRepository, PageRepository, OrganizationRepository } from '../repositories';
-import { z } from 'zod';
+import { TemplateRepository } from '../repositories';
+import { TemplateContentService } from '../services/TemplateContentService';
 
 export class TemplateController {
   constructor(
     private templateRepository: TemplateRepository,
-    private pageRepository: PageRepository,
-    private organizationRepository: OrganizationRepository
+    private templateContentService: TemplateContentService
   ) {}
 
   getRouter(): Router {
@@ -14,32 +13,19 @@ export class TemplateController {
 
     router.get('/', this.getAllTemplates.bind(this));
     router.get('/:id', this.getTemplateById.bind(this));
-    router.post('/:id/clone', this.cloneTemplate.bind(this));
+    router.get('/:id/content', this.getTemplateContent.bind(this));
+    router.get('/:id/theme', this.getTemplateTheme.bind(this));
+    router.get('/:id/contact', this.getTemplateContact.bind(this));
+    router.get('/:id/payment', this.getTemplatePayment.bind(this));
+    router.get('/:id/shipping', this.getTemplateShipping.bind(this));
+    router.get('/:id/pages', this.getTemplatePages.bind(this));
+    router.get('/:id/pages/:slug', this.getTemplatePageBySlug.bind(this));
+    router.get('/:id/categories', this.getTemplateCategories.bind(this));
+    router.get('/:id/products', this.getTemplateProducts.bind(this));
 
     return router;
   }
 
-  /**
-   * @swagger
-   * /api/templates:
-   *   get:
-   *     summary: Get all templates
-   *     tags: [Templates]
-   *     parameters:
-   *       - in: query
-   *         name: category
-   *         schema:
-   *           type: string
-   *         description: Filter templates by category
-   *       - in: query
-   *         name: activeOnly
-   *         schema:
-   *           type: boolean
-   *         description: Return only active templates
-   *     responses:
-   *       200:
-   *         description: List of templates
-   */
   async getAllTemplates(req: Request, res: Response) {
     try {
       const { category, activeOnly } = req.query;
@@ -60,24 +46,6 @@ export class TemplateController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/templates/{id}:
-   *   get:
-   *     summary: Get template by ID
-   *     tags: [Templates]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *     responses:
-   *       200:
-   *         description: Template data
-   *       404:
-   *         description: Template not found
-   */
   async getTemplateById(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -94,74 +62,140 @@ export class TemplateController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/templates/{id}/clone:
-   *   post:
-   *     summary: Clone template to a new organization
-   *     tags: [Templates]
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - organizationId
-   *             properties:
-   *               organizationId:
-   *                 type: string
-   *     responses:
-   *       201:
-   *         description: Template cloned successfully
-   *       404:
-   *         description: Template or organization not found
-   */
-  async cloneTemplate(req: Request, res: Response) {
+  async getTemplateContent(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { organizationId } = req.body;
-
-      if (!organizationId) {
-        return res.status(400).json({ error: 'Organization ID is required' });
-      }
-
-      // Verify template exists
+      
       const template = await this.templateRepository.getById(id);
       if (!template) {
         return res.status(404).json({ error: 'Template not found' });
       }
 
-      // Verify organization exists
-      const organization = await this.organizationRepository.getById(organizationId);
-      if (!organization) {
-        return res.status(404).json({ error: 'Organization not found' });
-      }
-
-      // TODO: Implement the actual cloning logic
-      // This would typically involve:
-      // 1. Getting all pages associated with the template
-      // 2. Cloning each page with their sections and content
-      // 3. Creating new pages for the organization
-      // For now, we'll return a success message indicating the clone was initiated
-
-      res.status(201).json({
-        message: 'Template clone initiated',
-        templateId: id,
-        organizationId,
-      });
+      const content = await this.templateContentService.getAllContent(id);
+      res.json(content);
     } catch (error) {
-      console.error('Error cloning template:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid data', details: error.errors });
+      console.error('Error getting template content:', error);
+      res.status(500).json({ error: 'Failed to get template content' });
+    }
+  }
+
+  async getTemplateTheme(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const theme = await this.templateContentService.getTheme(id);
+      
+      if (!theme) {
+        return res.status(404).json({ error: 'Template theme not found' });
       }
-      res.status(500).json({ error: 'Failed to clone template' });
+
+      res.json(theme);
+    } catch (error) {
+      console.error('Error getting template theme:', error);
+      res.status(500).json({ error: 'Failed to get template theme' });
+    }
+  }
+
+  async getTemplateContact(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const contact = await this.templateContentService.getContact(id);
+      
+      if (!contact) {
+        return res.status(404).json({ error: 'Template contact not found' });
+      }
+
+      res.json(contact);
+    } catch (error) {
+      console.error('Error getting template contact:', error);
+      res.status(500).json({ error: 'Failed to get template contact' });
+    }
+  }
+
+  async getTemplatePayment(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const payment = await this.templateContentService.getPayment(id);
+      
+      if (!payment) {
+        return res.status(404).json({ error: 'Template payment not found' });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error('Error getting template payment:', error);
+      res.status(500).json({ error: 'Failed to get template payment' });
+    }
+  }
+
+  async getTemplateShipping(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const shipping = await this.templateContentService.getShipping(id);
+      
+      if (!shipping) {
+        return res.status(404).json({ error: 'Template shipping not found' });
+      }
+
+      res.json(shipping);
+    } catch (error) {
+      console.error('Error getting template shipping:', error);
+      res.status(500).json({ error: 'Failed to get template shipping' });
+    }
+  }
+
+  async getTemplatePages(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const pages = await this.templateContentService.getPages(id);
+      res.json(pages);
+    } catch (error) {
+      console.error('Error getting template pages:', error);
+      res.status(500).json({ error: 'Failed to get template pages' });
+    }
+  }
+
+  async getTemplatePageBySlug(req: Request, res: Response) {
+    try {
+      const { id, slug } = req.params;
+      const page = await this.templateContentService.getPageWithSections(id, slug);
+      
+      if (!page) {
+        return res.status(404).json({ error: 'Page not found' });
+      }
+
+      res.json(page);
+    } catch (error) {
+      console.error('Error getting template page:', error);
+      res.status(500).json({ error: 'Failed to get template page' });
+    }
+  }
+
+  async getTemplateCategories(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const categories = await this.templateContentService.getCategories(id);
+      res.json(categories);
+    } catch (error) {
+      console.error('Error getting template categories:', error);
+      res.status(500).json({ error: 'Failed to get template categories' });
+    }
+  }
+
+  async getTemplateProducts(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { isService, onSale, type } = req.query;
+      
+      const filters: any = {};
+      if (isService !== undefined) filters.isService = isService === 'true';
+      if (onSale !== undefined) filters.onSale = onSale === 'true';
+      if (type && typeof type === 'string') filters.type = type;
+
+      const products = await this.templateContentService.getProducts(id, filters);
+      res.json(products);
+    } catch (error) {
+      console.error('Error getting template products:', error);
+      res.status(500).json({ error: 'Failed to get template products' });
     }
   }
 }

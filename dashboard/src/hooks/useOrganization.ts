@@ -1,10 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { buildUserApiUrl, buildPublicApiUrl } from '@/lib/apiUtils';
-import type { Organization, InsertOrganization } from '@/models';
 
-// Re-export Organization type for convenience
-export type { Organization };
+// Simplified types for landing page
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  subdomain?: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 async function authenticatedRequest(
   method: string,
@@ -34,7 +42,7 @@ async function authenticatedRequest(
     config.body = JSON.stringify(data);
   }
 
-  // URL already includes API_BASE_URL from buildUserApiUrl/buildPublicApiUrl
+  // The URL is already complete from buildUserApiUrl/buildPublicApiUrl, no need to prepend base URL
   return fetch(url, config);
 }
 
@@ -44,6 +52,21 @@ interface CreateOrganizationData {
   slug: string;
   subdomain?: string;
   ownerId: string;
+}
+
+interface CompleteStep2Data {
+  organizationId: string;
+  userId: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+}
+
+interface CompleteStep3Data {
+  organizationId: string;
+  userId: string;
+  templateId?: string;
+  includeCategories?: boolean;
 }
 
 export function useOrganization() {
@@ -66,26 +89,9 @@ export function useOrganization() {
     });
   };
 
-  // Get user's default organization (first one in the list)
-  const useDefaultOrganization = (userId: string | undefined) => {
-    return useQuery({
-      queryKey: ['default-organization', userId],
-      queryFn: async () => {
-        if (!userId) return null;
-        const response = await authenticatedRequest(
-          'GET',
-          buildUserApiUrl(userId, '/memberships/organizations')
-        );
-        if (!response.ok) return null;
-        const orgs = await response.json() as Organization[];
-        return orgs.length > 0 ? orgs[0] : null;
-      },
-      enabled: !!userId,
-    });
-  };
-
   // Check slug availability (public endpoint)
-  const checkSlugAvailable = async (slug: string): Promise<boolean> => {
+  // Memoized to prevent infinite loops when used in useEffect dependencies
+  const checkSlugAvailable = useCallback(async (slug: string): Promise<boolean> => {
     const response = await authenticatedRequest(
       'GET',
       buildPublicApiUrl(`/organizations/check-slug/${slug}`)
@@ -93,10 +99,11 @@ export function useOrganization() {
     if (!response.ok) return false;
     const data = await response.json();
     return data.available;
-  };
+  }, []);
 
   // Check subdomain availability (public endpoint)
-  const checkSubdomainAvailable = async (subdomain: string): Promise<boolean> => {
+  // Memoized to prevent infinite loops when used in useEffect dependencies
+  const checkSubdomainAvailable = useCallback(async (subdomain: string): Promise<boolean> => {
     const response = await authenticatedRequest(
       'GET',
       buildPublicApiUrl(`/organizations/check-subdomain/${subdomain}`)
@@ -104,9 +111,9 @@ export function useOrganization() {
     if (!response.ok) return false;
     const data = await response.json();
     return data.available;
-  };
+  }, []);
 
-  // Create organization mutation
+  // Create organization mutation (Step 1 - draft)
   const createOrganization = useMutation({
     mutationFn: async (data: CreateOrganizationData) => {
       const response = await authenticatedRequest(
@@ -125,10 +132,49 @@ export function useOrganization() {
     },
   });
 
+  // Complete onboarding step 2 (contact info)
+  const completeOnboardingStep2 = useMutation({
+    mutationFn: async (data: CompleteStep2Data) => {
+      const { organizationId, userId, ...contactSettings } = data;
+      const response = await authenticatedRequest(
+        'POST',
+        buildUserApiUrl(userId, `/organizations/${organizationId}/onboarding/step2`),
+        contactSettings
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save contact information');
+      }
+      return response.json() as Promise<Organization>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
+    },
+  });
+
+  // Complete onboarding step 3 (apply template)
+  const completeOnboardingStep3 = useMutation({
+    mutationFn: async (data: CompleteStep3Data) => {
+      const { organizationId, userId, templateId, includeCategories } = data;
+      const response = await authenticatedRequest(
+        'POST',
+        buildUserApiUrl(userId, `/organizations/${organizationId}/onboarding/step3`),
+        { templateId, includeCategories }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to apply template');
+      }
+      return response.json() as Promise<Organization>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
+    },
+  });
+
   return {
     // Queries
     useUserOrganizations,
-    useDefaultOrganization,
 
     // Checks
     checkSlugAvailable,
@@ -136,5 +182,7 @@ export function useOrganization() {
 
     // Mutations
     createOrganization,
+    completeOnboardingStep2,
+    completeOnboardingStep3,
   };
 }

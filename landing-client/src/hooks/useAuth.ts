@@ -49,11 +49,9 @@ interface UserProfile {
   isActive?: boolean;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-
 async function authenticatedRequest(
   method: string,
-  endpoint: string,
+  url: string,
   data?: any
 ): Promise<Response> {
   const headers: Record<string, string> = {
@@ -79,7 +77,8 @@ async function authenticatedRequest(
     config.body = JSON.stringify(data);
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  // The URL is already complete from buildUserApiUrl/buildPublicApiUrl, no need to prepend base URL
+  const response = await fetch(url, config);
 
   // Handle token expiration
   if (response.status === 401 || response.status === 403) {
@@ -90,7 +89,7 @@ async function authenticatedRequest(
 
       if (newToken) {
         headers.Authorization = `Bearer ${newToken}`;
-        return fetch(`${API_BASE_URL}${endpoint}`, { ...config, headers });
+        return fetch(url, { ...config, headers });
       }
     } catch (refreshError) {
       console.error('Token refresh failed:', refreshError);

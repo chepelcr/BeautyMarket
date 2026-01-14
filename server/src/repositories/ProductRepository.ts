@@ -1,11 +1,36 @@
 import { db } from '../config/database';
 import { products as productsTable, type Product } from '../entities';
 import type { InsertProduct } from '../models';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { IProductRepository } from '../types';
 
 export class ProductRepository implements IProductRepository {
-  async getProducts(): Promise<Product[]> {
+  async getProducts(organizationId?: string, filters?: any): Promise<Product[]> {
+    const conditions = [];
+    
+    if (organizationId) {
+      conditions.push(eq(productsTable.organizationId, organizationId));
+    }
+    if (filters?.isService !== undefined) {
+      conditions.push(eq(productsTable.isService, filters.isService));
+    }
+    if (filters?.onSale !== undefined) {
+      conditions.push(eq(productsTable.onSale, filters.onSale));
+    }
+    if (filters?.type) {
+      conditions.push(eq(productsTable.type, filters.type));
+    }
+    if (filters?.category) {
+      conditions.push(eq(productsTable.categoryId, filters.category));
+    }
+
+    if (conditions.length > 0) {
+      return await db
+        .select()
+        .from(productsTable)
+        .where(and(...conditions));
+    }
+    
     return await db.select().from(productsTable);
   }
 
@@ -15,6 +40,31 @@ export class ProductRepository implements IProductRepository {
       .from(productsTable)
       .where(eq(productsTable.id, id));
     return product;
+  }
+
+  async getProductByIdAndOrgId(id: string, organizationId: string): Promise<Product | undefined> {
+    const [product] = await db
+      .select()
+      .from(productsTable)
+      .where(
+        and(
+          eq(productsTable.id, id),
+          eq(productsTable.organizationId, organizationId)
+        )
+      );
+    return product;
+  }
+
+  async getProductsByCategoryAndOrg(categoryId: string, organizationId: string): Promise<Product[]> {
+    return await db
+      .select()
+      .from(productsTable)
+      .where(
+        and(
+          eq(productsTable.categoryId, categoryId),
+          eq(productsTable.organizationId, organizationId)
+        )
+      );
   }
 
   async getProductsByCategory(categorySlug: string): Promise<Product[]> {

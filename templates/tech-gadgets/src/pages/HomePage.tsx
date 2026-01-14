@@ -1,9 +1,34 @@
 import { Link } from 'wouter';
+import { DynamicIcon } from '@/components/DynamicIcon';
 import { Cpu, Smartphone, Laptop, Headphones, Watch, Zap } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-
+import { useProducts, useHomePage } from '@/hooks/useContent';
+import { useTheme } from "@/hooks/useContent";
+import { parsePageSections, getSectionByType } from '@/lib/pageUtils';
 export default function HomePage() {
+  const { data: pageData, isLoading: pageLoading } = useHomePage();
+  const { data: theme } = useTheme();
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+            <DynamicIcon icon={theme?.loadingIcon} fallback="Sparkles" className="w-12 h-12 text-primary" size={48} />
+          </div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+  const sections = parsePageSections(pageData);
+  const hero = getSectionByType(sections, 'hero')?.content || {};
+  const benefits = getSectionByType(sections, 'benefits')?.content || {};
+  const cta = getSectionByType(sections, 'cta')?.content || {};
+  const { data: products = [], isLoading } = useProducts();
+  const featuredProducts = products.slice(0, 4);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar cartItemCount={0} />
@@ -65,33 +90,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Productos Destacados */}
       <section className="container-tech py-16 bg-card/50">
         <h3 className="section-header-tech">Featured Tech</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <Link key={product.id} href={`/products/${product.id}`}>
-              <div className="card-tech group cursor-pointer">
-                <div className="aspect-square bg-background rounded-sm mb-4 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center tech-gradient-subtle group-hover:tech-gradient transition-all">
-                    <Cpu className="h-20 w-20 text-tech-cyan opacity-50 group-hover:opacity-100 transition-opacity" />
+          {isLoading ? (
+            Array(4).fill(0).map((_, i) => <div key={i} className="card-tech animate-pulse h-80" />)
+          ) : (
+            featuredProducts.map((product: any) => (
+              <Link key={product.id} href={`/products/${product.id}`}>
+                <div className="card-tech group cursor-pointer">
+                  <div className="aspect-square bg-background rounded-sm mb-4 overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center tech-gradient-subtle group-hover:tech-gradient transition-all">
+                      <Cpu className="h-20 w-20 text-tech-cyan opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                  <h4 className="font-semibold mb-2 group-hover:text-tech-cyan transition-colors">
+                    {product.name}
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-tech-cyan">${product.price}</span>
+                    {product.badge && (
+                      <span className="px-3 py-1 bg-accent/20 text-accent rounded-sm text-xs font-medium">
+                        {product.badge}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <h4 className="font-semibold mb-2 group-hover:text-tech-cyan transition-colors">
-                  {product.name}
-                </h4>
-                <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-tech-cyan">${product.price}</span>
-                  {product.badge && (
-                    <span className="px-3 py-1 bg-accent/20 text-accent rounded-sm text-xs font-medium">
-                      {product.badge}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          )}
         </div>
       </section>
 
@@ -161,33 +190,4 @@ const categories = [
   },
 ];
 
-const featuredProducts = [
-  {
-    id: '1',
-    name: 'UltraBook Pro X1',
-    description: '16" 4K Display, M2 Chip, 32GB RAM',
-    price: 2499,
-    badge: 'New',
-  },
-  {
-    id: '2',
-    name: 'Quantum Phone 15',
-    description: '6.7" OLED, 5G, Triple Camera',
-    price: 1299,
-    badge: 'Bestseller',
-  },
-  {
-    id: '3',
-    name: 'AirPods Max Elite',
-    description: 'ANC, Spatial Audio, 40hr Battery',
-    price: 549,
-    badge: 'Popular',
-  },
-  {
-    id: '4',
-    name: 'SmartWatch Ultra',
-    description: 'GPS, ECG, Always-on Display',
-    price: 799,
-    badge: 'New',
-  },
-];
+

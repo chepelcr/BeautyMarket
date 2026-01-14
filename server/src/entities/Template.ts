@@ -8,6 +8,7 @@ export const templates = pgTable("templates", {
   description: text("description"),
   category: varchar("category", { length: 50 }).notNull(),
   thumbnailUrl: text("thumbnail_url"),
+  previewUrl: text("preview_url"),
   isActive: boolean("is_active").default(true).notNull(),
   sortOrder: integer("sort_order").default(0).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),

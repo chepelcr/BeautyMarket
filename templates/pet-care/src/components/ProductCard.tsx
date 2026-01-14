@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { DynamicIcon } from './DynamicIcon';
 import { Link } from 'wouter';
 import { ShoppingCart, Heart, Star, Check } from 'lucide-react';
 import { PawIcon } from './PawPrintDecoration';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
 
 export interface Product {
   id: string;
@@ -31,6 +33,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   isFavorite = false,
 }) => {
   const { addToCart } = useCartStore();
+  const { data: theme } = useTheme();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -57,11 +60,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className="bg-card rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-primary/20 hover:-translate-y-2">
           {/* Image Container */}
           <div className="relative overflow-hidden bg-muted/30 aspect-square">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-card flex items-center justify-center">
+                    <DynamicIcon icon={theme?.productFallbackIcon} fallback="Sparkles" className="w-12 h-12 text-primary/40" size={48} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Producto sin imagen</span>
+                </div>
+              </div>
+            )}
 
             {/* Badge */}
             {product.badge && (

@@ -1,7 +1,9 @@
 import { Link } from 'wouter';
+import { DynamicIcon } from './DynamicIcon';
 import { ShoppingCart, Star, Zap, Check } from 'lucide-react';
 import { useState } from 'react';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
 
 export interface ProductCardProps {
   id: string;
@@ -25,6 +27,7 @@ export default function ProductCard({
   onAddToCart,
 }: ProductCardProps) {
   const { addToCart } = useCartStore();
+  const { data: theme } = useTheme();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -62,7 +65,7 @@ export default function ProductCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center tech-gradient-subtle group-hover:tech-gradient transition-all duration-300">
-              <Zap className="h-20 w-20 text-tech-cyan opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" />
+              <DynamicIcon icon={theme?.productFallbackIcon} fallback="Sparkles" className="w-12 h-12 text-primary/40" size={48} />
             </div>
           )}
 

@@ -1,32 +1,45 @@
 import { Link } from "wouter";
-import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Heart, Sparkles, Store } from "lucide-react";
+import { Instagram, Facebook, Twitter, Mail, MessageCircle, MapPin, Heart, Sparkles, Store } from "lucide-react";
+import { useContact, useHomePageSections, useTheme } from "@/hooks/useContent";
+import { useSubdomainContext } from "@/contexts/SubdomainContext";
+import { getSectionByType } from "@/lib/pageUtils";
 
 export default function Footer() {
   const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://jmarkets.jcampos.dev';
+  const { data: contact } = useContact();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
+  const { data: sections = [] } = useHomePageSections();
+  const newsletter = getSectionByType(sections, 'newsletter')?.content || {};
 
   return (
     <footer className="bg-gradient-to-br from-pink-50 via-white to-pink-50 border-t border-border">
       {/* Newsletter Section */}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto text-center mb-12">
-          <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+          
+          {theme?.logoUrl ? (
+            <img src={theme.logoUrl} alt="Logo" className="w-12 h-12 mx-auto mb-4" />
+          ) : (
+            <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+          )}
           <h3 className="text-3xl font-serif font-bold text-foreground mb-3">
-            Join Our Beauty Community
+            {newsletter.title || 'Únete a Nuestra Comunidad'}
           </h3>
           <p className="text-muted-foreground mb-6">
-            Subscribe to receive exclusive beauty tips, new product launches, and special offers
+            {newsletter.description || 'Suscríbete para recibir consejos exclusivos, lanzamientos de productos y ofertas especiales'}
           </p>
           <form className="flex gap-3 max-w-md mx-auto">
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder={newsletter.placeholder || 'Ingresa tu correo'}
               className="flex-1 px-4 py-3 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button
               type="submit"
               className="btn-beauty whitespace-nowrap"
             >
-              Subscribe
+              {newsletter.buttonText || 'Suscribirse'}
             </button>
           </form>
         </div>
@@ -38,48 +51,59 @@ export default function Footer() {
           {/* Brand Column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-6 h-6 text-primary" />
+              
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" className="w-6 h-6" />
+              ) : (
+                <Sparkles className="w-6 h-6 text-primary" />
+              )}
               <span className="text-xl font-serif font-bold text-foreground">
-                Beauty Essentials
+                {organization?.name || 'Beauty Essentials'}
               </span>
             </div>
             <p className="text-muted-foreground text-sm mb-4">
-              Premium cosmetics and skincare products for your natural beauty. Cruelty-free, vegan-friendly, and made with love.
+              Cosméticos y productos de cuidado premium para tu belleza natural. Libre de crueldad, vegano y hecho con amor.
             </p>
             <div className="flex gap-3">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-white rounded-full hover:bg-primary hover:text-white transition-colors border border-border"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-white rounded-full hover:bg-primary hover:text-white transition-colors border border-border"
-                aria-label="Facebook"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-white rounded-full hover:bg-primary hover:text-white transition-colors border border-border"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
+              {contact?.instagramUrl && (
+                <a
+                  href={contact.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 bg-white rounded-full hover:bg-primary hover:text-white transition-colors border border-border"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+              )}
+              {contact?.facebookUrl && (
+                <a
+                  href={contact.facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 bg-white rounded-full hover:bg-primary hover:text-white transition-colors border border-border"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-5 h-5" />
+                </a>
+              )}
+              {contact?.twitterUrl && (
+                <a
+                  href={contact.twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 bg-white rounded-full hover:bg-primary hover:text-white transition-colors border border-border"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+              )}
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Enlaces Rápidos */}
           <div>
-            <h4 className="font-serif font-bold text-foreground mb-4">Quick Links</h4>
+            <h4 className="font-serif font-bold text-foreground mb-4">Enlaces Rápidos</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/">
@@ -91,23 +115,23 @@ export default function Footer() {
               <li>
                 <Link href="/products">
                   <a className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Shop All Products
+                    Ver Todos los Productos
                   </a>
                 </Link>
               </li>
               <li>
                 <a href="#about" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  About Us
+                  Acerca de Nosotros
                 </a>
               </li>
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Our Story
+                  Nuestra Historia
                 </a>
               </li>
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Beauty Blog
+                  Blog de Belleza
                 </a>
               </li>
               <li className="pt-2">
@@ -116,19 +140,19 @@ export default function Footer() {
                   className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors text-sm font-medium"
                 >
                   <Store className="w-4 h-4" />
-                  Start Your Own Store
+                  Crea Tu Propia Tienda
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Customer Care */}
+          {/* Atención al Cliente */}
           <div>
-            <h4 className="font-serif font-bold text-foreground mb-4">Customer Care</h4>
+            <h4 className="font-serif font-bold text-foreground mb-4">Atención al Cliente</h4>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Shipping & Returns
+                  Envíos y Devoluciones
                 </a>
               </li>
               <li>
@@ -138,17 +162,17 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Privacy Policy
+                  Política de Privacidad
                 </a>
               </li>
               <li>
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Terms & Conditions
+                  Términos y Condiciones
                 </a>
               </li>
               <li>
                 <a href="#contact" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Contact Us
+                  Contáctanos
                 </a>
               </li>
             </ul>
@@ -156,27 +180,32 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-serif font-bold text-foreground mb-4">Get In Touch</h4>
+            <h4 className="font-serif font-bold text-foreground mb-4">Contáctanos</h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2">
-                <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-muted-foreground text-sm">
-                  123 Beauty Avenue, Suite 100<br />
-                  New York, NY 10001
-                </span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="tel:+1234567890" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  +1 (234) 567-890
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="mailto:hello@beautyessentials.com" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  hello@beautyessentials.com
-                </a>
-              </li>
+              {contact?.address && (
+                <li className="flex items-start gap-2">
+                  <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground text-sm">
+                    {contact.address}
+                  </span>
+                </li>
+              )}
+              {contact?.phone && (
+                <li className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <a href={`https://wa.me/${contact.whatsappNumber?.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hola, me gustaría obtener más información")}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    {contact.phone}
+                  </a>
+                </li>
+              )}
+              {contact?.email && (
+                <li className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-primary flex-shrink-0" />
+                  <a href={`mailto:${contact.email}`} className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                    {contact.email}
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -185,12 +214,12 @@ export default function Footer() {
         <div className="beauty-divider mb-6"></div>
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <p className="flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-primary fill-primary" /> by Beauty Essentials
+            Hecho con <Heart className="w-4 h-4 text-primary fill-primary" /> por JCampos para JMarkets
           </p>
-          <p>2024 Beauty Essentials. All rights reserved.</p>
+          <p>2024 JMarkets by JCampos. Todos los derechos reservados.</p>
           <div className="flex gap-4">
-            <span className="font-medium">Cruelty-Free</span>
-            <span className="font-medium">Vegan</span>
+            <span className="font-medium">Libre de Crueldad</span>
+            <span className="font-medium">Vegano</span>
             <span className="font-medium">Natural</span>
           </div>
         </div>

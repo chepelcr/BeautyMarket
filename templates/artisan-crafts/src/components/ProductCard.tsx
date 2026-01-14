@@ -1,7 +1,9 @@
 import { Link } from 'wouter';
+import { DynamicIcon } from './DynamicIcon';
 import { ShoppingCart, Heart, Star, Check } from 'lucide-react';
 import { useState } from 'react';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
 
 interface ProductCardProps {
   id: string | number;
@@ -27,6 +29,7 @@ export default function ProductCard({
   artisan,
 }: ProductCardProps) {
   const { addToCart } = useCartStore();
+  const { data: theme } = useTheme();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -56,7 +59,7 @@ export default function ProductCard({
               ) : (
                 <div className="text-center">
                   <div className="w-24 h-24 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-4xl">🏺</span>
+                    <DynamicIcon icon={theme?.productFallbackIcon} fallback="Sparkles" className="w-12 h-12 text-primary/40" size={48} />
                   </div>
                   <span className="text-xs text-foreground/40 font-sans">Handcrafted Item</span>
                 </div>

@@ -19,6 +19,7 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx server/src/scripts/run-rbac-seed.ts",
+    "db:seed:templates": "tsx server/src/scripts/run-template-seed.ts",
     "setup:template": "npm run build:store && node setup-template-bucket.js",
     "dev:template:jmarkets-demo": "cd templates/jmarkets-demo && npm run dev",
     "build:template:jmarkets-demo": "cd templates/jmarkets-demo && npm install && npm run build",

@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ProgressSteps } from "@/components/ui/progress-steps";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,6 +18,13 @@ export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
+
+  // Define registration flow steps
+  const steps = [
+    { id: 'register', title: 'Registro', description: 'Crear cuenta' },
+    { id: 'verify', title: 'Verificación', description: 'Confirmar email' },
+    { id: 'organization', title: 'Organización', description: 'Crear tienda' }
+  ];
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('verificationEmail');
@@ -127,7 +135,7 @@ export default function VerifyEmail() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Mail className="h-6 w-6 text-primary" />
           </div>
@@ -138,6 +146,12 @@ export default function VerifyEmail() {
             {t('auth.verifyEmail.subtitle')}{" "}
             <span className="font-medium text-primary">{email}</span>
           </CardDescription>
+
+          <ProgressSteps
+            steps={steps}
+            currentStep="verify"
+            completedSteps={['register']}
+          />
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">

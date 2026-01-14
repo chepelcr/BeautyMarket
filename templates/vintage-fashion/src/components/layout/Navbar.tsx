@@ -18,7 +18,7 @@ export function Navbar() {
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link href="/">
-            <a className="flex flex-col hover:opacity-80 transition-opacity">
+            <a className="flex flex-col hover:opacity-80 transition-opacity" onClick={() => window.scrollTo(0, 0)}>
               <h1 className="text-3xl md:text-4xl font-serif font-bold text-burgundy-900">
                 Vintage Fashion Co.
               </h1>
@@ -31,22 +31,22 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="/">
-              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors">
-                Home
+              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors" onClick={() => window.scrollTo(0, 0)}>
+                Inicio
               </a>
             </Link>
             <Link href="/products">
-              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors">
+              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                 Collection
               </a>
             </Link>
             <Link href="/products">
-              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors">
+              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                 New Arrivals
               </a>
             </Link>
             <Link href="/products">
-              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors">
+              <a className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                 Sale
               </a>
             </Link>
@@ -74,7 +74,7 @@ export function Navbar() {
 
             {/* Mobile Menu Toggle */}
             <button
-              onClick={toggleMenu}
+              onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
               className="md:hidden p-2 text-burgundy-900 hover:text-mustard-500 transition-colors"
               aria-label="Toggle menu"
             >
@@ -92,7 +92,7 @@ export function Navbar() {
                   className="font-serif text-burgundy-900 hover:text-mustard-500 transition-colors py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Home
+                  Inicio
                 </a>
               </Link>
               <Link href="/products">

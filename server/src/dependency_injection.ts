@@ -52,6 +52,9 @@ import {
   PageService,
   ComponentService
 } from './services';
+import { TemplateCloneService } from './services/TemplateCloneService';
+import { TemplateContentService } from './services/TemplateContentService';
+import { PublicOrgService } from './services/PublicOrgService';
 
 // Controllers
 import {
@@ -78,6 +81,7 @@ import {
   SectionContentController,
   ComponentController
 } from './controllers';
+import { PublicOrgController } from './controllers/PublicOrgController';
 
 // Create repositories
 export const productRepository = new ProductRepository();
@@ -131,11 +135,13 @@ export const emailService = new EmailService();
 export const userService = new UserService(userRepository, cognitoService, emailService);
 
 // Organization and Multi-tenancy services
+export const templateCloneService = new TemplateCloneService();
 export const organizationService = new OrganizationService(
   organizationRepository,
   organizationMemberRepository,
   rbacRepository,
-  contactSettingsRepository
+  contactSettingsRepository,
+  templateCloneService
 );
 export const membershipService = new MembershipService(
   organizationMemberRepository,
@@ -167,6 +173,9 @@ export const shippingSettingsService = new ShippingSettingsService(shippingSetti
 
 // Template and Page services
 export const templateService = new TemplateService(templateRepository);
+export const templateContentService = new TemplateContentService();
+import { db } from './config/database';
+export const publicOrgService = new PublicOrgService(db);
 export const pageService = new PageService(pageRepository);
 export const componentService = new ComponentService(componentRepository);
 
@@ -185,7 +194,9 @@ export const userController = new UserController(userService);
 export const organizationController = new OrganizationController(
   organizationService,
   rbacService,
-  organizationInfrastructureService
+  organizationInfrastructureService,
+  templateCloneService,
+  organizationMemberRepository
 );
 export const membershipController = new MembershipController(membershipService, rbacService);
 export const invitationController = new InvitationController(invitationService);
@@ -198,7 +209,8 @@ export const paymentSettingsController = new PaymentSettingsController(paymentSe
 export const shippingSettingsController = new ShippingSettingsController(shippingSettingsRepository);
 
 // Template and Page controllers
-export const templateController = new TemplateController(templateRepository, pageRepository, organizationRepository);
+export const templateController = new TemplateController(templateRepository, templateContentService);
+export const publicOrgController = new PublicOrgController(publicOrgService);
 export const pageController = new PageController(pageRepository);
 export const sectionController = new SectionController(pageSectionRepository, pageRepository);
 export const sectionContentController = new SectionContentController(sectionContentRepository, pageSectionRepository, preDeploymentService);

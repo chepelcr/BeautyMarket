@@ -57,7 +57,7 @@ const NotFoundPage: React.FC = () => {
             <Link href="/products">
               <a className="inline-flex items-center justify-center gap-2 bg-secondary text-secondary-foreground px-8 py-4 rounded-2xl font-semibold text-lg hover:scale-105 transition-transform shadow-lg">
                 <Search className="w-5 h-5" />
-                Browse Products
+                Ver Productos
               </a>
             </Link>
           </div>

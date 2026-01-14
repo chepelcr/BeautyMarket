@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { buildUserApiUrl, buildPublicApiUrl } from '@/lib/apiUtils';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-
 // Simplified types for landing page
 export interface Organization {
   id: string;
@@ -17,7 +15,7 @@ export interface Organization {
 
 async function authenticatedRequest(
   method: string,
-  endpoint: string,
+  url: string,
   data?: any
 ): Promise<Response> {
   const headers: Record<string, string> = {
@@ -43,7 +41,8 @@ async function authenticatedRequest(
     config.body = JSON.stringify(data);
   }
 
-  return fetch(`${API_BASE_URL}${endpoint}`, config);
+  // The URL is already complete from buildUserApiUrl/buildPublicApiUrl, no need to prepend base URL
+  return fetch(url, config);
 }
 
 // Types for the hook
@@ -52,6 +51,21 @@ interface CreateOrganizationData {
   slug: string;
   subdomain?: string;
   ownerId: string;
+}
+
+interface CompleteStep2Data {
+  organizationId: string;
+  userId: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+}
+
+interface CompleteStep3Data {
+  organizationId: string;
+  userId: string;
+  templateId?: string;
+  includeCategories?: boolean;
 }
 
 export function useOrganization() {
@@ -96,7 +110,7 @@ export function useOrganization() {
     return data.available;
   };
 
-  // Create organization mutation
+  // Create organization mutation (Step 1 - draft)
   const createOrganization = useMutation({
     mutationFn: async (data: CreateOrganizationData) => {
       const response = await authenticatedRequest(
@@ -115,6 +129,46 @@ export function useOrganization() {
     },
   });
 
+  // Complete onboarding step 2 (contact info)
+  const completeOnboardingStep2 = useMutation({
+    mutationFn: async (data: CompleteStep2Data) => {
+      const { organizationId, userId, ...contactSettings } = data;
+      const response = await authenticatedRequest(
+        'POST',
+        buildUserApiUrl(userId, `/organizations/${organizationId}/onboarding/step2`),
+        contactSettings
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save contact information');
+      }
+      return response.json() as Promise<Organization>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
+    },
+  });
+
+  // Complete onboarding step 3 (apply template)
+  const completeOnboardingStep3 = useMutation({
+    mutationFn: async (data: CompleteStep3Data) => {
+      const { organizationId, userId, templateId, includeCategories } = data;
+      const response = await authenticatedRequest(
+        'POST',
+        buildUserApiUrl(userId, `/organizations/${organizationId}/onboarding/step3`),
+        { templateId, includeCategories }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to apply template');
+      }
+      return response.json() as Promise<Organization>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
+    },
+  });
+
   return {
     // Queries
     useUserOrganizations,
@@ -125,5 +179,7 @@ export function useOrganization() {
 
     // Mutations
     createOrganization,
+    completeOnboardingStep2,
+    completeOnboardingStep3,
   };
 }

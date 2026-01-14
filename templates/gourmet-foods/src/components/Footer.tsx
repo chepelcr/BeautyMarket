@@ -1,7 +1,11 @@
 import { Link } from 'wouter';
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, ChefHat } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Mail, MessageCircle, MapPin, ChefHat } from 'lucide-react';
+import { useTheme } from '@/hooks/useContent';
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
 
 export default function Footer() {
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   return (
     <footer className="bg-stone-900 text-stone-300">
       <div className="container mx-auto px-4 py-12">
@@ -9,8 +13,13 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <ChefHat className="w-7 h-7 text-gourmet-gold" />
-              <h3 className="text-xl font-serif font-bold text-white">Gourmet Foods</h3>
+              
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" className="w-7 h-7" />
+              ) : (
+                <ChefHat className="w-7 h-7 text-gourmet-gold" />
+              )}
+              <h3 className="text-xl font-serif font-bold text-white">{organization?.name || 'Gourmet Foods'}</h3>
             </div>
             <p className="text-sm text-stone-400 mb-4">
               Premium specialty foods and artisanal products, curated for discerning palates.
@@ -83,7 +92,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a href="#" className="hover:text-gourmet-gold transition-colors">
-                  About Us
+                  Acerca de Nosotros
                 </a>
               </li>
               <li>
@@ -108,7 +117,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-gourmet-gold transition-colors">
-                  Privacy Policy
+                  Política de Privacidad
                 </a>
               </li>
             </ul>
@@ -123,7 +132,7 @@ export default function Footer() {
                 <span>123 Gourmet Street, Culinary District, NY 10001</span>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="w-5 h-5 text-gourmet-gold flex-shrink-0" />
+                <MessageCircle className="w-5 h-5 text-gourmet-gold flex-shrink-0" />
                 <span>(555) 123-4567</span>
               </li>
               <li className="flex items-center gap-2">
@@ -136,13 +145,13 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-stone-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-stone-400">
-          <p>&copy; 2026 Gourmet Foods Market. All rights reserved.</p>
+          <p>&copy; 2026 {organization?.name || 'Gourmet Foods Market'}. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-gourmet-gold transition-colors">
               Terms of Service
             </a>
             <a href="#" className="hover:text-gourmet-gold transition-colors">
-              Privacy Policy
+              Política de Privacidad
             </a>
             <a href="#" className="hover:text-gourmet-gold transition-colors">
               Cookie Policy

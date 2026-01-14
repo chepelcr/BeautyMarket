@@ -1,7 +1,13 @@
 import { Leaf, Instagram, Facebook, Twitter, Mail } from 'lucide-react';
-import { Link } from 'wouter';
-
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';import { Link } from 'wouter';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';
 export default function Footer() {
+  const { data: contact } = useContact();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   return (
     <footer className="bg-foreground text-background py-12">
       <div className="container-organic">
@@ -9,8 +15,13 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <Leaf className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold">Artisan Crafts</span>
+              
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" className="w-6 h-6" />
+              ) : (
+                <Leaf className="w-6 h-6 text-primary" />
+              )}
+              <span className="text-xl font-bold">{organization?.name || 'Artisan Crafts'}</span>
             </div>
             <p className="text-background/70 text-sm">
               Connecting artisans with people who appreciate authentic, handmade quality.
@@ -51,7 +62,7 @@ export default function Footer() {
           <div>
             <h5 className="font-semibold mb-4 font-sans">About</h5>
             <ul className="space-y-2 text-sm text-background/70">
-              <li><a href="#" className="hover:text-primary transition-colors">Our Story</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Nuestra Historia</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Meet the Artisans</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Sustainability</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">FAQ</a></li>
@@ -63,7 +74,7 @@ export default function Footer() {
           <div>
             <h5 className="font-semibold mb-4 font-sans">Help</h5>
             <ul className="space-y-2 text-sm text-background/70">
-              <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Contáctanos</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Shipping Info</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Returns</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Track Order</a></li>
@@ -73,9 +84,9 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-background/20 pt-8 text-center text-sm text-background/70">
-          <p>&copy; {new Date().getFullYear()} Artisan Crafts. Handcrafted with love.</p>
+          <p>&copy; {new Date().getFullYear()} {organization?.name || 'Artisan Crafts'}. Handcrafted with love.</p>
           <p className="mt-2 text-xs">
-            Template powered by JMarkets | <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a> | <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
+            Template powered by JMarkets | <a href="#" className="hover:text-primary transition-colors">Política de Privacidad</a> | <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
           </p>
         </div>
       </div>

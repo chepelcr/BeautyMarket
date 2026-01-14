@@ -1,31 +1,113 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProgressSteps } from '@/components/ui/progress-steps';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Loader2, Check, X, Building2 } from 'lucide-react';
+import { Loader2, Check, X, Building2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { buildPublicApiUrl, buildUserApiUrl } from '@/lib/apiUtils';
+
+// Step 1: Organization Info Schema
+const step1Schema = z.object({
+  name: z.string().min(3, 'Organization name must be at least 3 characters'),
+  slug: z.string().min(3, 'Slug must be at least 3 characters'),
+  subdomain: z.string().min(3, 'Subdomain must be at least 3 characters').optional().or(z.literal('')),
+});
+
+// Step 2: Contact Info Schema
+const step2Schema = z.object({
+  phone: z.string().optional().or(z.literal('')),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
+});
+
+type Step1Form = z.infer<typeof step1Schema>;
+type Step2Form = z.infer<typeof step2Schema>;
+
+interface Template {
+  id: string;
+  organizationId: string;
+  name: string;
+  description: string | null;
+  previewUrl: string | null;
+  thumbnailUrl: string | null;
+  category: string | null;
+  isActive: boolean;
+}
 
 export default function CreateOrganization() {
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [subdomain, setSubdomain] = useState('');
+  const [currentStep, setCurrentStep] = useState<'info' | 'contact' | 'template'>('info');
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [createdOrgId, setCreatedOrgId] = useState<string | null>(null); // Track created org ID
+  const [step1Data, setStep1Data] = useState<Step1Form | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null); // Stores template.id
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [loadingExistingOrg, setLoadingExistingOrg] = useState(false);
+
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [checkingSubdomain, setCheckingSubdomain] = useState(false);
 
   const { toast } = useToast();
-  const { t } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { createOrganization, checkSlugAvailable, checkSubdomainAvailable } = useOrganization();
-  const [, navigate] = useLocation();
+  const {
+    createOrganization,
+    completeOnboardingStep2,
+    completeOnboardingStep3,
+    checkSlugAvailable,
+    checkSubdomainAvailable
+  } = useOrganization();
+  const [location, navigate] = useLocation();
 
   const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+
+  const steps = [
+    { id: 'info', title: 'Información Básica', description: 'Nombre y identificador' },
+    { id: 'contact', title: 'Contacto', description: 'Información de contacto' },
+    { id: 'template', title: 'Plantilla', description: 'Elige tu diseño' }
+  ];
+
+  // Step 1 form
+  const step1Form = useForm<Step1Form>({
+    resolver: zodResolver(step1Schema),
+    defaultValues: {
+      name: '',
+      slug: '',
+      subdomain: '',
+    },
+  });
+
+  // Step 2 form
+  const step2Form = useForm<Step2Form>({
+    resolver: zodResolver(step2Schema),
+    defaultValues: {
+      phone: '',
+      email: '',
+      address: '',
+    },
+  });
+
+  const name = step1Form.watch('name');
+  const slug = step1Form.watch('slug');
+  const subdomain = step1Form.watch('subdomain');
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -34,17 +116,91 @@ export default function CreateOrganization() {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
-  // Auto-generate slug from name
+  // Load existing incomplete organization if resuming
   useEffect(() => {
-    const generatedSlug = name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-    setSlug(generatedSlug);
-    setSubdomain(generatedSlug);
-  }, [name]);
+    const loadExistingOrg = async () => {
+      // Check if there's an orgId in sessionStorage
+      const orgId = sessionStorage.getItem('resumeOrgId');
+
+      if (!orgId || !user?.id) return;
+
+      setLoadingExistingOrg(true);
+      try {
+        const response = await apiRequest('GET', buildUserApiUrl(user.id, `/organizations/${orgId}`));
+        if (!response.ok) throw new Error('Failed to load organization');
+
+        const org = await response.json();
+
+        // Set the org ID
+        setCreatedOrgId(org.id);
+
+        // Load step 1 data
+        const step1 = {
+          name: org.name,
+          slug: org.slug,
+          subdomain: org.subdomain || '',
+        };
+        setStep1Data(step1);
+        step1Form.reset(step1);
+
+        // Load step 2 data if exists
+        if (org.contactSettings) {
+          step2Form.reset({
+            email: org.contactSettings.email || '',
+            phone: org.contactSettings.phone || '',
+            address: org.contactSettings.address || '',
+          });
+        }
+
+        // Determine current step based on onboardingStep
+        const onboardingStep = org.onboardingStep || 1;
+        if (onboardingStep >= 3) {
+          // Already complete, redirect to org
+          const subdomain = org.subdomain || org.slug;
+          window.location.href = `https://${subdomain}.${baseDomain}`;
+          return;
+        } else if (onboardingStep === 2) {
+          setCurrentStep('template');
+          setCompletedSteps(['info', 'contact']);
+        } else if (onboardingStep === 1) {
+          setCurrentStep('contact');
+          setCompletedSteps(['info']);
+        }
+
+        toast({
+          title: 'Continuando configuración',
+          description: `Retomando configuración de ${org.name}`,
+        });
+      } catch (error: any) {
+        console.error('Error loading organization:', error);
+        toast({
+          title: 'Error',
+          description: 'No se pudo cargar la organización',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoadingExistingOrg(false);
+      }
+    };
+
+    if (user && !authLoading) {
+      loadExistingOrg();
+    }
+  }, [user, authLoading]);
+
+  // Auto-generate slug and subdomain from name
+  useEffect(() => {
+    if (currentStep === 'info' && name) {
+      const generated = name
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      step1Form.setValue('slug', generated);
+      step1Form.setValue('subdomain', generated);
+    }
+  }, [name, currentStep]);
 
   // Check slug availability with debounce
   useEffect(() => {
@@ -61,8 +217,7 @@ export default function CreateOrganization() {
     }, 500);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, checkSlugAvailable]);
 
   // Check subdomain availability with debounce
   useEffect(() => {
@@ -79,172 +234,514 @@ export default function CreateOrganization() {
     }, 500);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subdomain]);
+  }, [subdomain, checkSubdomainAvailable]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Load templates when reaching step 3
+  useEffect(() => {
+    if (currentStep === 'template' && templates.length === 0) {
+      loadTemplates();
+    }
+  }, [currentStep]);
+
+  const loadTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const response = await apiRequest('GET', buildPublicApiUrl('/templates?activeOnly=true'));
+      const data = await response.json();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not load templates',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const handleStep1Submit = async (values: Step1Form) => {
+    if (!slugAvailable) {
+      toast({
+        title: 'Error',
+        description: 'The slug is not available',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (values.subdomain && !subdomainAvailable) {
+      toast({
+        title: 'Error',
+        description: 'The subdomain is not available',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (!user?.id) {
       toast({
-        title: t('organizations.create.error'),
-        description: t('organizations.create.errorDescription'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!slugAvailable) {
-      toast({
-        title: t('organizations.create.error'),
-        description: t('organizations.create.slugTaken'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (subdomain && !subdomainAvailable) {
-      toast({
-        title: t('organizations.create.error'),
-        description: t('organizations.create.subdomainTaken'),
+        title: 'Error',
+        description: 'User not authenticated',
         variant: 'destructive',
       });
       return;
     }
 
     try {
+      // Create organization draft immediately (onboardingStep = 1)
       const organization = await createOrganization.mutateAsync({
-        name,
-        slug,
-        subdomain: subdomain || undefined,
+        name: values.name,
+        slug: values.slug,
+        subdomain: values.subdomain || undefined,
         ownerId: user.id,
       });
 
-      toast({
-        title: t('organizations.create.success'),
-        description: t('organizations.create.successDescription'),
-      });
+      setCreatedOrgId(organization.id);
+      setStep1Data(values);
+      setCompletedSteps(['info']);
+      setCurrentStep('contact');
 
-      // Store selected organization in localStorage and navigate to admin
-      localStorage.setItem('selectedOrganization', JSON.stringify(organization));
-      navigate('/admin');
-    } catch (error: any) {
       toast({
-        title: t('organizations.create.error'),
-        description: error.message || t('organizations.create.errorDescription'),
+        title: 'Step 1 completed',
+        description: 'Organization draft created successfully',
+      });
+    } catch (error: any) {
+      console.error('Error creating organization:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Could not create organization',
         variant: 'destructive',
       });
     }
   };
 
-  if (authLoading) {
+  const handleStep2Submit = async (values: Step2Form) => {
+    if (!user?.id || !createdOrgId) {
+      toast({
+        title: 'Error',
+        description: 'Missing organization data',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Update contact info (onboardingStep = 2)
+      await completeOnboardingStep2.mutateAsync({
+        organizationId: createdOrgId,
+        userId: user.id,
+        email: values.email || undefined,
+        phone: values.phone || undefined,
+        address: values.address || undefined,
+      });
+
+      setCompletedSteps(['info', 'contact']);
+      setCurrentStep('template');
+
+      toast({
+        title: 'Step 2 completed',
+        description: 'Contact information saved successfully',
+      });
+    } catch (error: any) {
+      console.error('Error saving contact info:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Could not save contact information',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleFinalSubmit = async () => {
+    if (!user?.id || !createdOrgId || !step1Data) {
+      toast({
+        title: 'Error',
+        description: 'Missing required data',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // If no template selected, skip to redirect
+    if (!selectedTemplate) {
+      toast({
+        title: 'Organization created',
+        description: `${step1Data.name} has been created successfully`,
+      });
+
+      // Clear the resume orgId from sessionStorage
+      sessionStorage.removeItem('resumeOrgId');
+
+      // Redirect to the organization's subdomain
+      const orgSubdomain = step1Data.subdomain || step1Data.slug;
+      window.location.href = `https://${orgSubdomain}.${baseDomain}`;
+      return;
+    }
+
+    try {
+      // Apply template and complete setup (onboardingStep = 3)
+      const organization = await completeOnboardingStep3.mutateAsync({
+        organizationId: createdOrgId,
+        userId: user.id,
+        templateId: selectedTemplate,
+        includeCategories: true,
+      });
+
+      setCompletedSteps(['info', 'contact', 'template']);
+
+      toast({
+        title: 'Organization ready!',
+        description: `${step1Data.name} is now ready to use`,
+      });
+
+      // Clear the resume orgId from sessionStorage
+      sessionStorage.removeItem('resumeOrgId');
+
+      // Redirect to the organization's subdomain
+      const orgSubdomain = step1Data.subdomain || step1Data.slug;
+      window.location.href = `https://${orgSubdomain}.${baseDomain}`;
+    } catch (error: any) {
+      console.error('Error applying template:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Could not apply template',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const goBackToStep1 = () => {
+    setCurrentStep('info');
+    setCompletedSteps([]);
+  };
+
+  const goBackToStep2 = () => {
+    setCurrentStep('contact');
+    setCompletedSteps(['info']);
+  };
+
+  if (authLoading || loadingExistingOrg) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          {loadingExistingOrg && <p className="text-muted-foreground">Cargando organización...</p>}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-2xl mx-auto py-10 px-4 min-h-screen flex items-center">
-      <Card className="w-full">
-        <CardHeader className="text-center">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/10 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Decorative background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="container max-w-4xl mx-auto pt-20 pb-10 px-4 min-h-screen flex items-center relative z-10">
+        <Card className="w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-xl">
+        <CardHeader className="text-center space-y-4">
           <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
             <Building2 className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">{t('organizations.create.title')}</CardTitle>
+          <CardTitle className="text-2xl">Crea tu Organización</CardTitle>
           <CardDescription>
-            {t('organizations.create.subtitle')}
+            Configura tu tienda en línea en 3 simples pasos
           </CardDescription>
+
+          <ProgressSteps
+            steps={steps}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+          />
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">{t('organizations.create.name')} *</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('organizations.create.namePlaceholder')}
-                required
-                minLength={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="slug">{t('organizations.create.slug')} *</Label>
-              <div className="relative">
-                <Input
-                  id="slug"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder={t('organizations.create.slugPlaceholder')}
-                  required
-                  minLength={3}
-                  className="pr-10"
+          {/* Step 1: Organization Info */}
+          {currentStep === 'info' && (
+            <Form {...step1Form}>
+              <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-6">
+                <FormField
+                  control={step1Form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Organización *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Mi Tienda"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {checkingSlug && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                  {!checkingSlug && slugAvailable === true && <Check className="h-4 w-4 text-green-500" />}
-                  {!checkingSlug && slugAvailable === false && <X className="h-4 w-4 text-red-500" />}
-                </div>
-              </div>
-              {slugAvailable === false && (
-                <p className="text-sm text-red-500">{t('organizations.create.slugTaken')}</p>
-              )}
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="subdomain">{t('organizations.create.subdomain')}</Label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    id="subdomain"
-                    value={subdomain}
-                    onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                    placeholder={t('organizations.create.slugPlaceholder')}
-                    minLength={3}
-                    className="pr-10"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {checkingSubdomain && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                    {!checkingSubdomain && subdomainAvailable === true && <Check className="h-4 w-4 text-green-500" />}
-                    {!checkingSubdomain && subdomainAvailable === false && <X className="h-4 w-4 text-red-500" />}
-                  </div>
-                </div>
-                <span className="text-muted-foreground">.{baseDomain}</span>
-              </div>
-              {subdomainAvailable === false && (
-                <p className="text-sm text-red-500">{t('organizations.create.subdomainTaken')}</p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                {t('organizations.create.subdomainDescription')} {subdomain || 'your-store'}.{baseDomain}
-              </p>
-            </div>
+                <FormField
+                  control={step1Form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Identificador (slug) *</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                            placeholder="mi-tienda"
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {checkingSlug && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                            {!checkingSlug && slugAvailable === true && <Check className="h-4 w-4 text-green-500" />}
+                            {!checkingSlug && slugAvailable === false && <X className="h-4 w-4 text-red-500" />}
+                          </div>
+                        </div>
+                      </FormControl>
+                      {slugAvailable === false && (
+                        <p className="text-sm text-red-500">Este identificador ya está en uso</p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={createOrganization.isPending || !slugAvailable || (!!subdomain && !subdomainAvailable)}
-            >
-              {createOrganization.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('organizations.create.submitting')}
-                </>
+                <FormField
+                  control={step1Form.control}
+                  name="subdomain"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subdominio</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                              placeholder="mi-tienda"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              {checkingSubdomain && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                              {!checkingSubdomain && subdomainAvailable === true && <Check className="h-4 w-4 text-green-500" />}
+                              {!checkingSubdomain && subdomainAvailable === false && <X className="h-4 w-4 text-red-500" />}
+                            </div>
+                          </div>
+                          <span className="text-muted-foreground">.{baseDomain}</span>
+                        </div>
+                      </FormControl>
+                      {subdomainAvailable === false && (
+                        <p className="text-sm text-red-500">Este subdominio ya está en uso</p>
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        Tu tienda estará disponible en {subdomain || 'tu-tienda'}.{baseDomain}
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={!slugAvailable || (!!subdomain && !subdomainAvailable) || createOrganization.isPending}
+                >
+                  {createOrganization.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Continuar
+                    </>
+                  )}
+                </Button>
+
+                <div className="text-center">
+                  <a href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    Volver al inicio
+                  </a>
+                </div>
+              </form>
+            </Form>
+          )}
+
+          {/* Step 2: Contact Info */}
+          {currentStep === 'contact' && (
+            <Form {...step2Form}>
+              <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-6">
+                <FormField
+                  control={step2Form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email de Contacto</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="contacto@ejemplo.com"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={step2Form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Teléfono</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="+506 8888-8888"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={step2Form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dirección</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="San José, Costa Rica"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={completeOnboardingStep2.isPending}
+                >
+                  {completeOnboardingStep2.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Continuar
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
+
+          {/* Step 3: Template Selection */}
+          {currentStep === 'template' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">Elige tu Plantilla</h3>
+                <p className="text-sm text-muted-foreground">
+                  Selecciona un diseño para tu tienda (puedes cambiarlo después)
+                </p>
+              </div>
+
+              {loadingTemplates ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
               ) : (
-                t('organizations.create.submit')
-              )}
-            </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Option to skip template selection */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplate(null)}
+                    className={`p-6 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                      selectedTemplate === null
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                        <Sparkles className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold mb-1">Empezar desde cero</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Crea tu tienda sin plantilla predefinida
+                        </p>
+                      </div>
+                      {selectedTemplate === null && (
+                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      )}
+                    </div>
+                  </button>
 
-            <div className="text-center">
-              <a href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                {t('organizations.select.backToHome')}
-              </a>
+                  {templates.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() => setSelectedTemplate(template.id)}
+                      className={`p-6 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                        selectedTemplate === template.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {template.thumbnailUrl && (
+                          <img
+                            src={template.thumbnailUrl}
+                            alt={template.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">{template.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {template.description || 'Plantilla prediseñada'}
+                          </p>
+                        </div>
+                        {selectedTemplate === template.id && (
+                          <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <Button
+                onClick={handleFinalSubmit}
+                className="w-full"
+                disabled={completeOnboardingStep3.isPending}
+              >
+                {completeOnboardingStep3.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Finalizando...
+                  </>
+                ) : (
+                  'Finalizar'
+                )}
+              </Button>
             </div>
-          </form>
+          )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

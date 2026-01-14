@@ -11,6 +11,7 @@ export interface Organization {
   slug: string;
   subdomain?: string;
   ownerId: string;
+  onboardingStep?: number; // 0 = not started, 1 = basic info, 2 = contact info, 3 = completed
   createdAt: string;
   updatedAt: string;
 }

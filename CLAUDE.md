@@ -79,24 +79,32 @@ ps aux | grep "tsx server"   # View running server process
 
 ```bash
 # Development
-npm run dev              # Start backend server (port 5000)
-npm run dev:landing      # Start landing page client (port 3001)
-npm run dev:all          # Start both backend and landing client concurrently
+npm run dev                   # Start backend server (port 5000)
+npm run dev:landing           # Start landing-client (port 3001)
+npm run dev:dashboard         # Start dashboard (port 5173)
+npm run dev:all               # Start backend + landing + dashboard concurrently
+npm run dev:template:NAME     # Start specific template dev server (e.g., jmarkets-demo)
 
 # Building
-npm run build            # Build all: store client, landing client, and server
-npm run build:store      # Build store management dashboard (Vite → dist/public)
-npm run build:landing    # Build landing page (Vite → dist/landing)
-npm run build:server     # Build Express server (esbuild → dist/index.js)
-npm run build:lambda     # Build Lambda function (esbuild → dist/lambda.js)
+npm run build                 # Build all: dashboard, landing, server
+npm run build:dashboard       # Build admin dashboard (Vite → dist/dashboard)
+npm run build:landing         # Build landing page (Vite → dist/landing)
+npm run build:server          # Build Express server (esbuild → dist/index.js)
+npm run build:lambda          # Build Lambda function (esbuild → dist/lambda.js)
+npm run build:template:NAME   # Build specific template (e.g., tech-gadgets)
+npm run build:templates       # Build all 8 templates
+
+# Deployment
+npm run deploy:all-frontend   # Build all templates + dashboard + deploy to S3
 
 # Type Checking
-npm run check            # TypeScript type checking without emitting files
+npm run check                 # TypeScript type checking without emitting files
 
 # Database Migrations (Drizzle ORM)
-npm run db:push          # Push schema changes to database (⚠️ destructive in dev)
-npm run db:generate      # Generate migration files from schema
-npm run db:migrate       # Run pending migrations
+npm run db:push               # Push schema changes to database (⚠️ destructive in dev)
+npm run db:generate           # Generate migration files from schema
+npm run db:migrate            # Run pending migrations
+npm run db:seed               # Run RBAC seed script
 ```
 
 ### Deployment Scripts
@@ -111,9 +119,124 @@ npm run db:migrate       # Run pending migrations
 ./deploys/deploy-client.sh           # Deploy static website (S3 + CloudFront)
 ./deploys/deploy-pipeline.sh         # Deploy CI/CD pipeline
 
+# Frontend Deployment (All-in-One)
+node setup-template-bucket.js        # Build & deploy all frontend apps (templates, landing, dashboard)
+
 # Utilities
 ./deploys/add-ses-emails.sh          # Add/verify emails in SES for development
 ```
+
+### Frontend Deployment Script: setup-template-bucket.js
+
+**Purpose**: Complete automated deployment of all frontend applications (8 templates, landing page, dashboard) to AWS infrastructure.
+
+**What it does**:
+1. **Build Phase** (automated):
+   - Builds all 8 template organizations (`npm run build:templates`)
+   - Builds landing-client (`npm run build:landing`)
+   - Builds dashboard (`npm run build:dashboard`)
+   - Builds store client (`npm run build:store`)
+
+2. **SSL Certificate Management**:
+   - Requests or retrieves wildcard SSL certificate for `*.jmarkets.jcampos.dev`
+   - Automatically adds DNS validation records to Route53
+   - Waits for certificate validation (max 10 minutes)
+   - Reuses existing validated certificates
+
+3. **Infrastructure Setup** (per app):
+   - Creates S3 bucket for static hosting
+   - Configures Origin Access Control (OAC) for CloudFront
+   - Creates CloudFront distribution with HTTPS redirect
+   - Configures SPA error handling (404/403 → index.html)
+   - Creates bucket policy for CloudFront access
+   - Creates Route53 DNS A records (alias to CloudFront)
+   - Uploads built files to S3 with proper caching headers
+   - Creates CloudFront invalidation to clear cache (immediate updates)
+
+4. **Deployments Created**:
+   - **Landing page**: `jmarkets.jcampos.dev`
+   - **Dashboard**: `admin.jmarkets.jcampos.dev`
+   - **8 Template Organizations**:
+     - `jmarkets-demo-example.jmarkets.jcampos.dev`
+     - `tech-gadgets-example.jmarkets.jcampos.dev`
+     - `vintage-fashion-example.jmarkets.jcampos.dev`
+     - `artisan-crafts-example.jmarkets.jcampos.dev`
+     - `gourmet-foods-example.jmarkets.jcampos.dev`
+     - `fitness-hub-example.jmarkets.jcampos.dev`
+     - `pet-care-example.jmarkets.jcampos.dev`
+     - `beauty-essentials-example.jmarkets.jcampos.dev`
+
+**Configuration** (environment variables in `.env`):
+```bash
+AWS_REGION=us-east-1                           # AWS region
+TEMPLATE_SOURCE_BUCKET=jmarkets-template-market  # Main template bucket name
+HOSTED_ZONE_ID=Z0123456789ABC                  # Route53 hosted zone ID for DNS automation
+```
+
+**AWS Profile**: Uses `J-CAMPOS` profile (configured in script)
+
+**Prerequisites**:
+- AWS CLI configured with `J-CAMPOS` profile
+- AWS credentials with permissions:
+  - S3: CreateBucket, PutObject, PutBucketPolicy
+  - CloudFront: CreateDistribution, CreateOriginAccessControl
+  - ACM: RequestCertificate, DescribeCertificate
+  - Route53: ChangeResourceRecordSets (if HOSTED_ZONE_ID set)
+  - STS: GetCallerIdentity
+
+**Usage**:
+```bash
+# Run the complete deployment (build + deploy)
+node setup-template-bucket.js
+
+# The script will:
+# 1. Build all applications (takes 5-10 minutes)
+# 2. Validate build outputs
+# 3. Setup AWS infrastructure for each app
+# 4. Upload files to S3
+# 5. Display deployment summary with URLs
+```
+
+**Deployment Summary Example**:
+```
+✅ Main template bucket: jmarkets-template-market
+✅ Template organizations processed: 8/8
+✅ Landing page deployed: https://jmarkets.jcampos.dev
+✅ Dashboard deployed: https://admin.jmarkets.jcampos.dev
+
+🏠 LANDING PAGE:
+  jmarkets.jcampos.dev
+    S3 Bucket:        jmarkets-jcampos-dev-landing
+    Distribution ID:  E1ABC23DEF4GHI
+    CloudFront URL:   https://d1abc2def3ghi.cloudfront.net
+    Custom Domain:    https://jmarkets.jcampos.dev
+
+[... similar output for dashboard and 8 template organizations ...]
+```
+
+**Cache Control Strategy**:
+- HTML files: `no-cache` (always check for updates)
+- Images & fonts: `max-age=31536000` (1 year)
+- Other assets: `max-age=86400` (1 day)
+
+**Rollback on Failure**:
+The script tracks all created resources and performs automatic rollback if deployment fails:
+- Deletes CloudFront distributions (disables first, then deletes)
+- Removes Route53 DNS records
+- Empties and deletes S3 buckets
+
+**Error Handling**:
+- Build failures stop deployment immediately
+- Individual template deployment failures don't stop other deployments
+- Summary shows which deployments succeeded/failed
+
+**Important Notes**:
+- **First run**: SSL certificate validation requires manual DNS validation if HOSTED_ZONE_ID not set
+- **Subsequent runs**: Reuses existing infrastructure (buckets, distributions, certificates)
+- **CloudFront cache clearing**: Automatically creates invalidations (`/*`) after each upload for immediate updates
+- **Invalidation completion**: Takes 1-5 minutes for CloudFront to finish cache clearing
+- **CloudFront propagation**: Distribution changes take 10-15 minutes to propagate globally
+- **No manual builds needed**: Script handles all builds automatically
 
 ## Multi-Tenant Architecture
 
@@ -253,23 +376,40 @@ requireAllPermissions([...permissions])
 
 ## Frontend Architecture
 
-### Dual Client Setup
+### Three-App Structure
 
-This project has **two separate React applications**:
+This project has **three separate React applications**:
 
-1. **landing-client/** - Marketing site + authentication flows
+1. **landing-client/** - Pure marketing website
    - Port: 3001 in development
-   - Routes: Landing, login, register, verify email, forgot/reset password, create organization
-   - Purpose: Public-facing site and auth before store access
+   - Deployment: `jmarkets.jcampos.dev`
+   - Routes: Landing, Examples, About, Blog, Contact, Terms, Privacy, Cookies
+   - Purpose: Public-facing marketing site
    - Build output: `dist/landing/`
+   - **NO authentication flows** (moved to dashboard)
 
-2. **client/** - Store management dashboard
+2. **dashboard/** - Complete admin application
    - Port: 5173 in development (Vite default)
-   - Routes: Admin dashboard, products, categories, orders, CMS, settings
-   - Purpose: Store owners manage their organization
-   - Build output: `dist/public/`
+   - Deployment: `admin.jmarkets.jcampos.dev` and organization subdomains
+   - Routes:
+     - **Auth**: Login, Register, VerifyEmail, ForgotPassword, ResetPassword
+     - **Organizations**: CreateOrganization (3-step onboarding), SelectOrganization, OrganizationSettings, AcceptInvitation
+     - **Admin**: Dashboard, Products, Categories, Orders, Customers, CMS (ContentPage), Settings (General, Theme, Contact, Payment, Shipping), TeamMembers, Profile, DeploymentHistory
+   - Purpose: Complete store management and administration
+   - Build output: `dist/dashboard/`
+   - **Contains all authentication and organization management**
 
-Both use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix UI) but serve different purposes.
+3. **templates/** - Individual store frontends (public-facing stores)
+   - Multiple independent Vite apps (jmarkets-demo, tech-gadgets, vintage-fashion, artisan-crafts, gourmet-foods, fitness-hub, pet-care, beauty-essentials)
+   - Deployment: Organization subdomains (`{org-slug}.jmarkets.jcampos.dev`)
+   - Purpose: Customer-facing e-commerce stores
+   - Each template has unique design, colors, and components
+   - See "Template System" section below for details
+
+### **DEPRECATED: client/**
+The old `client/` folder has been deprecated. All functionality migrated to `dashboard/`. See `client/DEPRECATED.md` for details.
+
+All three apps use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix UI) but serve different purposes.
 
 ### Frontend Standards & Patterns
 
@@ -283,37 +423,63 @@ Both use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix UI) but se
 - Complete code examples
 
 **Key highlights:**
-- **Translation**: Custom LanguageContext in landing-client (840+ keys), client needs standardization
+- **Translation**: Custom LanguageContext with 840+ translation keys (EN/ES)
 - **Styling**: Tailwind CSS with HSL-based CSS variables for theming, dark mode via class-based approach
 - **Forms**: React Hook Form + Zod validation for all forms
 - **Components**: Shadcn/ui component library based on Radix UI primitives
 - **State**: React Query (server), Zustand (client persistent), Context (UI global), useState (local)
 
+### Organization Onboarding Flow (dashboard)
+
+**Multi-step draft organization creation** with progressive data saving:
+
+1. **Step 1 (Basic Info)**: Creates organization draft with `onboardingStep = 1`
+   - POST `/api/users/:userId/organizations`
+   - Saves: name, slug, subdomain, ownerId
+   - User can navigate away without losing data
+
+2. **Step 2 (Contact Info)**: Updates contact settings with `onboardingStep = 2`
+   - POST `/api/users/:userId/organizations/:id/onboarding/step2`
+   - Saves: email, phone, address (optional)
+   - Organization persisted as draft
+
+3. **Step 3 (Template Selection)**: Applies template and marks complete with `onboardingStep = 3`
+   - POST `/api/users/:userId/organizations/:id/onboarding/step3`
+   - Clones selected template content to organization
+   - Organization now ready to use
+
+**SelectOrganization page behavior:**
+- Shows all organizations with onboarding status badges
+- Incomplete organizations (onboardingStep < 3) display "Click to continue setup"
+- Does NOT auto-redirect if user's only organization is incomplete
+- Allows resuming incomplete organization setup
+
 ### State Management
 
-**Server State**: TanStack React Query (`client/src/lib/queryClient.ts`)
+**Server State**: TanStack React Query (`dashboard/src/lib/queryClient.ts`)
 - 5-minute stale time for queries
 - Automatic AWS Cognito token injection via custom `queryFn`
 - Mutations invalidate related queries on success
 
-**Client State**: Zustand for cart (`client/src/store/cart.ts`)
+**Client State**: Zustand for cart (in templates/)
 - Persisted to localStorage
 - Actions: addToCart, removeFromCart, updateQuantity, clearCart
 
 ### Custom Hooks
 
-- `useAuth()` (`client/src/hooks/useAuth.ts`) - Authentication lifecycle with AWS Cognito
+- `useAuth()` (`dashboard/src/hooks/useAuth.ts`) - Authentication lifecycle with AWS Cognito
   - **📘 See [AUTH_FLOW.md](./AUTH_FLOW.md)** for complete authentication flow documentation
   - Handles login, registration, email verification, and user profile management
   - Automatic user sync from Cognito to database
   - Email verification validation on every profile fetch
-- `useOrganization()` (`client/src/hooks/useOrganization.ts`) - Organization CRUD, members, invitations
-- `useCmsContent()` (`client/src/hooks/use-cms-content.tsx`) - Dynamic CMS content loading
+- `useOrganization()` (`dashboard/src/hooks/useOrganization.ts`) - Organization CRUD, members, invitations
+  - Includes `completeOnboardingStep2` and `completeOnboardingStep3` mutations
+- `useCmsContent()` (`dashboard/src/hooks/use-cms-content.tsx`) - Dynamic CMS content loading
 - `useSubdomainContext()` - Access current tenant organization from context
 
 ### API Integration Pattern
 
-URL builders in `client/src/lib/apiUtils.ts` construct the three-tier API structure:
+URL builders in `dashboard/src/lib/apiUtils.ts` construct the three-tier API structure:
 
 ```typescript
 buildOrgApiUrl(userId, orgId, '/products')
@@ -327,6 +493,119 @@ buildPublicApiUrl('/organizations/check-slug/my-org')
 ```
 
 All requests automatically include AWS Cognito JWT tokens via React Query's `queryFn`.
+
+## Template System
+
+### Overview
+
+The platform supports **multiple template designs** for customer-facing stores. Each template is a completely independent React application with unique visual identity, components, and user experience.
+
+**📘 See [MULTI_TEMPLATE_ARCHITECTURE.md](./MULTI_TEMPLATE_ARCHITECTURE.md)** for complete template system documentation.
+
+### Available Templates
+
+**8 live templates** with distinct designs:
+
+1. **jmarkets-demo** - General marketplace (Pink `#ec4899`, modern e-commerce)
+2. **tech-gadgets** - Technology & electronics (Blue `#3b82f6`, futuristic, dark mode)
+3. **vintage-fashion** - Vintage clothing (Sepia Brown `#92400e`, retro, elegant)
+4. **artisan-crafts** - Handmade crafts (Warm Orange `#f59e0b`, rustic, earthy)
+5. **gourmet-foods** - Premium foods (Forest Green `#16a34a`, organic, fresh)
+6. **fitness-hub** - Fitness equipment (Vibrant Red `#ef4444`, energetic, bold)
+7. **pet-care** - Pet supplies (Playful Purple `#a855f7`, friendly, fun)
+8. **beauty-essentials** - Beauty & cosmetics (Soft Rose `#f43f5e`, elegant, luxurious)
+
+All templates deployed to: `{template-name}-example.jmarkets.jcampos.dev`
+
+### Template Structure
+
+```
+templates/
+├── jmarkets-demo/          # Individual template folder
+│   ├── src/
+│   │   ├── pages/          # Template-specific pages
+│   │   ├── components/     # Template-specific components
+│   │   ├── styles/         # Custom styles
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── index.html
+│   ├── package.json        # Template-specific dependencies
+│   ├── vite.config.ts
+│   └── tailwind.config.js  # Template-specific theme
+├── tech-gadgets/
+├── vintage-fashion/
+└── ...
+```
+
+Each template is a **standalone Vite app** with:
+- Unique color scheme and typography
+- Custom component layouts
+- Template-specific Tailwind configuration
+- Independent build process
+
+### Template Cloning Service
+
+**Backend**: `server/src/services/TemplateCloneService.ts`
+
+When a user selects a template during organization creation (onboarding step 3), the system clones:
+- Theme settings (colors, fonts, logo)
+- Contact settings (email, phone, social links)
+- Payment settings (currency, payment methods)
+- Shipping settings (costs, zones, options)
+- Pages and page sections (home, about, contact, etc.)
+- Section content (hero text, CTAs, images, etc.)
+- Categories (optional)
+
+**Two clone methods:**
+1. `cloneTemplate()` - Creates NEW organization + clones template content
+2. `cloneTemplateToExistingOrg()` - Clones template to EXISTING organization (used in onboarding step 3)
+
+**Template database relationship:**
+```
+templates table (metadata)
+└── organizationId (links to template source organization)
+    └── Organization table has all actual content (pages, sections, settings)
+```
+
+### Template Development
+
+```bash
+# Development
+npm run dev:template:jmarkets-demo    # Start specific template dev server
+
+# Building
+npm run build:template:jmarkets-demo  # Build specific template
+npm run build:templates               # Build all templates
+
+# Deployment
+npm run deploy:all-frontend           # Build all templates + dashboard + deploy to S3
+```
+
+### Template Metadata
+
+**Database**: `templates` table (`server/src/entities/Template.ts`)
+
+Fields:
+- `name` - Unique template identifier (e.g., 'jmarkets-demo')
+- `displayName` - Human-readable name (e.g., 'JMarkets Demo')
+- `description` - Template description
+- `category` - Template category (demo, electronics, fashion, etc.)
+- `thumbnailUrl` - Preview image URL
+- `isActive` - Whether template is available for selection
+- `sortOrder` - Display order in template gallery
+
+**Seed data**: `server/src/seeds/template-seed.ts` creates 8 default templates + sample organizations
+
+### Template Selection Flow
+
+1. User creates organization (Step 1: basic info)
+2. User adds contact info (Step 2: optional)
+3. **User selects template** (Step 3: template gallery)
+   - Dashboard shows active templates from database
+   - User clicks template or "Start from scratch"
+4. System clones selected template to organization
+5. Organization marked as complete (`onboardingStep = 3`)
+6. User redirected to organization subdomain with cloned template content
 
 ## Database (Drizzle ORM)
 

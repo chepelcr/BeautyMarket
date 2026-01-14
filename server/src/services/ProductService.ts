@@ -8,23 +8,31 @@ export class ProductService {
     private categoryRepository: CategoryRepository
   ) {}
 
-  async getProducts(): Promise<Product[]> {
-    return await this.productRepository.getProducts();
+  async getProducts(organizationId?: string, filters?: any): Promise<Product[]> {
+    return await this.productRepository.getProducts(organizationId, filters);
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
     return await this.productRepository.getProductById(id);
   }
 
-  async getProductsByCategory(categorySlug: string): Promise<Product[]> {
+  async getProductByIdAndOrgId(id: string, organizationId: string): Promise<Product | undefined> {
+    return await this.productRepository.getProductByIdAndOrgId(id, organizationId);
+  }
+
+  async getProductsByCategoryAndOrg(categoryId: string, organizationId: string): Promise<Product[]> {
+    return await this.productRepository.getProductsByCategoryAndOrg(categoryId, organizationId);
+  }
+
+  async getProductsByCategory(categorySlug: string, organizationId?: string): Promise<Product[]> {
     // First, verify category exists
     const category = await this.categoryRepository.getCategoryBySlug(categorySlug);
     if (!category) {
       throw new Error('Category not found');
     }
 
-    // Get all products and filter by categoryId
-    const allProducts = await this.productRepository.getProducts();
+    // Get all products (filtered by org if provided) and filter by categoryId
+    const allProducts = await this.productRepository.getProducts(organizationId);
     return allProducts.filter(p => p.categoryId === category.id);
   }
 
@@ -97,21 +105,19 @@ export class ProductService {
   }
 
   async getLowStockProducts(organizationId?: string): Promise<Product[]> {
-    const allProducts = await this.productRepository.getProducts();
+    const allProducts = await this.productRepository.getProducts(organizationId);
     return allProducts.filter(p => {
-      const meetsOrgFilter = !organizationId || p.organizationId === organizationId;
       const isLowStock = p.trackInventory &&
                         (p.stockQuantity ?? 0) <= (p.lowStockThreshold ?? 10);
-      return meetsOrgFilter && isLowStock;
+      return isLowStock;
     });
   }
 
   async getOutOfStockProducts(organizationId?: string): Promise<Product[]> {
-    const allProducts = await this.productRepository.getProducts();
+    const allProducts = await this.productRepository.getProducts(organizationId);
     return allProducts.filter(p => {
-      const meetsOrgFilter = !organizationId || p.organizationId === organizationId;
       const isOutOfStock = p.trackInventory && (p.stockQuantity ?? 0) === 0;
-      return meetsOrgFilter && isOutOfStock;
+      return isOutOfStock;
     });
   }
 }

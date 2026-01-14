@@ -2,10 +2,14 @@ import { Link } from "wouter";
 import { ShoppingCart, Menu, X, Search } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/cart";
+import { useSubdomainContext } from "@/contexts/SubdomainContext";
+import { useTheme } from "@/hooks/useContent";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { items, toggleCart } = useCartStore();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -15,20 +19,22 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/">
-              <a className="text-2xl font-bold text-gradient">JMarkets Demo</a>
+              <a className="text-2xl font-bold text-gradient" onClick={() => window.scrollTo(0, 0)}>
+                {organization?.name || 'JMarkets Demo'}
+              </a>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/">
-              <a className="text-foreground hover:text-primary transition-colors font-medium">
-                Home
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Inicio
               </a>
             </Link>
             <Link href="/products">
-              <a className="text-foreground hover:text-primary transition-colors font-medium">
-                Products
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Productos
               </a>
             </Link>
             <button
@@ -36,7 +42,7 @@ export default function Navbar() {
               className="text-foreground hover:text-primary transition-colors font-medium flex items-center gap-2 relative"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span>Cart</span>
+              <span>Carrito</span>
               {cartItemCount > 0 && (
                 <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItemCount}
@@ -49,9 +55,6 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <button className="p-2 hover:bg-muted rounded-md transition-colors">
               <Search className="w-5 h-5 text-foreground" />
-            </button>
-            <button className="btn-primary px-6 py-2 rounded-md font-medium shadow-orange">
-              Sign In
             </button>
           </div>
 
@@ -77,7 +80,7 @@ export default function Navbar() {
                   className="text-foreground hover:text-primary transition-colors font-medium py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Home
+                  Inicio
                 </a>
               </Link>
               <Link href="/products">
@@ -85,7 +88,7 @@ export default function Navbar() {
                   className="text-foreground hover:text-primary transition-colors font-medium py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Products
+                  Productos
                 </a>
               </Link>
               <button
@@ -96,10 +99,7 @@ export default function Navbar() {
                 className="text-foreground hover:text-primary transition-colors font-medium flex items-center gap-2 py-2"
               >
                 <ShoppingCart className="w-5 h-5" />
-                <span>Cart {cartItemCount > 0 ? `(${cartItemCount})` : ''}</span>
-              </button>
-              <button className="btn-primary px-6 py-2 rounded-md font-medium text-left shadow-orange">
-                Sign In
+                <span>Carrito {cartItemCount > 0 ? `(${cartItemCount})` : ''}</span>
               </button>
             </div>
           </div>

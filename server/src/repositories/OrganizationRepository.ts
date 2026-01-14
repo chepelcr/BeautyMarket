@@ -14,6 +14,7 @@ export interface IOrganizationRepository {
   checkSubdomainAvailable(subdomain: string, excludeId?: string): Promise<boolean>;
   checkSlugAvailable(slug: string, excludeId?: string): Promise<boolean>;
   search(query: string): Promise<Organization[]>;
+
 }
 
 export class OrganizationRepository implements IOrganizationRepository {

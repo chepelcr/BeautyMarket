@@ -1,9 +1,13 @@
 import { Link } from 'wouter';
 import { ShoppingCart, Search, Menu, ChefHat } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
 
 export default function Header() {
   const { items, toggleCart } = useCartStore();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -14,10 +18,15 @@ export default function Header() {
           {/* Logo */}
           <Link href="/">
             <a className="flex items-center gap-2 group">
-              <ChefHat className="w-8 h-8 text-gourmet-red group-hover:text-gourmet-gold transition-colors" />
+              
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" className="w-8 h-8" />
+              ) : (
+                <ChefHat className="w-8 h-8 text-gourmet-red group-hover:text-gourmet-gold transition-colors" />
+              )}
               <div>
                 <h1 className="text-2xl font-serif font-bold text-gourmet-gradient">
-                  Gourmet Foods
+                  {organization?.name || 'Gourmet Foods'}
                 </h1>
                 <p className="text-xs text-stone-500 font-sans">Premium Specialty Foods</p>
               </div>
@@ -63,30 +72,42 @@ export default function Header() {
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-8 py-3 border-t border-stone-100">
           <Link href="/">
-            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans">
-              Home
+            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans" onClick={() => window.scrollTo(0, 0)}>
+              Inicio
             </a>
           </Link>
           <Link href="/products">
-            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans">
-              All Products
+            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans" onClick={() => window.scrollTo(0, 0)}>
+              All Productos
             </a>
           </Link>
-          <a href="#" className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans">
-            Artisan Cheese
-          </a>
-          <a href="#" className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans">
-            Charcuterie
-          </a>
-          <a href="#" className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans">
-            Specialty Oils
-          </a>
-          <a href="#" className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans">
-            Gourmet Coffee
-          </a>
-          <a href="#" className="inline-flex items-center gap-1 text-sm font-medium text-gourmet-green hover:text-gourmet-gold transition-colors font-sans">
-            <span className="inline-block w-2 h-2 bg-gourmet-green rounded-full"></span>
-            Organic
+          <Link href="/deals">
+            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans" onClick={() => window.scrollTo(0, 0)}>
+              Ofertas
+            </a>
+          </Link>
+          <Link href="/services">
+            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans" onClick={() => window.scrollTo(0, 0)}>
+              Servicios
+            </a>
+          </Link>
+          <Link href="/programs">
+            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans" onClick={() => window.scrollTo(0, 0)}>
+              Programas
+            </a>
+          </Link>
+          <Link href="/about">
+            <a className="text-sm font-medium text-stone-700 hover:text-gourmet-red transition-colors font-sans" onClick={() => window.scrollTo(0, 0)}>
+              Acerca de
+            </a>
+          </Link>
+          <a
+            href={import.meta.env.VITE_LANDING_PAGE_URL || 'https://jmarkets.jcampos.dev'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-gourmet-red hover:text-gourmet-gold transition-colors font-sans"
+          >
+            Crea Tu Tienda
           </a>
         </nav>
       </div>

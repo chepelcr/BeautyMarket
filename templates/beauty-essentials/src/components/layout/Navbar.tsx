@@ -2,10 +2,14 @@ import { Link } from "wouter";
 import { ShoppingBag, Heart, Menu, X, Sparkles, Store } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/cart";
+import { useTheme } from "@/hooks/useContent";
+import { useSubdomainContext } from "@/contexts/SubdomainContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { items, toggleCart } = useCartStore();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://jmarkets.jcampos.dev';
 
@@ -18,9 +22,13 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/">
             <a className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <Sparkles className="w-8 h-8 text-primary" />
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" className="w-8 h-8" />
+              ) : (
+                <Sparkles className="w-8 h-8 text-primary" />
+              )}
               <span className="text-2xl font-serif font-bold text-foreground">
-                Beauty Essentials
+                {organization?.name || 'Beauty Essentials'}
               </span>
             </a>
           </Link>
@@ -28,27 +36,43 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <Link href="/">
-              <a className="text-foreground hover:text-primary transition-colors font-medium">
-                Home
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Inicio
               </a>
             </Link>
             <Link href="/products">
-              <a className="text-foreground hover:text-primary transition-colors font-medium">
-                Products
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Productos
               </a>
             </Link>
-            <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
-              About
-            </a>
-            <a href="#contact" className="text-foreground hover:text-primary transition-colors font-medium">
-              Contact
-            </a>
+            <Link href="/deals">
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Ofertas
+              </a>
+            </Link>
+            <Link href="/services">
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Servicios
+              </a>
+            </Link>
+            <Link href="/programs">
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Programas
+              </a>
+            </Link>
+            <Link href="/about">
+              <a className="text-foreground hover:text-primary transition-colors font-medium" onClick={() => window.scrollTo(0, 0)}>
+                Acerca de
+              </a>
+            </Link>
             <a
               href={landingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
               <Store className="w-4 h-4" />
-              Start Your Store
+              Crea Tu Tienda
             </a>
           </div>
 
@@ -95,39 +119,59 @@ export default function Navbar() {
               <Link href="/">
                 <a
                   className="text-foreground hover:text-primary transition-colors font-medium py-2"
-                  onClick={toggleMenu}
+                  onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
                 >
-                  Home
+                  Inicio
                 </a>
               </Link>
               <Link href="/products">
                 <a
                   className="text-foreground hover:text-primary transition-colors font-medium py-2"
-                  onClick={toggleMenu}
+                  onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
                 >
-                  Products
+                  Productos
+                </a>
+              </Link>
+              <Link href="/deals">
+                <a
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2"
+                  onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
+                >
+                  Ofertas
+                </a>
+              </Link>
+              <Link href="/services">
+                <a
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2"
+                  onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
+                >
+                  Servicios
+                </a>
+              </Link>
+              <Link href="/programs">
+                <a
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2"
+                  onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
+                >
+                  Programas
+                </a>
+              </Link>
+              <Link href="/about">
+                <a
+                  className="text-foreground hover:text-primary transition-colors font-medium py-2"
+                  onClick={() => { toggleMenu(); window.scrollTo(0, 0); }}
+                >
+                  Acerca de
                 </a>
               </Link>
               <a
-                href="#about"
-                className="text-foreground hover:text-primary transition-colors font-medium py-2"
-                onClick={toggleMenu}
-              >
-                About
-              </a>
-              <a
-                href="#contact"
-                className="text-foreground hover:text-primary transition-colors font-medium py-2"
-                onClick={toggleMenu}
-              >
-                Contact
-              </a>
-              <a
                 href={landingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium mt-2"
               >
                 <Store className="w-4 h-4" />
-                Start Your Store
+                Crea Tu Tienda
               </a>
             </div>
           </div>

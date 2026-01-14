@@ -2,6 +2,8 @@ import { Link } from "wouter";
 import { ShoppingCart, Heart, Star, Sparkles, Check } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/cart";
+import { useTheme } from "@/hooks/useContent";
+import { DynamicIcon } from "@/components/DynamicIcon";
 
 interface ProductCardProps {
   id: string;
@@ -27,6 +29,7 @@ export default function ProductCard({
   isBestseller = false,
 }: ProductCardProps) {
   const { addToCart } = useCartStore();
+  const { data: theme } = useTheme();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = () => {
@@ -40,11 +43,22 @@ export default function ProductCard({
       <div className="relative overflow-hidden bg-beauty-cream aspect-square">
         <Link href={`/products/${id}`}>
           <a className="block w-full h-full">
-            <img
-              src={image}
-              alt={name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
+            {image ? (
+              <img
+                src={image}
+                alt={name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+                <div className="text-center">
+                  <div className="w-24 h-24 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                    <DynamicIcon icon={theme?.productFallbackIcon} fallback="Sparkles" className="w-12 h-12 text-primary/40" size={48} />
+                  </div>
+                  <span className="text-xs text-foreground/40">Producto sin imagen</span>
+                </div>
+              </div>
+            )}
           </a>
         </Link>
 

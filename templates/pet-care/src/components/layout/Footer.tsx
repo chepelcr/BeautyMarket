@@ -1,11 +1,19 @@
 import React from 'react';
-import { Link } from 'wouter';
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
-import { PawIcon } from '../PawPrintDecoration';
-import { DogIcon, CatIcon, BirdIcon } from '../PetIcons';
-
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';import { Link } from 'wouter';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';import { Facebook, Twitter, Instagram, Mail, MessageCircle, MapPin } from 'lucide-react';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';import { PawIcon } from '../PawPrintDecoration';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';import { DogIcon, CatIcon, BirdIcon } from '../PetIcons';
+import { useContact } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
 
   return (
     <footer className="bg-card border-t border-border mt-20">
@@ -16,10 +24,15 @@ const Footer: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="bg-primary/10 p-2 rounded-2xl">
-                <PawIcon className="w-8 h-8 text-primary" />
+                
+                {theme?.logoUrl ? (
+                  <img src={theme.logoUrl} alt="Logo" className="w-8 h-8" />
+                ) : (
+                  <PawIcon className="w-8 h-8 text-primary" />
+                )}
               </div>
               <span className="text-2xl font-bold text-primary">
-                Pet<span className="text-secondary">Care</span>
+                {organization?.name || 'PetCare'}
               </span>
             </div>
             <p className="text-muted-foreground mb-4">
@@ -32,9 +45,9 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Enlaces Rápidos */}
           <div>
-            <h3 className="text-lg font-bold text-foreground mb-4">Quick Links</h3>
+            <h3 className="text-lg font-bold text-foreground mb-4">Enlaces Rápidos</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/products">
@@ -53,7 +66,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link href="/about">
                   <a className="text-muted-foreground hover:text-primary transition-colors">
-                    About Us
+                    Acerca de Nosotros
                   </a>
                 </Link>
               </li>
@@ -95,7 +108,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link href="/contact">
                   <a className="text-muted-foreground hover:text-primary transition-colors">
-                    Contact Us
+                    Contáctanos
                   </a>
                 </Link>
               </li>
@@ -111,7 +124,7 @@ const Footer: React.FC = () => {
                 <span>123 Pet Street, Animal City, PC 12345</span>
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
+                <MessageCircle className="w-5 h-5 text-primary flex-shrink-0" />
                 <span>(555) 123-4567</span>
               </li>
               <li className="flex items-center gap-3 text-muted-foreground">
@@ -150,13 +163,13 @@ const Footer: React.FC = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-muted-foreground text-sm">
-              &copy; {currentYear} PetCare. All rights reserved. Made with{' '}
+              &copy; {currentYear} {organization?.name || 'PetCare'}. All rights reserved. Hecho con{' '}
               <span className="text-primary">❤️</span> for pets.
             </p>
             <div className="flex items-center gap-4 text-sm">
               <Link href="/privacy">
                 <a className="text-muted-foreground hover:text-primary transition-colors">
-                  Privacy Policy
+                  Política de Privacidad
                 </a>
               </Link>
               <span className="text-border">•</span>

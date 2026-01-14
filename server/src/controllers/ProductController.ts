@@ -46,21 +46,37 @@ export class ProductController {
    *         schema:
    *           type: string
    *         description: Filter by category slug
+   *       - in: query
+   *         name: isService
+   *         schema:
+   *           type: boolean
+   *         description: Filter by service products
+   *       - in: query
+   *         name: onSale
+   *         schema:
+   *           type: boolean
+   *         description: Filter by products on sale
+   *       - in: query
+   *         name: type
+   *         schema:
+   *           type: string
+   *         description: Filter by product type (product, service, program)
    *     responses:
    *       200:
    *         description: List of products
    */
   async getProducts(req: Request, res: Response) {
     try {
-      const { category } = req.query;
-      let products;
+      const { orgId } = req.params;
+      const { category, isService, onSale, type } = req.query;
+      
+      const filters: any = {};
+      if (category && typeof category === 'string') filters.category = category;
+      if (isService !== undefined) filters.isService = isService === 'true';
+      if (onSale !== undefined) filters.onSale = onSale === 'true';
+      if (type && typeof type === 'string') filters.type = type;
 
-      if (category && typeof category === 'string') {
-        products = await this.productService.getProductsByCategory(category);
-      } else {
-        products = await this.productService.getProducts();
-      }
-
+      const products = await this.productService.getProducts(orgId, filters);
       res.json(products);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -88,9 +104,10 @@ export class ProductController {
    */
   async getProductById(req: Request, res: Response) {
     try {
-      const product = await this.productService.getProductById(req.params.id);
+      const { orgId, id } = req.params;
+      const product = await this.productService.getProductByIdAndOrgId(id, orgId);
       if (!product) {
-        return res.status(404).json({ error: "Product not found" });
+        return res.status(404).json({ error: "Product not found or does not belong to this organization" });
       }
       res.json(product);
     } catch (error) {
@@ -156,12 +173,19 @@ export class ProductController {
    */
   async updateProduct(req: Request, res: Response) {
     try {
+      const { orgId, id } = req.params;
       const updates = insertProductSchema.partial().parse(req.body);
 
-      const product = await this.productService.updateProduct(req.params.id, updates);
+      // Verify product exists and belongs to this organization
+      const existingProduct = await this.productService.getProductByIdAndOrgId(id, orgId);
+      if (!existingProduct) {
+        return res.status(404).json({ error: "Product not found or does not belong to this organization" });
+      }
+
+      const product = await this.productService.updateProduct(id, updates);
 
       // Trigger pre-deployment for updated product
-      await this.preDeploymentService.triggerPreDeployment('product', 'update', req.params.id, 'product', updates);
+      await this.preDeploymentService.triggerPreDeployment('product', 'update', id, 'product', updates);
 
       res.json(product);
     } catch (error) {
@@ -196,13 +220,21 @@ export class ProductController {
    */
   async deleteProduct(req: Request, res: Response) {
     try {
-      const deleted = await this.productService.deleteProduct(req.params.id);
+      const { orgId, id } = req.params;
+
+      // Verify product exists and belongs to this organization
+      const existingProduct = await this.productService.getProductByIdAndOrgId(id, orgId);
+      if (!existingProduct) {
+        return res.status(404).json({ error: "Product not found or does not belong to this organization" });
+      }
+
+      const deleted = await this.productService.deleteProduct(id);
       if (!deleted) {
         return res.status(404).json({ error: "Product not found" });
       }
 
       // Trigger pre-deployment for deleted product
-      await this.preDeploymentService.triggerPreDeployment('product', 'delete', req.params.id, 'product', {});
+      await this.preDeploymentService.triggerPreDeployment('product', 'delete', id, 'product', {});
 
       res.status(204).send();
     } catch (error) {

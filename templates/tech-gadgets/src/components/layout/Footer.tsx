@@ -1,7 +1,16 @@
 import { Link } from 'wouter';
-import { Zap, Github, Twitter, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { Zap, Github, Twitter, Linkedin, Mail, MapPin, MessageCircle } from 'lucide-react';
+import { useContact, useHomePageSections } from '@/hooks/useContent';
+import { useTheme } from '@/hooks/useContent';
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
+import { getSectionByType } from '@/lib/pageUtils';
 
 export default function Footer() {
+  const { data: contact } = useContact();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
+  const { data: sections = [] } = useHomePageSections();
+  const newsletter = getSectionByType(sections, 'newsletter')?.content || {};
   const currentYear = new Date().getFullYear();
 
   return (
@@ -13,10 +22,15 @@ export default function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4 group">
               <div className="relative">
-                <Zap className="h-6 w-6 text-tech-cyan group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] transition-all" />
+                
+                {theme?.logoUrl ? (
+                  <img src={theme.logoUrl} alt="Logo" className="h-6 w-6" />
+                ) : (
+                  <Zap className="h-6 w-6 text-tech-cyan group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] transition-all" />
+                )}
                 <div className="absolute inset-0 bg-tech-cyan/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <span className="font-bold text-lg animated-gradient-text">TechGadgets</span>
+              <span className="font-bold text-lg animated-gradient-text">{organization?.name || 'TechGadgets'}</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Your destination for cutting-edge technology and premium electronics.
@@ -123,15 +137,15 @@ export default function Footer() {
 
           {/* Contact Column */}
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Contact Us</h4>
+            <h4 className="font-semibold mb-4 text-foreground">Contáctanos</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-tech-cyan" />
                 <span>123 Tech Street<br />Silicon Valley, CA 94025</span>
               </li>
               <li className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 flex-shrink-0 text-tech-cyan" />
-                <a href="tel:+15551234567" className="hover:text-tech-cyan transition-colors">
+                <MessageCircle className="h-4 w-4 flex-shrink-0 text-tech-cyan" />
+                <a href="https://wa.me/+15551234567?text=Hola%2C%20me%20gustar%C3%ADa%20obtener%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener noreferrer" className="hover:text-tech-cyan transition-colors">
                   +1 (555) 123-4567
                 </a>
               </li>
@@ -148,18 +162,18 @@ export default function Footer() {
         {/* Newsletter Section */}
         <div className="border-t border-border pt-8 mb-8">
           <div className="max-w-2xl mx-auto text-center">
-            <h4 className="font-semibold mb-2 text-foreground">Stay Connected</h4>
+            <h4 className="font-semibold mb-2 text-foreground">{newsletter.title || 'Stay Connected'}</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Subscribe to our newsletter for exclusive deals and tech updates
+              {newsletter.description || 'Subscribe to our newsletter for exclusive deals and tech updates'}
             </p>
             <div className="flex gap-2 max-w-md mx-auto">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={newsletter.placeholder || 'Ingresa tu correo'}
                 className="flex-1 px-4 py-2 bg-background border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-tech-cyan text-foreground placeholder:text-muted-foreground text-sm"
               />
               <button className="btn-tech-accent px-6">
-                Subscribe
+                {newsletter.buttonText || 'Subscribe'}
               </button>
             </div>
           </div>
@@ -169,11 +183,11 @@ export default function Footer() {
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
             <p className="text-sm text-muted-foreground text-center md:text-left">
-              &copy; {currentYear} TechGadgets. All rights reserved. Built with cutting-edge technology.
+              &copy; {currentYear} {organization?.name || 'TechGadgets'}. All rights reserved. Built with cutting-edge technology.
             </p>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <Link href="/privacy" className="hover:text-tech-cyan transition-colors">
-                Privacy Policy
+                Política de Privacidad
               </Link>
               <Link href="/terms" className="hover:text-tech-cyan transition-colors">
                 Terms of Service

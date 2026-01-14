@@ -5,12 +5,16 @@ import type { InsertCategory } from '../models';
 export class CategoryService {
   constructor(private categoryRepository: CategoryRepository) {}
 
-  async getCategories(): Promise<Category[]> {
-    return await this.categoryRepository.getCategories();
+  async getCategories(organizationId?: string): Promise<Category[]> {
+    return await this.categoryRepository.getCategories(organizationId);
   }
 
   async getCategoryById(id: string): Promise<Category | undefined> {
     return await this.categoryRepository.getCategoryById(id);
+  }
+
+  async getCategoryByIdAndOrgId(id: string, organizationId: string): Promise<Category | undefined> {
+    return await this.categoryRepository.getCategoryByIdAndOrgId(id, organizationId);
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {

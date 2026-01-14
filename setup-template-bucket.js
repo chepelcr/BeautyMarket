@@ -20,6 +20,7 @@ import {
   ListDistributionsCommand,
   CreateOriginAccessControlCommand,
   ListOriginAccessControlsCommand,
+  CreateInvalidationCommand,
 } from '@aws-sdk/client-cloudfront';
 import {
   Route53Client,
@@ -36,9 +37,13 @@ import {
 } from '@aws-sdk/client-acm';
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
 import { fromIni } from '@aws-sdk/credential-providers';
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { generateConfig } from './generate-bucket-configs.js';
 
 // AWS Profile Configuration
 const AWS_PROFILE = 'J-CAMPOS';
@@ -901,6 +906,35 @@ async function uploadFilesToBucket(bucketName, sourceFolder) {
 }
 
 /**
+ * Create CloudFront invalidation to clear cache
+ */
+async function createInvalidation(distributionId, paths = ['/*']) {
+  try {
+    console.log(`  🔄 Creating CloudFront invalidation for distribution ${distributionId}...`);
+
+    const command = new CreateInvalidationCommand({
+      DistributionId: distributionId,
+      InvalidationBatch: {
+        CallerReference: `invalidation-${Date.now()}`,
+        Paths: {
+          Quantity: paths.length,
+          Items: paths,
+        },
+      },
+    });
+
+    const response = await cloudFrontClient.send(command);
+    console.log(`  ✅ Invalidation created: ${response.Invalidation.Id} (Status: ${response.Invalidation.Status})`);
+
+    return response.Invalidation.Id;
+  } catch (error) {
+    console.error(`  ⚠️  Failed to create invalidation:`, error.message);
+    console.log(`  ℹ️  New files uploaded but CloudFront cache not cleared. Cache will expire naturally.`);
+    return null;
+  }
+}
+
+/**
  * Modified uploadDirectory to accept bucket name
  */
 async function uploadDirectory(dirPath, prefix = '', bucketName = TEMPLATE_BUCKET) {
@@ -959,7 +993,7 @@ async function uploadFile(filePath, key, bucketName = TEMPLATE_BUCKET) {
 /**
  * Setup infrastructure for a single template organization
  */
-async function setupTemplateOrganization(subdomain, certificateArn = null) {
+async function setupTemplateOrganization(subdomain, certificateArn = null, templateId = null) {
   console.log(`\n🏗️  Setting up infrastructure for: ${subdomain}.${BASE_DOMAIN}`);
 
   try {
@@ -1001,6 +1035,21 @@ async function setupTemplateOrganization(subdomain, certificateArn = null) {
     }
 
     await uploadFilesToBucket(bucketName, templateBuildPath);
+
+    // Step 8: Upload config.json with templateId
+    console.log(`  📝 Uploading config.json...`);
+    const config = generateConfig(templateId);
+    await s3Client.send(new PutObjectCommand({
+      Bucket: bucketName,
+      Key: 'config.json',
+      Body: JSON.stringify(config, null, 2),
+      ContentType: 'application/json',
+      CacheControl: 'no-cache'
+    }));
+    console.log(`  ✅ config.json uploaded (templateId: ${templateId})`);
+
+    // Create CloudFront invalidation to clear cache
+    await createInvalidation(distributionId);
 
     console.log(`  ✅ Infrastructure setup complete for ${subdomain}`);
 
@@ -1267,6 +1316,9 @@ async function setupLandingPage(certificateArn = null) {
       const uploadPromises = await uploadDirectory(LANDING_DIST_FOLDER, '', bucketName);
       await Promise.all(uploadPromises);
       console.log(`  ✅ Landing page files uploaded to ${bucketName}`);
+
+      // Create CloudFront invalidation to clear cache
+      await createInvalidation(distributionId);
     }
 
     console.log(`  ✅ Landing page infrastructure setup complete`);
@@ -1534,6 +1586,9 @@ async function setupDashboard(certificateArn = null) {
       const uploadPromises = await uploadDirectory(DASHBOARD_DIST_FOLDER, '', bucketName);
       await Promise.all(uploadPromises);
       console.log(`  ✅ Dashboard files uploaded to ${bucketName}`);
+
+      // Create CloudFront invalidation to clear cache
+      await createInvalidation(distributionId);
     }
 
     console.log(`  ✅ Dashboard infrastructure setup complete`);
@@ -1553,10 +1608,56 @@ async function setupDashboard(certificateArn = null) {
 }
 
 /**
+ * Build all applications before deployment
+ */
+function buildAllApplications() {
+  console.log('🔨 BUILDING ALL APPLICATIONS\n');
+  console.log('='.repeat(80));
+  console.log('\nThis will build: templates, landing-client, dashboard, and store client\n');
+
+  try {
+    // Build all templates
+    console.log('📦 Step 1/4: Building all templates...');
+    console.log('   Command: npm run build:templates');
+    execSync('npm run build:templates', { stdio: 'inherit' });
+    console.log('   ✅ Templates built successfully\n');
+
+    // Build landing client
+    console.log('📦 Step 2/4: Building landing-client...');
+    console.log('   Command: npm run build:landing');
+    execSync('npm run build:landing', { stdio: 'inherit' });
+    console.log('   ✅ Landing client built successfully\n');
+
+    // Build dashboard
+    console.log('📦 Step 3/4: Building dashboard...');
+    console.log('   Command: npm run build:dashboard');
+    execSync('npm run build:dashboard', { stdio: 'inherit' });
+    console.log('   ✅ Dashboard built successfully\n');
+
+    // Build store client
+    console.log('📦 Step 4/4: Building store client...');
+    console.log('   Command: npm run build:store');
+    execSync('npm run build:store', { stdio: 'inherit' });
+    console.log('   ✅ Store client built successfully\n');
+
+    console.log('✅ ALL BUILDS COMPLETED SUCCESSFULLY\n');
+    console.log('='.repeat(80));
+    console.log();
+  } catch (error) {
+    console.error('\n❌ Build failed:', error.message);
+    console.error('   Please fix the build errors before deployment');
+    process.exit(1);
+  }
+}
+
+/**
  * Main setup function
  */
 async function setup() {
   try {
+    // Build all applications first
+    buildAllApplications();
+
     console.log('🚀 Setting up template buckets and CloudFront distributions for all template organizations\n');
     console.log(`📋 Template organizations: ${TEMPLATE_ORGS.length}`);
     console.log(`🌍 Base domain: ${BASE_DOMAIN}`);
@@ -1566,38 +1667,31 @@ async function setup() {
     // Get AWS Account ID from profile
     AWS_ACCOUNT_ID = await getAwsAccountId();
 
-    if (!fs.existsSync(CLIENT_DIST_FOLDER)) {
-      console.error(`❌ Client distribution folder ${CLIENT_DIST_FOLDER} does not exist.`);
-      console.log('   Run "npm run build:store" first to build the client application.');
-      process.exit(1);
-    }
+    // Validate that all builds completed successfully
+    console.log('🔍 Validating build outputs...\n');
 
-    // Validate template builds exist
-    console.log('🔍 Validating template builds...\n');
-    const missingTemplates = [];
-    for (const subdomain of TEMPLATE_ORGS) {
-      const buildPath = TEMPLATE_BUILD_PATHS[subdomain];
-      if (!buildPath) {
-        console.error(`  ❌ No build path configured for: ${subdomain}`);
-        missingTemplates.push(subdomain);
-      } else if (!fs.existsSync(buildPath)) {
-        console.error(`  ❌ Build not found: ${buildPath}`);
-        missingTemplates.push(subdomain);
+    const buildChecks = [
+      { path: CLIENT_DIST_FOLDER, name: 'Store client' },
+      { path: LANDING_DIST_FOLDER, name: 'Landing client' },
+      { path: DASHBOARD_DIST_FOLDER, name: 'Dashboard' },
+    ];
+
+    for (const check of buildChecks) {
+      if (fs.existsSync(check.path)) {
+        console.log(`  ✅ ${check.name}: ${check.path}`);
       } else {
-        console.log(`  ✅ ${subdomain}: ${buildPath}`);
+        console.error(`  ❌ ${check.name} build not found: ${check.path}`);
       }
     }
 
-    if (missingTemplates.length > 0) {
-      console.error(`\n❌ Missing template builds for: ${missingTemplates.join(', ')}`);
-      console.log('\n💡 Run the following command to build all templates:');
-      console.log('   npm run build:templates\n');
-      console.log('   Or build individual templates:');
-      missingTemplates.forEach(subdomain => {
-        const templateName = subdomain.replace('-example', '');
-        console.log(`   npm run build:template:${templateName}`);
-      });
-      process.exit(1);
+    // Validate template builds
+    for (const subdomain of TEMPLATE_ORGS) {
+      const buildPath = TEMPLATE_BUILD_PATHS[subdomain];
+      if (fs.existsSync(buildPath)) {
+        console.log(`  ✅ ${subdomain}: ${buildPath}`);
+      } else {
+        console.error(`  ❌ ${subdomain} build not found: ${buildPath}`);
+      }
     }
     console.log();
 
@@ -1619,15 +1713,43 @@ async function setup() {
 
     // Setup infrastructure for each template organization
     const results = [];
+    
+    // Get template IDs from database
+    console.log('\n📊 Fetching template IDs from database...');
+    const connectionString = process.env.NEW_DATABASE_URL;
+    const dbClient = postgres(connectionString);
+    const dbInstance = drizzle(dbClient);
+    
+    const allTemplates = await dbInstance.execute('SELECT id, name FROM templates ORDER BY id');
+    const templateRows = allTemplates.rows || allTemplates;
+    await dbClient.end();
+    
+    console.log(`✅ Found ${templateRows.length} templates\n`);
+    
+    // Create a map of template names to IDs
+    const templateMap = new Map();
+    templateRows.forEach(t => templateMap.set(t.name, t.id));
+    
     for (const subdomain of TEMPLATE_ORGS) {
       try {
-        const result = await setupTemplateOrganization(subdomain, certificateArn);
+        const templateName = subdomain.replace('-example', '');
+        const templateId = templateMap.get(templateName);
+        
+        if (!templateId) {
+          console.error(`⚠️  Template ID not found for ${templateName}, skipping...`);
+          continue;
+        }
+        
+        const result = await setupTemplateOrganization(subdomain, certificateArn, templateId);
         results.push(result);
       } catch (error) {
         console.error(`Failed to setup ${subdomain}, continuing with next...`);
         results.push({ subdomain, error: error.message });
       }
     }
+
+    // Generate and upload config.json files for all buckets
+    console.log('\n🔧 Config.json files already uploaded during bucket setup\n');
 
     // Setup landing page infrastructure
     let landingPageResult = null;

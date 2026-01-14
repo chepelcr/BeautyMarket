@@ -23,6 +23,17 @@ export { pageSections, type PageSection, type InsertPageSection } from "./PageSe
 export { components, type Component, type InsertComponent, type ComponentConfig } from "./Component";
 export { sectionContent, type SectionContent, type InsertSectionContent, type ValueType } from "./SectionContent";
 
+// Template Content Tables
+export { templateThemeSettings, type TemplateThemeSettings, type InsertTemplateThemeSettings } from "./TemplateThemeSettings";
+export { templateContactSettings, type TemplateContactSettings, type InsertTemplateContactSettings } from "./TemplateContactSettings";
+export { templatePaymentSettings, type TemplatePaymentSettings, type InsertTemplatePaymentSettings } from "./TemplatePaymentSettings";
+export { templateShippingSettings, type TemplateShippingSettings, type InsertTemplateShippingSettings } from "./TemplateShippingSettings";
+export { templatePages, type TemplatePage, type InsertTemplatePage } from "./TemplatePage";
+export { templatePageSections, type TemplatePageSection, type InsertTemplatePageSection } from "./TemplatePageSection";
+export { templateSectionContent, type TemplateSectionContent, type InsertTemplateSectionContent } from "./TemplateSectionContent";
+export { templateCategories, type TemplateCategory, type InsertTemplateCategory } from "./TemplateCategory";
+export { templateProducts, type TemplateProduct } from "./TemplateProduct";
+
 // Core entity tables
 export { products, type Product } from "./Product";
 export { orders, type Order, orderStatuses, type OrderStatus, deliveryMethods, type DeliveryMethod } from "./Order";

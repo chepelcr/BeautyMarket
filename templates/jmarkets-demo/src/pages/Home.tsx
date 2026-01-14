@@ -4,21 +4,19 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/ProductCard";
 import CategoryCard from "@/components/CategoryCard";
+import { useProducts, useCategories, useHomePage } from "@/hooks/useContent";
+import { parsePageSections, getSectionByType } from "@/lib/pageUtils";
 
 export default function Home() {
-  const featuredProducts = [
-    { id: 1, name: "Premium Wireless Headphones", category: "Electronics", price: 89.99, originalPrice: 129.99, badge: "Sale" as const },
-    { id: 2, name: "Designer Leather Wallet", category: "Fashion", price: 79.99, originalPrice: 99.99, badge: "New" as const },
-    { id: 3, name: "Smart Home Speaker", category: "Electronics", price: 69.99, originalPrice: 99.99, badge: "Bestseller" as const },
-    { id: 4, name: "Organic Cotton T-Shirt", category: "Fashion", price: 59.99, originalPrice: 79.99, badge: "Sale" as const },
-  ];
+  const { data: products = [], isLoading: productsLoading } = useProducts();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: pageData } = useHomePage();
+  const featuredProducts = products.slice(0, 4);
 
-  const categories = [
-    { name: "Electronics", description: "Latest gadgets and tech accessories", productCount: 125 },
-    { name: "Fashion", description: "Trending styles and timeless classics", productCount: 234 },
-    { name: "Home & Garden", description: "Everything for your living space", productCount: 189 },
-    { name: "Sports & Fitness", description: "Gear up for an active lifestyle", productCount: 156 },
-  ];
+  const sections = parsePageSections(pageData);
+  const hero = getSectionByType(sections, 'hero')?.content || {};
+  const benefits = getSectionByType(sections, 'benefits')?.content || {};
+  const cta = getSectionByType(sections, 'cta')?.content || {};
 
   return (
     <div className="min-h-screen">
@@ -29,19 +27,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Your Marketplace for Everything
+              {hero.title || 'Your Marketplace for Everything'}
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90">
-              Discover amazing products from trusted sellers worldwide
+              {hero.subtitle || 'Discover amazing products from trusted sellers worldwide'}
             </p>
             <div className="flex justify-center gap-4">
               <Link href="/products">
                 <a className="bg-white text-orange-600 hover:bg-gray-100 px-8 py-3 rounded-md font-semibold text-lg transition-colors shadow-lg">
-                  Shop Now
+                  {hero.ctaPrimary || 'Shop Now'}
                 </a>
               </Link>
               <button className="bg-blue-900 hover:bg-blue-950 px-8 py-3 rounded-md font-semibold text-lg transition-colors shadow-lg">
-                Learn More
+                {hero.ctaSecondary || 'Learn More'}
               </button>
             </div>
           </div>
@@ -60,34 +58,19 @@ export default function Home() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="card-modern p-6 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 text-orange-600 rounded-full mb-4">
-                <Zap className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
-              <p className="text-muted-foreground">Get your orders delivered quickly and reliably</p>
-            </div>
-            <div className="card-modern p-6 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-800 rounded-full mb-4">
-                <Shield className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Secure Payments</h3>
-              <p className="text-muted-foreground">Shop with confidence using our secure checkout</p>
-            </div>
-            <div className="card-modern p-6 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 text-amber-600 rounded-full mb-4">
-                <ShoppingCart className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Easy Returns</h3>
-              <p className="text-muted-foreground">Hassle-free returns within 30 days</p>
-            </div>
-            <div className="card-modern p-6 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 text-orange-600 rounded-full mb-4">
-                <TruckIcon className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Free Shipping</h3>
-              <p className="text-muted-foreground">On orders over $50</p>
-            </div>
+            {(benefits.items || [{icon: 'Zap', title: 'Fast Delivery', description: 'Get your orders delivered quickly and reliably'}, {icon: 'Shield', title: 'Secure Payments', description: 'Shop with confidence using our secure checkout'}, {icon: 'ShoppingCart', title: 'Easy Returns', description: 'Hassle-free returns within 30 days'}, {icon: 'TruckIcon', title: 'Free Shipping', description: 'On orders over $50'}]).map((benefit: any, index: number) => {
+              const iconMap: any = { Zap, Shield, ShoppingCart, TruckIcon };
+              const Icon = iconMap[benefit.icon] || Zap;
+              return (
+                <div key={index} className="card-modern p-6 text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 text-orange-600 rounded-full mb-4">
+                    <Icon className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
+                  <p className="text-muted-foreground">{benefit.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -104,33 +87,37 @@ export default function Home() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category) => (
-              <CategoryCard key={category.name} {...category} />
-            ))}
+            {categoriesLoading ? (
+              Array(4).fill(0).map((_, i) => <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-32" />)
+            ) : (
+              categories.map((category: any) => <CategoryCard key={category.id} {...category} />)
+            )}
           </div>
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Productos Destacados */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Featured Products
+              Productos Destacados
             </h2>
             <p className="text-lg text-muted-foreground">
               Handpicked favorites just for you
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
+            {productsLoading ? (
+              Array(4).fill(0).map((_, i) => <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-80" />)
+            ) : (
+              featuredProducts.map((product: any) => <ProductCard key={product.id} {...product} />)
+            )}
           </div>
           <div className="text-center mt-12">
             <Link href="/products">
               <a className="btn-primary px-8 py-3 rounded-md font-semibold text-lg inline-block shadow-orange">
-                View All Products
+                Ver Todos los Productos
               </a>
             </Link>
           </div>
@@ -141,14 +128,14 @@ export default function Home() {
       <section className="bg-secondary py-16 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Start Shopping?
+            {cta.title || 'Ready to Start Shopping?'}
           </h2>
           <p className="text-xl mb-8 text-white/90">
-            Join thousands of happy customers and discover amazing deals today
+            {cta.description || 'Join thousands of happy customers and discover amazing deals today'}
           </p>
           <Link href="/products">
             <a className="bg-primary hover:bg-orange-600 px-8 py-3 rounded-md font-semibold text-lg inline-block transition-colors shadow-lg">
-              Browse Products
+              {cta.buttonText || 'Browse Products'}
             </a>
           </Link>
         </div>

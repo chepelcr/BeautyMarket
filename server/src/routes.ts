@@ -22,7 +22,8 @@ import {
   pageController,
   sectionController,
   sectionContentController,
-  componentController
+  componentController,
+  publicOrgController
 } from './dependency_injection';
 
 export function setupRoutes(app: Express): void {
@@ -115,6 +116,9 @@ export function setupRoutes(app: Express): void {
 
   // Template routes (public for Examples page)
   app.use('/api/templates', templateController.getRouter());
+
+  // Public organization routes (for storefront access)
+  app.use('/api/public/organizations', publicOrgController.getRouter());
 
   // Public invitation endpoints (for accepting invitations without auth)
   app.get('/api/invitations/token/:token', (req, res, next) => {

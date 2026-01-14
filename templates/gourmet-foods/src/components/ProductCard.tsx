@@ -1,7 +1,9 @@
 import { Link } from 'wouter';
+import { DynamicIcon } from './DynamicIcon';
 import { ShoppingCart, Star, Heart } from 'lucide-react';
 import IngredientBadge from './IngredientBadge';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
 
 interface ProductCardProps {
   id: string;
@@ -31,6 +33,7 @@ export default function ProductCard({
   const displayPrice = onSale && salePrice ? salePrice : price;
   const discount = onSale && salePrice ? Math.round(((price - salePrice) / price) * 100) : 0;
   const { addToCart } = useCartStore();
+  const { data: theme } = useTheme();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -48,10 +51,21 @@ export default function ProductCard({
       {/* Image */}
       <Link href={`/products/${id}`}>
         <a className="block relative overflow-hidden aspect-square">
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-            style={{ backgroundImage: `url(${image})` }}
-          />
+          {image ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+              style={{ backgroundImage: `url(${image})` }}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-white/80 flex items-center justify-center">
+                  <DynamicIcon icon={theme?.productFallbackIcon} fallback="Sparkles" className="w-12 h-12 text-primary/40" size={48} />
+                </div>
+                <span className="text-xs text-stone-400">Producto sin imagen</span>
+              </div>
+            </div>
+          )}
           {onSale && discount > 0 && (
             <div className="absolute top-3 left-3 bg-gourmet-red text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
               -{discount}%

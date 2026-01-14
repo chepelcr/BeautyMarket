@@ -1,4 +1,5 @@
 import React from 'react';
+import { DynamicIcon } from '@/components/DynamicIcon';
 import { DogIcon, CatIcon, BirdIcon, HeartPawIcon, BoneIcon, PetHouseIcon } from '../components/PetIcons';
 import { PawIcon } from '../components/PawPrintDecoration';
 

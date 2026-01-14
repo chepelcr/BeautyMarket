@@ -19,7 +19,7 @@ export function AuthNavbar({ showLogout = false, hideNavButton = false, showBoth
 
   const handleLogout = () => {
     forceLogout();
-    navigate('/');
+    navigate('/login');
   };
 
   return (

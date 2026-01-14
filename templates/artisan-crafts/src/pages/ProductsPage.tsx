@@ -1,14 +1,25 @@
+import { useProductsPage, useTheme } from "@/hooks/useContent";
+import { parsePageSections, getSectionByType } from "@/lib/pageUtils";
+import { DynamicIcon } from "@/components/DynamicIcon";
 import { useState } from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import { useProducts, useCategories } from '@/hooks/useContent';
 
 export default function ProductsPage() {
+  const { data: products = [], isLoading: productsLoading } = useProducts({ type: 'product' });
+  const { data: categoriesData = [], isLoading: categoriesLoading } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  const categories = [
+    { id: 'all', label: 'Todos' },
+    ...categoriesData.map((c: any) => ({ id: c.id, label: c.name })),
+  ];
+
   const filteredProducts = selectedCategory === 'all'
     ? products
-    : products.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+    : products.filter((p: any) => p.category.toLowerCase() === selectedCategory.toLowerCase());
 
   return (
     <div className="min-h-screen bg-background">
@@ -16,10 +27,10 @@ export default function ProductsPage() {
       <div className="section-textured py-12">
         <div className="container-organic">
           <h1 className="text-5xl font-bold text-foreground mb-4">
-            Shop <span className="text-gradient-artisan">Handcrafted Goods</span>
+            Tienda de <span className="text-gradient-artisan">Artesanías</span>
           </h1>
           <p className="text-foreground/70 text-lg">
-            Discover unique, handmade treasures from talented artisans
+            Descubre tesoros únicos hechos a mano por artesanos talentosos
           </p>
         </div>
       </div>
@@ -33,7 +44,7 @@ export default function ProductsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/40 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search for handmade items..."
+                placeholder="Buscar artesanías..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="input-organic pl-10"
@@ -44,11 +55,11 @@ export default function ProductsPage() {
             <div className="flex gap-2">
               <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:border-primary transition-colors font-sans font-semibold">
                 <Filter className="w-5 h-5" />
-                <span className="hidden sm:inline">Filter</span>
+                <span className="hidden sm:inline">Filtrar</span>
               </button>
               <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:border-primary transition-colors font-sans font-semibold">
                 <SlidersHorizontal className="w-5 h-5" />
-                <span className="hidden sm:inline">Sort</span>
+                <span className="hidden sm:inline">Ordenar</span>
               </button>
             </div>
           </div>
@@ -76,30 +87,34 @@ export default function ProductsPage() {
       <div className="container-organic py-12">
         <div className="mb-6">
           <p className="text-foreground/60">
-            Showing <span className="font-bold text-foreground">{filteredProducts.length}</span> products
+            Mostrando <span className="font-bold text-foreground">{filteredProducts.length}</span> productos
           </p>
         </div>
 
         <div className="product-grid">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              description={product.description}
-              price={product.price}
-              category={product.category}
-              badge={product.badge}
-              rating={product.rating}
-              artisan={product.artisan}
-            />
-          ))}
+          {productsLoading ? (
+            Array(8).fill(0).map((_, i) => <div key={i} className="animate-pulse bg-muted rounded-lg h-96" />)
+          ) : (
+            filteredProducts.map((product: any) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                description={product.description}
+                price={product.price}
+                category={product.category}
+                badge={product.badge}
+                rating={product.rating}
+                artisan={product.artisan}
+              />
+            ))
+          )}
         </div>
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-foreground/60 text-lg">
-              No products found. Try adjusting your filters.
+              No hay productos disponibles. Vuelve pronto para nuevas creaciones.
             </p>
           </div>
         )}
@@ -107,136 +122,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-const categories = [
-  { id: 'all', label: 'All Items' },
-  { id: 'pottery', label: 'Pottery' },
-  { id: 'textiles', label: 'Textiles' },
-  { id: 'jewelry', label: 'Jewelry' },
-  { id: 'home & kitchen', label: 'Home & Kitchen' },
-  { id: 'fashion', label: 'Fashion' },
-  { id: 'home decor', label: 'Home Decor' },
-];
-
-const products = [
-  {
-    id: 1,
-    name: 'Handmade Ceramic Bowl',
-    category: 'Pottery',
-    description: 'Beautiful terracotta bowl, hand-thrown and glazed with natural earth tones.',
-    price: 48,
-    badge: 'sale' as const,
-    rating: 5,
-    artisan: 'Maria Santos',
-  },
-  {
-    id: 2,
-    name: 'Woven Macramé Wall Hanging',
-    category: 'Textiles',
-    description: 'Intricate boho-style wall art made from organic cotton rope.',
-    price: 65,
-    badge: 'new' as const,
-    rating: 5,
-    artisan: 'Sophie Chen',
-  },
-  {
-    id: 3,
-    name: 'Handcrafted Leather Journal',
-    category: 'Fashion',
-    description: 'Premium leather journal with hand-stitched binding and recycled paper.',
-    price: 42,
-    badge: null,
-    rating: 4,
-    artisan: 'James Cooper',
-  },
-  {
-    id: 4,
-    name: 'Artisan Wood Serving Board',
-    category: 'Home & Kitchen',
-    description: 'Live-edge walnut serving board with food-safe mineral oil finish.',
-    price: 78,
-    badge: 'featured' as const,
-    rating: 5,
-    artisan: 'Thomas Miller',
-  },
-  {
-    id: 5,
-    name: 'Hand-Painted Silk Scarf',
-    category: 'Fashion',
-    description: 'Luxurious silk scarf with original watercolor designs.',
-    price: 55,
-    badge: null,
-    rating: 4,
-    artisan: 'Elena Rodriguez',
-  },
-  {
-    id: 6,
-    name: 'Handwoven Basket Set',
-    category: 'Home Decor',
-    description: 'Set of three natural seagrass baskets, perfect for storage.',
-    price: 89,
-    badge: 'sale' as const,
-    rating: 5,
-    artisan: 'Aisha Patel',
-  },
-  {
-    id: 7,
-    name: 'Ceramic Planter Trio',
-    category: 'Pottery',
-    description: 'Three hand-painted planters in varying sizes, perfect for succulents.',
-    price: 52,
-    badge: null,
-    rating: 5,
-    artisan: 'Maria Santos',
-  },
-  {
-    id: 8,
-    name: 'Sterling Silver Necklace',
-    category: 'Jewelry',
-    description: 'Delicate handmade necklace with natural gemstone pendant.',
-    price: 95,
-    badge: 'new' as const,
-    rating: 5,
-    artisan: 'Sarah Kim',
-  },
-  {
-    id: 9,
-    name: 'Quilted Table Runner',
-    category: 'Textiles',
-    description: 'Hand-quilted table runner featuring traditional patchwork patterns.',
-    price: 68,
-    badge: null,
-    rating: 4,
-    artisan: 'Sophie Chen',
-  },
-  {
-    id: 10,
-    name: 'Wooden Cutting Board',
-    category: 'Home & Kitchen',
-    description: 'Handcrafted from reclaimed maple with juice groove.',
-    price: 45,
-    badge: null,
-    rating: 5,
-    artisan: 'Thomas Miller',
-  },
-  {
-    id: 11,
-    name: 'Hand-Knit Throw Blanket',
-    category: 'Textiles',
-    description: 'Cozy chunky knit blanket made from 100% organic wool.',
-    price: 125,
-    badge: 'featured' as const,
-    rating: 5,
-    artisan: 'Sophie Chen',
-  },
-  {
-    id: 12,
-    name: 'Artisan Soap Set',
-    category: 'Home Decor',
-    description: 'Four handmade soaps with natural ingredients and essential oils.',
-    price: 28,
-    badge: 'sale' as const,
-    rating: 4,
-    artisan: 'Emma Green',
-  },
-];

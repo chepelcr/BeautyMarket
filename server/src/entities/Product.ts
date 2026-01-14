@@ -17,6 +17,14 @@ export const products = pgTable("products", {
   stockQuantity: integer("stock_quantity").default(0).notNull(),
   lowStockThreshold: integer("low_stock_threshold").default(10).notNull(),
   trackInventory: boolean("track_inventory").default(true).notNull(),
+  // Product type and sale fields
+  isService: boolean("is_service").default(false).notNull(),
+  type: varchar("type", { length: 20 }).default('product').notNull(), // product, service, program
+  onSale: boolean("on_sale").default(false).notNull(),
+  originalPrice: integer("original_price"),
+  discount: integer("discount"), // Percentage
+  duration: varchar("duration", { length: 100 }), // For services/programs
+  difficulty: varchar("difficulty", { length: 20 }), // beginner, intermediate, advanced
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 }, (table) => [

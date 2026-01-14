@@ -1,94 +1,15 @@
+import { useProductsPage, useTheme } from "@/hooks/useContent";
+import { parsePageSections, getSectionByType } from "@/lib/pageUtils";
+import { DynamicIcon } from "@/components/DynamicIcon";
 import React from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
 import { DogIcon, CatIcon, BirdIcon } from '../components/PetIcons';
+import { useProducts } from '@/hooks/useContent';
 
 // Mock product data
 const mockProducts: Product[] = [
   {
-    id: '1',
-    name: 'Premium Dog Food - Chicken & Rice',
-    description: 'High-quality nutrition for adult dogs. Made with real chicken and wholesome grains.',
-    price: 49.99,
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
-    category: 'Dog Food',
-    rating: 4.5,
-    reviews: 128,
-    inStock: true,
-    badge: 'Best Seller',
-  },
-  {
-    id: '2',
-    name: 'Interactive Cat Toy Set',
-    description: 'Keep your cat entertained for hours with this exciting toy collection.',
-    price: 24.99,
-    image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=400&h=400&fit=crop',
-    category: 'Cat Toys',
-    rating: 5,
-    reviews: 89,
-    inStock: true,
-  },
-  {
-    id: '3',
-    name: 'Orthopedic Dog Bed - Large',
-    description: 'Memory foam comfort for senior dogs and large breeds. Machine washable cover.',
-    price: 89.99,
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=400&fit=crop',
-    category: 'Dog Beds',
-    rating: 4,
-    reviews: 64,
-    inStock: true,
-  },
-  {
-    id: '4',
-    name: 'Natural Cat Litter - Clumping',
-    description: 'Eco-friendly, odor-controlling litter made from natural materials.',
-    price: 19.99,
-    image: 'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=400&h=400&fit=crop',
-    category: 'Cat Supplies',
-    rating: 4.5,
-    reviews: 156,
-    inStock: true,
-    badge: 'Eco-Friendly',
-  },
-  {
-    id: '5',
-    name: 'Retractable Dog Leash',
-    description: 'Durable 16ft retractable leash with comfortable grip and one-button brake.',
-    price: 34.99,
-    image: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?w=400&h=400&fit=crop',
-    category: 'Dog Accessories',
-    rating: 4,
-    reviews: 92,
-    inStock: true,
-  },
-  {
-    id: '6',
-    name: 'Bird Cage Deluxe',
-    description: 'Spacious cage perfect for parakeets, cockatiels, and similar-sized birds.',
-    price: 129.99,
-    image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=400&h=400&fit=crop',
-    category: 'Bird Supplies',
-    rating: 4.5,
-    reviews: 43,
-    inStock: false,
-  },
-  {
-    id: '7',
-    name: 'Grooming Kit for Dogs',
-    description: 'Complete grooming set with brushes, nail clippers, and scissors.',
-    price: 44.99,
-    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop',
-    category: 'Dog Grooming',
-    rating: 4.5,
-    reviews: 71,
-    inStock: true,
-  },
-  {
-    id: '8',
-    name: 'Automatic Pet Feeder',
-    description: 'Smart feeder with timer and portion control. Works with dogs and cats.',
-    price: 79.99,
     image: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?w=400&h=400&fit=crop',
     category: 'Smart Devices',
     rating: 4,
@@ -99,16 +20,17 @@ const mockProducts: Product[] = [
 ];
 
 const ProductsPage: React.FC = () => {
+  const { data: mockProducts = [], isLoading } = useProducts({ type: 'product' });
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState('All');
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set());
 
-  const categories = ['All', 'Dog Food', 'Cat Toys', 'Dog Beds', 'Cat Supplies', 'Dog Accessories', 'Bird Supplies', 'Dog Grooming', 'Smart Devices'];
+  const categories = ['Todos', 'Comida para Perros', 'Juguetes para Gatos', 'Camas para Perros', 'Suministros para Gatos', 'Accesorios para Perros', 'Suministros para Pájaros', 'Aseo para Perros', 'Dispositivos Inteligentes'];
 
   const filteredProducts = mockProducts.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'Todos' || categoriesData.find((c: any) => c.id === product.categoryId)?.name === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -135,10 +57,10 @@ const ProductsPage: React.FC = () => {
       <section className="bg-gradient-to-r from-primary via-secondary to-accent py-16 mb-12">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-            Shop Pet Products
+            Tienda de Productos para Mascotas
           </h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Everything your furry friend needs, from food to toys to accessories
+            Todo lo que tu amigo peludo necesita, desde comida hasta juguetes y accesorios
           </p>
         </div>
       </section>
@@ -153,7 +75,7 @@ const ProductsPage: React.FC = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Buscar productos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-border focus:border-primary focus:outline-none bg-card text-foreground transition-colors"
@@ -165,11 +87,11 @@ const ProductsPage: React.FC = () => {
             <div className="flex gap-2">
               <button className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/10 transition-colors bg-card">
                 <SlidersHorizontal className="w-5 h-5" />
-                <span className="font-medium">Filters</span>
+                <span className="font-medium">Filtros</span>
               </button>
               <button className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-border hover:border-primary hover:bg-primary/10 transition-colors bg-card">
                 <Filter className="w-5 h-5" />
-                <span className="font-medium">Sort</span>
+                <span className="font-medium">Ordenar</span>
               </button>
             </div>
           </div>
@@ -194,15 +116,15 @@ const ProductsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Pet Type Quick Filters */}
+        {/* Pet Type Quick Filtros */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <button className="flex items-center gap-4 p-4 rounded-2xl bg-card border-2 border-primary/20 hover:border-primary hover:bg-primary/5 transition-all group">
             <div className="bg-primary/10 p-3 rounded-2xl group-hover:scale-110 transition-transform">
               <DogIcon className="text-primary" size={32} />
             </div>
             <div className="text-left">
-              <h3 className="font-bold text-foreground">For Dogs</h3>
-              <p className="text-sm text-muted-foreground">Food, toys, accessories</p>
+              <h3 className="font-bold text-foreground">Para Perros</h3>
+              <p className="text-sm text-muted-foreground">Comida, juguetes, accesorios</p>
             </div>
           </button>
 
@@ -211,8 +133,8 @@ const ProductsPage: React.FC = () => {
               <CatIcon className="text-secondary" size={32} />
             </div>
             <div className="text-left">
-              <h3 className="font-bold text-foreground">For Cats</h3>
-              <p className="text-sm text-muted-foreground">Treats, litter, toys</p>
+              <h3 className="font-bold text-foreground">Para Gatos</h3>
+              <p className="text-sm text-muted-foreground">Premios, arena, juguetes</p>
             </div>
           </button>
 
@@ -221,8 +143,8 @@ const ProductsPage: React.FC = () => {
               <BirdIcon className="text-accent" size={32} />
             </div>
             <div className="text-left">
-              <h3 className="font-bold text-foreground">Other Pets</h3>
-              <p className="text-sm text-muted-foreground">Birds, fish, small animals</p>
+              <h3 className="font-bold text-foreground">Otras Mascotas</h3>
+              <p className="text-sm text-muted-foreground">Pájaros, peces, animales pequeños</p>
             </div>
           </button>
         </div>
@@ -230,12 +152,16 @@ const ProductsPage: React.FC = () => {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            Showing <span className="font-bold text-foreground">{filteredProducts.length}</span> products
+            Mostrando <span className="font-bold text-foreground">{filteredProducts.length}</span> productos
           </p>
         </div>
 
         {/* Product Grid */}
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array(8).fill(0).map((_, i) => <div key={i} className="animate-pulse bg-card rounded-2xl h-96" />)}
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
               <ProductCard
@@ -249,8 +175,8 @@ const ProductsPage: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-xl text-muted-foreground mb-4">No products found</p>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            <p className="text-xl text-muted-foreground mb-4">No hay productos disponibles</p>
+            <p className="text-muted-foreground">Intenta ajustar tu búsqueda o filtros</p>
           </div>
         )}
       </div>

@@ -2,6 +2,9 @@ import { Link } from "wouter";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/ProductCard";
+import { DynamicIcon } from "@/components/DynamicIcon";
+import { useProducts, useHomePage, useTheme } from "@/hooks/useContent";
+import { parsePageSections, getSectionByType } from "@/lib/pageUtils";
 import {
   Sparkles,
   Heart,
@@ -12,72 +15,32 @@ import {
   Star,
 } from "lucide-react";
 
-const featuredProducts = [
-  {
-    id: "1",
-    name: "Radiant Glow Vitamin C Serum",
-    category: "Skincare",
-    price: 49.99,
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80",
-    rating: 5,
-    reviews: 234,
-    isNew: true,
-  },
-  {
-    id: "2",
-    name: "Luxe Velvet Matte Lipstick - Rose",
-    category: "Makeup",
-    price: 24.99,
-    image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=500&q=80",
-    rating: 5,
-    reviews: 189,
-    isBestseller: true,
-  },
-  {
-    id: "3",
-    name: "Hydrating Rose Water Facial Mist",
-    category: "Skincare",
-    price: 18.99,
-    image: "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=500&q=80",
-    rating: 4,
-    reviews: 156,
-  },
-  {
-    id: "4",
-    name: "Nourishing Night Cream with Retinol",
-    category: "Skincare",
-    price: 54.99,
-    image: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=500&q=80",
-    rating: 5,
-    reviews: 298,
-    isBestseller: true,
-  },
-];
-
-const benefits = [
-  {
-    icon: Leaf,
-    title: "Natural Ingredients",
-    description: "Formulated with organic, plant-based ingredients",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Dermatologist Tested",
-    description: "Clinically tested and approved for all skin types",
-  },
-  {
-    icon: Heart,
-    title: "Cruelty-Free",
-    description: "Never tested on animals, always vegan-friendly",
-  },
-  {
-    icon: Award,
-    title: "Award Winning",
-    description: "Recognized by leading beauty industry experts",
-  },
-];
-
 export default function HomePage() {
+  const { data: products = [], isLoading } = useProducts();
+  const { data: pageData, isLoading: pageLoading } = useHomePage();
+  const { data: theme } = useTheme();
+  const featuredProducts = products.slice(0, 4);
+
+  const sections = parsePageSections(pageData);
+  const hero = getSectionByType(sections, 'hero')?.content || {};
+  const benefits = getSectionByType(sections, 'benefits')?.content || {};
+  const cta = getSectionByType(sections, 'cta')?.content || {};
+  const testimonials = getSectionByType(sections, 'testimonials')?.content || {};
+  const featured = getSectionByType(sections, 'featured')?.content || {};
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-pink-100">
+        <div className="text-center">
+          <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+            <DynamicIcon icon={theme?.loadingIcon} fallback="Sparkles" className="w-12 h-12 text-primary" size={48} />
+          </div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -91,45 +54,36 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-primary/20">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-sm font-semibold text-primary">
-                  New Collection Available
+                  {hero.badge || 'New Collection Available'}
                 </span>
               </div>
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-foreground leading-tight">
-                Discover Your
-                <span className="text-primary block">Natural Beauty</span>
+                {hero.title || 'Discover Your Natural Beauty'}
               </h1>
 
               <p className="text-lg md:text-xl text-muted-foreground max-w-lg">
-                Premium cosmetics and skincare products crafted with natural
-                ingredients to enhance your radiance. Cruelty-free, vegan, and
-                made with love.
+                {hero.subtitle || 'Premium cosmetics and skincare products crafted with natural ingredients'}
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="/products">
                   <a className="btn-beauty flex items-center gap-2">
-                    Shop Now
+                    {hero.ctaPrimary || 'Shop Now'}
                     <ArrowRight className="w-5 h-5" />
                   </a>
                 </Link>
-                <button className="btn-beauty-outline">Learn More</button>
+                <button className="btn-beauty-outline">{hero.ctaSecondary || 'Learn More'}</button>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-6 pt-8">
-                <div>
-                  <p className="text-3xl font-bold text-primary">10K+</p>
-                  <p className="text-sm text-muted-foreground">Happy Customers</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-primary">50+</p>
-                  <p className="text-sm text-muted-foreground">Premium Products</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-primary">100%</p>
-                  <p className="text-sm text-muted-foreground">Natural & Safe</p>
-                </div>
+                {(hero.stats || [{label: 'Happy Customers', value: '10K+'}, {label: 'Premium Products', value: '50+'}, {label: 'Natural & Safe', value: '100%'}]).map((stat: any, i: number) => (
+                  <div key={i}>
+                    <p className="text-3xl font-bold text-primary">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -137,7 +91,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-beauty-lg">
                 <img
-                  src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80"
+                  src={hero.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80'}
                   alt="Beauty products"
                   className="w-full h-auto object-cover"
                 />
@@ -150,7 +104,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="font-bold text-foreground">4.9/5.0</p>
-                    <p className="text-sm text-muted-foreground">Customer Rating</p>
+                    <p className="text-sm text-muted-foreground">Calificación de Clientes</p>
                   </div>
                 </div>
               </div>
@@ -167,8 +121,9 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => {
-              const Icon = benefit.icon;
+            {(benefits.items || []).map((benefit: any, index: number) => {
+              const iconMap: any = { Leaf, ShieldCheck, Heart, Award };
+              const Icon = iconMap[benefit.icon] || Sparkles;
               return (
                 <div
                   key={index}
@@ -188,7 +143,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products Section */}
+      {/* {featured.title || 'Productos Destacados'} Section */}
       <section className="py-20 section-cream">
         <div className="container mx-auto px-4">
           {/* Section Header */}
@@ -196,30 +151,35 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-primary/20 mb-4">
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold text-primary">
-                Bestsellers
+                {featured.badge || 'Más Vendidos'}
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4">
-              Featured Products
+              {featured.title || 'Productos Destacados'}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our most loved beauty essentials, handpicked for your
-              skincare routine
+              {featured.subtitle || 'Descubre nuestros productos más amados, seleccionados para tu rutina de cuidado'}
             </p>
           </div>
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
+            {isLoading ? (
+              Array(4).fill(0).map((_, i) => (
+                <div key={i} className="animate-pulse bg-pink-50 rounded-2xl h-96" />
+              ))
+            ) : (
+              featuredProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))
+            )}
           </div>
 
           {/* View All Button */}
           <div className="text-center">
             <Link href="/products">
               <a className="btn-beauty-outline inline-flex items-center gap-2">
-                View All Products
+                Ver Todos los Productos
                 <ArrowRight className="w-5 h-5" />
               </a>
             </Link>
@@ -233,11 +193,10 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center">
             <Sparkles className="w-16 h-16 mx-auto mb-6 opacity-90" />
             <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">
-              Join Our Beauty Community
+              {cta.title || 'Join Our Beauty Community'}
             </h2>
             <p className="text-lg mb-8 opacity-90">
-              Get exclusive access to new products, beauty tips, and special
-              offers. Sign up for our newsletter today!
+              {cta.description || 'Get exclusive access to new products, beauty tips, and special offers'}
             </p>
             <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
@@ -249,11 +208,11 @@ export default function HomePage() {
                 type="submit"
                 className="px-8 py-4 bg-white text-primary rounded-lg font-bold hover:bg-pink-50 transition-colors whitespace-nowrap"
               >
-                Subscribe
+                {cta.buttonText || 'Subscribe'}
               </button>
             </form>
             <p className="text-sm mt-4 opacity-75">
-              Join 10,000+ beauty lovers already subscribed
+              Únete a {cta.subscriberCount || '10,000+'} {cta.subscriberText || 'amantes de la belleza ya suscritos'}
             </p>
           </div>
         </div>
@@ -264,40 +223,21 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4">
-              What Our Customers Say
+              {testimonials.title || 'What Our Customers Say'}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Real stories from real people who love our products
+              {testimonials.description || 'Real stories from real people who love our products'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Johnson",
-                role: "Skincare Enthusiast",
-                text: "The Vitamin C serum has transformed my skin! My complexion has never looked better. Highly recommend!",
-                rating: 5,
-              },
-              {
-                name: "Emily Chen",
-                role: "Makeup Artist",
-                text: "As a professional makeup artist, I trust Beauty Essentials for all my clients. The quality is unmatched.",
-                rating: 5,
-              },
-              {
-                name: "Jessica Martinez",
-                role: "Beauty Blogger",
-                text: "Finally found a brand that's both effective and ethical. Love that everything is cruelty-free!",
-                rating: 5,
-              },
-            ].map((testimonial, index) => (
+            {(testimonials.items || []).map((testimonial: any, index: number) => (
               <div
                 key={index}
                 className="bg-pink-50 p-8 rounded-2xl hover:shadow-beauty transition-shadow"
               >
                 <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
+                  {[...Array(testimonial.rating || 5)].map((_, i) => (
                     <Star
                       key={i}
                       className="w-5 h-5 text-yellow-400 fill-yellow-400"
@@ -308,7 +248,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
                     <span className="font-bold text-primary">
-                      {testimonial.name.charAt(0)}
+                      {testimonial.name?.charAt(0) || 'A'}
                     </span>
                   </div>
                   <div>

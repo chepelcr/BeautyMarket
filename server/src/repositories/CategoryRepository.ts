@@ -1,11 +1,18 @@
 import { db } from '../config/database';
 import { categoriesTable, type Category } from '../entities';
 import type { InsertCategory } from '../models';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { ICategoryRepository } from '../types';
 
 export class CategoryRepository implements ICategoryRepository {
-  async getCategories(): Promise<Category[]> {
+  async getCategories(organizationId?: string): Promise<Category[]> {
+    if (organizationId) {
+      return await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.organizationId, organizationId))
+        .orderBy(categoriesTable.sortOrder);
+    }
     return await db
       .select()
       .from(categoriesTable)
@@ -17,6 +24,19 @@ export class CategoryRepository implements ICategoryRepository {
       .select()
       .from(categoriesTable)
       .where(eq(categoriesTable.id, id));
+    return category;
+  }
+
+  async getCategoryByIdAndOrgId(id: string, organizationId: string): Promise<Category | undefined> {
+    const [category] = await db
+      .select()
+      .from(categoriesTable)
+      .where(
+        and(
+          eq(categoriesTable.id, id),
+          eq(categoriesTable.organizationId, organizationId)
+        )
+      );
     return category;
   }
 

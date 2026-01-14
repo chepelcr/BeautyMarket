@@ -1,4 +1,5 @@
 import { Link } from 'wouter';
+import { DynamicIcon } from '@/components/DynamicIcon';
 import { Sparkles, Leaf, Package, ShoppingBag, Heart, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 
@@ -75,7 +76,7 @@ export default function HomePage() {
               <span className="badge-new">New Arrivals</span>
             </div>
             <h3 className="text-3xl font-bold text-foreground mb-4">
-              Featured Handcrafted Items
+              Artículos Artesanales Destacados
             </h3>
             <p className="text-foreground/70 max-w-2xl mx-auto">
               Browse our curated selection of artisan-made products, each with its own unique story.
@@ -101,7 +102,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <Link href="/products">
               <a className="btn-artisan inline-flex items-center gap-2">
-                View All Products
+                Ver Todos los Productos
                 <ArrowRight className="w-5 h-5" />
               </a>
             </Link>

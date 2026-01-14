@@ -10,112 +10,43 @@ import {
   VintageDivider,
 } from '../components';
 import { useCartStore } from '@/store/cart';
+import { useProducts, useCategories, useProductsPage, useTheme } from '@/hooks/useContent';
+import { parsePageSections, getSectionByType } from '@/lib/pageUtils';
+import { DynamicIcon } from '../components/DynamicIcon';
 
 export function ProductsPage() {
+  const { data: products = [], isLoading: productsLoading } = useProducts({ type: 'product' });
+  const { data: categoriesData = [], isLoading: categoriesLoading } = useCategories();
+  const { data: pageData, isLoading: pageLoading } = useProductsPage();
+  const { data: theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
   const { addToCart } = useCartStore();
 
-  const categories = [
-    { id: 'all', name: 'All Items' },
-    { id: 'dresses', name: 'Dresses' },
-    { id: 'coats', name: 'Coats & Jackets' },
-    { id: 'accessories', name: 'Accessories' },
-    { id: 'shoes', name: 'Shoes' },
-  ];
+  const sections = parsePageSections(pageData);
+  const hero = getSectionByType(sections, 'hero')?.content;
+  const cta = getSectionByType(sections, 'cta')?.content;
 
-  const products = [
-    {
-      id: 1,
-      name: '1950s Swing Dress',
-      category: 'dresses',
-      price: 189,
-      badge: 'bestseller' as const,
-      emoji: '👗',
-      gradient: 'from-burgundy-50 to-cream-100',
-    },
-    {
-      id: 2,
-      name: 'Tweed Overcoat',
-      category: 'coats',
-      price: 249,
-      originalPrice: 349,
-      badge: 'sale' as const,
-      emoji: '🧥',
-      gradient: 'from-mustard-50 to-cream-100',
-    },
-    {
-      id: 3,
-      name: 'Leather Handbag',
-      category: 'accessories',
-      price: 159,
-      badge: 'limited' as const,
-      emoji: '👜',
-      gradient: 'from-accent/20 to-cream-100',
-    },
-    {
-      id: 4,
-      name: 'Silk Scarf',
-      category: 'accessories',
-      price: 45,
-      badge: 'new' as const,
-      emoji: '🧣',
-      gradient: 'from-cream-100 to-mustard-50',
-    },
-    {
-      id: 5,
-      name: 'Vintage Heels',
-      category: 'shoes',
-      price: 129,
-      badge: 'vintage' as const,
-      emoji: '👠',
-      gradient: 'from-burgundy-50 to-accent/20',
-    },
-    {
-      id: 6,
-      name: 'Wool Peacoat',
-      category: 'coats',
-      price: 299,
-      badge: 'bestseller' as const,
-      emoji: '🧥',
-      gradient: 'from-cream-100 to-burgundy-50',
-    },
-    {
-      id: 7,
-      name: 'Tea Length Dress',
-      category: 'dresses',
-      price: 169,
-      badge: 'vintage' as const,
-      emoji: '👗',
-      gradient: 'from-mustard-50 to-cream-100',
-    },
-    {
-      id: 8,
-      name: 'Pearl Necklace',
-      category: 'accessories',
-      price: 89,
-      badge: 'new' as const,
-      emoji: '📿',
-      gradient: 'from-cream-50 to-cream-100',
-    },
-    {
-      id: 9,
-      name: 'Velvet Evening Gown',
-      category: 'dresses',
-      price: 379,
-      badge: 'limited' as const,
-      emoji: '👗',
-      gradient: 'from-burgundy-100 to-accent/30',
-    },
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <DynamicIcon icon={theme?.loadingIcon || 'Sparkles'} className="w-12 h-12 text-mustard-500 animate-pulse" />
+      </div>
+    );
+  }
+
+  const categories = [
+    { id: 'all', name: 'Todos' },
+    ...categoriesData.map((c: any) => ({ id: c.id, name: c.name })),
   ];
 
   const filteredProducts =
     selectedCategory === 'all'
       ? products
-      : products.filter((p) => p.category === selectedCategory);
+      : products.filter((p: any) => p.category === selectedCategory);
 
-  const handleAddToCart = (product: typeof products[0]) => {
+  const handleAddToCart = (product: any) => {
     addToCart({
       id: product.id.toString(),
       name: product.name,
@@ -133,10 +64,10 @@ export function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-serif font-bold text-burgundy-900 mb-4">
-              Our Collection
+              {hero?.title || 'Nuestra Colección'}
             </h1>
             <p className="text-xl font-body text-burgundy-900/80 max-w-2xl mx-auto">
-              Browse our carefully curated selection of vintage fashion pieces
+              {hero?.subtitle || 'Explora nuestra selección cuidadosamente curada de piezas vintage'}
             </p>
           </div>
         </div>
@@ -170,10 +101,10 @@ export function ProductsPage() {
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-2 font-serif text-sm border-2 border-burgundy-900/30 rounded-md bg-card text-burgundy-900 focus:border-burgundy-900 outline-none"
             >
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="newest">Newest First</option>
+              <option value="featured">Destacados</option>
+              <option value="price-low">Precio: Menor a Mayor</option>
+              <option value="price-high">Precio: Mayor a Menor</option>
+              <option value="newest">Más Recientes</option>
             </select>
           </div>
         </div>
@@ -181,13 +112,16 @@ export function ProductsPage() {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-sm font-body text-burgundy-900/70">
-            Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+            Mostrando {filteredProducts.length} {filteredProducts.length === 1 ? 'producto' : 'productos'}
           </p>
         </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
+          {productsLoading ? (
+            Array(8).fill(0).map((_, i) => <div key={i} className="animate-pulse bg-cream-100 rounded-lg h-96" />)
+          ) : (
+            filteredProducts.map((product: any) => (
             <VintageCard key={product.id} hover>
               <VintageCardHeader>
                 <div className={`aspect-square bg-gradient-to-br ${product.gradient} rounded-md flex items-center justify-center relative`}>
@@ -220,7 +154,7 @@ export function ProductsPage() {
                 <div className="flex gap-2">
                   <Link href={`/products/${product.id}`} className="flex-1">
                     <VintageButton variant="outline" size="sm" className="w-full">
-                      View Details
+                      Ver Detalles
                     </VintageButton>
                   </Link>
                   <VintageButton
@@ -234,7 +168,8 @@ export function ProductsPage() {
                 </div>
               </VintageCardContent>
             </VintageCard>
-          ))}
+          ))
+          )}
         </div>
 
         {/* Empty State */}
@@ -242,10 +177,10 @@ export function ProductsPage() {
           <div className="text-center py-20">
             <Filter size={48} className="mx-auto text-burgundy-900/30 mb-4" />
             <h3 className="text-2xl font-serif font-bold text-burgundy-900 mb-2">
-              No items found
+              No hay productos disponibles
             </h3>
             <p className="text-burgundy-900/70 font-body mb-6">
-              Try adjusting your filters to see more products
+              Intenta ajustar tus filtros para ver más productos
             </p>
             <VintageButton variant="secondary" onClick={() => setSelectedCategory('all')}>
               Clear Filters
@@ -260,14 +195,13 @@ export function ProductsPage() {
       <section className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 mb-12">
         <div className="bg-gradient-to-br from-burgundy-900 to-burgundy-800 rounded-lg p-8 md:p-12 text-center">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-cream-50 mb-4">
-            Can't Find What You're Looking For?
+            {cta?.title || '¿No Encuentras Lo Que Buscas?'}
           </h2>
           <p className="text-lg font-body text-cream-50/80 mb-6 max-w-2xl mx-auto">
-            We're constantly adding new pieces to our collection. Sign up for our newsletter to be
-            the first to know about new arrivals.
+            {cta?.description || 'Contáctanos para recomendaciones personalizadas'}
           </p>
           <VintageButton variant="secondary" size="lg">
-            Subscribe to Newsletter
+            {cta?.buttonText || 'Contáctanos'}
           </VintageButton>
         </div>
       </section>

@@ -1,9 +1,14 @@
+import { SubdomainProvider } from '@/contexts/SubdomainContext';
 import React from 'react';
 import { Route, Switch } from 'wouter';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ServicesPage from "@/pages/ServicesPage";
+import ProgramsPage from "@/pages/ProgramsPage";
+import AboutPage from "@/pages/AboutPage";
+import DealsPage from "@/pages/DealsPage";
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import { PawPrintDecoration } from './components/PawPrintDecoration';
@@ -12,6 +17,7 @@ import CheckoutModal from './components/cart/checkout-modal';
 
 function App() {
   return (
+    <SubdomainProvider>
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       {/* Decorative paw prints background */}
       <PawPrintDecoration />
@@ -25,22 +31,10 @@ function App() {
           <Route path="/" component={HomePage} />
           <Route path="/products" component={ProductsPage} />
           <Route path="/products/:id" component={ProductDetailPage} />
-          <Route path="/services" component={() => (
-            <div className="relative z-10 p-8 text-center min-h-[60vh] flex items-center justify-center">
-              <div>
-                <h1 className="text-4xl font-bold text-foreground mb-4">Pet Services</h1>
-                <p className="text-xl text-muted-foreground">Coming Soon! Grooming, training, and more.</p>
-              </div>
-            </div>
-          )} />
-          <Route path="/about" component={() => (
-            <div className="relative z-10 p-8 text-center min-h-[60vh] flex items-center justify-center">
-              <div>
-                <h1 className="text-4xl font-bold text-foreground mb-4">About PetCare</h1>
-                <p className="text-xl text-muted-foreground">Your trusted partner in pet care.</p>
-              </div>
-            </div>
-          )} />
+          <Route path="/deals" component={DealsPage} />
+          <Route path="/services" component={ServicesPage} />
+          <Route path="/programs" component={ProgramsPage} />
+          <Route path="/about" component={AboutPage} />
           <Route component={NotFoundPage} />
         </Switch>
       </main>
@@ -52,6 +46,8 @@ function App() {
       <CartSidebar />
       <CheckoutModal />
     </div>
+  );
+    </SubdomainProvider>
   );
 }
 

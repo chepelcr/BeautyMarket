@@ -3,18 +3,22 @@ import { Link, useLocation } from 'wouter';
 import { ShoppingCart, Menu, X, Heart } from 'lucide-react';
 import { PawIcon } from '../PawPrintDecoration';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
 
 const Navbar: React.FC = () => {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const { items, toggleCart } = useCartStore();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/products', label: 'Products' },
-    { path: '/services', label: 'Services' },
-    { path: '/about', label: 'About' },
+    { path: '/', label: 'Inicio' },
+    { path: '/products', label: 'Productos' },
+    { path: '/services', label: 'Servicios' },
+    { path: '/about', label: 'Acerca de' },
   ];
 
   const isActive = (path: string) => location === path;
@@ -25,12 +29,17 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/">
-            <a className="flex items-center gap-2 group cursor-pointer">
+            <a className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
               <div className="bg-primary/10 p-2 rounded-2xl group-hover:rotate-12 transition-transform">
-                <PawIcon className="w-8 h-8 text-primary" />
+                
+                {theme?.logoUrl ? (
+                  <img src={theme.logoUrl} alt="Logo" className="w-8 h-8" />
+                ) : (
+                  <PawIcon className="w-8 h-8 text-primary" />
+                )}
               </div>
               <span className="text-2xl font-bold text-primary">
-                Pet<span className="text-secondary">Care</span>
+                {organization?.name || 'PetCare'}
               </span>
             </a>
           </Link>
@@ -64,9 +73,6 @@ const Navbar: React.FC = () => {
                   {cartItemCount}
                 </span>
               )}
-            </button>
-            <button className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-semibold hover:scale-105 transition-transform shadow-md">
-              Sign In
             </button>
           </div>
 
@@ -103,7 +109,7 @@ const Navbar: React.FC = () => {
               ))}
               <div className="flex items-center gap-4 px-4 pt-4 border-t border-border">
                 <button className="flex-1 p-2 rounded-xl bg-primary/10 text-primary font-medium">
-                  Favorites
+                  Favoritos
                 </button>
                 <button
                   onClick={() => {
@@ -113,12 +119,9 @@ const Navbar: React.FC = () => {
                   className="flex-1 p-2 rounded-xl bg-secondary/10 text-secondary font-medium flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Cart ({cartItemCount})
+                  Carrito ({cartItemCount})
                 </button>
               </div>
-              <button className="mx-4 bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold">
-                Sign In
-              </button>
             </div>
           </div>
         )}

@@ -3,6 +3,7 @@ import { useRoute, Link } from "wouter";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/ProductCard";
+import { useProducts } from "@/hooks/useContent";
 import {
   ShoppingCart,
   Heart,
@@ -16,95 +17,38 @@ import {
   Plus,
 } from "lucide-react";
 
-// Mock product data
-const productDetails = {
-  "1": {
-    id: "1",
-    name: "Radiant Glow Vitamin C Serum",
-    category: "Skincare",
-    price: 49.99,
-    images: [
-      "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&q=80",
-      "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=800&q=80",
-      "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80",
-    ],
-    rating: 5,
-    reviews: 234,
-    description:
-      "Transform your skin with our powerful Vitamin C serum. This lightweight formula brightens, evens skin tone, and protects against environmental damage. Infused with natural antioxidants and hyaluronic acid for maximum hydration.",
-    ingredients: [
-      "Vitamin C (20%)",
-      "Hyaluronic Acid",
-      "Ferulic Acid",
-      "Vitamin E",
-      "Aloe Vera Extract",
-      "Green Tea Extract",
-    ],
-    benefits: [
-      "Brightens and evens skin tone",
-      "Reduces appearance of fine lines",
-      "Protects against free radicals",
-      "Boosts collagen production",
-      "Suitable for all skin types",
-      "Vegan and cruelty-free",
-    ],
-    howToUse:
-      "Apply 3-4 drops to clean, dry skin every morning. Gently massage into face and neck. Follow with moisturizer and SPF.",
-    isNew: true,
-  },
-  // Add more product details as needed
-};
 
-const relatedProducts = [
-  {
-    id: "4",
-    name: "Nourishing Night Cream with Retinol",
-    category: "Skincare",
-    price: 54.99,
-    image: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=500&q=80",
-    rating: 5,
-    reviews: 298,
-    isBestseller: true,
-  },
-  {
-    id: "3",
-    name: "Hydrating Rose Water Facial Mist",
-    category: "Skincare",
-    price: 18.99,
-    image: "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=500&q=80",
-    rating: 4,
-    reviews: 156,
-  },
-  {
-    id: "6",
-    name: "Gentle Exfoliating Face Scrub",
-    category: "Skincare",
-    price: 22.99,
-    image: "https://images.unsplash.com/photo-1570554886111-e80fcca6a029?w=500&q=80",
-    rating: 5,
-    reviews: 203,
-  },
-  {
-    id: "9",
-    name: "Brightening Eye Cream with Caffeine",
-    category: "Skincare",
-    price: 38.99,
-    image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=500&q=80",
-    rating: 5,
-    reviews: 167,
-  },
-];
 
 export default function ProductDetailPage() {
   const [, params] = useRoute("/products/:id");
   const productId = params?.id || "1";
-  const product = productDetails[productId as keyof typeof productDetails] || productDetails["1"];
+  const { data: products = [] } = useProducts();
+  const product = products.find((p: any) => p.id === productId) || products[0];
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   const incrementQuantity = () => setQuantity((prev) => prev + 1);
   const decrementQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+  // Related products from same category
+  const relatedProducts = products
+    .filter((p: any) => p.category === product?.category && p.id !== product?.id)
+    .slice(0, 4);
+
+  if (!product) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <p>Product not found</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const images = product.images || [product.image, product.image, product.image];
 
   return (
     <div className="min-h-screen">
@@ -136,7 +80,7 @@ export default function ProductDetailPage() {
               {/* Main Image */}
               <div className="mb-4 rounded-2xl overflow-hidden bg-beauty-cream aspect-square">
                 <img
-                  src={product.images[selectedImage]}
+                  src={images[selectedImage]}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -144,7 +88,7 @@ export default function ProductDetailPage() {
 
               {/* Thumbnail Gallery */}
               <div className="grid grid-cols-3 gap-4">
-                {product.images.map((image, index) => (
+                {images.map((image: string, index: number) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -289,7 +233,7 @@ export default function ProductDetailPage() {
                   Key Benefits
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {product.benefits.map((benefit, index) => (
+                  {(product.benefits || []).map((benefit: string, index: number) => (
                     <div key={index} className="flex items-start gap-3">
                       <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                       <span className="text-muted-foreground">{benefit}</span>
@@ -306,7 +250,7 @@ export default function ProductDetailPage() {
                   Ingredients
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.ingredients.map((ingredient, index) => (
+                  {(product.ingredients || []).map((ingredient: string, index: number) => (
                     <span
                       key={index}
                       className="px-4 py-2 bg-pink-50 text-foreground rounded-full text-sm"
@@ -325,7 +269,7 @@ export default function ProductDetailPage() {
                   How to Use
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  {product.howToUse}
+                  {product.howToUse || product.description}
                 </p>
               </div>
             </div>
@@ -342,7 +286,7 @@ export default function ProductDetailPage() {
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((product) => (
+              {relatedProducts.map((product: any) => (
                 <ProductCard key={product.id} {...product} />
               ))}
             </div>

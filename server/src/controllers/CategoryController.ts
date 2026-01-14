@@ -14,8 +14,8 @@ export class CategoryController {
     const router = Router({ mergeParams: true });
 
     router.get('/', this.getCategories.bind(this));
+    router.get('/:id/products', this.getCategoryProducts.bind(this));
     router.get('/:id', this.getCategoryById.bind(this));
-    router.get('/:slug/products', this.getCategoryProducts.bind(this));
     router.post('/', this.createCategory.bind(this));
     router.put('/:id', this.updateCategory.bind(this));
     router.delete('/:id', this.deleteCategory.bind(this));
@@ -35,7 +35,8 @@ export class CategoryController {
    */
   async getCategories(req: Request, res: Response) {
     try {
-      const categories = await this.categoryService.getCategories();
+      const { orgId } = req.params;
+      const categories = await this.categoryService.getCategories(orgId);
       res.json(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -63,9 +64,10 @@ export class CategoryController {
    */
   async getCategoryById(req: Request, res: Response) {
     try {
-      const category = await this.categoryService.getCategoryById(req.params.id);
+      const { orgId, id } = req.params;
+      const category = await this.categoryService.getCategoryByIdAndOrgId(id, orgId);
       if (!category) {
-        return res.status(404).json({ error: "Category not found" });
+        return res.status(404).json({ error: "Category not found or does not belong to this organization" });
       }
       res.json(category);
     } catch (error) {
@@ -76,13 +78,13 @@ export class CategoryController {
 
   /**
    * @swagger
-   * /api/categories/{slug}/products:
+   * /api/categories/{id}/products:
    *   get:
-   *     summary: Get products by category slug
+   *     summary: Get products by category ID
    *     tags: [Categories]
    *     parameters:
    *       - in: path
-   *         name: slug
+   *         name: id
    *         required: true
    *         schema:
    *           type: string
@@ -92,11 +94,17 @@ export class CategoryController {
    */
   async getCategoryProducts(req: Request, res: Response) {
     try {
-      const category = await this.categoryService.getCategoryBySlug(req.params.slug);
+      const { orgId, id } = req.params;
+
+      // Verify category exists and belongs to this organization (single query)
+      const category = await this.categoryService.getCategoryByIdAndOrgId(id, orgId);
       if (!category) {
-        return res.status(404).json({ error: "Category not found" });
+        return res.status(404).json({ error: "Category not found or does not belong to this organization" });
       }
-      const products = await this.productService.getProductsByCategory(category.slug);
+
+      // Get products directly from database with both filters
+      const products = await this.productService.getProductsByCategoryAndOrg(id, orgId);
+
       res.json(products);
     } catch (error) {
       console.error("Error fetching products by category:", error);
@@ -157,12 +165,19 @@ export class CategoryController {
    */
   async updateCategory(req: Request, res: Response) {
     try {
+      const { orgId, id } = req.params;
       const updates = insertCategorySchema.partial().parse(req.body);
 
-      const category = await this.categoryService.updateCategory(req.params.id, updates);
+      // Verify category exists and belongs to this organization
+      const existingCategory = await this.categoryService.getCategoryByIdAndOrgId(id, orgId);
+      if (!existingCategory) {
+        return res.status(404).json({ error: "Category not found or does not belong to this organization" });
+      }
+
+      const category = await this.categoryService.updateCategory(id, updates);
 
       // Trigger pre-deployment for updated category
-      await this.preDeploymentService.triggerPreDeployment('category', 'update', req.params.id, 'category', updates);
+      await this.preDeploymentService.triggerPreDeployment('category', 'update', id, 'category', updates);
 
       res.json(category);
     } catch (error) {
@@ -199,13 +214,21 @@ export class CategoryController {
    */
   async deleteCategory(req: Request, res: Response) {
     try {
-      const deleted = await this.categoryService.deleteCategory(req.params.id);
+      const { orgId, id } = req.params;
+
+      // Verify category exists and belongs to this organization
+      const existingCategory = await this.categoryService.getCategoryByIdAndOrgId(id, orgId);
+      if (!existingCategory) {
+        return res.status(404).json({ error: "Category not found or does not belong to this organization" });
+      }
+
+      const deleted = await this.categoryService.deleteCategory(id);
       if (!deleted) {
         return res.status(404).json({ error: "Category not found" });
       }
 
       // Trigger pre-deployment for deleted category
-      await this.preDeploymentService.triggerPreDeployment('category', 'delete', req.params.id, 'category', {});
+      await this.preDeploymentService.triggerPreDeployment('category', 'delete', id, 'category', {});
 
       res.json({ message: "Category deleted successfully" });
     } catch (error) {

@@ -28,9 +28,11 @@ export const organizations = pgTable("organizations", {
   settings: jsonb("settings"),
 
   // Template system fields
-  isTemplate: boolean("is_template").default(false).notNull(),
   templateId: varchar("template_id", { length: 100 }),
-  clonedFromOrganizationId: varchar("cloned_from_organization_id", { length: 100 }),
+
+  // Onboarding flow
+  onboardingStep: integer("onboarding_step").default(0).notNull(), // 0=not started, 1=basic info, 2=contact info, 3=completed
+  ownerId: varchar("owner_id", { length: 100 }).notNull(),
 
   // Subscription/Billing
   plan: varchar("plan", { length: 50 }).default("free").notNull(),

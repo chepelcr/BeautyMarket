@@ -96,7 +96,7 @@ export class DeploymentService {
       await this.s3Dao.setBucketWebsite({
         bucket: bucketName,
         indexDocument: 'index.html',
-        errorDocument: 'index.html', // Serve index.html for all 404s to enable SPA routing
+        errorDocument: 'index.html',
       });
       console.log('✅ S3 bucket configured for SPA website hosting');
     } catch (error: any) {
@@ -109,12 +109,11 @@ export class DeploymentService {
     const mime = await import('mime-types');
     const contentType = mime.lookup(filePath) || 'application/octet-stream';
 
-    // Set cache control for different file types
-    let cacheControl = 'max-age=86400'; // 1 day default
+    let cacheControl = 'max-age=86400';
     if (contentType.startsWith('text/html')) {
       cacheControl = 'no-cache';
     } else if (contentType.startsWith('image/') || contentType.startsWith('font/')) {
-      cacheControl = 'max-age=31536000'; // 1 year
+      cacheControl = 'max-age=31536000';
     }
 
     await this.s3Dao.uploadFile({
@@ -159,7 +158,6 @@ export class DeploymentService {
       const filePath = path.join(dirPath, file);
       const key = prefix ? `${prefix}/${file}` : file;
 
-      // Skip existing images directory to preserve uploaded images during deployment
       if (preserveImages && key === 'images') {
         console.log(`⚠️  Skipping images directory to preserve uploaded content`);
         continue;
@@ -199,14 +197,12 @@ export class DeploymentService {
 
     console.log('🗑️  Cleaning up existing client assets...');
 
-    // List all objects
     const result = await this.s3Dao.listObjects({
       bucket: bucketName,
       prefix: '',
     });
 
     if (result.contents.length > 0) {
-      // Filter out images directory to preserve uploaded images
       const keysToDelete = result.contents
         .filter(obj => !obj.key.startsWith('images/'))
         .map(obj => obj.key);
@@ -214,8 +210,6 @@ export class DeploymentService {
       if (keysToDelete.length > 0) {
         await this.s3Dao.deleteObjects(bucketName, keysToDelete);
         console.log(`✅ Deleted ${keysToDelete.length} existing assets (preserved images directory)`);
-
-        // Invalidate CloudFront cache after deleting assets
         await this.invalidateCloudFront(cloudfrontDistributionId);
       }
     }
@@ -252,6 +246,17 @@ export class DeploymentService {
     }
   }
 
+  private async uploadOrgConfig(bucketName: string, orgId: string): Promise<void> {
+    const config = { orgId, mode: 'prod' };
+    await this.s3Dao.uploadFile({
+      bucket: bucketName,
+      key: 'config.json',
+      body: Buffer.from(JSON.stringify(config, null, 2)),
+      contentType: 'application/json',
+      cacheControl: 'no-cache'
+    });
+  }
+
   async deployToS3(organization: Organization, buildId: string = Date.now().toString()): Promise<boolean> {
     const bucketName = organization.s3BucketName;
     const cloudfrontDistributionId = organization.cloudfrontDistributionId;
@@ -263,14 +268,12 @@ export class DeploymentService {
     let deploymentRecord: any;
 
     try {
-      // Determine deploy URL - use CloudFront domain if available, otherwise subdomain
       const deployUrl = organization.cloudfrontDomain
         ? `https://${organization.cloudfrontDomain}`
         : organization.subdomain
         ? `https://${organization.subdomain}.${process.env.BASE_DOMAIN || 'jmarkets.jcampos.dev'}`
         : `https://${bucketName}.s3-website.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com`;
 
-      // Create deployment record
       deploymentRecord = await this.deploymentRepository.createDeployment({
         buildId,
         status: 'building',
@@ -287,18 +290,16 @@ export class DeploymentService {
         organizationId: organization.id
       });
 
-      // Build the application
       console.log(`🔨 Building application for organization: ${organization.name}...`);
       const { stdout, stderr } = await execAsync('node build-static.js', {
         cwd: process.cwd(),
-        timeout: 300000 // 5 minutes timeout
+        timeout: 300000
       });
 
       if (stderr && !stderr.includes('warnings')) {
         console.error('Build stderr:', stderr);
       }
 
-      // Update deployment record to uploading
       if (deploymentRecord) {
         await this.deploymentRepository.updateDeployment(deploymentRecord.id, {
           status: 'uploading',
@@ -319,27 +320,21 @@ export class DeploymentService {
         throw new Error('Build folder not found. Build may have failed.');
       }
 
-      // Generate static JSON files
       await this.generateStaticData();
-
-      // Clean up existing assets (but preserve images)
       await this.deleteExistingAssets(bucketName, cloudfrontDistributionId);
-
-      // Configure S3 bucket for website hosting
       await this.configureBucketWebsite(bucketName);
 
-      // Upload to S3
       console.log(`📤 Uploading to S3 bucket: ${bucketName}...`);
       await this.uploadDirectory(bucketName, distFolder);
 
-      // Invalidate CloudFront cache after successful upload
+      // Upload config.json for production org
+      await this.uploadOrgConfig(bucketName, organization.id);
+
       console.log('🔄 Invalidating CloudFront cache for fresh content...');
       await this.invalidateCloudFront(cloudfrontDistributionId);
 
-      // Mark active pre-deployment as published
       await this.markPreDeploymentAsPublished();
 
-      // Update deployment record to success
       if (deploymentRecord) {
         await this.deploymentRepository.updateDeployment(deploymentRecord.id, {
           status: 'success',
@@ -363,7 +358,6 @@ export class DeploymentService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown deployment error';
 
-      // Update deployment record to error
       if (deploymentRecord) {
         await this.deploymentRepository.updateDeployment(deploymentRecord.id, {
           status: 'error',

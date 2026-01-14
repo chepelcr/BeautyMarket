@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { DynamicIcon } from './DynamicIcon';
 import { ShoppingCart, Heart, Check } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/store/cart";
@@ -23,6 +24,7 @@ export default function ProductCard({
   imageUrl,
 }: ProductCardProps) {
   const { addToCart } = useCartStore();
+  const { data: theme } = useTheme();
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -49,7 +51,14 @@ export default function ProductCard({
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-200 to-blue-200 opacity-60" />
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-white/50 flex items-center justify-center">
+                    <DynamicIcon icon={theme?.productFallbackIcon} fallback="Sparkles" className="w-12 h-12 text-primary/40" size={48} />
+                  </div>
+                  <span className="text-xs text-foreground/40">Producto sin imagen</span>
+                </div>
+              </div>
             )}
 
             {/* Badge */}

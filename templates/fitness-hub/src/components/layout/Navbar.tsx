@@ -2,10 +2,14 @@ import { Link } from 'wouter';
 import { ShoppingCart, Menu, Dumbbell, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useCartStore } from '@/store/cart';
+import { useTheme } from '@/hooks/useContent';
+import { useSubdomainContext } from '@/contexts/SubdomainContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { items, toggleCart } = useCartStore();
+  const { organization } = useSubdomainContext();
+  const { data: theme } = useTheme();
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -15,10 +19,15 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/">
-            <a className="flex items-center gap-2 text-2xl font-black tracking-tight">
-              <Dumbbell className="w-8 h-8 text-red-600" />
+            <a className="flex items-center gap-2 text-2xl font-black tracking-tight" onClick={() => window.scrollTo(0, 0)}>
+              
+              {theme?.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" className="w-8 h-8" />
+              ) : (
+                <Dumbbell className="w-8 h-8 text-red-600" />
+              )}
               <span className="gradient-energy bg-clip-text text-transparent">
-                FITNESS HUB
+                {organization?.name || 'FITNESS HUB'}
               </span>
             </a>
           </Link>
@@ -26,23 +35,23 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link href="/">
-              <a className="font-bold hover:text-red-600 transition-colors">
+              <a className="font-bold hover:text-red-600 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                 HOME
               </a>
             </Link>
             <Link href="/products">
-              <a className="font-bold hover:text-red-600 transition-colors">
+              <a className="font-bold hover:text-red-600 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                 SHOP
               </a>
             </Link>
             <Link href="/programs">
-              <a className="font-bold hover:text-orange-600 transition-colors flex items-center gap-1">
+              <a className="font-bold hover:text-orange-600 transition-colors flex items-center gap-1" onClick={() => window.scrollTo(0, 0)}>
                 <TrendingUp className="w-4 h-4" />
                 PROGRAMS
               </a>
             </Link>
             <Link href="/about">
-              <a className="font-bold hover:text-red-600 transition-colors">
+              <a className="font-bold hover:text-red-600 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                 ABOUT
               </a>
             </Link>
@@ -77,23 +86,23 @@ export default function Navbar() {
           <div className="md:hidden py-4 border-t border-gray-800">
             <div className="flex flex-col gap-4">
               <Link href="/">
-                <a className="font-bold hover:text-red-600 transition-colors">
+                <a className="font-bold hover:text-red-600 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                   HOME
                 </a>
               </Link>
               <Link href="/products">
-                <a className="font-bold hover:text-red-600 transition-colors">
+                <a className="font-bold hover:text-red-600 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                   SHOP
                 </a>
               </Link>
               <Link href="/programs">
-                <a className="font-bold hover:text-orange-600 transition-colors flex items-center gap-1">
+                <a className="font-bold hover:text-orange-600 transition-colors flex items-center gap-1" onClick={() => window.scrollTo(0, 0)}>
                   <TrendingUp className="w-4 h-4" />
                   PROGRAMS
                 </a>
               </Link>
               <Link href="/about">
-                <a className="font-bold hover:text-red-600 transition-colors">
+                <a className="font-bold hover:text-red-600 transition-colors" onClick={() => window.scrollTo(0, 0)}>
                   ABOUT
                 </a>
               </Link>

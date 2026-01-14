@@ -3,6 +3,7 @@ import type { OrganizationRepository } from "../repositories/OrganizationReposit
 import type { OrganizationMemberRepository } from "../repositories/OrganizationMemberRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
 import type { ContactSettingsRepository } from "../repositories/ContactSettingsRepository";
+import type { TemplateCloneService } from "./TemplateCloneService";
 
 export interface IOrganizationService {
   getById(id: string): Promise<Organization | null>;
@@ -17,6 +18,8 @@ export interface IOrganizationService {
   checkSlugAvailable(slug: string, excludeId?: string): Promise<boolean>;
   updateSettings(id: string, settings: OrganizationSettings): Promise<Organization | null>;
   verifyDomain(id: string): Promise<Organization | null>;
+  completeOnboardingStep2(id: string, contactSettings: Omit<InsertContactSettings, 'organizationId'>): Promise<Organization | null>;
+  completeOnboardingStep3(id: string, templateId: string, includeCategories: boolean): Promise<Organization | null>;
 }
 
 export class OrganizationService implements IOrganizationService {
@@ -24,7 +27,8 @@ export class OrganizationService implements IOrganizationService {
     private organizationRepo: OrganizationRepository,
     private memberRepo: OrganizationMemberRepository,
     private rbacRepo: RBACRepository,
-    private contactSettingsRepo: ContactSettingsRepository
+    private contactSettingsRepo: ContactSettingsRepository,
+    private templateCloneService: TemplateCloneService
   ) {}
 
   async getById(id: string): Promise<Organization | null> {
@@ -48,13 +52,11 @@ export class OrganizationService implements IOrganizationService {
   }
 
   async create(data: InsertOrganization, ownerId: string, contactSettings?: Omit<InsertContactSettings, 'organizationId'>): Promise<Organization> {
-    // Check slug availability
     const slugAvailable = await this.checkSlugAvailable(data.slug);
     if (!slugAvailable) {
       throw new Error("El slug ya está en uso");
     }
 
-    // Check subdomain availability if provided
     if (data.subdomain) {
       const subdomainAvailable = await this.checkSubdomainAvailable(data.subdomain);
       if (!subdomainAvailable) {
@@ -62,10 +64,12 @@ export class OrganizationService implements IOrganizationService {
       }
     }
 
-    // Create organization
-    const organization = await this.organizationRepo.create(data);
+    const organization = await this.organizationRepo.create({
+      ...data,
+      ownerId,
+      onboardingStep: 1
+    });
 
-    // Create contact settings if provided
     if (contactSettings) {
       await this.contactSettingsRepo.create({
         ...contactSettings,
@@ -73,13 +77,11 @@ export class OrganizationService implements IOrganizationService {
       });
     }
 
-    // Get owner role
     const ownerRole = await this.rbacRepo.findRoleByName("owner", null);
     if (!ownerRole) {
       throw new Error("Role 'owner' not found. Please run RBAC seed.");
     }
 
-    // Add creator as owner
     await this.memberRepo.create({
       organizationId: organization.id,
       userId: ownerId,
@@ -92,7 +94,6 @@ export class OrganizationService implements IOrganizationService {
   }
 
   async update(id: string, data: Partial<InsertOrganization>): Promise<Organization | null> {
-    // Check slug availability if updating
     if (data.slug) {
       const slugAvailable = await this.checkSlugAvailable(data.slug, id);
       if (!slugAvailable) {
@@ -100,7 +101,6 @@ export class OrganizationService implements IOrganizationService {
       }
     }
 
-    // Check subdomain availability if updating
     if (data.subdomain) {
       const subdomainAvailable = await this.checkSubdomainAvailable(data.subdomain, id);
       if (!subdomainAvailable) {
@@ -112,7 +112,6 @@ export class OrganizationService implements IOrganizationService {
   }
 
   async delete(id: string): Promise<boolean> {
-    // Check if organization has members (besides owner)
     const memberCount = await this.memberRepo.countByOrganization(id);
     if (memberCount > 1) {
       throw new Error("No se puede eliminar una organización con miembros activos");
@@ -122,7 +121,6 @@ export class OrganizationService implements IOrganizationService {
   }
 
   async checkSubdomainAvailable(subdomain: string, excludeId?: string): Promise<boolean> {
-    // Reserved subdomains
     const reserved = ["www", "app", "api", "admin", "mail", "ftp", "blog", "shop", "store"];
     if (reserved.includes(subdomain.toLowerCase())) {
       return false;
@@ -139,7 +137,6 @@ export class OrganizationService implements IOrganizationService {
     const org = await this.organizationRepo.findById(id);
     if (!org) return null;
 
-    // Merge with existing settings
     const mergedSettings = {
       ...((org.settings as OrganizationSettings) || {}),
       ...settings,
@@ -162,5 +159,40 @@ export class OrganizationService implements IOrganizationService {
     }
 
     return orgs;
+  }
+
+  async completeOnboardingStep2(
+    id: string,
+    contactSettings: Omit<InsertContactSettings, 'organizationId'>
+  ): Promise<Organization | null> {
+    const org = await this.organizationRepo.findById(id);
+    if (!org) return null;
+
+    const existingSettings = await this.contactSettingsRepo.getByOrganizationId(id);
+    if (existingSettings) {
+      await this.contactSettingsRepo.update(id, contactSettings);
+    } else {
+      await this.contactSettingsRepo.create({
+        ...contactSettings,
+        organizationId: id,
+      });
+    }
+
+    return this.organizationRepo.update(id, { onboardingStep: 2 });
+  }
+
+  async completeOnboardingStep3(id: string, templateId: string, includeCategories: boolean): Promise<Organization | null> {
+    const org = await this.organizationRepo.findById(id);
+    if (!org) return null;
+
+    // Clone template content from template_* tables to organization tables
+    await this.templateCloneService.cloneTemplateToExistingOrg({
+      templateId,
+      targetOrganizationId: id,
+      includeCategories
+    });
+
+    // Save templateId and mark onboarding complete
+    return this.organizationRepo.update(id, { templateId, onboardingStep: 3 });
   }
 }

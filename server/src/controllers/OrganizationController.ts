@@ -2,12 +2,16 @@ import { Router, Request, Response } from 'express';
 import type { IOrganizationService } from '../services/OrganizationService';
 import type { IRBACService } from '../services/RBACService';
 import type { IOrganizationInfrastructureService } from '../services/OrganizationInfrastructureService';
+import type { TemplateCloneService } from '../services/TemplateCloneService';
+import type { OrganizationMemberRepository } from '../repositories/OrganizationMemberRepository';
 
 export class OrganizationController {
   constructor(
     private organizationService: IOrganizationService,
     private rbacService: IRBACService,
-    private infrastructureService: IOrganizationInfrastructureService
+    private infrastructureService: IOrganizationInfrastructureService,
+    private templateCloneService: TemplateCloneService,
+    private memberRepo: OrganizationMemberRepository
   ) {}
 
   getRouter(): Router {
@@ -20,6 +24,10 @@ export class OrganizationController {
     router.put('/:id', this.update.bind(this));
     router.put('/:id/settings', this.updateSettings.bind(this));
     router.delete('/:id', this.delete.bind(this));
+
+    // Onboarding flow endpoints
+    router.post('/:id/onboarding/step2', this.completeOnboardingStep2.bind(this));
+    router.post('/:id/onboarding/step3', this.completeOnboardingStep3.bind(this));
 
     // Infrastructure endpoints
     router.post('/:id/provision', this.provisionInfrastructure.bind(this));
@@ -211,8 +219,9 @@ export class OrganizationController {
    * @swagger
    * /api/organizations:
    *   post:
-   *     summary: Create a new organization
+   *     summary: Create a new organization (Step 1 of onboarding)
    *     tags: [Organizations]
+   *     description: Creates organization draft with basic info. Sets onboardingStep = 1.
    *     requestBody:
    *       required: true
    *       content:
@@ -234,29 +243,32 @@ export class OrganizationController {
    *                 type: string
    *     responses:
    *       201:
-   *         description: Organization created
+   *         description: Organization draft created (onboardingStep = 1)
    *       400:
    *         description: Validation error
    */
   async create(req: Request, res: Response) {
     try {
-      const { ownerId, contactSettings, templateId, ...data } = req.body;
+      // Get ownerId from URL params (the authenticated user's ID)
+      const ownerId = req.params.userId;
+      const data = req.body;
 
       if (!ownerId) {
-        return res.status(400).json({ error: 'Owner ID is required' });
+        return res.status(400).json({ error: 'User ID is required in URL path' });
       }
 
       if (!data.name || !data.slug) {
         return res.status(400).json({ error: 'Name and slug are required' });
       }
 
-      // Create organization with contact settings
-      const organization = await this.organizationService.create(data, ownerId, contactSettings);
+      // Create organization draft (onboardingStep = 1)
+      // No template cloning here - that happens in step 3
+      const organization = await this.organizationService.create(data, ownerId);
 
-      // TODO: If templateId is provided, trigger template cloning
-      // This can be implemented in Phase 2 or later
-
-      res.status(201).json(organization);
+      res.status(201).json({
+        ...organization,
+        message: 'Organization draft created successfully'
+      });
     } catch (error: any) {
       console.error('Error creating organization:', error);
       res.status(400).json({ error: error.message || 'Failed to create organization' });
@@ -635,6 +647,142 @@ export class OrganizationController {
     } catch (error: any) {
       console.error('Error attaching custom domain:', error);
       res.status(400).json({ error: error.message || 'Failed to attach custom domain' });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/organizations/{id}/onboarding/step2:
+   *   post:
+   *     summary: Complete onboarding step 2 (contact information)
+   *     tags: [Organizations]
+   *     description: Updates contact settings and advances onboardingStep to 2
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               email:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *               address:
+   *                 type: string
+   *               city:
+   *                 type: string
+   *               state:
+   *                 type: string
+   *               postalCode:
+   *                 type: string
+   *               country:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Contact info saved, onboardingStep = 2
+   *       404:
+   *         description: Organization not found
+   */
+  async completeOnboardingStep2(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const contactSettings = req.body;
+
+      const organization = await this.organizationService.completeOnboardingStep2(id, contactSettings);
+
+      if (!organization) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+
+      res.json({
+        ...organization,
+        message: 'Contact information saved successfully'
+      });
+    } catch (error: any) {
+      console.error('Error completing onboarding step 2:', error);
+      res.status(400).json({ error: error.message || 'Failed to save contact information' });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/organizations/{id}/onboarding/step3:
+   *   post:
+   *     summary: Complete onboarding step 3 (apply template and finalize)
+   *     tags: [Organizations]
+   *     description: Applies selected template to organization and sets onboardingStep = 3
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - templateId
+   *             properties:
+   *               templateId:
+   *                 type: string
+   *                 description: The organization ID of the template to clone
+   *               includeCategories:
+   *                 type: boolean
+   *                 description: Whether to clone categories from template
+   *                 default: true
+   *     responses:
+   *       200:
+   *         description: Template applied, organization ready to use (onboardingStep = 3)
+   *       404:
+   *         description: Organization not found
+   */
+  async completeOnboardingStep3(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { templateId, includeCategories } = req.body;
+
+      if (!templateId) {
+        return res.status(400).json({ error: 'Template ID is required' });
+      }
+
+      const organization = await this.organizationService.getById(id);
+      if (!organization) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+
+      console.log(`📋 [OrganizationController] Applying template ${templateId} to organization ${id}`);
+
+      try {
+        // Apply template and mark onboarding as complete
+        await this.organizationService.completeOnboardingStep3(id, templateId, includeCategories !== false);
+
+        const updatedOrg = await this.organizationService.getById(id);
+
+        console.log(`✅ [OrganizationController] Template applied successfully. Organization ${id} is ready to use.`);
+
+        res.json({
+          ...updatedOrg,
+          message: 'Template applied successfully. Organization is ready to use!'
+        });
+      } catch (cloneError: any) {
+        console.error('❌ [OrganizationController] Error applying template:', cloneError);
+        return res.status(400).json({
+          error: cloneError.message || 'Failed to apply template'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error completing onboarding step 3:', error);
+      res.status(400).json({ error: error.message || 'Failed to complete onboarding' });
     }
   }
 }

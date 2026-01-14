@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link } from 'wouter';
-import { Mail, MapPin, Phone, Facebook, Instagram, Twitter } from 'lucide-react';
-import { VintageDivider } from '../VintageDivider';
-import { OrnateBorder } from '../OrnateBorder';
-
+import { useContact } from '@/hooks/useContent';import { Link } from 'wouter';
+import { useContact } from '@/hooks/useContent';import { Mail, MapPin, MessageCircle, Facebook, Instagram, Twitter } from 'lucide-react';
+import { useContact } from '@/hooks/useContent';import { VintageDivider } from '../VintageDivider';
+import { useContact } from '@/hooks/useContent';import { OrnateBorder } from '../OrnateBorder';
+import { useContact } from '@/hooks/useContent';
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -20,7 +20,7 @@ export function Footer() {
             <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Ingresa tu correo"
                 className="flex-1 px-4 py-3 rounded-md bg-cream-50 text-burgundy-900 font-body placeholder:text-burgundy-900/50 border-2 border-transparent focus:border-mustard-500 outline-none"
               />
               <button className="px-6 py-3 bg-mustard-500 text-burgundy-900 font-serif font-semibold tracking-wider uppercase rounded-md hover:bg-mustard-600 transition-colors">
@@ -94,12 +94,12 @@ export function Footer() {
             <ul className="space-y-2 font-body text-sm">
               <li>
                 <a href="#" className="text-cream-50/80 hover:text-mustard-500 transition-colors">
-                  About Us
+                  Acerca de Nosotros
                 </a>
               </li>
               <li>
                 <a href="#" className="text-cream-50/80 hover:text-mustard-500 transition-colors">
-                  Contact Us
+                  Contáctanos
                 </a>
               </li>
               <li>
@@ -133,9 +133,9 @@ export function Footer() {
                 </span>
               </li>
               <li className="flex items-center gap-2">
-                <Phone size={16} className="flex-shrink-0 text-mustard-500" />
+                <MessageCircle size={16} className="flex-shrink-0 text-mustard-500" />
                 <a
-                  href="tel:+1234567890"
+                  href="https://wa.me/+1234567890?text=Hola%2C%20me%20gustar%C3%ADa%20obtener%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener noreferrer"
                   className="text-cream-50/80 hover:text-mustard-500 transition-colors"
                 >
                   (123) 456-7890
@@ -188,7 +188,7 @@ export function Footer() {
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-xs text-cream-50/50 font-body">
             <a href="#" className="hover:text-mustard-500 transition-colors">
-              Privacy Policy
+              Política de Privacidad
             </a>
             <span>•</span>
             <a href="#" className="hover:text-mustard-500 transition-colors">

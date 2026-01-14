@@ -4,7 +4,7 @@ import { organizations } from "./Organization";
 
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
-  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  organizationId: varchar("organization_id", { length: 100 }).notNull().references(() => organizations.id, { onDelete: "cascade" }),
   email: varchar("email", { length: 255 }).notNull(),
   firstName: varchar("first_name", { length: 100 }),
   lastName: varchar("last_name", { length: 100 }),
