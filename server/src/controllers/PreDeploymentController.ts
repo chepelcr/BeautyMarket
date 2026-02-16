@@ -1,14 +1,19 @@
 import { Router, Request, Response } from 'express';
 import { PreDeploymentRepository } from '../repositories';
+import { DeploymentService } from '../services';
 
 export class PreDeploymentController {
-  constructor(private preDeploymentRepository: PreDeploymentRepository) {}
+  constructor(
+    private preDeploymentRepository: PreDeploymentRepository,
+    private deploymentService?: DeploymentService
+  ) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
     router.get('/', this.getPreDeployments.bind(this));
     router.get('/active', this.getActivePreDeployment.bind(this));
+    router.post('/:id/publish', this.publishPreDeployment.bind(this));
     router.delete('/:id', this.deletePreDeployment.bind(this));
 
     return router;
@@ -46,7 +51,8 @@ export class PreDeploymentController {
    */
   async getActivePreDeployment(req: Request, res: Response) {
     try {
-      const activePreDeployment = await this.preDeploymentRepository.getActivePreDeployment();
+      const { orgId } = req.params;
+      const activePreDeployment = await this.preDeploymentRepository.getActivePreDeployment(orgId);
       res.json(activePreDeployment || null);
     } catch (error) {
       console.error("Error getting active pre-deployment:", error);
@@ -80,6 +86,28 @@ export class PreDeploymentController {
     } catch (error) {
       console.error("Error deleting pre-deployment:", error);
       res.status(500).json({ error: "Error interno del servidor" });
+    }
+  }
+
+  async publishPreDeployment(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { orgId } = req.params;
+
+      if (!this.deploymentService) {
+        return res.status(500).json({ error: 'Deployment service not available' });
+      }
+
+      const result = await this.deploymentService.publishPreDeployment(id, orgId);
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json({ success: true, deploymentId: result.deploymentId });
+    } catch (error) {
+      console.error('Error publishing pre-deployment:', error);
+      res.status(500).json({ error: 'Failed to publish changes' });
     }
   }
 }

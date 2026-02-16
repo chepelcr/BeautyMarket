@@ -99,9 +99,11 @@ export class ProductService {
     }
 
     const newStock = currentStock - quantity;
-    return await this.productRepository.updateProduct(productId, {
+    const updated = await this.productRepository.updateProduct(productId, {
       stockQuantity: newStock,
     });
+    if (!updated) throw new Error('Failed to update product stock');
+    return updated;
   }
 
   async getLowStockProducts(organizationId?: string): Promise<Product[]> {

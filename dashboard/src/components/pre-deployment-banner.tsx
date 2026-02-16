@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Upload, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 import { useToast } from "@/hooks/use-toast";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
 
@@ -26,17 +27,9 @@ interface PreDeployment {
 export function PreDeploymentBanner() {
   const [isPublishing, setIsPublishing] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization } = useDefaultOrganization(user?.id);
   const { toast } = useToast();
-
-  // Get organization from localStorage
-  const [organization, setOrganization] = useState<any>(null);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      setOrganization(JSON.parse(storedOrg));
-    }
-  }, []);
 
   // State for active pre-deployment
   const [activePreDeployment, setActivePreDeployment] = useState<PreDeployment | null>(null);

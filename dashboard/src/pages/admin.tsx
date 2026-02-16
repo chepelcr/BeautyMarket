@@ -23,9 +23,9 @@ import {apiRequest} from "@/lib/queryClient";
 import {queryClient} from "@/lib/queryClient";
 import {useToast} from "@/hooks/use-toast";
 import {useAuth} from "@/hooks/useAuth";
+import {useOrganization} from "@/hooks/useOrganization";
 import {useLocation} from "wouter";
 import {isUnauthorizedError} from "@/lib/authUtils";
-import {SimpleThemeToggle} from "@/components/simple-theme-toggle";
 import {useDynamicTitle} from "@/hooks/useDynamicTitle";
 import {buildOrgApiUrl} from "@/lib/apiUtils";
 
@@ -37,33 +37,9 @@ export default function Admin() {
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const {toast} = useToast();
     const {isAuthenticated, isLoading, user} = useAuth();
+    const { useDefaultOrganization } = useOrganization();
+    const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
     const [, navigate] = useLocation();
-
-    // Get organization from localStorage (set in SelectOrganization)
-    const [organization, setOrganization] = useState<any>(null);
-    const [orgLoading, setOrgLoading] = useState(true);
-
-    useEffect(() => {
-        const storedOrg = localStorage.getItem('selectedOrganization');
-        console.log('Stored organization:', storedOrg);
-
-        if (storedOrg) {
-            try {
-                const org = JSON.parse(storedOrg);
-                console.log('Parsed organization:', org);
-                setOrganization(org);
-            } catch (error) {
-                console.error('Failed to parse organization:', error);
-                localStorage.removeItem('selectedOrganization');
-                navigate('/organizations/select');
-            }
-        } else if (!isLoading && isAuthenticated) {
-            // No organization selected, redirect to select page
-            console.log('No organization found, redirecting to select');
-            navigate('/organizations/select');
-        }
-        setOrgLoading(false);
-    }, [isLoading, isAuthenticated, navigate]);
 
     const organizationId = organization?.id;
 

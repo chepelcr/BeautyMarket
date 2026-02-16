@@ -1,0 +1,11 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/src/index.ts
+
+📚 Generated Swagger spec dynamically
+📚 Swagger documentation available at /api-docs/
+Re-optimizing dependencies because vite config has changed
+4:27:53 AM [express] 🏪 Store app running on http://localhost:9000
+4:27:53 AM [express] 🚀 Server running on http://localhost:5000
+4:27:53 AM [express] 📚 API Documentation: http://localhost:5000/api-docs
+4:27:53 AM [express] 🏥 Health Check: http://localhost:5000/health

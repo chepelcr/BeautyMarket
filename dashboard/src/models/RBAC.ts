@@ -72,7 +72,7 @@ export interface PermissionMatrix {
   actions: Action[];
   permissions: {
     [moduleId: string]: {
-      [actionId: string]: boolean;
+      [key: string]: boolean | { [submoduleId: string]: { [actionId: string]: boolean } } | undefined;
       submodules?: {
         [submoduleId: string]: {
           [actionId: string]: boolean;

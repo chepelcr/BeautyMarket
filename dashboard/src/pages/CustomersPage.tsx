@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { useQuery } from '@tanstack/react-query';
 import { buildOrgApiUrl } from '@/lib/apiUtils';
 import type { Customer, CustomersResponse } from '@/models';
@@ -11,28 +12,11 @@ import { CustomerCard } from '@/components/customers/CustomerCard';
 export default function CustomersPage() {
   const { t } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const [, navigate] = useLocation();
 
-  // Get organization from localStorage
-  const [organization, setOrganization] = useState<any>(null);
-  const [orgLoading, setOrgLoading] = useState(true);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      try {
-        setOrganization(JSON.parse(storedOrg));
-      } catch (error) {
-        console.error('Failed to parse organization:', error);
-        navigate('/organizations/select');
-      }
-    } else if (!authLoading && isAuthenticated) {
-      navigate('/organizations/select');
-    }
-    setOrgLoading(false);
-  }, [authLoading, isAuthenticated, navigate]);
-
-  const organizationId = organization?.id;
+  const organizationId = organization?.id || '';
 
   // Redirect if not authenticated
   useEffect(() => {

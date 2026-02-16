@@ -162,7 +162,7 @@ export class CloudFrontDao {
           Quantity: 1,
           Items: [{
             ErrorCode: 404,
-            ResponseCode: 200,
+            ResponseCode: '200',
             ResponsePagePath: '/index.html',
             ErrorCachingMinTTL: 300,
           }],

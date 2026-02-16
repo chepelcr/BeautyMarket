@@ -120,9 +120,13 @@ export class CustomerRepository {
       lastOrderDate?: Date;
     }
   ): Promise<Customer | undefined> {
+    const setData: Record<string, any> = { updatedAt: new Date() };
+    if (stats.totalOrders !== undefined) setData.totalOrders = stats.totalOrders;
+    if (stats.totalSpent !== undefined) setData.totalSpent = String(stats.totalSpent);
+    if (stats.lastOrderDate !== undefined) setData.lastOrderDate = stats.lastOrderDate;
     const [updatedCustomer] = await db
       .update(customers)
-      .set({ ...stats, updatedAt: new Date() })
+      .set(setData)
       .where(and(eq(customers.id, id), eq(customers.organizationId, organizationId)))
       .returning();
     return updatedCustomer;

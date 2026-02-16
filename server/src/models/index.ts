@@ -1,6 +1,5 @@
 // Schemas and insert types
 export { insertProductSchema, type InsertProduct } from "./ProductSchema";
-export { insertOrderSchema, type InsertOrder } from "./OrderSchema";
 export { insertCustomerSchema, type InsertCustomer } from "./CustomerSchema";
 export { insertCategorySchema, type InsertCategory } from "./CategorySchema";
 export { insertProvinceSchema, insertCantonSchema, insertDistrictSchema, type InsertProvince, type InsertCanton, type InsertDistrict } from "./LocationSchema";

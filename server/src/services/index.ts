@@ -2,9 +2,9 @@ export * from './EmailService';
 export * from './ProductService';
 export * from './CategoryService';
 export * from './CustomerService';
-export * from './OrderService';
 export * from './DeploymentService';
 export * from './PreDeploymentService';
+export * from './DeploymentService';
 export * from './S3UploadService';
 export * from './CognitoService';
 export * from './UserService';
@@ -25,5 +25,7 @@ export * from './ShippingSettingsService';
 // Template & Page System Services
 export * from './TemplateService';
 export * from './PageService';
+export * from './PageSectionService';
+export * from './SectionContentService';
 export * from './ComponentService';
 export * from './TemplateCloneService';

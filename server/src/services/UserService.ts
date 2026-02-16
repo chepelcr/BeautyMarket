@@ -221,8 +221,8 @@ export class UserService {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      isActive: user.isActive,
-      createdAt: user.createdAt,
+      isActive: user.isActive ?? true,
+      createdAt: user.createdAt ?? undefined,
     };
   }
 }

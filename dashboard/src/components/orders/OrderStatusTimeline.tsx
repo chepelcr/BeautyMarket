@@ -46,7 +46,7 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
   ];
 
   // Handle cancelled status
-  if (order.status === 'cancelled') {
+  if (order.order_status === 'cancelled') {
     return (
       <Card>
         <CardHeader>
@@ -71,7 +71,34 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
   }
 
   const statusOrder = ['pending', 'processing', 'shipped', 'delivered'];
-  const currentStepIndex = statusOrder.indexOf(order.status);
+  const currentStepIndex = statusOrder.indexOf(order.order_status);
+
+  const statusColors: Record<string, { bg: string; border: string; text: string; label: string }> = {
+    pending: {
+      bg: 'bg-gray-200 dark:bg-gray-700',
+      border: 'border-gray-300 dark:border-gray-600',
+      text: 'text-gray-700 dark:text-gray-200',
+      label: 'text-gray-700 dark:text-gray-200',
+    },
+    processing: {
+      bg: 'bg-blue-100 dark:bg-blue-900',
+      border: 'border-blue-200 dark:border-blue-700',
+      text: 'text-blue-800 dark:text-blue-200',
+      label: 'text-blue-800 dark:text-blue-200',
+    },
+    shipped: {
+      bg: 'bg-yellow-400 dark:bg-yellow-500',
+      border: 'border-yellow-400 dark:border-yellow-500',
+      text: 'text-yellow-900 dark:text-yellow-100',
+      label: 'text-yellow-700 dark:text-yellow-400',
+    },
+    delivered: {
+      bg: 'bg-green-500 dark:bg-green-600',
+      border: 'border-green-500 dark:border-green-600',
+      text: 'text-white',
+      label: 'text-green-600 dark:text-green-400',
+    },
+  };
 
   return (
     <Card>
@@ -83,6 +110,8 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
           {steps.map((step, index) => {
             const isCompleted = index <= currentStepIndex;
             const isCurrent = index === currentStepIndex;
+            const isPast = index < currentStepIndex;
+            const currentColors = statusColors[step.status];
 
             return (
               <div key={step.status} className="relative">
@@ -90,8 +119,8 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                 {index < steps.length - 1 && (
                   <div
                     className={cn(
-                      'absolute left-[17px] top-[40px] w-0.5 h-[calc(100%+1rem)]',
-                      isCompleted ? 'bg-primary' : 'bg-muted'
+                      'absolute left-[18px] top-[36px] w-0.5 h-[calc(100%-0.5rem)]',
+                      isPast ? 'bg-blue-500' : isCurrent ? currentColors.bg : 'bg-muted'
                     )}
                   />
                 )}
@@ -102,9 +131,11 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                   <div
                     className={cn(
                       'flex items-center justify-center w-9 h-9 rounded-full border-2 flex-shrink-0',
-                      isCompleted
-                        ? 'bg-primary border-primary text-primary-foreground'
-                        : 'bg-muted border-muted-foreground/20 text-muted-foreground'
+                      isPast
+                        ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600'
+                        : isCurrent
+                          ? `${currentColors.bg} ${currentColors.border} ${currentColors.text}`
+                          : 'bg-muted border-muted-foreground/20 text-muted-foreground'
                     )}
                   >
                     {step.icon}
@@ -115,7 +146,8 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                     <div
                       className={cn(
                         'font-semibold',
-                        isCurrent && 'text-primary',
+                        isCurrent && currentColors.label,
+                        isPast && 'text-blue-600 dark:text-blue-400',
                         !isCompleted && 'text-muted-foreground'
                       )}
                     >
@@ -124,8 +156,8 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                     <div className="text-sm text-muted-foreground mt-1">
                       {step.description}
                     </div>
-                    {isCurrent && (
-                      <div className="mt-2 text-xs font-medium text-primary">
+                    {isCurrent && step.status !== 'delivered' && (
+                      <div className={cn('mt-2 text-xs font-medium', currentColors.label)}>
                         {t('orders.timeline.current')}
                       </div>
                     )}

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { buildOrgApiUrl } from '@/lib/apiUtils';
 import type { Order } from '@/models';
 import { OrderHeader } from '@/components/orders/OrderHeader';
 import { OrderCustomerInfo } from '@/components/orders/OrderCustomerInfo';
@@ -13,13 +12,12 @@ import { OrderLineItems } from '@/components/orders/OrderLineItems';
 import { OrderPaymentInfo } from '@/components/orders/OrderPaymentInfo';
 import { OrderShippingInfo } from '@/components/orders/OrderShippingInfo';
 import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
-import { OrderActions } from '@/components/orders/OrderActions';
 
 export default function OrderDetailsPage() {
   const { t } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
-  const [, params] = useRoute('/admin/orders/:orderId');
+  const [, params] = useRoute('/admin/orders/:documentNumber');
   const queryClient = useQueryClient();
 
   // Get organization from localStorage
@@ -42,7 +40,7 @@ export default function OrderDetailsPage() {
   }, [authLoading, isAuthenticated, navigate]);
 
   const organizationId = organization?.id;
-  const orderId = params?.orderId;
+  const documentNumber = params?.documentNumber;
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -53,10 +51,10 @@ export default function OrderDetailsPage() {
 
   // Fetch order details
   const { data: order, isLoading, error } = useQuery<Order>({
-    queryKey: ['order', orderId],
-    enabled: !!user?.id && !!organizationId && !!orderId,
+    queryKey: ['order', documentNumber],
+    enabled: !!user?.id && !!organizationId && !!documentNumber,
     queryFn: async () => {
-      const url = buildOrgApiUrl(user!.id, organizationId, `/orders/${orderId}`);
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch order');
@@ -68,7 +66,7 @@ export default function OrderDetailsPage() {
   // Update order status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ status }: { status: string }) => {
-      const url = buildOrgApiUrl(user!.id, organizationId, `/orders/${orderId}/status`);
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}/status`;
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -80,7 +78,7 @@ export default function OrderDetailsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['order', documentNumber] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
@@ -103,6 +101,14 @@ export default function OrderDetailsPage() {
   }
 
   if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!documentNumber) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -147,8 +153,14 @@ export default function OrderDetailsPage() {
           {/* Header */}
           <OrderHeader
             order={order}
-            onStatusUpdate={handleStatusUpdate}
-            isUpdating={updateStatusMutation.isPending}
+            organizationId={organizationId}
+            documentNumber={documentNumber!}
+            onReprocessSuccess={(updatedOrder) => {
+              queryClient.setQueryData(['order', documentNumber], updatedOrder);
+            }}
+            onCrossdockingUploadSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['order', documentNumber] });
+            }}
           />
 
           {/* Two column layout */}
@@ -164,10 +176,6 @@ export default function OrderDetailsPage() {
               <OrderCustomerInfo order={order} />
               <OrderShippingInfo order={order} />
               <OrderPaymentInfo order={order} />
-              <OrderActions
-                order={order}
-                onStatusUpdate={handleStatusUpdate}
-              />
             </div>
           </div>
         </div>

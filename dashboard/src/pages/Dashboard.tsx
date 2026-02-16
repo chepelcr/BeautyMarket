@@ -26,8 +26,9 @@ import {
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { useDefaultOrganization } = useOrganization();
-  const { data: organization } = useDefaultOrganization(user?.id);
+  const { useUserOrganizations } = useOrganization();
+  const { data: organizations } = useUserOrganizations(user?.id);
+  const organization = organizations?.[0];
   const { t } = useLanguage();
 
   const { stats, recentProducts, recentDeployments, latestDeployment, isLoading } =

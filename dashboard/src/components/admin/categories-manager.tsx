@@ -179,7 +179,7 @@ export default function CategoriesManager() {
                   <i className="fas fa-plus text-pink-primary dark:text-pink-400 text-2xl"></i>
                 </div>
                 <div>
-                  <h3 className="font-serif text-lg font-semibold text-gray-900 dark:text-white">{t('categories.new')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('categories.new')}</h3>
                   <p className="text-gray-600 dark:text-gray-300 text-sm">{t('categories.newDescription')}</p>
                 </div>
               </div>
@@ -188,13 +188,13 @@ export default function CategoriesManager() {
 
           {/* Existing Categories */}
           {filteredCategories.map((category: Category) => (
-            <Card key={category.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+            <Card key={category.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 flex flex-col">
               <div 
                 className="h-24 p-4 flex items-center justify-between"
                 style={{ backgroundColor: category.backgroundColor }}
               >
                 <h3 
-                  className="font-serif text-lg font-bold"
+                  className="text-lg font-bold"
                   style={{ 
                     color: category.backgroundColor.includes('f') || category.backgroundColor.includes('e') ? '#1a1a1a' : '#ffffff'
                   }}
@@ -206,8 +206,8 @@ export default function CategoriesManager() {
                 </div>
               </div>
               
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-4 flex-1 flex flex-col">
+                <div className="space-y-3 flex-1">
                   <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                     {category.description}
                   </p>
@@ -230,27 +230,27 @@ export default function CategoriesManager() {
                       title={t('categories.buttonColor')}
                     ></div>
                   </div>
+                </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditCategory(category)}
-                      className="flex-1"
-                    >
-                      <i className="fas fa-edit mr-1"></i>
-                      {t('common.edit')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteCategory(category)}
-                      className="text-red-600 hover:text-red-700"
-                      disabled={deleteMutation.isPending}
-                    >
-                      <i className="fas fa-trash"></i>
-                    </Button>
-                  </div>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditCategory(category)}
+                  >
+                    <i className="fas fa-edit mr-1"></i>
+                    {t('common.edit')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteCategory(category)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    disabled={deleteMutation.isPending}
+                  >
+                    <i className="fas fa-trash mr-1"></i>
+                    {t('common.delete')}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

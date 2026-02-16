@@ -207,7 +207,7 @@ export function PageBuilder({ userId, organizationId }: PageBuilderProps) {
                   <SectionList
                     userId={userId}
                     organizationId={organizationId}
-                    pageId={selectedPageId}
+                    pageId={selectedPageId!}
                     sections={sections || []}
                   />
                 )}
@@ -217,7 +217,7 @@ export function PageBuilder({ userId, organizationId }: PageBuilderProps) {
                 <AddSectionButton
                   userId={userId}
                   organizationId={organizationId}
-                  pageId={selectedPageId}
+                  pageId={selectedPageId!}
                   onSectionAdded={() => {
                     queryClient.invalidateQueries({ queryKey: ["sections", selectedPageId] });
                   }}

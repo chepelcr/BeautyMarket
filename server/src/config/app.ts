@@ -36,6 +36,7 @@ export const APP_CONFIG = {
         'http://localhost:3001', // Landing client dev server
         'http://localhost:3002', // Dashboard dev server
         'http://localhost:5000',
+        'http://localhost:5173', // Vite dev server (dashboard)
         'http://localhost:9000',
         'https://jmarkets.jcampos.dev', // Landing page production
         'https://admin.jmarkets.jcampos.dev', // Dashboard production

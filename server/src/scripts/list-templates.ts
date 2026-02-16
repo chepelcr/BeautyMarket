@@ -18,7 +18,6 @@ async function listTemplates() {
     allTemplates.forEach((template, index) => {
       console.log(`${index + 1}. ${template.name}`);
       console.log(`   ID: ${template.id}`);
-      console.log(`   Organization ID: ${template.organizationId}`);
       console.log(`   Active: ${template.isActive ? '✅' : '❌'}`);
       console.log(`   Category: ${template.category || 'N/A'}`);
       console.log('---');

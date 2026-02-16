@@ -401,7 +401,7 @@ export async function seedRolePermissions(
 /**
  * Main seed function for the RBAC system
  */
-export async function seedRBAC(db: PostgresJsDatabase): Promise<void> {
+export async function seedRBAC(db: PostgresJsDatabase<any>): Promise<void> {
   console.log('Starting RBAC seed...');
 
   try {

@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { PageSectionRepository, PageRepository } from '../repositories';
+import type { PageSectionService } from '../services/PageSectionService';
+import type { PageService } from '../services/PageService';
 import { z } from 'zod';
 
 export class SectionController {
   constructor(
-    private pageSectionRepository: PageSectionRepository,
-    private pageRepository: PageRepository
+    private pageSectionService: PageSectionService,
+    private pageService: PageService
   ) {}
 
   getRouter(): Router {
@@ -57,17 +58,16 @@ export class SectionController {
       const { pageId } = req.params;
       const { activeOnly } = req.query;
 
-      // Verify page exists
-      const page = await this.pageRepository.getById(pageId);
+      const page = await this.pageService.getById(pageId);
       if (!page) {
         return res.status(404).json({ error: 'Page not found' });
       }
 
       let sections;
       if (activeOnly === 'true') {
-        sections = await this.pageSectionRepository.getActiveByPageId(pageId);
+        sections = await this.pageSectionService.getActiveByPageId(pageId);
       } else {
-        sections = await this.pageSectionRepository.getByPageId(pageId);
+        sections = await this.pageSectionService.getByPageId(pageId);
       }
 
       res.json(sections);
@@ -134,13 +134,12 @@ export class SectionController {
         return res.status(400).json({ error: 'Section type and name are required' });
       }
 
-      // Verify page exists
-      const page = await this.pageRepository.getById(pageId);
+      const page = await this.pageService.getById(pageId);
       if (!page) {
         return res.status(404).json({ error: 'Page not found' });
       }
 
-      const newSection = await this.pageSectionRepository.create({
+      const newSection = await this.pageSectionService.create({
         pageId,
         ...data,
       });
@@ -208,13 +207,12 @@ export class SectionController {
       const { sectionId } = req.params;
       const data = req.body;
 
-      // Check if section exists
-      const existingSection = await this.pageSectionRepository.getById(sectionId);
+      const existingSection = await this.pageSectionService.getById(sectionId);
       if (!existingSection) {
         return res.status(404).json({ error: 'Section not found' });
       }
 
-      const updatedSection = await this.pageSectionRepository.update(sectionId, data);
+      const updatedSection = await this.pageSectionService.update(sectionId, data);
 
       res.json(updatedSection);
     } catch (error) {
@@ -263,7 +261,7 @@ export class SectionController {
     try {
       const { sectionId } = req.params;
 
-      const success = await this.pageSectionRepository.delete(sectionId);
+      const success = await this.pageSectionService.delete(sectionId);
 
       if (!success) {
         return res.status(404).json({ error: 'Section not found' });

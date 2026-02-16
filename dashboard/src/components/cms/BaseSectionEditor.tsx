@@ -135,6 +135,7 @@ export function BaseSectionEditor({
           sectionMode={getSectionMode()}
           onModeChange={updateSectionMode}
           showSeparator={index < sortedItems.length - 1}
+          disabled={isSaving}
         />
       ))}
     </SectionWrapper>

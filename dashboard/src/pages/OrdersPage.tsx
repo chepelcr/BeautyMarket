@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, ArrowUpDown } from 'lucide-react';
+import { ShoppingBag, ArrowUpDown, Plus } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Select,
   SelectContent,
@@ -8,14 +9,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrders } from '@/hooks/useOrders';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOrderListStore } from '@/store/order-list-store';
+import { buildOrderSearchString } from '@/lib/orderSearchBuilder';
 import { OrderSearch } from '@/components/orders/OrderSearch';
 import { OrderFilters } from '@/components/orders/OrderFilters';
 import { OrderCard } from '@/components/orders/OrderCard';
+import { OrderExcelUpload } from '@/components/orders/OrderExcelUpload';
 import { Pagination } from '@/components/products/Pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -23,6 +35,8 @@ export default function OrdersPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const { t } = useLanguage();
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Get organization from localStorage
   const [organization, setOrganization] = useState<any>(null);
@@ -70,6 +84,18 @@ export default function OrdersPage() {
   // Debounce search query
   const debouncedSearch = useDebounce(searchQuery, 500);
 
+  // Build search string for the API
+  const searchString = buildOrderSearchString({
+    textSearch: debouncedSearch || undefined,
+    status: filters.status,
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    creationStartDate: filters.creationStartDate,
+    creationEndDate: filters.creationEndDate,
+    sortBy,
+    sortOrder,
+  });
+
   // Fetch orders
   const {
     orders,
@@ -79,24 +105,26 @@ export default function OrdersPage() {
   } = useOrders({
     userId: user?.id || '',
     orgId: organizationId || '',
-    search: debouncedSearch,
-    filters,
-    sortBy,
-    sortOrder,
+    search: searchString || undefined,
     page,
     pageSize,
   });
 
   const handleSortChange = (value: string) => {
     const [newSortBy, newSortOrder] = value.split('-') as [
-      'createdAt' | 'customerName' | 'total',
+      'createdAt' | 'customerName' | 'deliveryDate',
       'asc' | 'desc'
     ];
     setSorting(newSortBy, newSortOrder);
   };
 
-  const handleOrderClick = (orderId: string) => {
-    navigate(`/admin/orders/${orderId}`);
+  const handleOrderClick = (documentNumber: string) => {
+    navigate(`/admin/orders/${documentNumber}`);
+  };
+
+  const handleUploadSuccess = () => {
+    setUploadDialogOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
   };
 
   // Loading states
@@ -124,6 +152,26 @@ export default function OrdersPage() {
             {t('orders.subtitle')}
           </p>
         </div>
+        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('orders.upload.button')}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('orders.upload.title')}</DialogTitle>
+              <DialogDescription>
+                {t('orders.upload.description')}
+              </DialogDescription>
+            </DialogHeader>
+            <OrderExcelUpload
+              organizationId={organizationId}
+              onUploadSuccess={handleUploadSuccess}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Toolbar */}
@@ -147,8 +195,8 @@ export default function OrdersPage() {
               <SelectItem value="createdAt-asc">{t('orders.sort.oldestFirst')}</SelectItem>
               <SelectItem value="customerName-asc">{t('orders.sort.customerAsc')}</SelectItem>
               <SelectItem value="customerName-desc">{t('orders.sort.customerDesc')}</SelectItem>
-              <SelectItem value="total-asc">{t('orders.sort.totalAsc')}</SelectItem>
-              <SelectItem value="total-desc">{t('orders.sort.totalDesc')}</SelectItem>
+              <SelectItem value="deliveryDate-asc">{t('orders.sort.deliveryDateAsc')}</SelectItem>
+              <SelectItem value="deliveryDate-desc">{t('orders.sort.deliveryDateDesc')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -182,9 +230,9 @@ export default function OrdersPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {orders.map((order) => (
               <OrderCard
-                key={order.id}
+                key={order.order_id}
                 order={order}
-                onClick={() => handleOrderClick(order.id)}
+                onClick={() => handleOrderClick(order.document_number)}
               />
             ))}
           </div>

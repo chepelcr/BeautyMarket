@@ -1,11 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { ComponentRepository } from '../repositories';
+import type { ComponentService } from '../services/ComponentService';
 import { z } from 'zod';
 
 export class ComponentController {
-  constructor(
-    private componentRepository: ComponentRepository
-  ) {}
+  constructor(private componentService: ComponentService) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
@@ -39,11 +37,11 @@ export class ComponentController {
 
       let components;
       if (type === 'system') {
-        components = await this.componentRepository.getSystemComponents();
+        components = await this.componentService.getSystemComponents();
       } else if (type === 'custom') {
-        components = await this.componentRepository.getCustomComponents();
+        components = await this.componentService.getCustomComponents();
       } else {
-        components = await this.componentRepository.getAll();
+        components = await this.componentService.getAll();
       }
 
       res.json(components);
@@ -74,7 +72,7 @@ export class ComponentController {
   async getComponentById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const component = await this.componentRepository.getById(id);
+      const component = await this.componentService.getById(id);
 
       if (!component) {
         return res.status(404).json({ error: 'Component not found' });

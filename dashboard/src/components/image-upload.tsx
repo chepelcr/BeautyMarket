@@ -9,13 +9,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-interface ImageUploadProps {
+export interface ImageUploadProps {
   value?: string;
   onChange: (url: string) => void;
   label?: string;
   accept?: string;
   maxSize?: number; // in MB
   folder?: string;
+  disabled?: boolean;
 }
 
 export function ImageUpload({
@@ -155,7 +156,7 @@ export function ImageUpload({
 
   return (
     <div className="space-y-2">
-      <Label>{label || t("imageUpload.label")}</Label>
+      {label && <Label>{label}</Label>}
 
       {value ? (
         <div className="relative group">

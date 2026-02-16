@@ -1,11 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { ContactSettingsRepository } from '../repositories';
+import type { ContactSettingsService } from '../services/ContactSettingsService';
 import { z } from 'zod';
 
 export class ContactSettingsController {
-  constructor(
-    private contactSettingsRepository: ContactSettingsRepository
-  ) {}
+  constructor(private contactSettingsService: ContactSettingsService) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
@@ -42,7 +40,7 @@ export class ContactSettingsController {
   async getContactSettings(req: Request, res: Response) {
     try {
       const { orgId } = req.params;
-      const contactSettings = await this.contactSettingsRepository.getByOrganizationId(orgId);
+      const contactSettings = await this.contactSettingsService.getByOrganizationId(orgId);
 
       if (!contactSettings) {
         return res.status(404).json({ error: 'Contact settings not found' });
@@ -107,18 +105,16 @@ export class ContactSettingsController {
       const data = req.body;
 
       // First check if settings exist
-      const existingSettings = await this.contactSettingsRepository.getByOrganizationId(orgId);
+      const existingSettings = await this.contactSettingsService.getByOrganizationId(orgId);
 
       let updatedSettings;
       if (!existingSettings) {
-        // Create new settings if they don't exist
-        updatedSettings = await this.contactSettingsRepository.create({
+        updatedSettings = await this.contactSettingsService.create({
           organizationId: orgId,
           ...data,
         });
       } else {
-        // Update existing settings
-        updatedSettings = await this.contactSettingsRepository.update(existingSettings.id, data);
+        updatedSettings = await this.contactSettingsService.update(existingSettings.id, data);
       }
 
       res.json(updatedSettings);

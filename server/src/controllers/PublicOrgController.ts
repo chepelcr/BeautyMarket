@@ -12,6 +12,7 @@ export class PublicOrgController {
     router.get('/:orgId/contact', this.getContact.bind(this));
     router.get('/:orgId/categories', this.getCategories.bind(this));
     router.get('/:orgId/products', this.getProducts.bind(this));
+    router.get('/:orgId/pages', this.getPages.bind(this));
     router.get('/:orgId/pages/:slug', this.getPageBySlug.bind(this));
 
     return router;
@@ -190,6 +191,17 @@ export class PublicOrgController {
     } catch (error) {
       console.error('Error getting products:', error);
       res.status(500).json({ error: 'Failed to get products' });
+    }
+  }
+
+  async getPages(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const pages = await this.publicOrgService.getPages(orgId);
+      res.json(pages);
+    } catch (error) {
+      console.error('Error getting pages:', error);
+      res.status(500).json({ error: 'Failed to get pages' });
     }
   }
 

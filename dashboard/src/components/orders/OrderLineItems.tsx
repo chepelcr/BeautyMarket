@@ -26,15 +26,8 @@ interface OrderItem {
 export function OrderLineItems({ order }: OrderLineItemsProps) {
   const { t } = useLanguage();
 
-  // Parse items from JSON string
-  let items: OrderItem[] = [];
-  try {
-    items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
-  } catch (error) {
-    console.error('Failed to parse order items:', error);
-  }
-
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const items = order.lines || [];
+  const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
 
   return (
     <Card>
@@ -49,7 +42,6 @@ export function OrderLineItems({ order }: OrderLineItemsProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">{t('orders.lineItems.image')}</TableHead>
                 <TableHead>{t('orders.lineItems.product')}</TableHead>
                 <TableHead className="text-right">{t('orders.lineItems.price')}</TableHead>
                 <TableHead className="text-center w-[100px]">{t('orders.lineItems.quantity')}</TableHead>
@@ -58,25 +50,19 @@ export function OrderLineItems({ order }: OrderLineItemsProps) {
             </TableHeader>
             <TableBody>
               {items.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.line_number}>
                   <TableCell>
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-16 w-16 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="h-16 w-16 bg-muted rounded flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">{item.description}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Code: {item.code} | Internal: {item.internal_code}
                       </div>
-                    )}
+                    </div>
                   </TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell className="text-right">₡{item.price.toLocaleString()}</TableCell>
-                  <TableCell className="text-center">{item.quantity}</TableCell>
+                  <TableCell className="text-right">₡{item.unit_price.toLocaleString()}</TableCell>
+                  <TableCell className="text-center">{item.quantity_ordered}</TableCell>
                   <TableCell className="text-right font-medium">
-                    ₡{(item.price * item.quantity).toLocaleString()}
+                    ₡{item.line_total.toLocaleString()}
                   </TableCell>
                 </TableRow>
               ))}
@@ -88,11 +74,27 @@ export function OrderLineItems({ order }: OrderLineItemsProps) {
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{t('orders.lineItems.subtotal')}</span>
-            <span className="font-medium">₡{subtotal.toLocaleString()}</span>
+            <span className="font-medium">₡{order.subtotal.toLocaleString()}</span>
           </div>
+          {order.discounts > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{t('orders.lineItems.discounts')}</span>
+              <span className="font-medium text-green-600">-₡{order.discounts.toLocaleString()}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{t('orders.lineItems.netTotal')}</span>
+            <span className="font-medium">₡{order.net_total.toLocaleString()}</span>
+          </div>
+          {order.taxes > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{t('orders.lineItems.taxes')}</span>
+              <span className="font-medium">₡{order.taxes.toLocaleString()}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between pt-2 border-t">
             <span className="font-semibold">{t('orders.lineItems.orderTotal')}</span>
-            <span className="text-xl font-bold">₡{order.total.toLocaleString()}</span>
+            <span className="text-xl font-bold">₡{order.grand_total.toLocaleString()}</span>
           </div>
         </div>
       </CardContent>

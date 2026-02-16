@@ -54,3 +54,5 @@ export type { HomePageContent, InsertHomePageContent } from "./HomePageContent";
 export type { Province, Canton, District } from "./Location";
 
 export type { DeploymentHistory, PreDeployment } from "./Deployment";
+
+export type { Confirmation, ConfirmationOrder } from "./Confirmation";

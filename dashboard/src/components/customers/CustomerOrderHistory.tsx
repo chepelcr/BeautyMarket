@@ -24,7 +24,10 @@ export function CustomerOrderHistory({ orders, isLoading }: CustomerOrderHistory
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CR', {
+    // Parse DD/MM/YYYY format
+    const [day, month, year] = dateString.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toLocaleDateString('es-CR', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -66,29 +69,29 @@ export function CustomerOrderHistory({ orders, isLoading }: CustomerOrderHistory
           <div className="space-y-3">
             {orders.map((order) => (
               <div
-                key={order.id}
+                key={order.order_id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="font-mono text-sm font-medium">
-                      #{order.id.slice(0, 8)}
+                      #{order.document_number}
                     </span>
-                    <Badge variant={getStatusBadgeVariant(order.status)}>
-                      {t(`orders.status.${order.status}`)}
+                    <Badge variant="outline">
+                      {order.document_type}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{formatDate(order.createdAt)}</span>
+                    <span>{formatDate(order.creation_date)}</span>
                     <span className="font-semibold text-foreground">
-                      {formatCurrency(order.total)}
+                      {formatCurrency(order.grand_total)}
                     </span>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/admin/orders/${order.id}`)}
+                  onClick={() => navigate(`/admin/orders/${order.document_number}`)}
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>

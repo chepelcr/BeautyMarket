@@ -18,8 +18,10 @@ export function createPermissionMiddleware(rbacService: IRBACService) {
   function requirePermission(module: string, action: string, submodule?: string) {
     return async (req: AuthRequest, res: Response, next: NextFunction) => {
       try {
-        // Must have organization context
-        if (!req.organization) {
+        // Extract organization ID from path params
+        const organizationId = req.params.organizationId || req.organization?.id;
+        
+        if (!organizationId) {
           return res.status(400).json({
             error: 'Organization context required',
             message: 'Permission check requires organization context'
@@ -36,7 +38,7 @@ export function createPermissionMiddleware(rbacService: IRBACService) {
         // Check permission
         const hasPermission = await rbacService.hasPermission(
           req.userId,
-          req.organization.id,
+          organizationId,
           { module, action, submodule }
         );
 
@@ -67,7 +69,9 @@ export function createPermissionMiddleware(rbacService: IRBACService) {
   function requireAnyPermission(permissions: PermissionCheck[]) {
     return async (req: AuthRequest, res: Response, next: NextFunction) => {
       try {
-        if (!req.organization) {
+        const organizationId = req.params.organizationId || req.organization?.id;
+        
+        if (!organizationId) {
           return res.status(400).json({
             error: 'Organization context required'
           });
@@ -81,7 +85,7 @@ export function createPermissionMiddleware(rbacService: IRBACService) {
 
         const hasAny = await rbacService.hasAnyPermission(
           req.userId,
-          req.organization.id,
+          organizationId,
           permissions
         );
 
@@ -112,7 +116,9 @@ export function createPermissionMiddleware(rbacService: IRBACService) {
   function requireAllPermissions(permissions: PermissionCheck[]) {
     return async (req: AuthRequest, res: Response, next: NextFunction) => {
       try {
-        if (!req.organization) {
+        const organizationId = req.params.organizationId || req.organization?.id;
+        
+        if (!organizationId) {
           return res.status(400).json({
             error: 'Organization context required'
           });
@@ -126,7 +132,7 @@ export function createPermissionMiddleware(rbacService: IRBACService) {
 
         const hasAll = await rbacService.hasAllPermissions(
           req.userId,
-          req.organization.id,
+          organizationId,
           permissions
         );
 

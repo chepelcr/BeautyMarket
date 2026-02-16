@@ -13,10 +13,15 @@ pkill -f "tsx server/src/index.ts" || true
 pkill -f "node.*server" || true
 pkill -f "vite.*dashboard" || true
 pkill -f "vite.*landing" || true
+pkill -f "vite.*3001" || true
+pkill -f "vite.*3002" || true
 
 # Force kill processes on specific ports
 echo "Stopping processes on ports 3001, 3002, 5000, 9000..."
-lsof -ti:3001,3002,5000,9000 | xargs kill -9 2>/dev/null || true
+lsof -ti:3001 | xargs kill -9 2>/dev/null || true
+lsof -ti:3002 | xargs kill -9 2>/dev/null || true
+lsof -ti:5000 | xargs kill -9 2>/dev/null || true
+lsof -ti:9000 | xargs kill -9 2>/dev/null || true
 
 # Wait a moment for processes to terminate
 sleep 2

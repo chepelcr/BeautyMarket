@@ -82,9 +82,14 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
         infrastructureStatus: 'provisioning' as InfrastructureStatus,
       });
 
-      // Step 1: Create S3 Bucket
-      console.log(`Creating S3 bucket: ${bucketName}`);
-      await this.createS3Bucket(bucketName);
+      // Step 1: Create S3 Bucket (idempotent)
+      const bucketExists = await this.s3Dao.bucketExists(bucketName);
+      if (!bucketExists) {
+        console.log(`Creating S3 bucket: ${bucketName}`);
+        await this.createS3Bucket(bucketName);
+      } else {
+        console.log(`S3 bucket already exists: ${bucketName}`);
+      }
 
       // Step 1.5: Deploy template market to bucket
       console.log(`Deploying template market to bucket: ${bucketName}`);
@@ -93,16 +98,41 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
         console.warn(`Warning: Template deployment failed: ${deployResult.error}`);
       }
 
-      // Step 2: Create Origin Access Control for CloudFront
-      const oacId = await this.createOriginAccessControl(organization.slug);
+      // Step 2: Create Origin Access Control for CloudFront (skip if distribution exists)
+      let oacId: string;
+      if (!organization.cloudfrontDistributionId) {
+        try {
+          oacId = await this.createOriginAccessControl(organization.slug);
+        } catch (error: any) {
+          if (error.name === 'OriginAccessControlAlreadyExists') {
+            console.log(`OAC already exists for ${organization.slug}, will reuse existing`);
+            oacId = ''; // CloudFront will use existing OAC by name
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        console.log(`CloudFront distribution already exists, skipping OAC creation`);
+        oacId = ''; // Will not be used
+      }
 
-      // Step 3: Create CloudFront Distribution
-      console.log(`Creating CloudFront distribution for: ${organization.slug}`);
-      const { distributionId, domainName } = await this.createCloudFrontDistribution(
-        bucketName,
-        organization.subdomain || organization.slug,
-        oacId
-      );
+      // Step 3: Create CloudFront Distribution (idempotent)
+      let distributionId: string;
+      let domainName: string;
+      if (!organization.cloudfrontDistributionId) {
+        console.log(`Creating CloudFront distribution for: ${organization.slug}`);
+        const result = await this.createCloudFrontDistribution(
+          bucketName,
+          organization.subdomain || organization.slug,
+          oacId
+        );
+        distributionId = result.distributionId;
+        domainName = result.domainName;
+      } else {
+        console.log(`CloudFront distribution already exists: ${organization.cloudfrontDistributionId}`);
+        distributionId = organization.cloudfrontDistributionId;
+        domainName = organization.cloudfrontDomain!;
+      }
 
       // Step 4: Update S3 Bucket Policy to allow CloudFront OAC
       await this.updateBucketPolicyForCloudFront(bucketName, distributionId);
@@ -288,14 +318,29 @@ export class OrganizationInfrastructureService implements IOrganizationInfrastru
   }
 
   private async getOrCreateWildcardCertificate(): Promise<string> {
-    // Use existing wildcard certificate or create one
-    // In production, you'd have a pre-created wildcard certificate
-    const wildcardCertArn = process.env.WILDCARD_CERTIFICATE_ARN;
-    if (wildcardCertArn) {
-      return wildcardCertArn;
+    const wildcardDomain = `*.jmarkets.${this.baseDomain}`;
+    
+    try {
+      const certificates = await this.acmDao.listCertificates();
+      
+      for (const cert of certificates) {
+        if (cert.DomainName === wildcardDomain) {
+          console.log(`Found wildcard certificate: ${wildcardDomain}`);
+          return cert.CertificateArn!;
+        }
+      }
+      
+      console.log(`Wildcard certificate not found, creating: ${wildcardDomain}`);
+      const response = await this.acmDao.requestCertificate({
+        domainName: wildcardDomain,
+        validationMethod: 'DNS',
+      });
+      
+      console.log(`✓ Created wildcard certificate: ${response.certificateArn}`);
+      return response.certificateArn;
+    } catch (error: any) {
+      throw new Error(`Failed to get or create wildcard certificate: ${error.message}`);
     }
-
-    throw new Error('WILDCARD_CERTIFICATE_ARN environment variable is required');
   }
 
   async requestCustomDomainCertificate(

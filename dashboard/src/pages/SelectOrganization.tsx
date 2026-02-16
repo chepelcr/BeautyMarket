@@ -32,12 +32,12 @@ export default function SelectOrganization() {
       const org = organizations[0];
       // Only auto-redirect if onboarding is complete (step 3)
       if (org.onboardingStep === 3) {
-        const subdomain = org.subdomain || org.slug;
-        window.location.href = `https://${subdomain}.${baseDomain}`;
+        sessionStorage.setItem('selectedOrgId', org.id);
+        navigate('/admin');
       }
       // If incomplete, let user see the organization and choose to continue setup
     }
-  }, [organizations, baseDomain]);
+  }, [organizations, navigate]);
 
   const handleSelectOrganization = (org: Organization) => {
     // If organization setup is incomplete, redirect to create page to continue
@@ -48,9 +48,9 @@ export default function SelectOrganization() {
       return;
     }
 
-    // Organization is complete, go to subdomain
-    const subdomain = org.subdomain || org.slug;
-    window.location.href = `https://${subdomain}.${baseDomain}`;
+    // Organization is complete, go to admin dashboard
+    sessionStorage.setItem('selectedOrgId', org.id);
+    navigate('/admin');
   };
 
   const getOnboardingStatus = (org: Organization) => {

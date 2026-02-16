@@ -1,9 +1,11 @@
 import { sql } from "drizzle-orm";
 import { pgTable, pgPolicy, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { organizations } from "./Organization";
 
 // Pre-Deployment Management Schema
 export const preDeployments = pgTable("pre_deployments", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: text("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   status: varchar("status", { length: 20 }).notNull().default("pending"), // 'pending', 'ready', 'published', 'error'
   triggerType: varchar("trigger_type", { length: 50 }).notNull(), // 'product', 'category', 'cms'
   triggerAction: varchar("trigger_action", { length: 50 }).notNull(), // 'create', 'update', 'delete'

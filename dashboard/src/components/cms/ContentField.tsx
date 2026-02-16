@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ImageUpload } from "@/components/image-upload";
 import { SectionContent } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ContentFieldProps {
   item: SectionContent;
@@ -14,6 +15,7 @@ interface ContentFieldProps {
   sectionMode?: string;
   onModeChange?: (mode: string) => void;
   showSeparator?: boolean;
+  disabled?: boolean;
 }
 
 export function ContentField({
@@ -24,7 +26,10 @@ export function ContentField({
   sectionMode = "both",
   onModeChange,
   showSeparator = true,
+  disabled = false,
 }: ContentFieldProps) {
+  const { t } = useLanguage();
+
   const renderColorInput = () => {
     try {
       const colorData = JSON.parse(value || '{"mode":"single","value":"#000000"}');
@@ -306,6 +311,240 @@ export function ContentField({
     );
   };
 
+  const renderStatsEditor = () => {
+    try {
+      const stats = JSON.parse(value || '[]');
+      return (
+        <div className="space-y-3">
+          {stats.map((stat: any, index: number) => (
+            <div key={index} className="p-3 border rounded-lg space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Valor (ej: 10K+)"
+                  value={stat.value || ''}
+                  onChange={(e) => {
+                    const newStats = [...stats];
+                    newStats[index] = { ...stat, value: e.target.value };
+                    onChange(JSON.stringify(newStats));
+                  }}
+                  className="flex-1"
+                />
+                <button
+                  onClick={() => {
+                    const newStats = stats.filter((_: any, i: number) => i !== index);
+                    onChange(JSON.stringify(newStats));
+                  }}
+                  className="px-3 text-red-600 hover:bg-red-50 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+              <Input
+                placeholder="Etiqueta (ej: Clientes Felices)"
+                value={stat.label || ''}
+                onChange={(e) => {
+                  const newStats = [...stats];
+                  newStats[index] = { ...stat, label: e.target.value };
+                  onChange(JSON.stringify(newStats));
+                }}
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const newStats = [...stats, { value: '', label: '' }];
+              onChange(JSON.stringify(newStats));
+            }}
+            className="w-full p-2 border-2 border-dashed rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            + Agregar Estadística
+          </button>
+        </div>
+      );
+    } catch {
+      return (
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={6}
+          className="resize-none font-mono text-sm"
+          disabled={disabled}
+          placeholder='[{"value": "10K+", "label": "Clientes"}]'
+        />
+      );
+    }
+  };
+
+  const renderBenefitsEditor = () => {
+    try {
+      const items = JSON.parse(value || '[]');
+      return (
+        <div className="space-y-3">
+          {items.map((item: any, index: number) => (
+            <div key={index} className="p-3 border rounded-lg space-y-2">
+              <div className="flex gap-2 items-start">
+                <select
+                  value={item.icon || 'Leaf'}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, icon: e.target.value };
+                    onChange(JSON.stringify(newItems));
+                  }}
+                  className="p-2 border rounded"
+                >
+                  <option value="Leaf">🌿 Leaf</option>
+                  <option value="ShieldCheck">🛡️ ShieldCheck</option>
+                  <option value="Heart">❤️ Heart</option>
+                  <option value="Award">🏆 Award</option>
+                  <option value="Users">👥 Users</option>
+                  <option value="Sparkles">✨ Sparkles</option>
+                </select>
+                <Input
+                  placeholder="Título"
+                  value={item.title || ''}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, title: e.target.value };
+                    onChange(JSON.stringify(newItems));
+                  }}
+                  className="flex-1"
+                />
+                <button
+                  onClick={() => {
+                    const newItems = items.filter((_: any, i: number) => i !== index);
+                    onChange(JSON.stringify(newItems));
+                  }}
+                  className="px-3 text-red-600 hover:bg-red-50 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+              <Textarea
+                placeholder="Descripción"
+                value={item.description || ''}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[index] = { ...item, description: e.target.value };
+                  onChange(JSON.stringify(newItems));
+                }}
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const newItems = [...items, { icon: 'Leaf', title: '', description: '' }];
+              onChange(JSON.stringify(newItems));
+            }}
+            className="w-full p-2 border-2 border-dashed rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            + Agregar Beneficio
+          </button>
+        </div>
+      );
+    } catch {
+      return (
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={6}
+          className="resize-none font-mono text-sm"
+          disabled={disabled}
+          placeholder='[{"icon": "Leaf", "title": "...", "description": "..."}]'
+        />
+      );
+    }
+  };
+
+  const renderTestimonialsEditor = () => {
+    try {
+      const items = JSON.parse(value || '[]');
+      return (
+        <div className="space-y-3">
+          {items.map((item: any, index: number) => (
+            <div key={index} className="p-3 border rounded-lg space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Nombre"
+                  value={item.name || ''}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, name: e.target.value };
+                    onChange(JSON.stringify(newItems));
+                  }}
+                  className="flex-1"
+                />
+                <select
+                  value={item.rating || 5}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, rating: parseInt(e.target.value) };
+                    onChange(JSON.stringify(newItems));
+                  }}
+                  className="p-2 border rounded"
+                >
+                  <option value="5">⭐⭐⭐⭐⭐</option>
+                  <option value="4">⭐⭐⭐⭐</option>
+                  <option value="3">⭐⭐⭐</option>
+                </select>
+                <button
+                  onClick={() => {
+                    const newItems = items.filter((_: any, i: number) => i !== index);
+                    onChange(JSON.stringify(newItems));
+                  }}
+                  className="px-3 text-red-600 hover:bg-red-50 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+              <Input
+                placeholder="Rol/Cargo"
+                value={item.role || ''}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[index] = { ...item, role: e.target.value };
+                  onChange(JSON.stringify(newItems));
+                }}
+              />
+              <Textarea
+                placeholder="Testimonio"
+                value={item.text || ''}
+                onChange={(e) => {
+                  const newItems = [...items];
+                  newItems[index] = { ...item, text: e.target.value };
+                  onChange(JSON.stringify(newItems));
+                }}
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const newItems = [...items, { name: '', role: '', text: '', rating: 5 }];
+              onChange(JSON.stringify(newItems));
+            }}
+            className="w-full p-2 border-2 border-dashed rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            + Agregar Testimonio
+          </button>
+        </div>
+      );
+    } catch {
+      return (
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={6}
+          className="resize-none font-mono text-sm"
+          disabled={disabled}
+          placeholder='[{"name": "...", "role": "...", "text": "...", "rating": 5}]'
+        />
+      );
+    }
+  };
+
   const renderInput = () => {
     switch (item.valueType) {
       case "color":
@@ -313,6 +552,7 @@ export function ContentField({
       case "background":
         return renderBackgroundInput();
       case "text":
+      case "string":
         if (item.key.includes("description") || value.length > 100) {
           return (
             <Textarea
@@ -320,21 +560,45 @@ export function ContentField({
               onChange={(e) => onChange(e.target.value)}
               rows={3}
               className="resize-none"
+              disabled={disabled}
             />
           );
         }
-        return <Input value={value} onChange={(e) => onChange(e.target.value)} />;
-      case "image":
+        return <Input value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} />;
+      case "image_url":
         return (
           <ImageUpload
             value={value}
             onChange={onChange}
-            label=""
+            label={""}
             folder={`images/${sectionType}-images`}
+            disabled={disabled}
+          />
+        );
+      case "json":
+        if (item.key === 'stats') {
+          return renderStatsEditor();
+        }
+        if (item.key === 'items') {
+          if (sectionType.includes('benefits') || sectionType.includes('values')) {
+            return renderBenefitsEditor();
+          }
+          if (sectionType.includes('testimonials')) {
+            return renderTestimonialsEditor();
+          }
+        }
+        return (
+          <Textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            rows={6}
+            className="resize-none font-mono text-sm"
+            disabled={disabled}
+            placeholder='{"key": "value"}'
           />
         );
       default:
-        return <Input value={value} onChange={(e) => onChange(e.target.value)} />;
+        return <Input value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} />;
     }
   };
 
@@ -342,7 +606,7 @@ export function ContentField({
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Label htmlFor={item.id} className="font-medium">
-          {item.displayName}
+          {t(`cms.field.${item.key}`) !== `cms.field.${item.key}` ? t(`cms.field.${item.key}`) : item.displayName}
         </Label>
         <Badge
           variant="outline"
@@ -351,8 +615,12 @@ export function ContentField({
               ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
               : item.valueType === "background"
               ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-              : item.valueType === "text"
+              : item.valueType === "text" || item.valueType === "string"
               ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              : item.valueType === "image_url"
+              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+              : item.valueType === "json"
+              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
               : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
           }
         >

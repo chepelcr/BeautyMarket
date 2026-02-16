@@ -1,7 +1,6 @@
 import type {
   Product,
   Category,
-  Order,
   User,
   UpsertUser,
   HomePageContent,
@@ -11,7 +10,6 @@ import type {
 import type {
   InsertProduct,
   InsertCategory,
-  InsertOrder,
   InsertHomePageContent,
   InsertDeploymentHistory,
   InsertPreDeployment
@@ -33,13 +31,6 @@ export interface ICategoryRepository {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
-}
-
-export interface IOrderRepository {
-  getOrders(): Promise<Order[]>;
-  getOrderById(id: string): Promise<Order | undefined>;
-  createOrder(order: InsertOrder): Promise<Order>;
-  updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
 }
 
 export interface IUserRepository {
@@ -69,7 +60,7 @@ export interface IDeploymentRepository {
 
 export interface IPreDeploymentRepository {
   getPreDeployments(): Promise<PreDeployment[]>;
-  getActivePreDeployment(): Promise<PreDeployment | undefined>;
+  getActivePreDeployment(organizationId: string): Promise<PreDeployment | undefined>;
   createPreDeployment(preDeployment: InsertPreDeployment): Promise<PreDeployment>;
   updatePreDeployment(id: string, preDeployment: Partial<InsertPreDeployment>): Promise<PreDeployment | undefined>;
   deletePreDeployment(id: string): Promise<boolean>;

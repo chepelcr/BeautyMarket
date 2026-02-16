@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { OrderStatusBadge } from './OrderStatusBadge';
-import { Calendar, Phone, MapPin, Package } from 'lucide-react';
+import { Send, Phone, MapPin, Package } from 'lucide-react';
 import type { Order } from '@/models';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -11,27 +11,28 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order, onClick }: OrderCardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
-  // Parse items if stored as string
-  let itemsData: any[] = [];
-  try {
-    itemsData = typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [];
-  } catch (error) {
-    console.error('Failed to parse order items:', error);
-  }
+  const itemCount = order.lines?.length || 0;
 
-  const itemCount = Array.isArray(itemsData) ? itemsData.length : 0;
-
-  const formatDate = (date: Date | string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('es-CR', {
+  const formatDate = (dateStr: string) => {
+    // Parse DD/MM/YYYY format
+    const [day, month, year] = dateStr.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toLocaleDateString(language === 'es' ? 'es-CR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
+  };
+
+  const getDocumentTypeLabel = (type: string) => {
+    switch (type) {
+      case 'ORDERS':
+        return t('orders.documentType.orders');
+      default:
+        return type;
+    }
   };
 
   return (
@@ -44,37 +45,37 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-lg">
-                {t('orders.orderNumber')} #{order.id.slice(0, 8)}
+                {t('orders.orderNumber')} #{order.document_number}
               </h3>
             </div>
             <p className="text-sm text-muted-foreground font-medium">
-              {order.customerName}
+              {order.client.name}
             </p>
           </div>
-          <OrderStatusBadge status={order.status} />
+          <OrderStatusBadge status={order.order_status} />
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
         {/* Order details */}
         <div className="space-y-2 text-sm">
-          {/* Date */}
+          {/* Delivery date */}
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="h-4 w-4 flex-shrink-0" />
-            <span>{formatDate(order.createdAt)}</span>
+            <Send className="h-4 w-4 flex-shrink-0" />
+            <span>{formatDate(order.delivery_date)}</span>
           </div>
 
-          {/* Phone */}
+          {/* Supplier */}
           <div className="flex items-center gap-2 text-muted-foreground">
             <Phone className="h-4 w-4 flex-shrink-0" />
-            <span>{order.customerPhone}</span>
+            <span>{order.supplier.name}</span>
           </div>
 
-          {/* Location */}
+          {/* Delivery location */}
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="h-4 w-4 flex-shrink-0" />
-            <span className="line-clamp-1" title={`${order.provincia}, ${order.canton}, ${order.distrito}`}>
-              {order.provincia}, {order.canton}
+            <span className="line-clamp-1" title={order.delivery_location.name}>
+              {order.delivery_location.name}
             </span>
           </div>
 
@@ -87,16 +88,10 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           </div>
         </div>
 
-        {/* Delivery method */}
+        {/* Event type */}
         <div>
           <Badge variant="outline" className="text-xs">
-            {order.deliveryMethod === 'correos' && t('orders.delivery.correos')}
-            {order.deliveryMethod === 'uber-flash' && t('orders.delivery.uberFlash')}
-            {order.deliveryMethod === 'personal' && t('orders.delivery.personal')}
-            {order.deliveryMethod !== 'correos' &&
-             order.deliveryMethod !== 'uber-flash' &&
-             order.deliveryMethod !== 'personal' &&
-             order.deliveryMethod}
+            {order.event}
           </Badge>
         </div>
 
@@ -107,7 +102,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               {t('orders.total')}
             </span>
             <span className="text-xl font-bold">
-              ₡{order.total.toLocaleString()}
+              ₡{order.grand_total.toLocaleString()}
             </span>
           </div>
         </div>

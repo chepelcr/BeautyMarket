@@ -145,7 +145,7 @@ export class RBACController {
    */
   async createRole(req: Request, res: Response) {
     try {
-      const { name, description, organizationId } = req.body;
+      const { name, displayName, description, organizationId } = req.body;
 
       if (!name) {
         return res.status(400).json({ error: 'Name is required' });
@@ -153,6 +153,7 @@ export class RBACController {
 
       const role = await this.rbacService.createRole({
         name,
+        displayName: displayName || name,
         description,
         organizationId,
         isSystem: false,

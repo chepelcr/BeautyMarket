@@ -13,6 +13,7 @@ export interface TemplateCardProps {
   template: Template;
   onSelect: (templateId: string) => void;
   onPreview: (template: Template) => void;
+  isSelected?: boolean;
 }
 
 export interface TemplateGalleryProps {

@@ -1,3 +1,4 @@
+import React from "react";
 import { useLocation } from "wouter";
 import { ChevronRight, Home } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -15,7 +16,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function DashboardNavbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { t } = useLanguage();
 
   // Generate breadcrumbs based on current location
@@ -28,7 +29,7 @@ export function DashboardNavbar() {
       products: "nav.products",
       categories: "nav.categories",
       content: "nav.content",
-      settings: "nav.settings",
+      settings: "sidebar.organization",
       general: "nav.settings.general",
       theme: "breadcrumb.themeSettings",
       members: "breadcrumb.members",
@@ -72,7 +73,13 @@ export function DashboardNavbar() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem className="hidden md:block">
-            <BreadcrumbLink href="/admin">
+            <BreadcrumbLink
+              href="/admin"
+              onClick={(e) => {
+                e.preventDefault();
+                setLocation("/admin");
+              }}
+            >
               <Home className="h-4 w-4" />
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -82,22 +89,28 @@ export function DashboardNavbar() {
             </BreadcrumbSeparator>
           )}
           {breadcrumbs.map((crumb, index) => (
-            <BreadcrumbItem key={crumb.href}>
-              {!crumb.isLast ? (
-                <>
-                  <BreadcrumbLink href={crumb.href}>
+            <React.Fragment key={crumb.href}>
+              <BreadcrumbItem>
+                {!crumb.isLast ? (
+                  <BreadcrumbLink
+                    href={crumb.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setLocation(crumb.href);
+                    }}
+                  >
                     {crumb.label}
                   </BreadcrumbLink>
-                  {index < breadcrumbs.length - 1 && (
-                    <BreadcrumbSeparator>
-                      <ChevronRight className="h-4 w-4" />
-                    </BreadcrumbSeparator>
-                  )}
-                </>
-              ) : (
-                <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+              {index < breadcrumbs.length - 1 && (
+                <BreadcrumbSeparator>
+                  <ChevronRight className="h-4 w-4" />
+                </BreadcrumbSeparator>
               )}
-            </BreadcrumbItem>
+            </React.Fragment>
           ))}
         </BreadcrumbList>
       </Breadcrumb>

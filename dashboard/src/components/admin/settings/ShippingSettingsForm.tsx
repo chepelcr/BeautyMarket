@@ -1,87 +1,205 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { buildOrgApiUrl } from "@/lib/apiUtils";
-import { apiRequest } from "@/lib/queryClient";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface ShippingSettingsFormProps {
-  userId: string;
-  organizationId: string;
+const shippingSettingsSchema = z.object({
+  freeShippingThreshold: z.number().min(0, "Must be 0 or greater"),
+  defaultShippingCost: z.number().min(0, "Must be 0 or greater"),
+  enableLocalPickup: z.boolean(),
+  enableCorreosShipping: z.boolean(),
+  enableUberFlash: z.boolean(),
+});
+
+export type ShippingSettingsFormValues = z.infer<typeof shippingSettingsSchema>;
+
+export interface ShippingSettingsFormProps {
+  userId?: string;
+  organizationId?: string;
   initialData?: any;
+  initialValues?: Partial<ShippingSettingsFormValues>;
+  onSubmit?: (data: ShippingSettingsFormValues) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export default function ShippingSettingsForm({
-  userId,
-  organizationId,
+  initialValues,
   initialData,
+  onSubmit,
+  isLoading = false,
 }: ShippingSettingsFormProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { t } = useLanguage();
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const url = buildOrgApiUrl(userId, organizationId, "/settings/shipping");
-      return await apiRequest("PUT", url, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [buildOrgApiUrl(userId, organizationId, "/settings/shipping")],
-      });
-      toast({
-        title: t("settings.shipping.success"),
-        description: t("settings.shipping.successDesc"),
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: t("settings.shipping.error"),
-        description: error.message || t("settings.shipping.errorDesc"),
-        variant: "destructive",
-      });
+  const effectiveInitialValues = initialValues || initialData;
+  const form = useForm<ShippingSettingsFormValues>({
+    resolver: zodResolver(shippingSettingsSchema),
+    defaultValues: {
+      freeShippingThreshold: effectiveInitialValues?.freeShippingThreshold ?? 0,
+      defaultShippingCost: effectiveInitialValues?.defaultShippingCost ?? 0,
+      enableLocalPickup: effectiveInitialValues?.enableLocalPickup ?? false,
+      enableCorreosShipping: effectiveInitialValues?.enableCorreosShipping ?? false,
+      enableUberFlash: effectiveInitialValues?.enableUberFlash ?? false,
     },
   });
 
-  const handleSave = async () => {
-    // Placeholder implementation
-    await updateMutation.mutateAsync({
-      offerShipping: true,
-      offerLocalPickup: true,
-      shippingCost: 2500,
-      freeShippingThreshold: 50000,
-    });
+  const handleSubmit = async (data: ShippingSettingsFormValues) => {
+    await onSubmit?.(data);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("settings.shipping.title")}</CardTitle>
-        <CardDescription>
-          {t("settings.shipping.description")}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center">
-          <p className="text-gray-600 dark:text-gray-400">
-            {t("settings.shipping.placeholder")}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-            {t("settings.shipping.placeholderDesc")}
-          </p>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="freeShippingThreshold"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("settings.shipping.freeShippingThreshold")}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t("settings.shipping.freeShippingThresholdDesc")}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="defaultShippingCost"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("settings.shipping.defaultShippingCost")}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t("settings.shipping.defaultShippingCostDesc")}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-          <p><strong>userId:</strong> {userId}</p>
-          <p><strong>organizationId:</strong> {organizationId}</p>
-          <p><strong>initialData:</strong> {initialData ? JSON.stringify(initialData, null, 2) : "null"}</p>
-        </div>
+        <FormField
+          control={form.control}
+          name="enableLocalPickup"
+          render={({ field }) => (
+            <FormItem>
+              <label className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 cursor-pointer">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="cursor-pointer">
+                    {t("settings.shipping.enableLocalPickup")}
+                  </FormLabel>
+                  <FormDescription>
+                    {t("settings.shipping.enableLocalPickupDesc")}
+                  </FormDescription>
+                </div>
+              </label>
+            </FormItem>
+          )}
+        />
 
-        <Button onClick={handleSave} disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? t("settings.shipping.saving") : t("settings.shipping.save")}
-        </Button>
-      </CardContent>
-    </Card>
+        <FormField
+          control={form.control}
+          name="enableCorreosShipping"
+          render={({ field }) => (
+            <FormItem>
+              <label className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 cursor-pointer">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="cursor-pointer">
+                    {t("settings.shipping.enableCorreosShipping")}
+                  </FormLabel>
+                  <FormDescription>
+                    {t("settings.shipping.enableCorreosShippingDesc")}
+                  </FormDescription>
+                </div>
+              </label>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="enableUberFlash"
+          render={({ field }) => (
+            <FormItem>
+              <label className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 cursor-pointer">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="cursor-pointer">
+                    {t("settings.shipping.enableUberFlash")}
+                  </FormLabel>
+                  <FormDescription>
+                    {t("settings.shipping.enableUberFlashDesc")}
+                  </FormDescription>
+                </div>
+              </label>
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="min-w-[150px]"
+          >
+            {isLoading ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                {t("settings.shipping.saving")}
+              </>
+            ) : (
+              t("settings.shipping.save")
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

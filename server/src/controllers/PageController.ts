@@ -1,11 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { PageRepository } from '../repositories';
+import type { PageService } from '../services/PageService';
 import { z } from 'zod';
 
 export class PageController {
-  constructor(
-    private pageRepository: PageRepository
-  ) {}
+  constructor(private pageService: PageService) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
@@ -48,20 +46,24 @@ export class PageController {
   async getAllPages(req: Request, res: Response) {
     try {
       const { orgId } = req.params;
-      const { activeOnly, type } = req.query;
+      const { activeOnly, type, includeContent } = req.query;
 
       let pages;
 
-      // If type is specified, get page by type
       if (type) {
-        const page = await this.pageRepository.getByOrganizationAndType(orgId, type as string);
+        const page = await this.pageService.getByOrganizationAndType(orgId, type as any);
         return res.json(page ? [page] : []);
       }
 
+      if (includeContent === 'true') {
+        pages = await this.pageService.getPagesWithContent(orgId, activeOnly === 'true');
+        return res.json(pages);
+      }
+
       if (activeOnly === 'true') {
-        pages = await this.pageRepository.getActiveByOrganization(orgId);
+        pages = await this.pageService.getActiveByOrganization(orgId);
       } else {
-        pages = await this.pageRepository.getByOrganizationId(orgId);
+        pages = await this.pageService.getByOrganizationId(orgId);
       }
 
       res.json(pages);
@@ -102,7 +104,7 @@ export class PageController {
   async getPageById(req: Request, res: Response) {
     try {
       const { pageId } = req.params;
-      const page = await this.pageRepository.getById(pageId);
+      const page = await this.pageService.getById(pageId);
 
       if (!page) {
         return res.status(404).json({ error: 'Page not found' });
@@ -172,13 +174,7 @@ export class PageController {
         return res.status(400).json({ error: 'Type, slug, and title are required' });
       }
 
-      // Check if page with same slug already exists for this organization
-      const existingPage = await this.pageRepository.getByOrganizationAndSlug(orgId, data.slug);
-      if (existingPage) {
-        return res.status(400).json({ error: 'Page with this slug already exists' });
-      }
-
-      const newPage = await this.pageRepository.create({
+      const newPage = await this.pageService.create({
         organizationId: orgId,
         ...data,
       });
@@ -247,13 +243,7 @@ export class PageController {
       const { pageId } = req.params;
       const data = req.body;
 
-      // Check if page exists
-      const existingPage = await this.pageRepository.getById(pageId);
-      if (!existingPage) {
-        return res.status(404).json({ error: 'Page not found' });
-      }
-
-      const updatedPage = await this.pageRepository.update(pageId, data);
+      const updatedPage = await this.pageService.update(pageId, data);
 
       res.json(updatedPage);
     } catch (error) {
@@ -297,7 +287,7 @@ export class PageController {
     try {
       const { pageId } = req.params;
 
-      const success = await this.pageRepository.delete(pageId);
+      const success = await this.pageService.delete(pageId);
 
       if (!success) {
         return res.status(404).json({ error: 'Page not found' });

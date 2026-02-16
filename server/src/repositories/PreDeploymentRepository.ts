@@ -1,7 +1,7 @@
 import { db } from '../config/database';
 import { preDeployments, type PreDeployment } from '../entities';
 import type { InsertPreDeployment } from '../models';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { IPreDeploymentRepository } from '../types';
 
 export class PreDeploymentRepository implements IPreDeploymentRepository {
@@ -12,11 +12,11 @@ export class PreDeploymentRepository implements IPreDeploymentRepository {
       .orderBy(preDeployments.createdAt);
   }
 
-  async getActivePreDeployment(): Promise<PreDeployment | undefined> {
+  async getActivePreDeployment(organizationId: string): Promise<PreDeployment | undefined> {
     const [preDeployment] = await db
       .select()
       .from(preDeployments)
-      .where(eq(preDeployments.status, 'pending'))
+      .where(and(eq(preDeployments.organizationId, organizationId), eq(preDeployments.status, 'pending')))
       .orderBy(preDeployments.createdAt)
       .limit(1);
     return preDeployment;
@@ -48,5 +48,13 @@ export class PreDeploymentRepository implements IPreDeploymentRepository {
       .where(eq(preDeployments.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async getById(id: string): Promise<PreDeployment | undefined> {
+    const [preDeployment] = await db
+      .select()
+      .from(preDeployments)
+      .where(eq(preDeployments.id, id));
+    return preDeployment;
   }
 }

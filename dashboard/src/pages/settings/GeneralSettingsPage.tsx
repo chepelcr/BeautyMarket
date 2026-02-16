@@ -39,20 +39,7 @@ export default function GeneralSettingsPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
-  const { data: defaultOrg } = useDefaultOrganization(user?.id);
-
-  const { data: organization, isLoading } = useQuery({
-    queryKey: ["organization", defaultOrg?.id],
-    queryFn: async () => {
-      if (!user?.id || !defaultOrg?.id) throw new Error("Missing user or organization");
-      const response = await apiRequest(
-        "GET",
-        buildOrgApiUrl(user.id, defaultOrg.id, "")
-      );
-      return response.json();
-    },
-    enabled: !!user?.id && !!defaultOrg?.id,
-  });
+  const { data: organization, isLoading } = useDefaultOrganization(user?.id);
 
   const form = useForm<GeneralSettingsFormValues>({
     resolver: zodResolver(getGeneralSettingsSchema(t)),
@@ -67,16 +54,16 @@ export default function GeneralSettingsPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: GeneralSettingsFormValues) => {
-      if (!user?.id || !defaultOrg?.id) throw new Error("Missing user or organization");
+      if (!user?.id || !organization?.id) throw new Error("Missing user or organization");
       const response = await apiRequest(
-        "PUT",
-        buildOrgApiUrl(user.id, defaultOrg.id, ""),
+        "PATCH",
+        buildOrgApiUrl(user.id, organization.id, "/settings/general"),
         data
       );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organization"] });
+      queryClient.invalidateQueries({ queryKey: ["default-organization"] });
       toast({
         title: t("settings.general.saved"),
         description: t("settings.general.savedDescription"),
@@ -107,7 +94,7 @@ export default function GeneralSettingsPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t("settings.general.title")}
         </h2>
         <p className="text-gray-600 dark:text-gray-300">

@@ -1,12 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { SectionContentRepository, PageSectionRepository } from '../repositories';
+import type { SectionContentService } from '../services/SectionContentService';
+import type { PageSectionService } from '../services/PageSectionService';
 import { PreDeploymentService } from '../services';
 import { z } from 'zod';
 
 export class SectionContentController {
   constructor(
-    private sectionContentRepository: SectionContentRepository,
-    private pageSectionRepository: PageSectionRepository,
+    private sectionContentService: SectionContentService,
+    private pageSectionService: PageSectionService,
     private preDeploymentService: PreDeploymentService
   ) {}
 
@@ -15,6 +16,7 @@ export class SectionContentController {
 
     router.get('/', this.getAllContent.bind(this));
     router.post('/bulk', this.bulkUpsertContent.bind(this));
+    router.post('/bulk-all', this.bulkUpsertAllContent.bind(this));
     router.put('/:contentId', this.updateContent.bind(this));
     router.delete('/:contentId', this.deleteContent.bind(this));
 
@@ -58,18 +60,53 @@ export class SectionContentController {
     try {
       const { sectionId } = req.params;
 
-      // Verify section exists
-      const section = await this.pageSectionRepository.getById(sectionId);
+      const section = await this.pageSectionService.getById(sectionId);
       if (!section) {
         return res.status(404).json({ error: 'Section not found' });
       }
 
-      const content = await this.sectionContentRepository.getBySectionId(sectionId);
+      const content = await this.sectionContentService.getBySectionId(sectionId);
 
       res.json(content);
     } catch (error) {
       console.error('Error getting section content:', error);
       res.status(500).json({ error: 'Failed to get section content' });
+    }
+  }
+
+  async bulkUpsertAllContent(req: Request, res: Response) {
+    try {
+      console.log('🔵 [bulk-all] Request received');
+      const { orgId } = req.params;
+      const { updates } = req.body;
+
+      console.log('🔵 [bulk-all] orgId:', orgId);
+      console.log('🔵 [bulk-all] updates count:', updates?.length);
+
+      if (!updates || !Array.isArray(updates)) {
+        return res.status(400).json({ error: 'Updates array is required' });
+      }
+
+      const totalUpdated = await this.sectionContentService.bulkUpsertMultipleSections(updates);
+      console.log('✓ [bulk-all] Content updated:', totalUpdated);
+
+      // Trigger deployment asynchronously (don't wait)
+      this.preDeploymentService.triggerPreDeployment(
+        'cms',
+        'update',
+        orgId,
+        'section_content',
+        { count: totalUpdated, sections: updates.length },
+        orgId
+      ).catch(error => {
+        console.error('❌ [bulk-all] Async deployment error:', error);
+      });
+
+      // Respond immediately
+      res.json({ success: true, updated: totalUpdated });
+    } catch (error) {
+      console.error('❌ [bulk-all] Error:', error);
+      res.status(500).json({ error: 'Failed to bulk upsert content' });
     }
   }
 
@@ -151,23 +188,18 @@ export class SectionContentController {
         return res.status(400).json({ error: 'Content array is required' });
       }
 
-      // Verify section exists
-      const section = await this.pageSectionRepository.getById(sectionId);
+      const section = await this.pageSectionService.getById(sectionId);
       if (!section) {
         return res.status(404).json({ error: 'Section not found' });
       }
 
-      // Add sectionId to all content items
       const contentWithSection = content.map((item: any) => ({
         ...item,
         sectionId,
       }));
 
-      const upsertedContent = await this.sectionContentRepository.bulkUpsertSectionContent(
-        contentWithSection
-      );
+      const upsertedContent = await this.sectionContentService.bulkUpsert(contentWithSection);
 
-      // Trigger pre-deployment for bulk CMS updates
       await this.preDeploymentService.triggerPreDeployment(
         'cms',
         'update',
@@ -250,15 +282,13 @@ export class SectionContentController {
       const { contentId } = req.params;
       const data = req.body;
 
-      // Check if content exists
-      const existingContent = await this.sectionContentRepository.getById(contentId);
+      const existingContent = await this.sectionContentService.getById(contentId);
       if (!existingContent) {
         return res.status(404).json({ error: 'Content not found' });
       }
 
-      const updatedContent = await this.sectionContentRepository.update(contentId, data);
+      const updatedContent = await this.sectionContentService.update(contentId, data);
 
-      // Trigger pre-deployment for updated CMS content
       await this.preDeploymentService.triggerPreDeployment(
         'cms',
         'update',
@@ -319,7 +349,7 @@ export class SectionContentController {
     try {
       const { contentId } = req.params;
 
-      const success = await this.sectionContentRepository.delete(contentId);
+      const success = await this.sectionContentService.delete(contentId);
 
       if (!success) {
         return res.status(404).json({ error: 'Content not found' });

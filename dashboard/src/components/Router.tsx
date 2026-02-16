@@ -23,9 +23,12 @@ const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
 const OrderDetailsPage = lazy(() => import("@/pages/OrderDetailsPage"));
 const CustomersPage = lazy(() => import("@/pages/CustomersPage"));
 const CustomerDetailsPage = lazy(() => import("@/pages/CustomerDetailsPage"));
+const ConfirmationsPage = lazy(() => import("@/pages/ConfirmationsPage"));
+const ConfirmationDetailsPage = lazy(() => import("@/pages/ConfirmationDetailsPage"));
 
 // CMS and Settings pages
 const ContentPage = lazy(() => import("@/pages/ContentPage"));
+const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 const GeneralSettingsPage = lazy(() => import("@/pages/settings/GeneralSettingsPage"));
 const ThemeSettingsPage = lazy(() => import("@/pages/settings/ThemeSettingsPage"));
 const ContactSettingsPage = lazy(() => import("@/pages/settings/ContactSettingsPage"));
@@ -87,9 +90,12 @@ export function Router({ displayLocation }: RouterProps) {
         <Route path="/admin/categories" component={CategoriesPage} />
         <Route path="/admin/orders" component={OrdersPage} />
         <Route path="/admin/orders/:orderId" component={OrderDetailsPage} />
+        <Route path="/admin/confirmations" component={ConfirmationsPage} />
+        <Route path="/admin/confirmations/:confirmationNumber" component={ConfirmationDetailsPage} />
         <Route path="/admin/customers" component={CustomersPage} />
         <Route path="/admin/customers/:customerId" component={CustomerDetailsPage} />
-        <Route path="/admin/content" component={ContentPage} />
+        <Route path="/admin/content">{() => <ContentPage />}</Route>
+        <Route path="/admin/settings" component={SettingsPage} />
         <Route path="/admin/settings/general" component={GeneralSettingsPage} />
         <Route path="/admin/settings/theme" component={ThemeSettingsPage} />
         <Route path="/admin/settings/contact" component={ContactSettingsPage} />

@@ -1,14 +1,20 @@
 import { normalizeImageUrl } from "@/lib/image-utils";
 
+interface GradientData {
+  from: string;
+  to: string;
+  direction: string;
+}
+
 export interface BackgroundData {
   type: 'color' | 'gradient' | 'image';
   mode?: 'both' | 'light' | 'dark';
   value?: string; // for color type
-  gradient?: {
-    from: string;
-    to: string;
-    direction: string;
-  };
+  lightValue?: string;
+  darkValue?: string;
+  gradient?: GradientData;
+  lightGradient?: GradientData;
+  darkGradient?: GradientData;
   image?: {
     url: string;
     opacity: number;
@@ -45,15 +51,15 @@ export function generateBackgroundStyle(bgValue: string, isDark: boolean = false
         const color = isDark 
           ? (bgData.darkValue || bgData.value || '#000000') 
           : (bgData.lightValue || bgData.value || '#ffffff');
-        return { 
+        return {
           backgroundColor: `${color} !important`,
-          '--bg-color': color
-        };
+          '--bg-color': color,
+        } as React.CSSProperties;
       }
-      return { 
+      return {
         backgroundColor: `${bgData.value} !important`,
-        '--bg-color': bgData.value
-      };
+        '--bg-color': bgData.value,
+      } as React.CSSProperties;
       
     case 'gradient':
       if (!bgData.gradient) return {};

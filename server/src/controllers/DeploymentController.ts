@@ -33,16 +33,16 @@ export class DeploymentController {
    */
   async triggerDeployment(req: AuthRequest, res: Response) {
     try {
-      const organization = req.organization;
+      const orgId = req.params.orgId;
 
-      if (!organization) {
+      if (!orgId) {
         return res.status(400).json({
           success: false,
-          message: "Organization context required. Please select an organization."
+          message: "Organization ID required"
         });
       }
 
-      const result = await this.deploymentService.triggerAutoDeployment(organization);
+      const result = await this.deploymentService.triggerAutoDeployment({ id: orgId } as any);
       res.json(result);
     } catch (error) {
       console.error("Auto-deployment error:", error);
@@ -69,15 +69,15 @@ export class DeploymentController {
    */
   async getStatus(req: AuthRequest, res: Response) {
     try {
-      const organization = req.organization;
+      const orgId = req.params.orgId;
 
-      if (!organization) {
+      if (!orgId) {
         return res.status(400).json({
-          error: "Organization context required"
+          error: "Organization ID required"
         });
       }
 
-      const status = await this.deploymentService.getDeploymentStatus(organization.id);
+      const status = await this.deploymentService.getDeploymentStatus(orgId);
       res.json(status);
     } catch (error) {
       console.error("Deployment status error:", error);
@@ -101,15 +101,15 @@ export class DeploymentController {
    */
   async getHistory(req: AuthRequest, res: Response) {
     try {
-      const organization = req.organization;
+      const orgId = req.params.orgId;
 
-      if (!organization) {
+      if (!orgId) {
         return res.status(400).json({
-          error: "Organization context required"
+          error: "Organization ID required"
         });
       }
 
-      const deployments = await this.deploymentService.getDeploymentHistory(organization.id);
+      const deployments = await this.deploymentService.getDeploymentHistory(orgId);
       res.json(deployments);
     } catch (error) {
       console.error("Error fetching deployment history:", error);

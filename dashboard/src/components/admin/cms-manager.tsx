@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // New API structure types
 interface Page {
@@ -75,6 +76,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   // Fetch home page
@@ -144,8 +146,8 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
       // Invalidate and refetch content
       queryClient.invalidateQueries({ queryKey: ['content'] });
       toast({
-        title: "Contenido actualizado",
-        description: "Los cambios se han guardado correctamente",
+        title: t('content.updated'),
+        description: t('content.updatedDescription'),
       });
       setHasChanges(false);
     },
@@ -311,6 +313,237 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
 
   const renderInput = (item: SectionContent, section: string) => {
     const value = contentData[section]?.[item.key]?.value || "";
+
+    const renderStatsEditor = () => {
+      try {
+        const stats = JSON.parse(value || '[]');
+        return (
+          <div className="space-y-3">
+            {stats.map((stat: any, index: number) => (
+              <div key={index} className="p-3 border rounded-lg space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Valor (ej: 10K+)"
+                    value={stat.value || ''}
+                    onChange={(e) => {
+                      const newStats = [...stats];
+                      newStats[index] = { ...stat, value: e.target.value };
+                      handleInputChange(section, item.key, JSON.stringify(newStats));
+                    }}
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={() => {
+                      const newStats = stats.filter((_: any, i: number) => i !== index);
+                      handleInputChange(section, item.key, JSON.stringify(newStats));
+                    }}
+                    className="px-3 text-red-600 hover:bg-red-50 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <Input
+                  placeholder="Etiqueta (ej: Clientes Felices)"
+                  value={stat.label || ''}
+                  onChange={(e) => {
+                    const newStats = [...stats];
+                    newStats[index] = { ...stat, label: e.target.value };
+                    handleInputChange(section, item.key, JSON.stringify(newStats));
+                  }}
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                const newStats = [...stats, { value: '', label: '' }];
+                handleInputChange(section, item.key, JSON.stringify(newStats));
+              }}
+              className="w-full p-2 border-2 border-dashed rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800"
+            >
+              + Agregar Estadística
+            </button>
+          </div>
+        );
+      } catch {
+        return (
+          <Textarea
+            value={value}
+            onChange={(e) => handleInputChange(section, item.key, e.target.value)}
+            rows={6}
+            className="resize-none font-mono text-sm"
+            placeholder='[{"value": "10K+", "label": "Clientes"}]'
+          />
+        );
+      }
+    };
+
+    const renderBenefitsEditor = () => {
+      try {
+        const items = JSON.parse(value || '[]');
+        return (
+          <div className="space-y-3">
+            {items.map((item: any, index: number) => (
+              <div key={index} className="p-3 border rounded-lg space-y-2">
+                <div className="flex gap-2 items-start">
+                  <select
+                    value={item.icon || 'Leaf'}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index] = { ...item, icon: e.target.value };
+                      handleInputChange(section, item.key, JSON.stringify(newItems));
+                    }}
+                    className="p-2 border rounded"
+                  >
+                    <option value="Leaf">🌿 Leaf</option>
+                    <option value="ShieldCheck">🛡️ ShieldCheck</option>
+                    <option value="Heart">❤️ Heart</option>
+                    <option value="Award">🏆 Award</option>
+                    <option value="Users">👥 Users</option>
+                    <option value="Sparkles">✨ Sparkles</option>
+                  </select>
+                  <Input
+                    placeholder="Título"
+                    value={item.title || ''}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index] = { ...item, title: e.target.value };
+                      handleInputChange(section, item.key, JSON.stringify(newItems));
+                    }}
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={() => {
+                      const newItems = items.filter((_: any, i: number) => i !== index);
+                      handleInputChange(section, item.key, JSON.stringify(newItems));
+                    }}
+                    className="px-3 text-red-600 hover:bg-red-50 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <Textarea
+                  placeholder="Descripción"
+                  value={item.description || ''}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, description: e.target.value };
+                    handleInputChange(section, item.key, JSON.stringify(newItems));
+                  }}
+                  rows={2}
+                  className="resize-none"
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                const newItems = [...items, { icon: 'Leaf', title: '', description: '' }];
+                handleInputChange(section, item.key, JSON.stringify(newItems));
+              }}
+              className="w-full p-2 border-2 border-dashed rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800"
+            >
+              + Agregar Beneficio
+            </button>
+          </div>
+        );
+      } catch {
+        return (
+          <Textarea
+            value={value}
+            onChange={(e) => handleInputChange(section, item.key, e.target.value)}
+            rows={6}
+            className="resize-none font-mono text-sm"
+            placeholder='[{"icon": "Leaf", "title": "...", "description": "..."}]'
+          />
+        );
+      }
+    };
+
+    const renderTestimonialsEditor = () => {
+      try {
+        const items = JSON.parse(value || '[]');
+        return (
+          <div className="space-y-3">
+            {items.map((item: any, index: number) => (
+              <div key={index} className="p-3 border rounded-lg space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nombre"
+                    value={item.name || ''}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index] = { ...item, name: e.target.value };
+                      handleInputChange(section, item.key, JSON.stringify(newItems));
+                    }}
+                    className="flex-1"
+                  />
+                  <select
+                    value={item.rating || 5}
+                    onChange={(e) => {
+                      const newItems = [...items];
+                      newItems[index] = { ...item, rating: parseInt(e.target.value) };
+                      handleInputChange(section, item.key, JSON.stringify(newItems));
+                    }}
+                    className="p-2 border rounded"
+                  >
+                    <option value="5">⭐⭐⭐⭐⭐</option>
+                    <option value="4">⭐⭐⭐⭐</option>
+                    <option value="3">⭐⭐⭐</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      const newItems = items.filter((_: any, i: number) => i !== index);
+                      handleInputChange(section, item.key, JSON.stringify(newItems));
+                    }}
+                    className="px-3 text-red-600 hover:bg-red-50 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <Input
+                  placeholder="Rol/Cargo"
+                  value={item.role || ''}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, role: e.target.value };
+                    handleInputChange(section, item.key, JSON.stringify(newItems));
+                  }}
+                />
+                <Textarea
+                  placeholder="Testimonio"
+                  value={item.text || ''}
+                  onChange={(e) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...item, text: e.target.value };
+                    handleInputChange(section, item.key, JSON.stringify(newItems));
+                  }}
+                  rows={2}
+                  className="resize-none"
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                const newItems = [...items, { name: '', role: '', text: '', rating: 5 }];
+                handleInputChange(section, item.key, JSON.stringify(newItems));
+              }}
+              className="w-full p-2 border-2 border-dashed rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800"
+            >
+              + Agregar Testimonio
+            </button>
+          </div>
+        );
+      } catch {
+        return (
+          <Textarea
+            value={value}
+            onChange={(e) => handleInputChange(section, item.key, e.target.value)}
+            rows={6}
+            className="resize-none font-mono text-sm"
+            placeholder='[{"name": "...", "role": "...", "text": "...", "rating": 5}]'
+          />
+        );
+      }
+    };
 
     switch (item.valueType) {
       case "color":
@@ -794,6 +1027,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
           </div>
         );
       case "text":
+      case "string":
         if (item.key.includes('description') || item.value.length > 100) {
           return (
             <Textarea
@@ -810,13 +1044,34 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             onChange={(e) => handleInputChange(section, item.key, e.target.value)}
           />
         );
-      case "image":
+      case "image_url":
         return (
           <ImageUpload
             value={value}
             onChange={(url) => handleInputChange(section, item.key, url)}
             label=""
             folder={`images/${section}-images`}
+          />
+        );
+      case "json":
+        if (item.key === 'stats') {
+          return renderStatsEditor();
+        }
+        if (item.key === 'items') {
+          if (section.includes('benefits') || section.includes('values')) {
+            return renderBenefitsEditor();
+          }
+          if (section.includes('testimonials')) {
+            return renderTestimonialsEditor();
+          }
+        }
+        return (
+          <Textarea
+            value={value}
+            onChange={(e) => handleInputChange(section, item.key, e.target.value)}
+            rows={6}
+            className="resize-none font-mono text-sm"
+            placeholder='{"key": "value"}'
           />
         );
       default:
@@ -918,13 +1173,18 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
             <TabsTrigger
               key={section}
               value={section}
-              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200"
+              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200 flex items-center gap-2"
             >
-              {section === 'hero' ? 'Inicio' :
-               section === 'about' ? 'Acerca' :
-               section === 'contact' ? 'Contacto' :
-               section === 'categories' ? 'Categorías' :
-               section === 'site' ? 'Sitio' : section}
+              <span>
+                {section === 'hero' ? 'Inicio' :
+                 section === 'about' ? 'Acerca' :
+                 section === 'contact' ? 'Contacto' :
+                 section === 'categories' ? 'Categorías' :
+                 section === 'site' ? 'Sitio' : section}
+              </span>
+              <Badge variant="secondary" className="text-xs">
+                {Object.keys(contentData[section] || {}).length} {t('common.items')}
+              </Badge>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -932,33 +1192,23 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
         {availableSections.map((section) => (
           <TabsContent key={section} value={section} className="mt-6">
             <Card className="dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  Sección: {section === 'hero' ? 'Inicio' : 
-                            section === 'about' ? 'Acerca de Nosotros' :
-                            section === 'contact' ? 'Contacto' :
-                            section === 'categories' ? 'Categorías' :
-                            section === 'site' ? 'Configuración del Sitio' : section}
-                  <Badge variant="secondary">
-                    {Object.keys(contentData[section] || {}).length} elementos
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-6">
                 {Object.values(contentData[section] || {})
                   .sort((a, b) => a.sortOrder - b.sortOrder)
                   .map((item, index) => (
                     <div key={item.id} className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Label htmlFor={item.id} className="font-medium">
-                          {item.displayName}
+                          {t(`cms.field.${item.key}`) !== `cms.field.${item.key}` ? t(`cms.field.${item.key}`) : item.displayName}
                         </Label>
                         <Badge
                           variant="outline"
                           className={
                             item.valueType === 'color' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
                             item.valueType === 'background' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                            item.valueType === 'text' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                            item.valueType === 'text' || item.valueType === 'string' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                            item.valueType === 'image_url' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                            item.valueType === 'json' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                             'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                           }
                         >

@@ -1,17 +1,24 @@
 import { create } from 'zustand';
-import type { OrderFilters } from '@/hooks/useOrders';
+
+export interface OrderFilters {
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  creationStartDate?: string;
+  creationEndDate?: string;
+}
 
 interface OrderListState {
   searchQuery: string;
   filters: OrderFilters;
-  sortBy: 'createdAt' | 'customerName' | 'total';
+  sortBy: 'createdAt' | 'customerName' | 'deliveryDate';
   sortOrder: 'asc' | 'desc';
   page: number;
   pageSize: number;
 
   setSearchQuery: (query: string) => void;
   setFilters: (filters: OrderFilters) => void;
-  setSorting: (sortBy: 'createdAt' | 'customerName' | 'total', sortOrder: 'asc' | 'desc') => void;
+  setSorting: (sortBy: 'createdAt' | 'customerName' | 'deliveryDate', sortOrder: 'asc' | 'desc') => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
   resetFilters: () => void;

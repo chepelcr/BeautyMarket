@@ -1,8 +1,14 @@
 import type { Page, InsertPage, PageType } from '../entities';
 import type { PageRepository } from '../repositories/PageRepository';
+import type { PageSectionService } from './PageSectionService';
+import type { SectionContentService } from './SectionContentService';
 
 export class PageService {
-  constructor(private pageRepository: PageRepository) {}
+  constructor(
+    private pageRepository: PageRepository,
+    private pageSectionService?: PageSectionService,
+    private sectionContentService?: SectionContentService
+  ) {}
 
   async getAll(): Promise<Page[]> {
     return await this.pageRepository.getAll();
@@ -97,5 +103,33 @@ export class PageService {
 
   async findHomePageByOrganization(organizationId: string): Promise<Page | undefined> {
     return await this.pageRepository.getByOrganizationAndType(organizationId, 'home');
+  }
+
+  async getPagesWithContent(
+    organizationId: string,
+    activeOnly: boolean = false
+  ): Promise<any[]> {
+    const pages = activeOnly
+      ? await this.pageRepository.getActiveByOrganization(organizationId)
+      : await this.pageRepository.getByOrganizationId(organizationId);
+
+    if (!this.pageSectionService || !this.sectionContentService) {
+      return pages;
+    }
+
+    const pagesWithContent = await Promise.all(
+      pages.map(async (page) => {
+        const sections = await this.pageSectionService!.getByPageId(page.id);
+        const sectionsWithContent = await Promise.all(
+          sections.map(async (section: any) => ({
+            ...section,
+            content: await this.sectionContentService!.getBySectionId(section.id)
+          }))
+        );
+        return { ...page, sections: sectionsWithContent };
+      })
+    );
+
+    return pagesWithContent;
   }
 }

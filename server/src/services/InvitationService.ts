@@ -51,7 +51,7 @@ export class InvitationService implements IInvitationService {
 
   async create(data: CreateInvitationData): Promise<OrganizationInvitation> {
     // Check if user is already a member
-    const existingUser = await this.userRepo.findByEmail(data.email);
+    const existingUser = await this.userRepo.getUserByEmail(data.email);
     if (existingUser) {
       const existingMembership = await this.memberRepo.findByUserAndOrganization(
         existingUser.id,
@@ -105,7 +105,7 @@ export class InvitationService implements IInvitationService {
     }
 
     // Get user to verify email matches
-    const user = await this.userRepo.findById(userId);
+    const user = await this.userRepo.getUser(userId);
     if (!user) {
       throw new Error("Usuario no encontrado");
     }

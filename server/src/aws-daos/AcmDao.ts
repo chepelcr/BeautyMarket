@@ -3,6 +3,7 @@ import {
   RequestCertificateCommand,
   DescribeCertificateCommand,
   DeleteCertificateCommand,
+  ListCertificatesCommand,
   type CertificateDetail,
   type DomainValidation,
 } from '@aws-sdk/client-acm';
@@ -123,5 +124,13 @@ export class AcmDao {
     }
 
     return false;
+  }
+
+  /**
+   * List all certificates
+   */
+  async listCertificates(): Promise<Array<{ CertificateArn?: string; DomainName?: string }>> {
+    const response = await this.client.send(new ListCertificatesCommand({}));
+    return response.CertificateSummaryList || [];
   }
 }

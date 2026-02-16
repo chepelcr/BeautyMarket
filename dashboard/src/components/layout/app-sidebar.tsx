@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -15,6 +16,10 @@ import {
   Mail,
   CreditCard,
   Truck,
+  ShoppingBag,
+  CalendarCheck,
+  UserCircle,
+  ChevronDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +42,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,13 +78,28 @@ const mainNavItems: MenuItem[] = [
     icon: FolderTree,
   },
   {
+    titleKey: "sidebar.orders",
+    href: "/admin/orders",
+    icon: ShoppingBag,
+  },
+  {
+    titleKey: "sidebar.confirmations",
+    href: "/admin/confirmations",
+    icon: CalendarCheck,
+  },
+  {
+    titleKey: "sidebar.customers",
+    href: "/admin/customers",
+    icon: UserCircle,
+  },
+  {
     titleKey: "sidebar.content",
     href: "/admin/content",
     icon: FileText,
   },
 ];
 
-// Settings navigation items
+// Settings navigation items (without members and deployments)
 const settingsNavItems: MenuItem[] = [
   {
     titleKey: "sidebar.settings.general",
@@ -101,16 +126,6 @@ const settingsNavItems: MenuItem[] = [
     href: "/admin/settings/shipping",
     icon: Truck,
   },
-  {
-    titleKey: "sidebar.settings.teamMembers",
-    href: "/admin/members",
-    icon: Users,
-  },
-  {
-    titleKey: "sidebar.settings.deployments",
-    href: "/admin/deployments",
-    icon: Rocket,
-  },
 ];
 
 export function AppSidebar() {
@@ -118,14 +133,26 @@ export function AppSidebar() {
   const { user, logout, isLoading } = useAuth();
   const { state } = useSidebar();
   const { t } = useLanguage();
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   // Check if menu item is active
   const isActive = (href: string) => {
     if (href === "/admin") {
-      return location === href;
+      return location === "/admin" || location === "/admin/";
     }
-    return location.startsWith(href);
+    return location === href || location.startsWith(href + "/");
   };
+
+  // Close settings dropdown when navigating away from settings pages
+  React.useEffect(() => {
+    if (location === "/admin/settings") {
+      setSettingsOpen(false);
+    } else if (location.startsWith("/admin/settings/")) {
+      setSettingsOpen(true);
+    } else {
+      setSettingsOpen(false);
+    }
+  }, [location]);
 
   // Get user initials for avatar
   const getUserInitials = () => {
@@ -203,23 +230,69 @@ export function AppSidebar() {
           <SidebarGroupLabel>{t("sidebar.settings")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {settingsNavItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.href)}
-                    tooltip={state === "collapsed" ? t(item.titleKey) : undefined}
-                  >
-                    <a href={item.href} onClick={(e) => {
-                      e.preventDefault();
-                      setLocation(item.href);
-                    }}>
-                      <item.icon />
-                      <span>{t(item.titleKey)}</span>
-                    </a>
-                  </SidebarMenuButton>
+              <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton isActive={location.startsWith("/admin/settings")}>
+                      <Settings />
+                      <span>{t("sidebar.organization")}</span>
+                      <ChevronDown className={`ml-auto transition-transform ${settingsOpen ? 'rotate-180' : ''}`} />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenu className="ml-4 mt-1 space-y-1">
+                      {settingsNavItems.map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive(item.href)}
+                            tooltip={state === "collapsed" ? t(item.titleKey) : undefined}
+                            size="sm"
+                          >
+                            <a href={item.href} onClick={(e) => {
+                              e.preventDefault();
+                              setLocation(item.href);
+                            }}>
+                              <item.icon />
+                              <span>{t(item.titleKey)}</span>
+                            </a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </CollapsibleContent>
                 </SidebarMenuItem>
-              ))}
+              </Collapsible>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/admin/members")}
+                  tooltip={state === "collapsed" ? t("sidebar.settings.teamMembers") : undefined}
+                >
+                  <a href="/admin/members" onClick={(e) => {
+                    e.preventDefault();
+                    setLocation("/admin/members");
+                  }}>
+                    <Users />
+                    <span>{t("sidebar.settings.teamMembers")}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/admin/deployments")}
+                  tooltip={state === "collapsed" ? t("sidebar.settings.deployments") : undefined}
+                >
+                  <a href="/admin/deployments" onClick={(e) => {
+                    e.preventDefault();
+                    setLocation("/admin/deployments");
+                  }}>
+                    <Rocket />
+                    <span>{t("sidebar.settings.deployments")}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

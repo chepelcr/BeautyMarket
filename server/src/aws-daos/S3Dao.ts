@@ -297,7 +297,18 @@ export class S3Dao {
     return null;
   }
 
+
   buildS3Url(bucket: string, key: string): string {
     return `https://${bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  async bucketExists(bucketName: string): Promise<boolean> {
+    try {
+      const { HeadBucketCommand } = await import('@aws-sdk/client-s3');
+      await this.client.send(new HeadBucketCommand({ Bucket: bucketName }));
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

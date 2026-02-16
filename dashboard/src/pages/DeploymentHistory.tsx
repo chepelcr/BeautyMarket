@@ -1,13 +1,19 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Link } from 'wouter';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Calendar, Clock, ExternalLink, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useDynamicTitle } from '@/hooks/useDynamicTitle';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
+import { buildOrgApiUrl } from '@/lib/apiUtils';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { toast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface DeploymentHistory {
   id: string;
@@ -20,6 +26,16 @@ interface DeploymentHistory {
   errorDetails?: string;
   filesUploaded?: number;
   buildSizeKb?: number;
+}
+
+interface PreDeployment {
+  id: string;
+  status: 'ready';
+  triggerType: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  changes: any;
 }
 
 const statusColors = {
@@ -38,25 +54,91 @@ const statusIcons = {
 
 export default function DeploymentHistory() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization } = useDefaultOrganization(user?.id);
+  const [activeTab, setActiveTab] = useState('pending');
+  const queryClient = useQueryClient();
 
   // Set dynamic page title
   useDynamicTitle(t('deployments.history.title'));
 
-  const { data: deployments, isLoading, error } = useQuery<DeploymentHistory[]>({
-    queryKey: ['/api/deployments'],
-    refetchInterval: 5000, // Refresh every 5 seconds to get latest status
+  const publishMutation = useMutation({
+    mutationFn: async (preDeploymentId: string) => {
+      if (!user?.id || !organization?.id) throw new Error('Missing user or organization');
+      await apiRequest(
+        'POST',
+        buildOrgApiUrl(user.id, organization.id, `/pre-deployments/${preDeploymentId}/publish`)
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pre-deployments'] });
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
+      toast({
+        title: t('deployments.toast.publishSuccess'),
+        description: t('deployments.toast.publishSuccessDescription'),
+      });
+      setActiveTab('history');
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('deployments.toast.error'),
+        description: error.message || t('deployments.toast.publishError'),
+        variant: 'destructive',
+      });
+    },
   });
+
+  const { data: preDeployments, isLoading: isLoadingPre } = useQuery<PreDeployment[]>({
+    queryKey: ['pre-deployments', user?.id, organization?.id],
+    queryFn: async () => {
+      if (!user?.id || !organization?.id) return [];
+      const session = await fetchAuthSession();
+      const idToken = session.tokens?.idToken?.toString();
+      const response = await fetch(
+        buildOrgApiUrl(user.id, organization.id, '/pre-deployments'),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(idToken && { Authorization: `Bearer ${idToken}` }),
+          },
+        }
+      );
+      if (!response.ok) throw new Error('Failed to fetch pre-deployments');
+      const data = await response.json();
+      return data.filter((d: PreDeployment) => d.status === 'ready').slice(0, 1);
+    },
+    enabled: !!user?.id && !!organization?.id,
+  });
+
+  const { data: deployments, isLoading: isLoadingDep } = useQuery<DeploymentHistory[]>({
+    queryKey: ['deployments', user?.id, organization?.id],
+    queryFn: async () => {
+      if (!user?.id || !organization?.id) return [];
+      const session = await fetchAuthSession();
+      const idToken = session.tokens?.idToken?.toString();
+      const response = await fetch(
+        buildOrgApiUrl(user.id, organization.id, '/deployments/history'),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(idToken && { Authorization: `Bearer ${idToken}` }),
+          },
+        }
+      );
+      if (!response.ok) throw new Error('Failed to fetch deployments');
+      return response.json();
+    },
+    enabled: !!user?.id && !!organization?.id,
+    refetchInterval: 5000,
+  });
+
+  const isLoading = isLoadingPre || isLoadingDep;
 
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t('deployments.history.backToAdmin')}
-            </Button>
-          </Link>
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('deployments.history.title')}
           </h1>
@@ -68,57 +150,79 @@ export default function DeploymentHistory() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t('deployments.history.backToAdmin')}
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('deployments.history.title')}
-          </h1>
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              <span>{t('deployments.history.loadError')}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al Admin
-          </Button>
-        </Link>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Historial de Despliegues
+          {t('deployments.history.title')}
         </h1>
       </div>
 
-      {!deployments || deployments.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="text-gray-500 dark:text-gray-400">
-              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">{t('deployments.history.noDeployments')}</p>
-              <p className="text-sm">{t('deployments.history.noDeploymentsDescription')}</p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pending">{t('deployments.tabs.pending')}</TabsTrigger>
+          <TabsTrigger value="history">{t('deployments.tabs.history')}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="mt-6">
+          {!preDeployments || preDeployments.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="text-gray-500 dark:text-gray-400">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">{t('deployments.pending.noChanges')}</p>
+                  <p className="text-sm">{t('deployments.pending.noChangesDescription')}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-3">
+                    <Clock className="w-5 h-5" />
+                    <span className="text-base font-medium">{t('deployments.pending.title')}</span>
+                  </CardTitle>
+                  <Badge variant="secondary" className="bg-yellow-500 text-white">
+                    {t('deployments.pending.readyToPublish')}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  {t(preDeployments[0].message)}
+                </p>
+                <div className="text-sm">
+                  <div className="text-gray-500 dark:text-gray-400 mb-1">{t('deployments.pending.created')}</div>
+                  <div className="font-medium">
+                    {format(new Date(preDeployments[0].createdAt), 'dd/MM/yyyy HH:mm')}
+                  </div>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={() => publishMutation.mutate(preDeployments[0].id)}
+                  disabled={publishMutation.isPending}
+                >
+                  {publishMutation.isPending && <Loader className="w-4 h-4 mr-2 animate-spin" />}
+                  {publishMutation.isPending ? t('deployments.pending.publishing') : t('deployments.pending.publishButton')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-6">
+          {!deployments || deployments.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="text-gray-500 dark:text-gray-400">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">{t('deployments.history.noDeployments')}</p>
+                  <p className="text-sm">{t('deployments.history.noDeploymentsDescription')}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
         <div className="space-y-4">
           {deployments
             .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
@@ -233,7 +337,9 @@ export default function DeploymentHistory() {
               );
             })}
         </div>
-      )}
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

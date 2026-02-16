@@ -1,11 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { PaymentSettingsRepository } from '../repositories';
+import type { PaymentSettingsService } from '../services/PaymentSettingsService';
 import { z } from 'zod';
 
 export class PaymentSettingsController {
-  constructor(
-    private paymentSettingsRepository: PaymentSettingsRepository
-  ) {}
+  constructor(private paymentSettingsService: PaymentSettingsService) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
@@ -42,7 +40,7 @@ export class PaymentSettingsController {
   async getPaymentSettings(req: Request, res: Response) {
     try {
       const { orgId } = req.params;
-      const paymentSettings = await this.paymentSettingsRepository.getByOrganizationId(orgId);
+      const paymentSettings = await this.paymentSettingsService.getByOrganizationId(orgId);
 
       if (!paymentSettings) {
         return res.status(404).json({ error: 'Payment settings not found' });
@@ -105,18 +103,16 @@ export class PaymentSettingsController {
       const data = req.body;
 
       // First check if settings exist
-      const existingSettings = await this.paymentSettingsRepository.getByOrganizationId(orgId);
+      const existingSettings = await this.paymentSettingsService.getByOrganizationId(orgId);
 
       let updatedSettings;
       if (!existingSettings) {
-        // Create new settings if they don't exist
-        updatedSettings = await this.paymentSettingsRepository.create({
+        updatedSettings = await this.paymentSettingsService.create({
           organizationId: orgId,
           ...data,
         });
       } else {
-        // Update existing settings
-        updatedSettings = await this.paymentSettingsRepository.update(existingSettings.id, data);
+        updatedSettings = await this.paymentSettingsService.update(existingSettings.id, data);
       }
 
       res.json(updatedSettings);

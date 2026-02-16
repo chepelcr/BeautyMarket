@@ -10,6 +10,11 @@ export interface Organization {
   slug: string;
   subdomain?: string;
   ownerId: string;
+  onboardingStep?: number;
+  description?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +89,24 @@ export function useOrganization() {
         );
         if (!response.ok) throw new Error('Failed to fetch organizations');
         return response.json() as Promise<Organization[]>;
+      },
+      enabled: !!userId,
+    });
+  };
+
+  // Get default organization (first one)
+  const useDefaultOrganization = (userId: string | undefined) => {
+    return useQuery({
+      queryKey: ['default-organization', userId],
+      queryFn: async () => {
+        if (!userId) return null;
+        const response = await authenticatedRequest(
+          'GET',
+          buildUserApiUrl(userId, '/memberships/organizations')
+        );
+        if (!response.ok) throw new Error('Failed to fetch organizations');
+        const orgs = await response.json() as Organization[];
+        return orgs[0] || null;
       },
       enabled: !!userId,
     });
@@ -175,6 +198,7 @@ export function useOrganization() {
   return {
     // Queries
     useUserOrganizations,
+    useDefaultOrganization,
 
     // Checks
     checkSlugAvailable,

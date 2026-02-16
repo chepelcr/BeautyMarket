@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Eye, History, X } from "lucide-react";
+import { Loader2, Eye, History, X, Save } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
@@ -27,93 +29,39 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
   const [hasChanges, setHasChanges] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeSection, setActiveSection] = useState(defaultActiveSection);
+  const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
-  const { data: homePage, isLoading: isLoadingPage } = useQuery<Page>({
-    queryKey: ["page", "home", defaultOrg?.id],
+  const { data: pagesWithContent, isLoading } = useQuery<any[]>({
+    queryKey: ["pages-content", defaultOrg?.id],
     queryFn: async () => {
       if (!user?.id || !defaultOrg?.id) throw new Error("User or organization not found");
       const response = await apiRequest(
         "GET",
-        buildOrgApiUrl(user.id, defaultOrg.id, "/pages?type=home")
+        buildOrgApiUrl(user.id, defaultOrg.id, "/pages?includeContent=true")
       );
-      const pages = await response.json();
-      return pages[0];
+      return response.json();
     },
     enabled: !!user?.id && !!defaultOrg?.id,
   });
 
-  const { data: sections, isLoading: isLoadingSections } = useQuery<PageSection[]>({
-    queryKey: ["sections", homePage?.id],
-    queryFn: async () => {
-      if (!user?.id || !defaultOrg?.id || !homePage?.id)
-        throw new Error("Missing required data");
-      const response = await apiRequest(
-        "GET",
-        buildOrgApiUrl(user.id, defaultOrg.id, `/pages/${homePage.id}/sections`)
-      );
-      return response.json();
-    },
-    enabled: !!user?.id && !!defaultOrg?.id && !!homePage?.id,
-  });
-
-  const { data: allContent, isLoading: isLoadingContent } = useQuery<
-    Record<string, SectionContent[]>
-  >({
-    queryKey: ["content", sections?.map((s) => s.id)],
-    queryFn: async () => {
-      if (!user?.id || !defaultOrg?.id || !homePage?.id || !sections) {
-        throw new Error("Missing required data");
-      }
-
-      const contentBySection: Record<string, SectionContent[]> = {};
-
-      for (const section of sections) {
-        const response = await apiRequest(
-          "GET",
-          buildOrgApiUrl(
-            user.id,
-            defaultOrg.id,
-            `/pages/${homePage.id}/sections/${section.id}/content`
-          )
-        );
-        contentBySection[section.sectionType] = await response.json();
-      }
-
-      return contentBySection;
-    },
-    enabled:
-      !!user?.id && !!defaultOrg?.id && !!homePage?.id && !!sections && sections.length > 0,
-  });
-
-  const isLoading = isLoadingPage || isLoadingSections || isLoadingContent;
-
   const updateContentMutation = useMutation({
-    mutationFn: async (updates: {
-      sectionId: string;
-      sectionType: string;
-      content: any[];
-    }) => {
-      if (!user?.id || !defaultOrg?.id || !homePage?.id)
-        throw new Error("Missing required data");
+    mutationFn: async (updates: { sectionId: string; content: any[] }[]) => {
+      if (!user?.id || !defaultOrg?.id) throw new Error("Missing required data");
 
-      const response = await apiRequest(
+      await apiRequest(
         "POST",
-        buildOrgApiUrl(
-          user.id,
-          defaultOrg.id,
-          `/pages/${homePage.id}/sections/${updates.sectionId}/content/bulk`
-        ),
-        { content: updates.content }
+        buildOrgApiUrl(user.id, defaultOrg.id, "/content/bulk-all"),
+        { updates }
       );
-      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["content"] });
+      queryClient.invalidateQueries({ queryKey: ["pages-content"] });
+      queryClient.invalidateQueries({ queryKey: ["deployments"] });
       toast({
         title: t("content.updated"),
         description: t("content.updatedDescription"),
@@ -130,35 +78,49 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
     },
   });
 
+  const availablePages = pagesWithContent || [];
+
   useEffect(() => {
-    if (allContent && sections) {
+    if (pagesWithContent) {
       const grouped: ContentData = {};
 
-      sections.forEach((section) => {
-        const sectionContents = allContent[section.sectionType] || [];
-        grouped[section.sectionType] = sectionContents.reduce((acc, item) => {
-          acc[item.key] = item;
-          return acc;
-        }, {} as ContentSection);
+      pagesWithContent.forEach((page: any) => {
+        page.sections?.forEach((section: any) => {
+          const key = `${page.slug}-${section.sectionType}`;
+          grouped[key] = section.content.reduce((acc: any, item: any) => {
+            acc[item.key] = item;
+            return acc;
+          }, {} as ContentSection);
+        });
       });
 
       setContentData(grouped);
 
-      if (defaultActiveSection && grouped[defaultActiveSection]) {
-        setActiveSection(defaultActiveSection);
-      } else if (Object.keys(grouped).length > 0) {
-        setActiveSection(Object.keys(grouped)[0]);
+      if (pagesWithContent.length > 0) {
+        setActiveSection(pagesWithContent[0].slug);
+        const firstSection = pagesWithContent[0].sections?.[0];
+        if (firstSection) {
+          setTimeout(() => setOpenAccordion(firstSection.id), 650);
+        }
       }
     }
-  }, [allContent, sections, defaultActiveSection]);
+  }, [pagesWithContent]);
 
-  const handleInputChange = (section: string, key: string, value: string) => {
+  useEffect(() => {
+    const page = availablePages.find((p: any) => p.slug === activeSection);
+    const firstSection = page?.sections?.[0];
+    if (firstSection) {
+      setTimeout(() => setOpenAccordion(firstSection.id), 650);
+    }
+  }, [activeSection, availablePages]);
+
+  const handleInputChange = (sectionKey: string, key: string, value: string) => {
     setContentData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
+      [sectionKey]: {
+        ...prev[sectionKey],
         [key]: {
-          ...prev[section][key],
+          ...prev[sectionKey][key],
           value,
         },
       },
@@ -166,11 +128,61 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
     setHasChanges(true);
   };
 
-  const handleSectionSave = (section: string, updatedContent: ContentSection) => {
-    if (!sections) return;
+  const handleSaveAll = () => {
+    if (!pagesWithContent) return;
+    
+    const allUpdates = Object.entries(contentData).map(([sectionKey, content]) => {
+      const [pageSlug, sectionType] = sectionKey.split('-');
+      const page = pagesWithContent.find((p: any) => p.slug === pageSlug);
+      const section = page?.sections?.find((s: any) => s.sectionType === sectionType);
+      
+      if (!section) return null;
 
-    const sectionInfo = sections.find((s) => s.sectionType === section);
-    if (!sectionInfo) return;
+      const updates = Object.values(content).map((item) => ({
+        key: item.key,
+        value: item.value,
+        valueType: item.valueType,
+        displayName: item.displayName,
+        description: item.description,
+        sortOrder: item.sortOrder,
+      }));
+
+      return {
+        sectionId: section.id,
+        content: updates,
+      };
+    }).filter(Boolean) as { sectionId: string; content: any[] }[];
+
+    if (allUpdates.length > 0) {
+      updateContentMutation.mutate(allUpdates);
+    }
+  };
+
+  const handleDiscardAll = () => {
+    if (pagesWithContent) {
+      const grouped: ContentData = {};
+      pagesWithContent.forEach((page: any) => {
+        page.sections?.forEach((section: any) => {
+          const key = `${page.slug}-${section.sectionType}`;
+          grouped[key] = section.content.reduce((acc: any, item: any) => {
+            acc[item.key] = item;
+            return acc;
+          }, {} as ContentSection);
+        });
+      });
+      setContentData(grouped);
+      setHasChanges(false);
+    }
+  };
+
+  const handleSectionSave = (sectionKey: string, updatedContent: ContentSection) => {
+    if (!pagesWithContent) return;
+
+    const [pageSlug, sectionType] = sectionKey.split('-');
+    const page = pagesWithContent.find((p: any) => p.slug === pageSlug);
+    const section = page?.sections?.find((s: any) => s.sectionType === sectionType);
+    
+    if (!section) return;
 
     const updates = Object.values(updatedContent).map((item) => ({
       key: item.key,
@@ -181,11 +193,10 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
       sortOrder: item.sortOrder,
     }));
 
-    updateContentMutation.mutate({
-      sectionId: sectionInfo.id,
-      sectionType: section,
+    updateContentMutation.mutate([{
+      sectionId: section.id,
       content: updates,
-    });
+    }]);
   };
 
   if (isLoading) {
@@ -196,54 +207,29 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
     );
   }
 
-  const sectionOrder = ["hero", "categories", "about", "contact", "site"];
-  const availableSections = sectionOrder.filter((section) => contentData[section]);
+  const validActiveSection = availablePages.find((p: any) => p.slug === activeSection)?.slug || availablePages[0]?.slug || "";
 
-  const validActiveSection = availableSections.includes(activeSection)
-    ? activeSection
-    : availableSections.includes("hero")
-    ? "hero"
-    : availableSections[0];
-
-  const getSectionTitle = (section: string) => {
-    switch (section) {
-      case "hero":
-        return t("content.section.hero");
-      case "about":
-        return t("content.section.about");
-      case "contact":
-        return t("content.section.contact");
-      case "categories":
-        return t("content.section.categories");
-      case "site":
-        return t("content.section.site");
-      default:
-        return section;
-    }
+  const getPageTitle = (page: Page) => {
+    const key = `content.page.${page.slug}`;
+    return t(key) !== key ? t(key) : page.title;
   };
 
-  const getSectionDescription = (section: string) => {
-    switch (section) {
-      case "hero":
-        return t("content.sectionDescription.hero");
-      case "about":
-        return t("content.sectionDescription.about");
-      case "contact":
-        return t("content.sectionDescription.contact");
-      case "categories":
-        return t("content.sectionDescription.categories");
-      case "site":
-        return t("content.sectionDescription.site");
-      default:
-        return "";
-    }
+  const getSectionName = (section: PageSection) => {
+    const key = `content.section.${section.sectionType}`;
+    return t(key) !== key ? t(key) : section.name;
+  };
+
+  const getSectionDescription = (sectionKey: string) => {
+    const [pageSlug, sectionType] = sectionKey.split('-');
+    const key = `content.sectionDescription.${sectionType}`;
+    return t(key) !== key ? t(key) : `Edit ${sectionType} content`;
   };
 
   return (
     <div className="space-y-4 sm:space-y-6 p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             {t("content.title")}
           </h2>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
@@ -255,6 +241,7 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
             onClick={() => setShowPreview(true)}
             variant="outline"
             size="sm"
+            disabled
           >
             <Eye className="w-4 h-4 mr-2" />
             {t("content.preview")}
@@ -265,53 +252,88 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
               {t("content.history")}
             </Button>
           </Link>
+          {hasChanges && (
+            <>
+              <Button
+                onClick={handleDiscardAll}
+                variant="outline"
+                size="sm"
+                disabled={updateContentMutation.isPending}
+              >
+                <X className="w-4 h-4 mr-2" />
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={handleSaveAll}
+                disabled={updateContentMutation.isPending}
+                size="sm"
+              >
+                {updateContentMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {!updateContentMutation.isPending && <Save className="w-4 h-4 mr-2" />}
+                {updateContentMutation.isPending ? t("common.saving") : t("common.save")}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       <Tabs value={validActiveSection} onValueChange={setActiveSection} className="w-full">
-        <TabsList className="grid grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
-          {availableSections.map((section) => (
+        <TabsList className="grid w-full h-auto p-1 bg-gray-100 dark:bg-gray-700" style={{ gridTemplateColumns: `repeat(${availablePages.length}, minmax(0, 1fr))` }}>
+          {availablePages.map((page) => (
             <TabsTrigger
-              key={section}
-              value={section}
+              key={page.slug}
+              value={page.slug}
+              disabled={updateContentMutation.isPending}
               className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200"
             >
-              {getSectionTitle(section)}
+              {getPageTitle(page)}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {availableSections.map((section) => (
-          <TabsContent key={section} value={section} className="mt-6">
-            <BaseSectionEditor
-              sectionType={section}
-              title={`${t("content.sectionLabel")} ${getSectionTitle(section)}`}
-              description={getSectionDescription(section)}
-              content={contentData[section] || {}}
-              onSave={(updatedContent) => handleSectionSave(section, updatedContent)}
-              onInputChange={(key, value) => handleInputChange(section, key, value)}
-              isSaving={updateContentMutation.isPending}
-            />
-          </TabsContent>
-        ))}
+        {availablePages.map((page: any) => {
+          const pageSections = page.sections || [];
+          return (
+            <TabsContent key={page.slug} value={page.slug} className="mt-6 page-enter">
+              <Accordion type="single" collapsible className="w-full" value={openAccordion} onValueChange={setOpenAccordion}>
+                {pageSections.map((section: any) => {
+                  const sectionKey = `${page.slug}-${section.sectionType}`;
+                  return (
+                    <AccordionItem key={section.id} value={section.id}>
+                      <AccordionTrigger className="text-lg font-semibold">
+                        <div className="flex items-center gap-2">
+                          <span>{getSectionName(section)}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {Object.keys(contentData[sectionKey] || {}).length} {t('common.items')}
+                          </Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <BaseSectionEditor
+                          sectionType={sectionKey}
+                          title={getSectionName(section)}
+                          description={getSectionDescription(sectionKey)}
+                          content={contentData[sectionKey] || {}}
+                          onSave={(updatedContent) => handleSectionSave(sectionKey, updatedContent)}
+                          onInputChange={(key, value) => handleInputChange(sectionKey, key, value)}
+                          isSaving={updateContentMutation.isPending}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </TabsContent>
+          );
+        })}
       </Tabs>
 
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-6xl max-h-[90vh] w-[95vw] p-0">
           <DialogHeader className="p-6 pb-4">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="font-serif text-xl">
-                {t("content.previewTitle")}
-              </DialogTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPreview(false)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <DialogTitle className="text-xl">
+              {t("content.previewTitle")}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex-1 min-h-0">
             <iframe

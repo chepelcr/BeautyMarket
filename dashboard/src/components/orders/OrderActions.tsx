@@ -45,7 +45,7 @@ export function OrderActions({ order, onStatusUpdate }: OrderActionsProps) {
     setNotes('');
   };
 
-  const canCancel = order.status !== 'cancelled' && order.status !== 'delivered';
+  const canCancel = order.order_status !== 'cancelled' && order.order_status !== 'delivered';
 
   return (
     <>

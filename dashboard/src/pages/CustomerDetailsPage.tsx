@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { buildOrgApiUrl } from '@/lib/apiUtils';
 import type { Customer, Order } from '@/models';
@@ -25,32 +26,15 @@ import { CustomerNotes } from '@/components/customers/CustomerNotes';
 export default function CustomerDetailsPage() {
   const { t } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const [, navigate] = useLocation();
   const [, params] = useRoute('/admin/customers/:customerId');
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
 
-  // Get organization from localStorage
-  const [organization, setOrganization] = useState<any>(null);
-  const [orgLoading, setOrgLoading] = useState(true);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      try {
-        setOrganization(JSON.parse(storedOrg));
-      } catch (error) {
-        console.error('Failed to parse organization:', error);
-        navigate('/organizations/select');
-      }
-    } else if (!authLoading && isAuthenticated) {
-      navigate('/organizations/select');
-    }
-    setOrgLoading(false);
-  }, [authLoading, isAuthenticated, navigate]);
-
-  const organizationId = organization?.id;
+  const organizationId = organization?.id || '';
   const customerId = params?.customerId;
 
   // Redirect if not authenticated
@@ -87,10 +71,9 @@ export default function CustomerDetailsPage() {
       }
       const allOrders = await response.json();
 
-      // Filter orders by customer email or phone
+      // Filter orders by customer email
       return allOrders.filter((order: Order) =>
-        order.customerEmail === customer?.email ||
-        order.customerPhone === customer?.phone
+        order.client?.name?.toLowerCase().includes(customer?.email?.toLowerCase() || '')
       );
     },
   });

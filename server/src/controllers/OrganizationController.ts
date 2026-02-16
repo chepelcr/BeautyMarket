@@ -17,7 +17,13 @@ export class OrganizationController {
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
-    // User-scoped organization routes (mounted at /api/users/:userId/organizations)
+    // Public lookup endpoints (must be before /:id to avoid route conflicts)
+    router.get('/by-slug/:slug', this.getBySlug.bind(this));
+    router.get('/by-subdomain/:subdomain', this.getBySubdomain.bind(this));
+    router.get('/check-slug/:slug', this.checkSlugAvailable.bind(this));
+    router.get('/check-subdomain/:subdomain', this.checkSubdomainAvailable.bind(this));
+
+    // Organization CRUD
     router.get('/', this.getAll.bind(this));
     router.get('/:id', this.getById.bind(this));
     router.post('/', this.create.bind(this));

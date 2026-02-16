@@ -11,10 +11,6 @@ interface OrderPaymentInfoProps {
 export function OrderPaymentInfo({ order }: OrderPaymentInfoProps) {
   const { t } = useLanguage();
 
-  // For MVP, we'll show basic payment info
-  // In the future, this could include payment method, transaction ID, etc.
-  const isPaid = order.status !== 'pending' && order.status !== 'cancelled';
-
   return (
     <Card>
       <CardHeader>
@@ -26,32 +22,41 @@ export function OrderPaymentInfo({ order }: OrderPaymentInfoProps) {
       <CardContent className="space-y-4">
         <div>
           <div className="text-sm font-medium text-muted-foreground mb-1">
-            {t('orders.payment.status')}
+            {t('orders.lineItems.subtotal')}
           </div>
-          <Badge variant={isPaid ? 'default' : 'secondary'} className="mt-1">
-            {isPaid ? (
-              <>
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {t('orders.payment.paid')}
-              </>
-            ) : (
-              t('orders.payment.pending')
-            )}
-          </Badge>
+          <div className="text-lg font-semibold">₡{order.subtotal.toLocaleString()}</div>
         </div>
 
+        {order.discounts > 0 && (
+          <div>
+            <div className="text-sm font-medium text-muted-foreground mb-1">
+              {t('orders.lineItems.discounts')}
+            </div>
+            <div className="text-lg font-semibold text-green-600">-₡{order.discounts.toLocaleString()}</div>
+          </div>
+        )}
+
         <div>
+          <div className="text-sm font-medium text-muted-foreground mb-1">
+            {t('orders.lineItems.netTotal')}
+          </div>
+          <div className="text-lg font-semibold">₡{order.net_total.toLocaleString()}</div>
+        </div>
+
+        {order.taxes > 0 && (
+          <div>
+            <div className="text-sm font-medium text-muted-foreground mb-1">
+              {t('orders.lineItems.taxes')}
+            </div>
+            <div className="text-lg font-semibold">₡{order.taxes.toLocaleString()}</div>
+          </div>
+        )}
+
+        <div className="pt-2 border-t">
           <div className="text-sm font-medium text-muted-foreground mb-1">
             {t('orders.payment.amount')}
           </div>
-          <div className="text-2xl font-bold">₡{order.total.toLocaleString()}</div>
-        </div>
-
-        <div>
-          <div className="text-sm font-medium text-muted-foreground mb-1">
-            {t('orders.payment.method')}
-          </div>
-          <div className="text-sm">{t('orders.payment.cashOnDelivery')}</div>
+          <div className="text-2xl font-bold">₡{order.grand_total.toLocaleString()}</div>
         </div>
       </CardContent>
     </Card>

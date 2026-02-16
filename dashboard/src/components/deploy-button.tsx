@@ -34,9 +34,10 @@ export function DeployButton({ disabled, onDeployStart, onDeployComplete, classN
   // Query deployment status
   const { data: deploymentStatus, refetch: refetchStatus } = useQuery<DeploymentStatus>({
     queryKey: ["/api/deploy/status"],
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Refetch more frequently during active deployment
-      if (data?.status === 'building' || data?.status === 'uploading') {
+      const d = query.state?.data;
+      if (d?.status === 'building' || d?.status === 'uploading') {
         return 2000; // 2 seconds
       }
       return 30000; // 30 seconds

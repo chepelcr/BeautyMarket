@@ -12,7 +12,7 @@ import {
 } from '../entities';
 
 export class PublicOrgService {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: PostgresJsDatabase<any>) {}
 
   async getOrganization(orgId: string) {
     const [org] = await this.db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
@@ -47,6 +47,36 @@ export class PublicOrgService {
     }
 
     return await this.db.select().from(products).where(and(...conditions));
+  }
+
+  async getPages(orgId: string) {
+    const orgPages = await this.db
+      .select()
+      .from(pages)
+      .where(eq(pages.organizationId, orgId));
+
+    const pagesWithContent = await Promise.all(
+      orgPages.map(async (page) => {
+        const sections = await this.db
+          .select()
+          .from(pageSections)
+          .where(eq(pageSections.pageId, page.id));
+
+        const sectionsWithContent = await Promise.all(
+          sections.map(async (section) => ({
+            ...section,
+            content: await this.db
+              .select()
+              .from(sectionContent)
+              .where(eq(sectionContent.sectionId, section.id)),
+          }))
+        );
+
+        return { ...page, sections: sectionsWithContent };
+      })
+    );
+
+    return pagesWithContent;
   }
 
   async getPageBySlug(orgId: string, slug: string) {

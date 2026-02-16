@@ -4,8 +4,6 @@ import {
   productController,
   categoryController,
   customerController,
-  orderController,
-  homePageContentController,
   deploymentController,
   preDeploymentController,
   s3UploadController,
@@ -37,8 +35,6 @@ export function setupRoutes(app: Express): void {
   orgScopedRouter.use('/products', productController.getRouter());
   orgScopedRouter.use('/categories', categoryController.getRouter());
   orgScopedRouter.use('/customers', customerController.getRouter());
-  orgScopedRouter.use('/orders', orderController.getRouter());
-  orgScopedRouter.use('/home-content', homePageContentController.getRouter());
   orgScopedRouter.use('/deployments', deploymentController.getRouter());
   orgScopedRouter.use('/pre-deployments', preDeploymentController.getRouter());
   orgScopedRouter.use('/upload', s3UploadController.getRouter());
@@ -66,6 +62,9 @@ export function setupRoutes(app: Express): void {
   pageRouter.use('/:pageId/sections', sectionRouter);
 
   orgScopedRouter.use('/pages', pageRouter);
+
+  // Content bulk operations at org level
+  orgScopedRouter.use('/content', sectionContentController.getRouter());
 
   // Mount organization-scoped router
   app.use('/api/users/:userId/organization/:orgId', orgScopedRouter);
@@ -130,17 +129,6 @@ export function setupRoutes(app: Express): void {
     invitationController.accept(req, res);
   });
 
-  // Public organization lookup endpoints (for availability checks)
-  app.get('/api/organizations/check-slug/:slug', (req, res) => {
-    organizationController.checkSlugAvailable(req, res);
-  });
-  app.get('/api/organizations/check-subdomain/:subdomain', (req, res) => {
-    organizationController.checkSubdomainAvailable(req, res);
-  });
-  app.get('/api/organizations/by-slug/:slug', (req, res) => {
-    organizationController.getBySlug(req, res);
-  });
-  app.get('/api/organizations/by-subdomain/:subdomain', (req, res) => {
-    organizationController.getBySubdomain(req, res);
-  });
+  // Organization routes (matches swagger: /api/organizations/...)
+  app.use('/api/organizations', organizationController.getRouter());
 }

@@ -42,7 +42,8 @@ export class ExpressAppConfig {
           return callback(null, true);
         }
 
-        callback(new Error('Not allowed by CORS'), undefined);
+        console.error(`CORS blocked origin: ${origin}`);
+        callback(null, false);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

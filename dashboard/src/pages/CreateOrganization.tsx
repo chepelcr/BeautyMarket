@@ -22,6 +22,9 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { Loader2, Check, X, Building2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { buildPublicApiUrl, buildUserApiUrl } from '@/lib/apiUtils';
+import { TemplatePreview } from '@/components/admin/templates/TemplatePreview';
+import { TemplateCard } from '@/components/admin/templates/TemplateCard';
+import { Template as ComponentTemplate } from '@/components/admin/templates/types';
 
 // Step 1: Organization Info Schema
 const step1Schema = z.object({
@@ -40,16 +43,31 @@ const step2Schema = z.object({
 type Step1Form = z.infer<typeof step1Schema>;
 type Step2Form = z.infer<typeof step2Schema>;
 
-interface Template {
+// Backend Template structure from API
+interface BackendTemplate {
   id: string;
   organizationId: string;
   name: string;
+  displayName?: string;
   description: string | null;
   previewUrl: string | null;
   thumbnailUrl: string | null;
   category: string | null;
   isActive: boolean;
+  sortOrder?: number;
 }
+
+// Mapper function to convert backend template to component template
+const mapBackendTemplateToComponent = (template: BackendTemplate): ComponentTemplate => ({
+  id: template.id,
+  name: template.name,
+  displayName: template.displayName || template.name,
+  description: template.description || '',
+  category: template.category || 'general',
+  thumbnailUrl: template.thumbnailUrl || undefined,
+  isActive: template.isActive,
+  sortOrder: template.sortOrder || 0,
+});
 
 export default function CreateOrganization() {
   const [currentStep, setCurrentStep] = useState<'info' | 'contact' | 'template'>('info');
@@ -57,9 +75,11 @@ export default function CreateOrganization() {
   const [createdOrgId, setCreatedOrgId] = useState<string | null>(null); // Track created org ID
   const [step1Data, setStep1Data] = useState<Step1Form | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null); // Stores template.id
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<ComponentTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loadingExistingOrg, setLoadingExistingOrg] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<ComponentTemplate | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null);
@@ -247,8 +267,10 @@ export default function CreateOrganization() {
     setLoadingTemplates(true);
     try {
       const response = await apiRequest('GET', buildPublicApiUrl('/templates?activeOnly=true'));
-      const data = await response.json();
-      setTemplates(data);
+      const data: BackendTemplate[] = await response.json();
+      // Map backend templates to component templates
+      const mappedTemplates = data.map(mapBackendTemplateToComponent);
+      setTemplates(mappedTemplates);
     } catch (error) {
       console.error('Error loading templates:', error);
       toast({
@@ -259,6 +281,20 @@ export default function CreateOrganization() {
     } finally {
       setLoadingTemplates(false);
     }
+  };
+
+  const handlePreviewTemplate = (template: ComponentTemplate) => {
+    setPreviewTemplate(template);
+    setIsPreviewOpen(true);
+  };
+
+  const handleSelectFromPreview = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    setIsPreviewOpen(false);
+    toast({
+      title: 'Plantilla seleccionada',
+      description: 'Has seleccionado una plantilla para tu tienda',
+    });
   };
 
   const handleStep1Submit = async (values: Step1Form) => {
@@ -374,9 +410,15 @@ export default function CreateOrganization() {
       // Clear the resume orgId from sessionStorage
       sessionStorage.removeItem('resumeOrgId');
 
-      // Redirect to the organization's subdomain
-      const orgSubdomain = step1Data.subdomain || step1Data.slug;
-      window.location.href = `https://${orgSubdomain}.${baseDomain}`;
+      // Store selected organization and redirect to dashboard
+      localStorage.setItem('selectedOrganization', JSON.stringify({
+        id: createdOrgId,
+        name: step1Data.name,
+        slug: step1Data.slug,
+        subdomain: step1Data.subdomain,
+      }));
+
+      navigate('/admin');
       return;
     }
 
@@ -393,15 +435,21 @@ export default function CreateOrganization() {
 
       toast({
         title: 'Organization ready!',
-        description: `${step1Data.name} is now ready to use`,
+        description: `${step1Data.name} is now ready to use with ${templates.find(t => t.id === selectedTemplate)?.displayName || 'selected template'}`,
       });
 
       // Clear the resume orgId from sessionStorage
       sessionStorage.removeItem('resumeOrgId');
 
-      // Redirect to the organization's subdomain
-      const orgSubdomain = step1Data.subdomain || step1Data.slug;
-      window.location.href = `https://${orgSubdomain}.${baseDomain}`;
+      // Store selected organization and redirect to dashboard
+      localStorage.setItem('selectedOrganization', JSON.stringify({
+        id: createdOrgId,
+        name: step1Data.name,
+        slug: step1Data.slug,
+        subdomain: step1Data.subdomain,
+      }));
+
+      navigate('/admin');
     } catch (error: any) {
       console.error('Error applying template:', error);
       toast({
@@ -662,7 +710,7 @@ export default function CreateOrganization() {
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Option to skip template selection */}
                   <button
                     type="button"
@@ -689,36 +737,15 @@ export default function CreateOrganization() {
                     </div>
                   </button>
 
+                  {/* Template cards with TemplateCard component */}
                   {templates.map((template) => (
-                    <button
+                    <TemplateCard
                       key={template.id}
-                      type="button"
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`p-6 border-2 rounded-lg text-left transition-all hover:shadow-md ${
-                        selectedTemplate === template.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-200 dark:border-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {template.thumbnailUrl && (
-                          <img
-                            src={template.thumbnailUrl}
-                            alt={template.name}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-1">{template.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {template.description || 'Plantilla prediseñada'}
-                          </p>
-                        </div>
-                        {selectedTemplate === template.id && (
-                          <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                        )}
-                      </div>
-                    </button>
+                      template={template}
+                      onSelect={(templateId) => setSelectedTemplate(templateId)}
+                      onPreview={handlePreviewTemplate}
+                      isSelected={selectedTemplate === template.id}
+                    />
                   ))}
                 </div>
               )}
@@ -741,6 +768,14 @@ export default function CreateOrganization() {
           )}
         </CardContent>
       </Card>
+
+      {/* Template Preview Modal */}
+      <TemplatePreview
+        template={previewTemplate}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        onSelectTemplate={handleSelectFromPreview}
+      />
       </div>
     </div>
   );

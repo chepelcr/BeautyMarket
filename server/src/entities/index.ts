@@ -1,5 +1,5 @@
 // Organization and Multi-tenancy
-export { organizations, type Organization, type InsertOrganization, type OrganizationSettings } from "./Organization";
+export { organizations, type Organization, type InsertOrganization, type OrganizationSettings, type ACMValidationRecord, type InfrastructureStatus } from "./Organization";
 export { organizationMembers, type OrganizationMember, type InsertOrganizationMember } from "./OrganizationMember";
 export { organizationInvitations, type OrganizationInvitation, type InsertOrganizationInvitation } from "./OrganizationInvitation";
 
@@ -36,13 +36,11 @@ export { templateProducts, type TemplateProduct } from "./TemplateProduct";
 
 // Core entity tables
 export { products, type Product } from "./Product";
-export { orders, type Order, orderStatuses, type OrderStatus, deliveryMethods, type DeliveryMethod } from "./Order";
-export { orderStatusHistory, type OrderStatusHistory, type InsertOrderStatusHistory } from "./OrderStatusHistory";
 export { customers, type Customer, type InsertCustomer } from "./Customer";
 export { sessions } from "./Session";
 export { users, type User, type UpsertUser } from "./User";
 export { categoriesTable, type Category, validCategories, type ValidCategory } from "./Category";
 export { provinces, cantons, districts, type Province, type Canton, type District } from "./Location";
 export { homePageContent, type HomePageContent } from "./HomePageContent";
-export { deploymentHistory, type DeploymentHistory } from "./Deployment";
+export { deploymentHistory, type DeploymentHistory, type InsertDeploymentHistory } from "./Deployment";
 export { preDeployments, type PreDeployment } from "./PreDeployment";

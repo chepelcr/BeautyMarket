@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/popover';
 import { Filter, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { OrderFilters as OrderFiltersType } from '@/hooks/useOrders';
+import type { OrderFilters as OrderFiltersType } from '@/store/order-list-store';
 
 interface OrderFiltersProps {
   filters: OrderFiltersType;
@@ -33,20 +33,6 @@ export function OrderFilters({ filters, onFiltersChange }: OrderFiltersProps) {
     onFiltersChange({
       ...filters,
       status: value === 'all' ? undefined : value,
-    });
-  };
-
-  const handleStartDateChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      startDate: value || undefined,
-    });
-  };
-
-  const handleEndDateChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      endDate: value || undefined,
     });
   };
 
@@ -105,20 +91,39 @@ export function OrderFilters({ filters, onFiltersChange }: OrderFiltersProps) {
             </Select>
           </div>
 
-          {/* Date range filters */}
+          {/* Delivery date range */}
           <div className="space-y-2">
-            <Label>{t('orders.filters.dateRange')}</Label>
+            <Label>{t('orders.filters.deliveryDateRange')}</Label>
             <div className="space-y-2">
               <Input
                 type="date"
                 value={filters.startDate || ''}
-                onChange={(e) => handleStartDateChange(e.target.value)}
+                onChange={(e) => onFiltersChange({ ...filters, startDate: e.target.value || undefined })}
                 placeholder={t('orders.filters.startDate')}
               />
               <Input
                 type="date"
                 value={filters.endDate || ''}
-                onChange={(e) => handleEndDateChange(e.target.value)}
+                onChange={(e) => onFiltersChange({ ...filters, endDate: e.target.value || undefined })}
+                placeholder={t('orders.filters.endDate')}
+              />
+            </div>
+          </div>
+
+          {/* Creation date range */}
+          <div className="space-y-2">
+            <Label>{t('orders.filters.creationDateRange')}</Label>
+            <div className="space-y-2">
+              <Input
+                type="date"
+                value={filters.creationStartDate || ''}
+                onChange={(e) => onFiltersChange({ ...filters, creationStartDate: e.target.value || undefined })}
+                placeholder={t('orders.filters.startDate')}
+              />
+              <Input
+                type="date"
+                value={filters.creationEndDate || ''}
+                onChange={(e) => onFiltersChange({ ...filters, creationEndDate: e.target.value || undefined })}
                 placeholder={t('orders.filters.endDate')}
               />
             </div>

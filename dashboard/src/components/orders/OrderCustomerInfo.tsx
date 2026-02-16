@@ -1,4 +1,4 @@
-import { User, Phone, Mail } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Order } from '@/models';
@@ -18,22 +18,12 @@ export function OrderCustomerInfo({ order }: OrderCustomerInfoProps) {
           {t('orders.customer.title')}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         <div>
           <div className="text-sm font-medium text-muted-foreground mb-1">
             {t('orders.customer.name')}
           </div>
-          <div className="font-medium">{order.customerName}</div>
-        </div>
-
-        <div className="flex items-center gap-2 text-sm">
-          <Phone className="h-4 w-4 text-muted-foreground" />
-          <a
-            href={`tel:${order.customerPhone}`}
-            className="hover:underline"
-          >
-            {order.customerPhone}
-          </a>
+          <div className="font-medium">{order.client.name}</div>
         </div>
       </CardContent>
     </Card>

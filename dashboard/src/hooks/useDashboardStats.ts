@@ -85,7 +85,7 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
     queryFn: async () => {
       if (!userId || !orgId) return [];
       const response = await authenticatedRequest(
-        buildOrgApiUrl(userId, orgId, '/deployments')
+        buildOrgApiUrl(userId, orgId, '/deployments/history')
       );
       if (!response.ok) throw new Error('Failed to fetch deployments');
       const data = await response.json() as DeploymentHistory[];

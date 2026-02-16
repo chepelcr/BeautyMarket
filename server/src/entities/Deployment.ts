@@ -25,3 +25,4 @@ export const deploymentHistory = pgTable("deployment_history", {
 ]).enableRLS();
 
 export type DeploymentHistory = typeof deploymentHistory.$inferSelect;
+export type InsertDeploymentHistory = typeof deploymentHistory.$inferInsert;

@@ -556,19 +556,6 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
     { templateSectionId: productsHeroSection.id, componentId: 'products-hero-subtitle', key: 'subtitle', value: 'Descubre nuestra colección completa de productos premium, cuidadosamente elaborados con ingredientes naturales', valueType: 'string', displayName: 'Subtitle', sortOrder: 2 },
   ]);
 
-  const [productsCtaSection] = await db.insert(templatePageSections).values({
-    templatePageId: productsPage.id,
-    sectionType: 'cta',
-    name: 'CTA Productos',
-    sortOrder: 2,
-    isActive: true,
-  }).returning();
-
-  await db.insert(templateSectionContent).values([
-    { templateSectionId: productsCtaSection.id, componentId: 'products-cta-title', key: 'title', value: '¿No Encuentras Lo Que Buscas?', valueType: 'string', displayName: 'Title', sortOrder: 1 },
-    { templateSectionId: productsCtaSection.id, componentId: 'products-cta-description', key: 'description', value: 'Contáctanos para recomendaciones personalizadas de productos', valueType: 'string', displayName: 'Description', sortOrder: 2 },
-    { templateSectionId: productsCtaSection.id, componentId: 'products-cta-button', key: 'buttonText', value: 'Contáctanos', valueType: 'string', displayName: 'Button Text', sortOrder: 3 },
-  ]);
   console.log(`  ✓ Updated products page sections`);
 
   // Services page sections
@@ -596,20 +583,6 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
     { templateSectionId: servicesHeroSection.id, componentId: 'services-hero-title', key: 'title', value: 'Nuestros Servicios', valueType: 'string', displayName: 'Title', sortOrder: 1 },
     { templateSectionId: servicesHeroSection.id, componentId: 'services-hero-subtitle', key: 'subtitle', value: 'Servicios profesionales diseñados para brindarte la mejor experiencia', valueType: 'string', displayName: 'Subtitle', sortOrder: 2 },
   ]);
-
-  const [servicesCtaSection] = await db.insert(templatePageSections).values({
-    templatePageId: servicesPage.id,
-    sectionType: 'cta',
-    name: 'CTA Servicios',
-    sortOrder: 2,
-    isActive: true,
-  }).returning();
-
-  await db.insert(templateSectionContent).values([
-    { templateSectionId: servicesCtaSection.id, componentId: 'services-cta-title', key: 'title', value: '¿Listo Para Comenzar?', valueType: 'string', displayName: 'Title', sortOrder: 1 },
-    { templateSectionId: servicesCtaSection.id, componentId: 'services-cta-description', key: 'description', value: 'Agenda tu cita hoy y experimenta nuestros servicios profesionales', valueType: 'string', displayName: 'Description', sortOrder: 2 },
-    { templateSectionId: servicesCtaSection.id, componentId: 'services-cta-button', key: 'buttonText', value: 'Agendar Cita', valueType: 'string', displayName: 'Button Text', sortOrder: 3 },
-  ]);
   console.log(`  ✓ Updated services page sections`);
 
   // Programs page sections
@@ -636,20 +609,6 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
   await db.insert(templateSectionContent).values([
     { templateSectionId: programsHeroSection.id, componentId: 'programs-hero-title', key: 'title', value: 'Nuestros Programas', valueType: 'string', displayName: 'Title', sortOrder: 1 },
     { templateSectionId: programsHeroSection.id, componentId: 'programs-hero-subtitle', key: 'subtitle', value: 'Programas especializados para ayudarte a alcanzar tus objetivos', valueType: 'string', displayName: 'Subtitle', sortOrder: 2 },
-  ]);
-
-  const [programsCtaSection] = await db.insert(templatePageSections).values({
-    templatePageId: programsPage.id,
-    sectionType: 'cta',
-    name: 'CTA Programas',
-    sortOrder: 2,
-    isActive: true,
-  }).returning();
-
-  await db.insert(templateSectionContent).values([
-    { templateSectionId: programsCtaSection.id, componentId: 'programs-cta-title', key: 'title', value: '¿Tienes Preguntas?', valueType: 'string', displayName: 'Title', sortOrder: 1 },
-    { templateSectionId: programsCtaSection.id, componentId: 'programs-cta-description', key: 'description', value: 'Contáctanos para obtener más información sobre nuestros programas', valueType: 'string', displayName: 'Description', sortOrder: 2 },
-    { templateSectionId: programsCtaSection.id, componentId: 'programs-cta-button', key: 'buttonText', value: 'Más Información', valueType: 'string', displayName: 'Button Text', sortOrder: 3 },
   ]);
   console.log(`  ✓ Updated programs page sections`);
 
@@ -881,7 +840,7 @@ function getProductsForTemplate(templateName: string, templateId: string, catego
   }));
 }
 
-export async function seedTemplates(db: PostgresJsDatabase): Promise<void> {
+export async function seedTemplates(db: PostgresJsDatabase<any>): Promise<void> {
   console.log('Starting template seed...\n');
 
   for (const template of defaultTemplates) {

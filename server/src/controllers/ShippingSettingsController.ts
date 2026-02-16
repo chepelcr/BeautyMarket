@@ -1,11 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { ShippingSettingsRepository } from '../repositories';
+import type { ShippingSettingsService } from '../services/ShippingSettingsService';
 import { z } from 'zod';
 
 export class ShippingSettingsController {
-  constructor(
-    private shippingSettingsRepository: ShippingSettingsRepository
-  ) {}
+  constructor(private shippingSettingsService: ShippingSettingsService) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
@@ -42,7 +40,7 @@ export class ShippingSettingsController {
   async getShippingSettings(req: Request, res: Response) {
     try {
       const { orgId } = req.params;
-      const shippingSettings = await this.shippingSettingsRepository.getByOrganizationId(orgId);
+      const shippingSettings = await this.shippingSettingsService.getByOrganizationId(orgId);
 
       if (!shippingSettings) {
         return res.status(404).json({ error: 'Shipping settings not found' });
@@ -101,18 +99,16 @@ export class ShippingSettingsController {
       const data = req.body;
 
       // First check if settings exist
-      const existingSettings = await this.shippingSettingsRepository.getByOrganizationId(orgId);
+      const existingSettings = await this.shippingSettingsService.getByOrganizationId(orgId);
 
       let updatedSettings;
       if (!existingSettings) {
-        // Create new settings if they don't exist
-        updatedSettings = await this.shippingSettingsRepository.create({
+        updatedSettings = await this.shippingSettingsService.create({
           organizationId: orgId,
           ...data,
         });
       } else {
-        // Update existing settings
-        updatedSettings = await this.shippingSettingsRepository.update(existingSettings.id, data);
+        updatedSettings = await this.shippingSettingsService.update(existingSettings.id, data);
       }
 
       res.json(updatedSettings);

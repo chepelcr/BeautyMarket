@@ -32,12 +32,27 @@ const fontFamilies = [
   { value: "Playfair Display", label: "Playfair Display" },
 ];
 
+const iconOptions = [
+  { value: "Sparkles", label: "Sparkles" },
+  { value: "Leaf", label: "Leaf" },
+  { value: "ShieldCheck", label: "Shield Check" },
+  { value: "Heart", label: "Heart" },
+  { value: "Award", label: "Award" },
+  { value: "Users", label: "Users" },
+  { value: "ShoppingBag", label: "Shopping Bag" },
+  { value: "Package", label: "Package" },
+  { value: "Box", label: "Box" },
+  { value: "Image", label: "Image" },
+];
+
 const themeSettingsSchema = z.object({
   primaryColor: z.string().min(4, "Color primario es requerido").regex(/^#[0-9A-Fa-f]{6}$/, "Debe ser un color hexadecimal válido"),
   secondaryColor: z.string().min(4, "Color secundario es requerido").regex(/^#[0-9A-Fa-f]{6}$/, "Debe ser un color hexadecimal válido"),
   fontFamily: z.string().optional(),
   logoUrl: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
   faviconUrl: z.string().url("Debe ser una URL válida").optional().or(z.literal("")),
+  loadingIcon: z.string().optional(),
+  productFallbackIcon: z.string().optional(),
 });
 
 export type ThemeSettingsFormValues = z.infer<typeof themeSettingsSchema>;
@@ -62,6 +77,8 @@ export default function ThemeSettingsForm({
       fontFamily: initialValues?.fontFamily || "Inter",
       logoUrl: initialValues?.logoUrl || "",
       faviconUrl: initialValues?.faviconUrl || "",
+      loadingIcon: initialValues?.loadingIcon || "Sparkles",
+      productFallbackIcon: initialValues?.productFallbackIcon || "Sparkles",
     },
   });
 
@@ -199,6 +216,64 @@ export default function ThemeSettingsForm({
                 </FormControl>
                 <FormDescription>
                   {t("settings.theme.faviconDesc")}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="loadingIcon"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("settings.theme.loadingIcon")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("settings.theme.loadingIconPlaceholder")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {iconOptions.map((icon) => (
+                      <SelectItem key={icon.value} value={icon.value}>
+                        {icon.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  {t("settings.theme.loadingIconDesc")}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="productFallbackIcon"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("settings.theme.productFallbackIcon")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("settings.theme.productFallbackIconPlaceholder")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {iconOptions.map((icon) => (
+                      <SelectItem key={icon.value} value={icon.value}>
+                        {icon.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  {t("settings.theme.productFallbackIconDesc")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

@@ -1,11 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { ThemeSettingsRepository } from '../repositories';
+import type { ThemeSettingsService } from '../services/ThemeSettingsService';
 import { z } from 'zod';
 
 export class ThemeSettingsController {
-  constructor(
-    private themeSettingsRepository: ThemeSettingsRepository
-  ) {}
+  constructor(private themeSettingsService: ThemeSettingsService) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
@@ -42,7 +40,7 @@ export class ThemeSettingsController {
   async getThemeSettings(req: Request, res: Response) {
     try {
       const { orgId } = req.params;
-      const themeSettings = await this.themeSettingsRepository.getByOrganizationId(orgId);
+      const themeSettings = await this.themeSettingsService.getByOrganizationId(orgId);
 
       if (!themeSettings) {
         return res.status(404).json({ error: 'Theme settings not found' });
@@ -101,18 +99,16 @@ export class ThemeSettingsController {
       const data = req.body;
 
       // First check if settings exist
-      const existingSettings = await this.themeSettingsRepository.getByOrganizationId(orgId);
+      const existingSettings = await this.themeSettingsService.getByOrganizationId(orgId);
 
       let updatedSettings;
       if (!existingSettings) {
-        // Create new settings if they don't exist
-        updatedSettings = await this.themeSettingsRepository.create({
+        updatedSettings = await this.themeSettingsService.create({
           organizationId: orgId,
           ...data,
         });
       } else {
-        // Update existing settings
-        updatedSettings = await this.themeSettingsRepository.update(existingSettings.id, data);
+        updatedSettings = await this.themeSettingsService.update(existingSettings.id, data);
       }
 
       res.json(updatedSettings);

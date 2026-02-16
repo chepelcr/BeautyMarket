@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Check, Store, Sparkles, Leaf, Crown, Heart, Star, Scissors } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { TemplateCardProps } from "./types";
 
 // Icon mapping based on category
@@ -38,13 +39,25 @@ const getCategoryColor = (category: string): string => {
   return colorMap[category.toLowerCase()] || "bg-gray-500/10 text-gray-700 dark:text-gray-400";
 };
 
-export function TemplateCard({ template, onSelect, onPreview }: TemplateCardProps) {
+export function TemplateCard({ template, onSelect, onPreview, isSelected }: TemplateCardProps) {
+  const { t } = useLanguage();
   const categoryColor = getCategoryColor(template.category);
   const categoryIcon = getCategoryIcon(template.category);
 
   return (
-    <Card className="group relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-primary/50 bg-card flex flex-col h-full">
+    <Card className={`group relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-card flex flex-col h-full ${
+      isSelected
+        ? 'border-2 border-primary shadow-lg'
+        : 'border hover:border-primary/50'
+    }`}>
       <CardHeader className="flex-grow">
+        {isSelected && (
+          <div className="absolute top-3 left-3 z-10">
+            <div className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg">
+              <Check className="h-4 w-4" />
+            </div>
+          </div>
+        )}
         <div className="flex items-start justify-between mb-4">
           <div className={`p-3 ${categoryColor} rounded-lg w-fit transition-transform duration-300 group-hover:scale-110`}>
             {categoryIcon}
@@ -85,14 +98,14 @@ export function TemplateCard({ template, onSelect, onPreview }: TemplateCardProp
           className="w-full"
         >
           <Eye className="mr-2 h-4 w-4" />
-          Preview
+          {t('template.card.preview')}
         </Button>
         <Button
           onClick={() => onSelect(template.id)}
           className="w-full"
         >
           <Check className="mr-2 h-4 w-4" />
-          Select Template
+          {t('template.card.select')}
         </Button>
       </CardContent>
     </Card>
