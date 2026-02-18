@@ -79,6 +79,23 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch orders with processing and pending status
+  const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['dashboard-orders', userId, orgId],
+    queryFn: async () => {
+      if (!userId || !orgId) return { orders: [], total: 0 };
+      const search = '(orderStatus:processing,orderStatus:pending)';
+      const response = await fetch(
+        `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${orgId}/orders?search=${encodeURIComponent(search)}`
+      );
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      const data = await response.json();
+      return { orders: data.data ?? [], total: data.pagination?.totalElements ?? 0 };
+    },
+    enabled: !!userId && !!orgId,
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Fetch deployments
   const { data: deployments = [], isLoading: isLoadingDeployments } = useQuery({
     queryKey: ['dashboard-deployments', userId, orgId],
@@ -104,7 +121,7 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
   const stats: DashboardStats = {
     productCount: products.length,
     categoryCount: categories.length,
-    orderCount: 0, // Placeholder
+    orderCount: ordersData?.total ?? 0,
     revenue: 0, // Placeholder
   };
 
@@ -141,6 +158,6 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
     recentProducts,
     recentDeployments,
     latestDeployment,
-    isLoading: isLoadingProducts || isLoadingCategories || isLoadingDeployments,
+    isLoading: isLoadingProducts || isLoadingCategories || isLoadingOrders || isLoadingDeployments,
   };
 }

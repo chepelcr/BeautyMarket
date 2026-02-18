@@ -77,7 +77,9 @@ export default function Dashboard() {
     if (stats.categoryCount === 0) {
       return { status: 'warning' as const, message: t('dashboard.content.noCategories') };
     }
-    return { status: 'success' as const, message: t('dashboard.content.productsInCategories').replace('{{productCount}}', stats.productCount.toString()).replace('{{categoryCount}}', stats.categoryCount.toString()) };
+    const productText = stats.productCount === 1 ? t('dashboard.content.product') : t('dashboard.content.products');
+    const categoryText = stats.categoryCount === 1 ? t('dashboard.content.category') : t('dashboard.content.categories');
+    return { status: 'success' as const, message: `${stats.productCount} ${productText} ${t('dashboard.content.in')} ${stats.categoryCount} ${categoryText}` };
   };
 
   const contentStatus = getContentStatus();
@@ -87,7 +89,8 @@ export default function Dashboard() {
     if (stats.productCount === 0) {
       return { status: 'info' as const, message: t('dashboard.inventory.noInventory') };
     }
-    return { status: 'success' as const, message: t('dashboard.inventory.productsInInventory').replace('{{productCount}}', stats.productCount.toString()) };
+    const productText = stats.productCount === 1 ? t('dashboard.content.product') : t('dashboard.content.products');
+    return { status: 'success' as const, message: `${stats.productCount} ${productText} ${t('dashboard.inventory.inInventory')}` };
   };
 
   const inventoryStatus = getInventoryStatus();
@@ -207,7 +210,7 @@ export default function Dashboard() {
           value={stats.orderCount}
           icon={ShoppingCart}
           isLoading={isLoading}
-          description={t('dashboard.stats.comingSoon')}
+          description={t('dashboard.stats.pendingOrders')}
         />
         <StatCard
           title={t('dashboard.stats.revenue')}
