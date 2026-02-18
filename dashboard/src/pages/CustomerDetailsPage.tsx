@@ -21,6 +21,7 @@ import type { Customer, Order } from '@/models';
 import { CustomerProfile } from '@/components/customers/CustomerProfile';
 import { CustomerStats } from '@/components/customers/CustomerStats';
 import { CustomerOrderHistory } from '@/components/customers/CustomerOrderHistory';
+import { CustomerModal } from '@/components/customers/CustomerModal';
 import { CustomerNotes } from '@/components/customers/CustomerNotes';
 
 export default function CustomerDetailsPage() {
@@ -33,6 +34,7 @@ export default function CustomerDetailsPage() {
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [editingClient, setEditingClient] = useState<any>(null);
 
   const organizationId = organization?.id || '';
   const customerId = params?.customerId;
@@ -47,9 +49,11 @@ export default function CustomerDetailsPage() {
   // Fetch customer details
   const { data: customer, isLoading, error } = useQuery<Customer>({
     queryKey: ['customer', customerId],
-    enabled: !!user?.id && !!organizationId && !!customerId,
+    enabled: !!organizationId && !!customerId,
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
-      const url = buildOrgApiUrl(user!.id, organizationId, `/customers/${customerId}`);
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch customer');
@@ -61,10 +65,9 @@ export default function CustomerDetailsPage() {
   // Fetch customer's orders
   const { data: orders = [], isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ['customer-orders', customerId],
-    enabled: !!user?.id && !!organizationId && !!customerId && !!customer,
+    enabled: !!organizationId && !!customerId && !!customer,
     queryFn: async () => {
-      // For MVP, we'll filter orders by customer email or phone
-      const url = buildOrgApiUrl(user!.id, organizationId, '/orders');
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
@@ -81,7 +84,7 @@ export default function CustomerDetailsPage() {
   // Update customer notes mutation
   const updateNotesMutation = useMutation({
     mutationFn: async (notes: string) => {
-      const url = buildOrgApiUrl(user!.id, organizationId, `/customers/${customerId}`);
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -101,7 +104,7 @@ export default function CustomerDetailsPage() {
   // Delete customer mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const url = buildOrgApiUrl(user!.id, organizationId, `/customers/${customerId}`);
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
       const response = await fetch(url, {
         method: 'DELETE',
       });
@@ -125,9 +128,22 @@ export default function CustomerDetailsPage() {
   };
 
   const handleEdit = () => {
-    // TODO: Open customer form modal for editing
-    // This will be implemented when we create the CustomerForm component
-    console.log('Edit customer:', customerId);
+    setEditingClient(customer);
+    setShowEditForm(true);
+  };
+
+  const handleSubmit = async (data: any) => {
+    const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update client');
+    queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
+    queryClient.invalidateQueries({ queryKey: ['clients'] });
+    setShowEditForm(false);
+    setEditingClient(null);
   };
 
   // Loading states
@@ -144,6 +160,14 @@ export default function CustomerDetailsPage() {
   }
 
   if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!customerId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -176,7 +200,10 @@ export default function CustomerDetailsPage() {
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
-              onClick={() => navigate('/admin/customers')}
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['customers'] });
+                navigate('/admin/customers');
+              }}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t('customers.details.backToCustomers')}
@@ -251,6 +278,18 @@ export default function CustomerDetailsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit customer modal */}
+      <CustomerModal
+        isOpen={showEditForm}
+        onClose={() => {
+          setShowEditForm(false);
+          setEditingClient(null);
+        }}
+        onSubmit={handleSubmit}
+        editingCustomer={editingClient}
+        isLoading={false}
+      />
     </div>
   );
 }

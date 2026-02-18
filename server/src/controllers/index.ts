@@ -1,6 +1,3 @@
-export * from './ProductController';
-export * from './CategoryController';
-export * from './CustomerController';
 export * from './DeploymentController';
 export * from './PreDeploymentController';
 export * from './S3UploadController';

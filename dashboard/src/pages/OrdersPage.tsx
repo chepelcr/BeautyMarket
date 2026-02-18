@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ShoppingBag, ArrowUpDown, Plus } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { useOrders } from '@/hooks/useOrders';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOrderListStore } from '@/store/order-list-store';
@@ -30,32 +31,16 @@ import { OrderCard } from '@/components/orders/OrderCard';
 import { OrderExcelUpload } from '@/components/orders/OrderExcelUpload';
 import { Pagination } from '@/components/products/Pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useState } from 'react';
 
 export default function OrdersPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-
-  // Get organization from localStorage
-  const [organization, setOrganization] = useState<any>(null);
-  const [orgLoading, setOrgLoading] = useState(true);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      try {
-        setOrganization(JSON.parse(storedOrg));
-      } catch (error) {
-        console.error('Failed to parse organization:', error);
-        navigate('/organizations/select');
-      }
-    } else if (!authLoading && isAuthenticated) {
-      navigate('/organizations/select');
-    }
-    setOrgLoading(false);
-  }, [authLoading, isAuthenticated, navigate]);
 
   const organizationId = organization?.id;
 
@@ -204,7 +189,7 @@ export default function OrdersPage() {
 
       {/* Orders grid */}
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: pageSize }).map((_, i) => (
             <div key={i} className="space-y-3">
               <Skeleton className="h-[200px] rounded-lg" />
@@ -227,7 +212,7 @@ export default function OrdersPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
             {orders.map((order) => (
               <OrderCard
                 key={order.order_id}

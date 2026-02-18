@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { useToast } from '@/hooks/use-toast';
 import {
   useConfirmation,
@@ -42,30 +43,15 @@ import { AddOrdersDialog } from '@/components/confirmations/AddOrdersDialog';
 export default function ConfirmationDetailsPage() {
   const { t, language } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [, params] = useRoute('/admin/confirmations/:confirmationNumber');
 
-  const [organization, setOrganization] = useState<any>(null);
-  const [orgLoading, setOrgLoading] = useState(true);
   const [addOrdersOpen, setAddOrdersOpen] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [orderToRemove, setOrderToRemove] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      try {
-        setOrganization(JSON.parse(storedOrg));
-      } catch (error) {
-        console.error('Failed to parse organization:', error);
-        navigate('/organizations/select');
-      }
-    } else if (!authLoading && isAuthenticated) {
-      navigate('/organizations/select');
-    }
-    setOrgLoading(false);
-  }, [authLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -156,6 +142,14 @@ export default function ConfirmationDetailsPage() {
   }
 
   if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!confirmationNumber) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -35,8 +35,6 @@ export { templateCategories, type TemplateCategory, type InsertTemplateCategory 
 export { templateProducts, type TemplateProduct } from "./TemplateProduct";
 
 // Core entity tables
-export { products, type Product } from "./Product";
-export { customers, type Customer, type InsertCustomer } from "./Customer";
 export { sessions } from "./Session";
 export { users, type User, type UpsertUser } from "./User";
 export { categoriesTable, type Category, validCategories, type ValidCategory } from "./Category";

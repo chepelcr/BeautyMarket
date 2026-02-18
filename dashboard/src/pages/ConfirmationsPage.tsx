@@ -1,40 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { CalendarCheck, Plus } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { useConfirmations } from '@/hooks/useConfirmations';
 import { useConfirmationListStore } from '@/store/confirmation-list-store';
 import { ConfirmationCard } from '@/components/confirmations/ConfirmationCard';
 import { CreateConfirmationDialog } from '@/components/confirmations/CreateConfirmationDialog';
 import { Pagination } from '@/components/products/Pagination';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useState } from 'react';
 
 export default function ConfirmationsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-
-  // Get organization from localStorage
-  const [organization, setOrganization] = useState<any>(null);
-  const [orgLoading, setOrgLoading] = useState(true);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      try {
-        setOrganization(JSON.parse(storedOrg));
-      } catch (error) {
-        console.error('Failed to parse organization:', error);
-        navigate('/organizations/select');
-      }
-    } else if (!authLoading && isAuthenticated) {
-      navigate('/organizations/select');
-    }
-    setOrgLoading(false);
-  }, [authLoading, isAuthenticated, navigate]);
 
   const organizationId = organization?.id;
 
@@ -94,7 +79,7 @@ export default function ConfirmationsPage() {
 
       {/* Confirmations grid */}
       {confirmationsLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: pageSize }).map((_, i) => (
             <div key={i} className="space-y-3">
               <Skeleton className="h-[180px] rounded-lg" />
@@ -113,7 +98,7 @@ export default function ConfirmationsPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
             {confirmations.map((confirmation) => (
               <ConfirmationCard
                 key={confirmation.confirmation_id}

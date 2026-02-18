@@ -42,17 +42,19 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg">
+              <h3 className="font-semibold text-lg truncate">
                 {t('orders.orderNumber')} #{order.document_number}
               </h3>
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-sm text-muted-foreground font-medium truncate">
               {order.client.name}
             </p>
           </div>
-          <OrderStatusBadge status={order.order_status} />
+          <div className="flex-shrink-0">
+            <OrderStatusBadge status={order.order_status} />
+          </div>
         </div>
       </CardHeader>
 

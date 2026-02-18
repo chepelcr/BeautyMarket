@@ -10,12 +10,12 @@ interface CustomerStatsProps {
 export function CustomerStats({ customer }: CustomerStatsProps) {
   const { t } = useLanguage();
 
-  const formatCurrency = (amount: string) => {
+  const formatCurrency = (amount: string | number = 0) => {
     return new Intl.NumberFormat('es-CR', {
       style: 'currency',
       currency: 'CRC',
       minimumFractionDigits: 0,
-    }).format(parseFloat(amount));
+    }).format(typeof amount === 'string' ? parseFloat(amount) : amount);
   };
 
   const formatDate = (dateString?: string) => {
@@ -27,22 +27,21 @@ export function CustomerStats({ customer }: CustomerStatsProps) {
     });
   };
 
-  const averageOrderValue =
-    customer.totalOrders > 0
-      ? (parseFloat(customer.totalSpent) / customer.totalOrders).toString()
-      : '0';
+  const totalOrders = customer.totalOrders ?? 0;
+  const totalSpent = customer.totalSpent ?? '0';
+  const averageOrderValue = totalOrders > 0 ? parseFloat(totalSpent) / totalOrders : 0;
 
   const stats = [
     {
       title: t('customers.stats.totalOrders'),
-      value: customer.totalOrders.toString(),
+      value: totalOrders.toString(),
       icon: ShoppingCart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       title: t('customers.stats.totalSpent'),
-      value: formatCurrency(customer.totalSpent),
+      value: formatCurrency(totalSpent),
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-50',

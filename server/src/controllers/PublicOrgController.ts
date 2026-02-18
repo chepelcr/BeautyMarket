@@ -10,8 +10,6 @@ export class PublicOrgController {
     router.get('/:orgId', this.getOrg.bind(this));
     router.get('/:orgId/theme', this.getTheme.bind(this));
     router.get('/:orgId/contact', this.getContact.bind(this));
-    router.get('/:orgId/categories', this.getCategories.bind(this));
-    router.get('/:orgId/products', this.getProducts.bind(this));
     router.get('/:orgId/pages', this.getPages.bind(this));
     router.get('/:orgId/pages/:slug', this.getPageBySlug.bind(this));
 
@@ -122,9 +120,9 @@ export class PublicOrgController {
 
   /**
    * @swagger
-   * /api/public/organizations/{orgId}/categories:
+   * /api/public/organizations/{orgId}/pages:
    *   get:
-   *     summary: Get organization categories
+   *     summary: Get organization pages
    *     tags: [Public]
    *     parameters:
    *       - in: path
@@ -134,66 +132,8 @@ export class PublicOrgController {
    *           type: string
    *     responses:
    *       200:
-   *         description: List of categories
+   *         description: List of pages
    */
-  async getCategories(req: Request, res: Response) {
-    try {
-      const { orgId } = req.params;
-      const cats = await this.publicOrgService.getCategories(orgId);
-      res.json(cats);
-    } catch (error) {
-      console.error('Error getting categories:', error);
-      res.status(500).json({ error: 'Failed to get categories' });
-    }
-  }
-
-  /**
-   * @swagger
-   * /api/public/organizations/{orgId}/products:
-   *   get:
-   *     summary: Get organization products
-   *     tags: [Public]
-   *     parameters:
-   *       - in: path
-   *         name: orgId
-   *         required: true
-   *         schema:
-   *           type: string
-   *       - in: query
-   *         name: isService
-   *         schema:
-   *           type: boolean
-   *       - in: query
-   *         name: onSale
-   *         schema:
-   *           type: boolean
-   *       - in: query
-   *         name: type
-   *         schema:
-   *           type: string
-   *           enum: [product, service, program]
-   *     responses:
-   *       200:
-   *         description: List of products
-   */
-  async getProducts(req: Request, res: Response) {
-    try {
-      const { orgId } = req.params;
-      const { isService, onSale, type } = req.query;
-      
-      const prods = await this.publicOrgService.getProducts(orgId, {
-        isService: isService === 'true' ? true : isService === 'false' ? false : undefined,
-        onSale: onSale === 'true' ? true : onSale === 'false' ? false : undefined,
-        type: typeof type === 'string' ? type : undefined,
-      });
-      
-      res.json(prods);
-    } catch (error) {
-      console.error('Error getting products:', error);
-      res.status(500).json({ error: 'Failed to get products' });
-    }
-  }
-
   async getPages(req: Request, res: Response) {
     try {
       const { orgId } = req.params;

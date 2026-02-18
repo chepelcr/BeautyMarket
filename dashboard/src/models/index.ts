@@ -45,7 +45,7 @@ export { insertCategorySchema } from "./Category";
 export type { Order, InsertOrder, DeliveryMethod } from "./Order";
 export { insertOrderSchema, deliveryMethods } from "./Order";
 
-export type { Customer, CreateCustomerData, UpdateCustomerData, CustomerFilters, CustomersResponse } from "./Customer";
+export type { Customer, CreateCustomerData, UpdateCustomerData, CustomersResponse, Client, CreateClientData, UpdateClientData, ClientsResponse } from "./Customer";
 
 export type { User } from "./User";
 

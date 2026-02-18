@@ -1,5 +1,5 @@
 import { Edit, Trash2, ImageIcon } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,7 +33,7 @@ export function ProductCard({
                      (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 10);
 
   return (
-    <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
       {/* Selection checkbox */}
       <div className="absolute top-3 left-3 z-10">
         <Checkbox
@@ -90,16 +90,18 @@ export function ProductCard({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0 space-y-3">
-        {/* Description */}
-        {product.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2" title={product.description}>
-            {product.description}
-          </p>
-        )}
+      <CardContent className="pt-0 flex-1 flex flex-col">
+        {/* Description - fixed height */}
+        <div className="h-10 mb-3">
+          {product.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2" title={product.description}>
+              {product.description}
+            </p>
+          )}
+        </div>
 
         {/* Price */}
-        <div className="text-xl font-bold">
+        <div className="text-xl font-bold mb-3">
           ₡{product.price.toLocaleString()}
         </div>
 
@@ -119,29 +121,29 @@ export function ProductCard({
             </div>
           </div>
         )}
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onEdit}
-            className="flex-1"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            {t('common.edit')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDelete}
-            className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            {t('common.delete')}
-          </Button>
-        </div>
       </CardContent>
+
+      {/* Actions */}
+      <CardFooter className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onEdit}
+          className="flex-1"
+        >
+          <Edit className="h-4 w-4 mr-1" />
+          {t('common.edit')}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onDelete}
+          className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
+          {t('common.delete')}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

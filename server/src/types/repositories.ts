@@ -1,5 +1,4 @@
 import type {
-  Product,
   Category,
   User,
   UpsertUser,
@@ -8,21 +7,11 @@ import type {
   PreDeployment
 } from '../entities';
 import type {
-  InsertProduct,
   InsertCategory,
   InsertHomePageContent,
   InsertDeploymentHistory,
   InsertPreDeployment
 } from '../models';
-
-export interface IProductRepository {
-  getProducts(): Promise<Product[]>;
-  getProductById(id: string): Promise<Product | undefined>;
-  getProductsByCategory(categorySlug: string): Promise<Product[]>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
-  deleteProduct(id: string): Promise<boolean>;
-}
 
 export interface ICategoryRepository {
   getCategories(): Promise<Category[]>;

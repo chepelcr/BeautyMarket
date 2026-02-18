@@ -1,9 +1,6 @@
 import type { Express } from "express";
 import { Router } from "express";
 import {
-  productController,
-  categoryController,
-  customerController,
   deploymentController,
   preDeploymentController,
   s3UploadController,
@@ -32,9 +29,6 @@ export function setupRoutes(app: Express): void {
   const orgScopedRouter = Router({ mergeParams: true });
 
   // Mount organization-scoped controllers
-  orgScopedRouter.use('/products', productController.getRouter());
-  orgScopedRouter.use('/categories', categoryController.getRouter());
-  orgScopedRouter.use('/customers', customerController.getRouter());
   orgScopedRouter.use('/deployments', deploymentController.getRouter());
   orgScopedRouter.use('/pre-deployments', preDeploymentController.getRouter());
   orgScopedRouter.use('/upload', s3UploadController.getRouter());

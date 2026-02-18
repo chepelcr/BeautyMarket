@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Order } from '@/models';
 import { OrderHeader } from '@/components/orders/OrderHeader';
@@ -16,28 +17,11 @@ import { OrderStatusTimeline } from '@/components/orders/OrderStatusTimeline';
 export default function OrderDetailsPage() {
   const { t } = useLanguage();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const [, navigate] = useLocation();
   const [, params] = useRoute('/admin/orders/:documentNumber');
   const queryClient = useQueryClient();
-
-  // Get organization from localStorage
-  const [organization, setOrganization] = useState<any>(null);
-  const [orgLoading, setOrgLoading] = useState(true);
-
-  useEffect(() => {
-    const storedOrg = localStorage.getItem('selectedOrganization');
-    if (storedOrg) {
-      try {
-        setOrganization(JSON.parse(storedOrg));
-      } catch (error) {
-        console.error('Failed to parse organization:', error);
-        navigate('/organizations/select');
-      }
-    } else if (!authLoading && isAuthenticated) {
-      navigate('/organizations/select');
-    }
-    setOrgLoading(false);
-  }, [authLoading, isAuthenticated, navigate]);
 
   const organizationId = organization?.id;
   const documentNumber = params?.documentNumber;

@@ -31,12 +31,14 @@ export function ConfirmationCard({ confirmation, onClick }: ConfirmationCardProp
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <h3 className="font-semibold text-lg">
+          <div className="space-y-1 min-w-0 flex-1">
+            <h3 className="font-semibold text-lg truncate">
               {t('confirmations.confirmationNumber')} #{confirmation.confirmation_number}
             </h3>
           </div>
-          <OrderStatusBadge status={confirmation.confirmation_status} />
+          <div className="flex-shrink-0">
+            <OrderStatusBadge status={confirmation.confirmation_status} />
+          </div>
         </div>
       </CardHeader>
 

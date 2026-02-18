@@ -1,8 +1,5 @@
 // Repositories
 import {
-  ProductRepository,
-  CategoryRepository,
-  CustomerRepository,
   UserRepository,
   HomePageContentRepository,
   DeploymentRepository,
@@ -27,9 +24,6 @@ import { S3Dao, CloudFrontDao } from './aws-daos';
 
 // Services
 import {
-  ProductService,
-  CategoryService,
-  CustomerService,
   DeploymentService,
   PreDeploymentService,
   S3UploadService,
@@ -57,9 +51,6 @@ import { PublicOrgService } from './services/PublicOrgService';
 
 // Controllers
 import {
-  ProductController,
-  CategoryController,
-  CustomerController,
   DeploymentController,
   PreDeploymentController,
   S3UploadController,
@@ -81,9 +72,6 @@ import {
 import { PublicOrgController } from './controllers/PublicOrgController';
 
 // Create repositories
-export const productRepository = new ProductRepository();
-export const categoryRepository = new CategoryRepository();
-export const customerRepository = new CustomerRepository();
 export const userRepository = new UserRepository();
 export const homePageContentRepository = new HomePageContentRepository();
 export const deploymentRepository = new DeploymentRepository();
@@ -113,9 +101,6 @@ export const s3Dao = new S3Dao();
 export const cloudfrontDao = new CloudFrontDao();
 
 // Create services
-export const productService = new ProductService(productRepository, categoryRepository);
-export const categoryService = new CategoryService(categoryRepository);
-export const customerService = new CustomerService(customerRepository);
 
 // Organization infrastructure service (needed by preDeploymentService)
 export const organizationInfrastructureService = new OrganizationInfrastructureService(
@@ -178,16 +163,20 @@ export const shippingSettingsService = new ShippingSettingsService(shippingSetti
 export const templateService = new TemplateService(templateRepository);
 export const templateContentService = new TemplateContentService();
 import { db } from './config/database';
-export const publicOrgService = new PublicOrgService(db);
+export const publicOrgService = new PublicOrgService(
+  organizationRepository,
+  themeSettingsRepository,
+  contactSettingsRepository,
+  pageRepository,
+  pageSectionRepository,
+  sectionContentRepository
+);
 export const pageSectionService = new PageSectionService(pageSectionRepository);
 export const sectionContentService = new SectionContentService(sectionContentRepository);
 export const pageService = new PageService(pageRepository, pageSectionService, sectionContentService);
 export const componentService = new ComponentService(componentRepository);
 
 // Create controllers
-export const productController = new ProductController(productService, preDeploymentService);
-export const categoryController = new CategoryController(categoryService, productService, preDeploymentService);
-export const customerController = new CustomerController(customerService);
 export const deploymentController = new DeploymentController(deploymentService);
 export const preDeploymentController = new PreDeploymentController(preDeploymentRepository, deploymentService);
 export const s3UploadController = new S3UploadController(s3UploadService);

@@ -1,3 +1,66 @@
+export interface Client {
+  clientId: string;
+  companyId: string;
+  clientName: string;
+  clientGln?: string;
+  identification?: {
+    type: number;
+    code: string;
+    number: string;
+  };
+  businessName?: string;
+  nationality?: string;
+  phone?: {
+    countryCode: string;
+    areaCode: string;
+    number: string;
+    description: string;
+  };
+  residence?: {
+    stateId: number;
+    countyId: number;
+    districtId: number;
+    address: string;
+  };
+}
+
+export interface CreateClientData {
+  clientName?: string;
+  clientGln?: string;
+  identification?: {
+    type: number;
+    code: string;
+    number: string;
+  };
+  businessName?: string;
+  nationality?: string;
+  phone?: {
+    countryCode: string;
+    areaCode: string;
+    number: string;
+    description: string;
+  };
+  residence?: {
+    stateId: number;
+    countyId: number;
+    districtId: number;
+    address: string;
+  };
+}
+
+export interface UpdateClientData extends Partial<CreateClientData> {}
+
+export interface ClientsResponse {
+  data: Client[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+// Legacy Customer interface for backward compatibility
 export interface Customer {
   id: string;
   organizationId: string;
@@ -18,33 +81,6 @@ export interface Customer {
   notes?: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface CreateCustomerData {
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    country?: string;
-  };
-  notes?: string;
-}
-
-export interface UpdateCustomerData extends Partial<CreateCustomerData> {}
-
-export interface CustomerFilters {
-  search?: string;
-  minSpent?: number;
-  maxSpent?: number;
-  minOrders?: number;
-  maxOrders?: number;
-  limit?: number;
-  offset?: number;
 }
 
 export interface CustomersResponse {
