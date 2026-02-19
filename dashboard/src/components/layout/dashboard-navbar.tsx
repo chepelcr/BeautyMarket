@@ -14,10 +14,22 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function DashboardNavbar() {
   const [location, setLocation] = useLocation();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
+
+  // Extract customer ID from URL if present
+  const customerIdMatch = location.match(/\/admin\/customers\/([a-f0-9-]+)/);
+  const customerId = customerIdMatch?.[1];
+
+  // Get customer data from cache (already fetched by CustomerDetailsPage)
+  const customer = customerId ? queryClient.getQueryData(['customer', customerId]) : null;
+
+  // Force re-render when customer data changes
+  React.useEffect(() => {}, [customer]);
 
   // Generate breadcrumbs based on current location
   const getBreadcrumbs = () => {
@@ -51,7 +63,13 @@ export function DashboardNavbar() {
     paths.forEach((segment, index) => {
       currentPath += `/${segment}`;
       const translationKey = labelMap[segment];
-      const label = translationKey ? t(translationKey) : segment;
+      let label = translationKey ? t(translationKey) : segment;
+      
+      // Replace customer UUID with customer name
+      if (segment === customerId && customer) {
+        label = (customer as any).clientName || (customer as any).businessName || segment;
+      }
+      
       const isLast = index === paths.length - 1;
 
       breadcrumbs.push({

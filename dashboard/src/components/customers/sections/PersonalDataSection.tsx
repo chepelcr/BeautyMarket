@@ -288,7 +288,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
 
           <FormField
             control={form.control}
-            name="tradeName"
+            name="clientName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('customers.tradeName')}</FormLabel>
@@ -300,6 +300,20 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="clientGln"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('customers.clientGln')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('customers.enterGln')} {...field} value={field.value || ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         </CardContent>
       </div>
     </Card>

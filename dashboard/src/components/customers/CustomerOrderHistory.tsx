@@ -1,9 +1,10 @@
 import { useLocation } from 'wouter';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Send, MapPin, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
 import type { Order } from '@/models';
 
 interface CustomerOrderHistoryProps {
@@ -12,7 +13,7 @@ interface CustomerOrderHistoryProps {
 }
 
 export function CustomerOrderHistory({ orders, isLoading }: CustomerOrderHistoryProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [, navigate] = useLocation();
 
   const formatCurrency = (amount: number) => {
@@ -27,28 +28,11 @@ export function CustomerOrderHistory({ orders, isLoading }: CustomerOrderHistory
     // Parse DD/MM/YYYY format
     const [day, month, year] = dateString.split('/');
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return date.toLocaleDateString('es-CR', {
+    return date.toLocaleDateString(language === 'es' ? 'es-CR' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'secondary';
-      case 'processing':
-        return 'default';
-      case 'shipped':
-        return 'outline';
-      case 'delivered':
-        return 'default';
-      case 'cancelled':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
   };
 
   return (
@@ -66,37 +50,53 @@ export function CustomerOrderHistory({ orders, isLoading }: CustomerOrderHistory
             {t('customers.orders.noOrders')}
           </div>
         ) : (
-          <div className="space-y-3">
-            {orders.map((order) => (
-              <div
-                key={order.order_id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-mono text-sm font-medium">
-                      #{order.document_number}
-                    </span>
-                    <Badge variant="outline">
-                      {order.document_type}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{formatDate(order.creation_date)}</span>
-                    <span className="font-semibold text-foreground">
-                      {formatCurrency(order.grand_total)}
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {orders.map((order) => {
+              const itemCount = order.lines?.length || 0;
+              return (
+                <div
+                  key={order.order_id}
+                  className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => navigate(`/admin/orders/${order.document_number}`)}
                 >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm font-semibold">
+                        #{order.document_number}
+                      </span>
+                      <OrderStatusBadge status={order.order_status} />
+                    </div>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Send className="h-3 w-3" />
+                        <span>{formatDate(order.delivery_date)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3 w-3" />
+                        <span className="line-clamp-1">{order.delivery_location.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Package className="h-3 w-3" />
+                        <span>{itemCount} {itemCount === 1 ? t('orders.item') : t('orders.items')}</span>
+                      </div>
+                    </div>
+                    <div className="font-semibold text-foreground">
+                      {formatCurrency(order.grand_total)}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/orders/${order.document_number}`);
+                    }}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         )}
       </CardContent>

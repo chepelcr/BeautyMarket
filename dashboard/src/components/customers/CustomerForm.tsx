@@ -76,7 +76,8 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
       nationality: "CR",
       email: "",
       businessName: "",
-      tradeName: "",
+      clientName: "",
+      clientGln: "",
       residence: {
         stateId: 0,
         countyId: 0,
@@ -169,7 +170,8 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
         nationality: initialData.nationality || "188",
         email: initialData.email || "",
         businessName: initialData.businessName || "",
-        tradeName: initialData.tradeName || "",
+        clientName: initialData.clientName || "",
+        clientGln: initialData.clientGln || "",
         residence: {
           stateId: 0,
           countyId: 0,

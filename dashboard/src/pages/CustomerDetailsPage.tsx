@@ -63,23 +63,21 @@ export default function CustomerDetailsPage() {
   });
 
   // Fetch customer's orders
-  const { data: orders = [], isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ['customer-orders', customerId],
-    enabled: !!organizationId && !!customerId && !!customer,
+  const { data: ordersResponse, isLoading: ordersLoading } = useQuery({
+    queryKey: ['customer-orders', customerId, customer?.clientGln],
+    enabled: !!organizationId && !!customerId && !!customer?.clientGln,
     queryFn: async () => {
-      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders`;
+      const searchParam = `clientGln:${customer?.clientGln}`;
+      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders?search=${encodeURIComponent(searchParam)}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
-      const allOrders = await response.json();
-
-      // Filter orders by customer email
-      return allOrders.filter((order: Order) =>
-        order.client?.name?.toLowerCase().includes(customer?.email?.toLowerCase() || '')
-      );
+      return response.json();
     },
   });
+
+  const orders = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse?.data || []);
 
   // Update customer notes mutation
   const updateNotesMutation = useMutation({
@@ -101,12 +99,14 @@ export default function CustomerDetailsPage() {
     },
   });
 
-  // Delete customer mutation
+  // Delete customer mutation (soft delete with status=3)
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
       const response = await fetch(url, {
-        method: 'DELETE',
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 3 }),
       });
       if (!response.ok) {
         throw new Error('Failed to delete customer');
@@ -115,6 +115,7 @@ export default function CustomerDetailsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       navigate('/admin/customers');
     },
   });
@@ -223,31 +224,26 @@ export default function CustomerDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           {/* Statistics */}
-          <CustomerStats customer={customer} />
+          <CustomerStats orders={orders} />
 
-          {/* Two column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main content - left side */}
-            <div className="lg:col-span-2 space-y-6">
-              <CustomerOrderHistory
-                orders={orders}
-                isLoading={ordersLoading}
-              />
-            </div>
-
-            {/* Sidebar - right side */}
-            <div className="space-y-6">
-              <CustomerProfile
-                customer={customer}
-                onEdit={handleEdit}
-              />
-              <CustomerNotes
-                notes={customer.notes}
-                onSave={handleSaveNotes}
-                isSaving={updateNotesMutation.isPending}
-              />
-            </div>
+          {/* Profile and Notes Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CustomerProfile
+              customer={customer}
+              onEdit={handleEdit}
+            />
+            <CustomerNotes
+              notes={customer.notes}
+              onSave={handleSaveNotes}
+              isSaving={updateNotesMutation.isPending}
+            />
           </div>
+
+          {/* Order History Row */}
+          <CustomerOrderHistory
+            orders={orders}
+            isLoading={ordersLoading}
+          />
         </div>
       </div>
 

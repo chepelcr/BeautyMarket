@@ -1,7 +1,7 @@
 export interface Client {
   clientId: string;
   companyId: string;
-  clientName: string;
+  clientName?: string;
   clientGln?: string;
   identification?: {
     type: number;
@@ -10,6 +10,7 @@ export interface Client {
   };
   businessName?: string;
   nationality?: string;
+  email?: string;
   phone?: {
     countryCode: string;
     areaCode: string;
@@ -22,6 +23,7 @@ export interface Client {
     districtId: number;
     address: string;
   };
+  status?: number;
 }
 
 export interface CreateClientData {
@@ -34,6 +36,7 @@ export interface CreateClientData {
   };
   businessName?: string;
   nationality?: string;
+  email?: string;
   phone?: {
     countryCode: string;
     areaCode: string;

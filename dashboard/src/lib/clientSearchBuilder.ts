@@ -1,5 +1,6 @@
 export interface ClientSearchFilters {
   textSearch?: string;
+  status?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -17,6 +18,10 @@ export function buildClientSearchString(filters: ClientSearchFilters): string {
   if (filters.textSearch) {
     const v = `*${filters.textSearch}*`;
     parts.push(`clientName:${v}`);
+  }
+
+  if (filters.status) {
+    parts.push(`status:${filters.status}`);
   }
 
   if (filters.sortBy) {

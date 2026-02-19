@@ -14,6 +14,7 @@ import { useClientListStore } from '@/store/client-list-store';
 import { buildClientSearchString } from '@/lib/clientSearchBuilder';
 import { ClientSearch } from '@/components/customers/ClientSearch';
 import { ClientCard } from '@/components/customers/ClientCard';
+import { ClientFilters, ClientFiltersType } from '@/components/customers/ClientFilters';
 import { CustomerModal } from '@/components/customers/CustomerModal';
 import { Pagination } from '@/components/products/Pagination';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -33,6 +34,7 @@ export default function CustomersPage() {
 
   const [showClientForm, setShowClientForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [filters, setFilters] = useState<ClientFiltersType>({});
 
   useEffect(() => {
     if (organizationId) {
@@ -62,6 +64,7 @@ export default function CustomersPage() {
 
   const searchString = buildClientSearchString({
     textSearch: debouncedSearch || undefined,
+    status: filters.status,
     sortBy,
     sortOrder,
   });
@@ -158,6 +161,7 @@ export default function CustomersPage() {
       <div className="flex flex-col lg:flex-row gap-4">
         <ClientSearch value={searchQuery} onChange={setSearchQuery} />
         <div className="flex items-center gap-2 flex-wrap">
+          <ClientFilters filters={filters} onFiltersChange={setFilters} />
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <ArrowUpDown className="h-4 w-4" />
             <span className="hidden sm:inline">{t('customers.sort')}</span>

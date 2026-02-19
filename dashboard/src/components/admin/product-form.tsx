@@ -3,26 +3,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/image-upload";
+import { FiscalInformationSection } from "@/components/products/sections/FiscalInformationSection";
+import { GeneralInfoSection } from "@/components/products/sections/GeneralInfoSection";
+import { CodesSection } from "@/components/products/sections/CodesSection";
+import { PackagingSection } from "@/components/products/sections/PackagingSection";
+import { CustomsSection } from "@/components/products/sections/CustomsSection";
+import { InventorySection } from "@/components/products/sections/InventorySection";
+import { DiscountsSection } from "@/components/products/sections/DiscountsSection";
+import { AdvancedTaxesSection } from "@/components/products/sections/AdvancedTaxesSection";
+import { CommercialValueSection } from "@/components/products/sections/CommercialValueSection";
 import {
   insertProductSchema,
   type Product,
@@ -80,11 +72,29 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
       categoryId: product?.categoryId || "",
       imageUrl: product?.imageUrl || "",
       isActive: product?.isActive ?? true,
-      // Inventory fields
       sku: product?.sku || "",
       stockQuantity: product?.stockQuantity ?? 0,
       lowStockThreshold: product?.lowStockThreshold ?? 10,
       trackInventory: product?.trackInventory ?? true,
+      internalCode: product?.internalCode || "",
+      originalCode: product?.originalCode || "",
+      clientArticleCode: product?.clientArticleCode || "",
+      code: product?.code || "",
+      unitsPerBox: product?.unitsPerBox || null,
+      cabys: product?.cabys || "",
+      cabysDescription: product?.cabysDescription || "",
+      productTypeId: product?.productTypeId || 1,
+      unitId: product?.unitId || 85,
+      commercialUnitMeasure: product?.commercialUnitMeasure || "",
+      isPackaged: product?.isPackaged || false,
+      quantity: product?.quantity || 1,
+      unitPrice: product?.unitPrice || 0,
+      customsPart: product?.customsPart || "",
+      codes: product?.codes || [],
+      discounts: product?.discounts || [],
+      taxes: product?.taxes || [],
+      baseAmount: product?.baseAmount || 0,
+      salePrice: product?.salePrice || 0,
     },
   });
 
@@ -168,218 +178,30 @@ export default function ProductForm({ product, onSuccess }: ProductFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("products.form.name")}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t("products.form.namePlaceholder")} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("products.form.price")}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder={t("products.form.pricePlaceholder")}
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 0)
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FiscalInformationSection form={form} />
+        
+        <GeneralInfoSection form={form} categories={categories} categoriesLoading={categoriesLoading} />
+        
+        <PackagingSection form={form} />
+        
+        <CustomsSection form={form} />
+        
+        <CodesSection form={form} />
+        
+        <InventorySection form={form} />
+        
+        <DiscountsSection form={form} />
+        
+        <AdvancedTaxesSection form={form} />
+        
+        <CommercialValueSection form={form} />
 
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("products.form.category")}</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("products.form.categoryPlaceholder")} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {categoriesLoading ? (
-                    <SelectItem value="loading" disabled>
-                      {t("products.form.loadingCategories")}
-                    </SelectItem>
-                  ) : categories.length === 0 ? (
-                    <SelectItem value="empty" disabled>
-                      {t("products.form.noCategories")}
-                    </SelectItem>
-                  ) : (
-                    categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        <ImageUpload
+          value={form.watch("imageUrl") || ""}
+          onChange={(url) => form.setValue("imageUrl", url)}
+          label={t("products.form.image")}
+          folder="images/products"
         />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t("products.form.description")}</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder={t("products.form.descriptionPlaceholder")}
-                  rows={4}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="imageUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <ImageUpload
-                  value={field.value || ""}
-                  onChange={field.onChange}
-                  label={t("products.form.image")}
-                  folder="images/products"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Inventory Section */}
-        <div className="border-t pt-6 mt-6">
-          <h3 className="text-lg font-semibold mb-4">{t("products.inventory.title")}</h3>
-
-          <FormField
-            control={form.control}
-            name="trackInventory"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 mb-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">
-                    {t("products.inventory.trackInventory")}
-                  </FormLabel>
-                  <FormDescription>
-                    {t("products.inventory.trackInventoryDesc")}
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="sku"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("products.inventory.sku")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t("products.inventory.skuPlaceholder")}
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("products.inventory.skuDesc")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="stockQuantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("products.inventory.stockQuantity")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                      disabled={!form.watch("trackInventory")}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("products.inventory.stockQuantityDesc")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="mt-6">
-            <FormField
-              control={form.control}
-              name="lowStockThreshold"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("products.inventory.lowStockThreshold")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="10"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 10)
-                      }
-                      disabled={!form.watch("trackInventory")}
-                      className="max-w-xs"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("products.inventory.lowStockThresholdDesc")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
 
         <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline" onClick={onSuccess}>
