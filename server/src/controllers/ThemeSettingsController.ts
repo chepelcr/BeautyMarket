@@ -16,7 +16,7 @@ export class ThemeSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/theme:
+   * /api/users/{userId}/organization/{orgId}/settings/theme:
    *   get:
    *     summary: Get theme settings for an organization
    *     tags: [Settings]
@@ -55,7 +55,7 @@ export class ThemeSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/theme:
+   * /api/users/{userId}/organization/{orgId}/settings/theme:
    *   put:
    *     summary: Update theme settings for an organization
    *     tags: [Settings]

@@ -14,7 +14,7 @@ import {
   type InsertTemplate,
 } from '../entities';
 
-const baseDomain = process.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+const baseDomain = process.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
 const defaultTemplates: InsertTemplate[] = [
   {

@@ -1,27 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchAuthSession } from 'aws-amplify/auth';
-import { buildOrgApiUrl } from '@/lib/apiUtils';
+import { buildOrgApiUrl, buildOrdersApiUrl } from '@/lib/apiUtils';
+import { apiRequest } from '@/lib/queryClient';
 import type { Product } from '@/models/Product';
 import type { Category } from '@/models/Category';
 import type { DeploymentHistory } from '@/models/Deployment';
-
-async function authenticatedRequest(url: string): Promise<Response> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  try {
-    const session = await fetchAuthSession();
-    const idToken = session.tokens?.idToken?.toString();
-    if (idToken) {
-      headers.Authorization = `Bearer ${idToken}`;
-    }
-  } catch (error) {
-    console.warn('No auth session available');
-  }
-
-  return fetch(url, { method: 'GET', headers });
-}
 
 export interface DashboardStats {
   productCount: number;
@@ -49,31 +31,35 @@ export interface RecentDeployment {
 }
 
 export function useDashboardStats(userId: string | undefined, orgId: string | undefined) {
-  // Fetch products count
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+  // Fetch products count (from orders API service with pagination)
+  const { data: productsData, isLoading: isLoadingProducts } = useQuery({
     queryKey: ['dashboard-products', userId, orgId],
     queryFn: async () => {
-      if (!userId || !orgId) return [];
-      const response = await authenticatedRequest(
-        buildOrgApiUrl(userId, orgId, '/products')
-      );
-      if (!response.ok) throw new Error('Failed to fetch products');
-      return response.json() as Promise<Product[]>;
+      if (!userId || !orgId) return { totalElements: 0, data: [] };
+      const url = buildOrdersApiUrl(orgId, '/products?page=1&pageSize=5');
+      const response = await apiRequest('GET', url);
+      const data = await response.json();
+      return {
+        totalElements: data.pagination?.totalElements ?? 0,
+        data: data.data ?? []
+      };
     },
     enabled: !!userId && !!orgId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch categories count
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
+  // Fetch categories count (from orders API service with pagination)
+  const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['dashboard-categories', userId, orgId],
     queryFn: async () => {
-      if (!userId || !orgId) return [];
-      const response = await authenticatedRequest(
-        buildOrgApiUrl(userId, orgId, '/categories')
-      );
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      return response.json() as Promise<Category[]>;
+      if (!userId || !orgId) return { totalElements: 0, data: [] };
+      const url = buildOrdersApiUrl(orgId, '/categories?page=1&pageSize=1');
+      const response = await apiRequest('GET', url);
+      const data = await response.json();
+      return {
+        totalElements: data.pagination?.totalElements ?? 0,
+        data: data.data ?? []
+      };
     },
     enabled: !!userId && !!orgId,
     staleTime: 5 * 60 * 1000,
@@ -85,10 +71,8 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
     queryFn: async () => {
       if (!userId || !orgId) return { orders: [], total: 0 };
       const search = '(orderStatus:processing,orderStatus:pending)';
-      const response = await fetch(
-        `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${orgId}/orders?search=${encodeURIComponent(search)}`
-      );
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      const url = buildOrdersApiUrl(orgId, `/orders?search=${encodeURIComponent(search)}`);
+      const response = await apiRequest('GET', url);
       const data = await response.json();
       return { orders: data.data ?? [], total: data.pagination?.totalElements ?? 0 };
     },
@@ -101,10 +85,7 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
     queryKey: ['dashboard-deployments', userId, orgId],
     queryFn: async () => {
       if (!userId || !orgId) return [];
-      const response = await authenticatedRequest(
-        buildOrgApiUrl(userId, orgId, '/deployments/history')
-      );
-      if (!response.ok) throw new Error('Failed to fetch deployments');
+      const response = await apiRequest('GET', buildOrgApiUrl(userId, orgId, '/deployments/history'));
       const data = await response.json() as DeploymentHistory[];
       // Sort by date, most recent first
       return data.sort((a, b) => {
@@ -119,14 +100,14 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
 
   // Calculate stats
   const stats: DashboardStats = {
-    productCount: products.length,
-    categoryCount: categories.length,
+    productCount: productsData?.totalElements ?? 0,
+    categoryCount: categoriesData?.totalElements ?? 0,
     orderCount: ordersData?.total ?? 0,
     revenue: 0, // Placeholder
   };
 
-  // Get recent products (last 5)
-  const recentProducts: RecentProduct[] = products
+  // Get recent products (last 5) - fetch separately with larger page size if needed
+  const recentProducts: RecentProduct[] = (productsData?.data || [])
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
     .map(p => ({

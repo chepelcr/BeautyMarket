@@ -25,8 +25,8 @@ export class RBACController {
     router.get('/actions', this.getAllActions.bind(this));
 
     // Permissions
-    router.get('/roles/:roleId/permissions', this.getRolePermissions.bind(this));
-    router.put('/roles/:roleId/permissions', this.setRolePermissions.bind(this));
+    router.get('/roles/:id/permissions', this.getRolePermissions.bind(this));
+    router.put('/roles/:id/permissions', this.setRolePermissions.bind(this));
 
     // Permission checks
     router.post('/check-permission', this.checkPermission.bind(this));
@@ -37,7 +37,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles:
    *   get:
    *     summary: Get all system roles
    *     tags: [RBAC]
@@ -57,7 +57,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles/organization/{organizationId}:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles/organization:
    *   get:
    *     summary: Get roles for an organization (includes system roles)
    *     tags: [RBAC]
@@ -84,7 +84,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles/{id}:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}:
    *   get:
    *     summary: Get role by ID
    *     tags: [RBAC]
@@ -118,7 +118,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles:
    *   post:
    *     summary: Create a new role
    *     tags: [RBAC]
@@ -168,7 +168,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles/{id}:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}:
    *   put:
    *     summary: Update a role
    *     tags: [RBAC]
@@ -217,7 +217,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles/{id}:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}:
    *   delete:
    *     summary: Delete a role
    *     tags: [RBAC]
@@ -254,7 +254,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/modules:
+   * /api/users/{userId}/organization/{orgId}/rbac/modules:
    *   get:
    *     summary: Get all modules with submodules
    *     tags: [RBAC]
@@ -274,7 +274,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/actions:
+   * /api/users/{userId}/organization/{orgId}/rbac/actions:
    *   get:
    *     summary: Get all available actions
    *     tags: [RBAC]
@@ -294,13 +294,13 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles/{roleId}/permissions:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}/permissions:
    *   get:
    *     summary: Get permissions for a role
    *     tags: [RBAC]
    *     parameters:
    *       - in: path
-   *         name: roleId
+   *         name: id
    *         required: true
    *         schema:
    *           type: string
@@ -310,7 +310,7 @@ export class RBACController {
    */
   async getRolePermissions(req: Request, res: Response) {
     try {
-      const { roleId } = req.params;
+      const { id: roleId } = req.params;
       const permissions = await this.rbacService.getRolePermissions(roleId);
       res.json(permissions);
     } catch (error) {
@@ -321,13 +321,13 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/roles/{roleId}/permissions:
+   * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}/permissions:
    *   put:
    *     summary: Set permissions for a role
    *     tags: [RBAC]
    *     parameters:
    *       - in: path
-   *         name: roleId
+   *         name: id
    *         required: true
    *         schema:
    *           type: string
@@ -354,7 +354,7 @@ export class RBACController {
    */
   async setRolePermissions(req: Request, res: Response) {
     try {
-      const { roleId } = req.params;
+      const { id: roleId } = req.params;
       const permissions = req.body;
 
       if (!Array.isArray(permissions)) {
@@ -372,7 +372,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/check-permission:
+   * /api/users/{userId}/organization/{orgId}/rbac/check-permission:
    *   post:
    *     summary: Check if user has permission
    *     tags: [RBAC]
@@ -427,7 +427,7 @@ export class RBACController {
 
   /**
    * @swagger
-   * /api/rbac/user/{userId}/organization/{organizationId}/role:
+   * /api/users/{userId}/organization/{orgId}/rbac/user-role:
    *   get:
    *     summary: Get user's role in an organization
    *     tags: [RBAC]

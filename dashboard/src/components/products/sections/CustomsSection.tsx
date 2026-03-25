@@ -9,9 +9,10 @@ import { useState } from "react";
 
 interface CustomsSectionProps {
   form: UseFormReturn<InsertProduct>;
+  disabled?: boolean;
 }
 
-export function CustomsSection({ form }: CustomsSectionProps) {
+export function CustomsSection({ form, disabled = false }: CustomsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -27,6 +28,7 @@ export function CustomsSection({ form }: CustomsSectionProps) {
             size="sm"
             variant="outline"
             onClick={() => setIsExpanded(!isExpanded)}
+            disabled={disabled}
           >
             <Eye className="h-4 w-4" />
           </Button>

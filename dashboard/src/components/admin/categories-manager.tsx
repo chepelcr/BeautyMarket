@@ -4,15 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { Category } from "@/models";
 import CategoryForm from "./category-form";
-import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { listCategories, deleteCategory } from "@/services/categoriesApi";
 
 export default function CategoriesManager() {
   const { t } = useLanguage();
@@ -23,32 +22,22 @@ export default function CategoriesManager() {
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
-
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    if (!user?.id || !defaultOrg?.id) return;
+  // Fetch categories using the Orders API
+  const { data: categoriesResponse, isLoading } = useQuery({
+    queryKey: ['categories', defaultOrg?.id],
+    queryFn: () => listCategories(defaultOrg!.id, 1, 100), // Fetch all categories
+    enabled: !!defaultOrg?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    const loadCategories = async () => {
-      try {
-        const response = await apiRequest('GET', buildOrgApiUrl(user.id, defaultOrg.id, '/categories'));
-        setCategories(await response.json());
-      } catch (error) {
-        console.error('Failed to load categories:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadCategories();
-  }, [user?.id, defaultOrg?.id]);
+  const categories = categoriesResponse?.data || [];
 
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      if (!user?.id || !defaultOrg?.id) throw new Error("Missing context");
-      return await apiRequest("DELETE", buildOrgApiUrl(user.id, defaultOrg.id, `/categories/${categoryId}`));
+      if (!defaultOrg?.id) throw new Error("Missing organization");
+      return await deleteCategory(defaultOrg.id, categoryId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -78,7 +67,7 @@ export default function CategoriesManager() {
 
   const handleDeleteCategory = (category: Category) => {
     if (confirm(t('categories.deleteConfirm').replace('{name}', category.name))) {
-      deleteMutation.mutate(category.id);
+      deleteMutation.mutate(category.categoryId);
     }
   };
 
@@ -188,7 +177,7 @@ export default function CategoriesManager() {
 
           {/* Existing Categories */}
           {filteredCategories.map((category: Category) => (
-            <Card key={category.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 flex flex-col">
+            <Card key={category.categoryId} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 flex flex-col">
               <div 
                 className="h-24 p-4 flex items-center justify-between"
                 style={{ backgroundColor: category.backgroundColor }}

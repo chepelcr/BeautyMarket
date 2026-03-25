@@ -1,14 +1,16 @@
 import { PreDeploymentRepository, DeploymentRepository, OrganizationRepository } from '../repositories';
-import { OrganizationInfrastructureService } from './OrganizationInfrastructureService';
+import { OrganizationSettingsRepository } from '../repositories/OrganizationSettingsRepository';
+import { OrganizationEventPublisher } from './OrganizationEventPublisher';
 import { S3Dao } from '../aws-daos';
-import type { PreDeployment, InsertDeploymentHistory } from '../entities';
+import type { InsertDeploymentHistory } from '../entities';
 
 export class DeploymentService {
   constructor(
     private preDeploymentRepo: PreDeploymentRepository,
     private deploymentRepo: DeploymentRepository,
     private organizationRepo: OrganizationRepository,
-    private infrastructureService: OrganizationInfrastructureService,
+    private orgSettingsRepo: OrganizationSettingsRepository,
+    private eventPublisher: OrganizationEventPublisher,
     private s3Dao: S3Dao
   ) {}
 
@@ -24,22 +26,37 @@ export class DeploymentService {
         return { success: false, error: 'Organization not found' };
       }
 
-      // Ensure infrastructure is provisioned - if not, trigger provisioning
-      if (!organization.s3BucketName || organization.infrastructureStatus !== 'active') {
-        console.log('Infrastructure not ready, triggering provisioning...');
-        await this.infrastructureService.provisionInfrastructure(organization);
-        
-        // Refetch organization to get updated infrastructure
-        const updatedOrg = await this.organizationRepo.findById(organizationId);
-        if (!updatedOrg?.s3BucketName) {
-          return { success: false, error: 'Failed to provision infrastructure. Please try again.' };
+      // Check infrastructure readiness from the organization_settings table (owned by infra microservice)
+      const orgSettings = await this.orgSettingsRepo.findByOrganizationId(organizationId);
+
+      if (!orgSettings || orgSettings.infrastructureStatus === 'pending' || orgSettings.infrastructureStatus === 'failed') {
+        // Re-trigger provisioning by re-publishing the OrganizationRegistered event
+        try {
+          await this.eventPublisher.publishOrganizationRegistered({
+            id: organization.id,
+            name: organization.name,
+            slug: organization.slug,
+            domain: organization.customDomain ?? undefined,
+            subdomain: organization.subdomain ?? undefined,
+          });
+        } catch (publishErr) {
+          console.error('[DeploymentService] Failed to re-trigger OrganizationRegistered:', publishErr);
         }
-        organization.s3BucketName = updatedOrg.s3BucketName;
-        organization.cloudfrontDistributionId = updatedOrg.cloudfrontDistributionId;
+        return { success: false, error: 'Infrastructure is being provisioned. Please try again shortly.' };
+      }
+
+      if (orgSettings.infrastructureStatus === 'provisioning') {
+        return { success: false, error: 'Infrastructure is being provisioned. Please try again shortly.' };
+      }
+
+      // infrastructureStatus === 'active' — proceed with deployment
+      const bucketName = orgSettings.s3BucketName;
+      if (!bucketName) {
+        return { success: false, error: 'Infrastructure is not fully provisioned. Please try again shortly.' };
       }
 
       const buildId = `build-${Date.now()}`;
-      
+
       // Create deployment record
       const deployment: InsertDeploymentHistory = {
         organizationId,
@@ -51,8 +68,8 @@ export class DeploymentService {
 
       const createdDeployment = await this.deploymentRepo.createDeployment(deployment);
 
-      // Upload config.json with organizationId
-      await this.uploadConfigJson(organization.s3BucketName!, organizationId);
+      // Upload config.json with organizationId to the provisioned S3 bucket
+      await this.uploadConfigJson(bucketName, organizationId);
 
       // Mark pre-deployment as published
       await this.preDeploymentRepo.updatePreDeployment(preDeploymentId, {
@@ -65,7 +82,7 @@ export class DeploymentService {
       await this.deploymentRepo.updateDeployment(createdDeployment.id, {
         status: 'success',
         completedAt: new Date(),
-        deployUrl: `https://${organization.subdomain}.jmarkets.jcampos.dev`,
+        deployUrl: `https://${organization.subdomain}.j-markets.jcampos.dev`,
       });
 
       return { success: true, deploymentId: createdDeployment.id };
@@ -86,7 +103,6 @@ export class DeploymentService {
   }
 
   async triggerAutoDeployment(organization: any) {
-    // Placeholder for auto-deployment logic
     return { success: true, message: 'Deployment triggered' };
   }
 

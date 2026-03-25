@@ -2,6 +2,7 @@ import { Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CategoryFilter } from './CategoryFilter';
 import { StatusFilter } from './StatusFilter';
+import { AdvancedFilters } from './AdvancedFilters';
 import { useProductListStore } from '@/store/product-list-store';
 import type { Category } from '@/models';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,7 +19,9 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
     filters.categoryId ||
     filters.isActive !== undefined ||
     filters.priceMin !== undefined ||
-    filters.priceMax !== undefined;
+    filters.priceMax !== undefined ||
+    filters.salePriceMin !== undefined ||
+    filters.salePriceMax !== undefined;
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -28,6 +31,7 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
       </div>
       <CategoryFilter categories={categories} />
       <StatusFilter />
+      <AdvancedFilters />
       {hasActiveFilters && (
         <Button
           variant="ghost"

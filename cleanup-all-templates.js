@@ -150,7 +150,7 @@ async function deleteDistribution(distributionId) {
  */
 async function deleteDNSRecord(subdomain, cloudFrontDomain) {
   try {
-    const domainName = `${subdomain}.jmarkets.jcampos.dev.`;
+    const domainName = `${subdomain}.j-markets.jcampos.dev.`;
     console.log(`  Deleting DNS record: ${domainName}...`);
 
     await route53Client.send(
@@ -218,7 +218,7 @@ async function cleanup() {
       for (const record of recordsResp.ResourceRecordSets || []) {
         if (record.Type === 'A' && record.AliasTarget) {
           for (const subdomain of NEW_TEMPLATES) {
-            if (record.Name === `${subdomain}.jmarkets.jcampos.dev.`) {
+            if (record.Name === `${subdomain}.j-markets.jcampos.dev.`) {
               dnsRecords[subdomain] = record.AliasTarget.DNSName;
               await deleteDNSRecord(subdomain, record.AliasTarget.DNSName);
             }
@@ -246,7 +246,7 @@ async function cleanup() {
     for (const dist of allDistributions) {
       // Check if this distribution is for one of the new templates
       const isNewTemplate = NEW_TEMPLATES.some(subdomain =>
-        dist.Comment?.includes(`${subdomain}.jmarkets.jcampos.dev`)
+        dist.Comment?.includes(`${subdomain}.j-markets.jcampos.dev`)
       );
 
       if (isNewTemplate) {

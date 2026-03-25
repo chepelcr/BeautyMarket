@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export interface OrderFilters {
-  status?: string;
+  status?: string[];
   startDate?: string;
   endDate?: string;
   creationStartDate?: string;

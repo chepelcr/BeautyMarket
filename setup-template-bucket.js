@@ -50,12 +50,13 @@ const AWS_PROFILE = 'J-CAMPOS';
 const REGION = process.env.AWS_REGION || 'us-east-1';
 
 // Project Configuration
-const TEMPLATE_BUCKET = process.env.TEMPLATE_SOURCE_BUCKET || 'jmarkets-template-market';
+const TEMPLATE_BUCKET = process.env.TEMPLATE_SOURCE_BUCKET || 'j-markets-template-market';
 const CLIENT_DIST_FOLDER = './dist/public';
 const LANDING_DIST_FOLDER = './dist/landing';
 const DASHBOARD_DIST_FOLDER = './dist/dashboard'; // Fixed: dashboard builds to dist/dashboard, not dashboard/dist
-const BASE_DOMAIN = 'jmarkets.jcampos.dev';
-const HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID; // Add this to .env file
+const BASE_DOMAIN = process.env.BASE_DOMAIN || 'j-markets.jcampos.dev';
+const ROOT_DOMAIN = process.env.ROOT_DOMAIN || BASE_DOMAIN.split('.').slice(-2).join('.');
+let HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID; // Auto-resolved from ROOT_DOMAIN if not set
 
 // Global variable to store AWS Account ID (will be populated on startup)
 let AWS_ACCOUNT_ID = null;
@@ -103,6 +104,32 @@ const resourceTracker = {
   dnsRecords: [],        // Route53 DNS records {name, target}
   certificateArn: null,  // ACM certificate ARN (only if newly created)
 };
+
+/**
+ * Resolve the Route53 Hosted Zone ID for ROOT_DOMAIN if not already set via env
+ */
+async function resolveHostedZoneId() {
+  if (HOSTED_ZONE_ID) {
+    console.log(`✅ Hosted Zone ID (from env): ${HOSTED_ZONE_ID}\n`);
+    return;
+  }
+  try {
+    console.log(`🔍 Looking up Route53 Hosted Zone for ${ROOT_DOMAIN}...`);
+    const response = await route53Client.send(
+      new ListHostedZonesByNameCommand({ DNSName: ROOT_DOMAIN, MaxItems: '1' })
+    );
+    const zone = response.HostedZones?.[0];
+    if (!zone || !zone.Name.startsWith(ROOT_DOMAIN)) {
+      throw new Error(`Hosted zone for ${ROOT_DOMAIN} not found`);
+    }
+    // Zone Id comes as /hostedzone/XXXXX — strip the prefix
+    HOSTED_ZONE_ID = zone.Id.replace('/hostedzone/', '');
+    console.log(`✅ Hosted Zone ID (auto-resolved): ${HOSTED_ZONE_ID}\n`);
+  } catch (error) {
+    console.warn(`⚠️  Could not resolve Hosted Zone ID: ${error.message}`);
+    console.warn(`   DNS records will be skipped. Set HOSTED_ZONE_ID in .env to override.\n`);
+  }
+}
 
 /**
  * Get AWS Account ID from the current credentials using STS
@@ -226,7 +253,7 @@ async function cleanupResources() {
 }
 
 /**
- * Request or get existing wildcard certificate for *.jmarkets.jcampos.dev
+ * Request or get existing wildcard certificate for *.j-markets.jcampos.dev
  */
 async function requestOrGetWildcardCertificate() {
   const wildcardDomain = `*.${BASE_DOMAIN}`;
@@ -548,7 +575,7 @@ async function getOrCreateOriginAccessControl() {
 
     // Check if we already have an OAC for jmarkets
     const existingOac = listResponse.OriginAccessControlList?.Items?.find(
-      (oac) => oac.Name === 'jmarkets-template-oac'
+      (oac) => oac.Name === 'j-markets-template-oac'
     );
 
     if (existingOac) {
@@ -560,8 +587,8 @@ async function getOrCreateOriginAccessControl() {
     const createResponse = await cloudFrontClient.send(
       new CreateOriginAccessControlCommand({
         OriginAccessControlConfig: {
-          Name: 'jmarkets-template-oac',
-          Description: 'Origin Access Control for JMarkets template organizations',
+          Name: 'j-markets-template-oac',
+          Description: 'Origin Access Control for J-Markets template organizations',
           OriginAccessControlOriginType: 's3',
           SigningBehavior: 'always',
           SigningProtocol: 'sigv4',
@@ -1338,7 +1365,7 @@ async function setupLandingPage(certificateArn = null) {
 }
 
 /**
- * Setup infrastructure for the dashboard at admin.jmarkets.jcampos.dev
+ * Setup infrastructure for the dashboard at admin.j-markets.jcampos.dev
  */
 async function setupDashboard(certificateArn = null) {
   console.log(`\n🎛️  Setting up dashboard infrastructure for: admin.${BASE_DOMAIN}`);
@@ -1667,6 +1694,9 @@ async function setup() {
     // Get AWS Account ID from profile
     AWS_ACCOUNT_ID = await getAwsAccountId();
 
+    // Resolve Hosted Zone ID for jcampos.dev (auto-lookup if not in env)
+    await resolveHostedZoneId();
+
     // Validate that all builds completed successfully
     console.log('🔍 Validating build outputs...\n');
 
@@ -1830,7 +1860,7 @@ async function setup() {
     console.log('\n\n📝 NEXT STEPS:');
     console.log('  1. If certificates were requested, validate them in AWS ACM Console');
     console.log('  2. Update CloudFront distributions with validated certificates');
-    console.log('  3. Update HOSTED_ZONE_ID in .env if you want automatic DNS record creation');
+    console.log(`  3. DNS records are created automatically using the ${ROOT_DOMAIN} hosted zone`);
     console.log('  4. Update AWS_ACCOUNT_ID in .env for automatic bucket policy creation');
     console.log('\n🎉 Setup completed!');
   } catch (error) {

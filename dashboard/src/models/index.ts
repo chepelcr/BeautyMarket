@@ -42,8 +42,8 @@ export { insertProductSchema } from "./Product";
 export type { Category, InsertCategory } from "./Category";
 export { insertCategorySchema } from "./Category";
 
-export type { Order, InsertOrder, DeliveryMethod } from "./Order";
-export { insertOrderSchema, deliveryMethods } from "./Order";
+export type { Order, InsertOrder, DeliveryMethod, ReportColorScheme } from "./Order";
+export { insertOrderSchema, deliveryMethods, REPORT_COLOR_OPTIONS } from "./Order";
 
 export type { Customer, CreateCustomerData, UpdateCustomerData, CustomersResponse, Client, CreateClientData, UpdateClientData, ClientsResponse } from "./Customer";
 

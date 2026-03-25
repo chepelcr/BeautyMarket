@@ -24,7 +24,8 @@ export function ProductCard({
   onDelete,
 }: ProductCardProps) {
   const { t } = useLanguage();
-  const category = categories.find((c) => c.id === product.categoryId);
+  // Use embedded category from product if available, otherwise lookup from categories array
+  const category = product.category || categories.find((c) => c.categoryId === product.categoryId);
 
   // Inventory status helpers
   const isOutOfStock = product.trackInventory && (product.stockQuantity ?? 0) === 0;

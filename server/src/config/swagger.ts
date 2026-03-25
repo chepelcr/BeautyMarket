@@ -12,13 +12,13 @@ const options = {
       description: 'Multi-tenant marketplace platform API with CMS, authentication, RBAC, and auto-deployment',
       contact: {
         name: 'JMarkets Support',
-        url: 'https://jmarkets.jcampos.dev'
+        url: 'https://j-markets.jcampos.dev'
       }
     },
     servers: [
       {
         url: process.env.NODE_ENV === 'production'
-          ? 'https://api.jmarkets.jcampos.dev'
+          ? 'https://markets-api.jcampos.dev'
           : process.env.REPLIT_DOMAINS
             ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
             : 'http://localhost:5000',
@@ -164,7 +164,7 @@ export function setupSwagger(app: Express) {
   <script>
     window.onload = function() {
       window.ui = SwaggerUIBundle({
-        url: './swagger.json',
+        url: '/api-docs/swagger.json',
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [

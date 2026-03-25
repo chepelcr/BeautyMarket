@@ -7,10 +7,10 @@ export * from './UserService';
 
 // Organization and Multi-tenancy
 export * from './OrganizationService';
+export * from './OrganizationEventPublisher';
 export * from './MembershipService';
 export * from './InvitationService';
 export * from './RBACService';
-export * from './OrganizationInfrastructureService';
 
 // Settings Services
 export * from './ThemeSettingsService';

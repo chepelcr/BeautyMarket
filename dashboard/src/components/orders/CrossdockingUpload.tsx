@@ -1,38 +1,29 @@
 import { useState } from 'react';
-import { Upload, FileSpreadsheet, X, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { apiRequest } from '@/lib/queryClient';
+import { FileDropZone } from '@/components/ui/file-drop-zone';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ReportColorSelector, getDefaultColorForDepartment } from './ReportColorSelector';
+import type { ReportColorScheme } from '@/models';
 
 interface CrossdockingUploadProps {
   organizationId: string;
   documentNumber: string;
+  reportColor?: ReportColorScheme;
+  department?: string;
   onUploadSuccess?: () => void;
 }
 
-export function CrossdockingUpload({ organizationId, documentNumber, onUploadSuccess }: CrossdockingUploadProps) {
+export function CrossdockingUpload({ organizationId, documentNumber, reportColor, department, onUploadSuccess }: CrossdockingUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedColor, setSelectedColor] = useState<ReportColorScheme>(
+    reportColor || getDefaultColorForDepartment(department || '')
+  );
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-          file.type === 'application/vnd.ms-excel' ||
-          file.name.endsWith('.xlsx') ||
-          file.name.endsWith('.xls')) {
-        setSelectedFile(file);
-      } else {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please select an Excel file (.xlsx or .xls)',
-          variant: 'destructive',
-        });
-      }
-    }
-  };
 
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -40,8 +31,7 @@ export function CrossdockingUpload({ organizationId, documentNumber, onUploadSuc
       reader.readAsDataURL(file);
       reader.onload = () => {
         const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
+        resolve(result.split(',')[1]);
       };
       reader.onerror = error => reject(error);
     });
@@ -54,27 +44,13 @@ export function CrossdockingUpload({ organizationId, documentNumber, onUploadSuc
     try {
       const base64Data = await convertFileToBase64(selectedFile);
 
-      const response = await fetch(
+      await apiRequest(
+        'POST',
         `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}/crossdocking/parse`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            data: base64Data,
-            name: selectedFile.name,
-            contentType: selectedFile.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          }),
-        }
+        { data: base64Data, name: selectedFile.name, contentType: selectedFile.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', color: selectedColor }
       );
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      toast({
-        title: t('orders.crossdocking.uploadSuccess'),
-      });
-
+      toast({ title: t('orders.crossdocking.uploadSuccess') });
       setSelectedFile(null);
       onUploadSuccess?.();
     } catch (error) {
@@ -89,36 +65,18 @@ export function CrossdockingUpload({ organizationId, documentNumber, onUploadSuc
     }
   };
 
-  const inputId = `crossdocking-upload-${documentNumber}`;
-
   return (
-    <div className="flex items-center gap-2">
-      {!selectedFile ? (
+    <div className="space-y-3">
+      <FileDropZone
+        value={selectedFile}
+        onChange={setSelectedFile}
+        accept=".xlsx,.xls"
+        maxSize={10}
+      />
+      {selectedFile && (
         <>
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleFileSelect}
-            className="hidden"
-            id={inputId}
-          />
-          <label htmlFor={inputId} className="cursor-pointer">
-            <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3">
-              <Upload className="h-4 w-4 mr-2" />
-              {t('orders.crossdocking.upload')}
-            </div>
-          </label>
-        </>
-      ) : (
-        <>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md text-sm">
-            <FileSpreadsheet className="h-4 w-4 text-green-600 shrink-0" />
-            <span className="truncate max-w-[150px]">{selectedFile.name}</span>
-            <button onClick={() => setSelectedFile(null)} className="shrink-0">
-              <X className="h-3 w-3" />
-            </button>
-          </div>
-          <Button size="sm" onClick={handleUpload} disabled={isUploading}>
+          <ReportColorSelector value={selectedColor} onChange={setSelectedColor} />
+          <Button onClick={handleUpload} disabled={isUploading} className="w-full">
             {isUploading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {isUploading ? '...' : t('orders.crossdocking.upload')}
           </Button>

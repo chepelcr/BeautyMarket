@@ -71,17 +71,18 @@ export default function Admin() {
         const loadData = async () => {
             try {
                 console.log('Loading data for org:', organizationId);
+                const { listCategories } = await import('@/services/categoriesApi');
                 const [productsRes, categoriesRes] = await Promise.all([
                     apiRequest('GET', buildOrgApiUrl(user.id, organizationId, '/products')),
-                    apiRequest('GET', buildOrgApiUrl(user.id, organizationId, '/categories'))
+                    listCategories(organizationId, 1, 100)
                 ]);
 
-                if (!productsRes.ok || !categoriesRes.ok) {
-                    throw new Error(`API error: ${productsRes.status} ${categoriesRes.status}`);
+                if (!productsRes.ok) {
+                    throw new Error(`API error: ${productsRes.status}`);
                 }
 
                 setProducts(await productsRes.json());
-                setCategories(await categoriesRes.json());
+                setCategories(categoriesRes.data);
             } catch (error) {
                 if (isUnauthorizedError(error as Error)) {
                     toast({
@@ -157,12 +158,12 @@ export default function Admin() {
     };
 
     const getCategoryLabel = (categoryId: string) => {
-        const category = categories.find(cat => cat.id === categoryId);
+        const category = categories.find(cat => cat.categoryId === categoryId);
         return category?.name || "Sin categoría";
     };
 
     const getCategoryColor = (categoryId: string) => {
-        const category = categories.find(cat => cat.id === categoryId);
+        const category = categories.find(cat => cat.categoryId === categoryId);
         return category?.backgroundColor || "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200";
     };
 

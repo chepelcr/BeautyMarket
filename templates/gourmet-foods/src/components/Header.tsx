@@ -102,7 +102,7 @@ export default function Header() {
             </a>
           </Link>
           <a
-            href={import.meta.env.VITE_LANDING_PAGE_URL || 'https://jmarkets.jcampos.dev'}
+            href={import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.devv'}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-gourmet-red hover:text-gourmet-gold transition-colors font-sans"

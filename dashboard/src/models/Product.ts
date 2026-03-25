@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 export interface ProductCode {
-  codeType: string;
+  codeTypeId: string;
   number: string;
+  description?: string;
 }
 
 export interface ProductDiscount {
@@ -34,10 +35,15 @@ export interface ProductTax {
 
 export interface Product {
   id: string;
+  productId?: string; // API returns productId, keeping id for backward compatibility
   name: string;
   description: string;
   price: number;
   categoryId: string;
+  category?: {
+    categoryId: string;
+    name: string;
+  };
   imageUrl: string | null;
   isActive: boolean;
   // Inventory tracking fields

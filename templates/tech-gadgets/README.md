@@ -89,7 +89,7 @@ All theme colors and settings are defined in:
 
 ## Live Demo
 
-**URL:** https://tech-gadgets-example.jmarkets.jcampos.dev
+**URL:** https://tech-gadgets-example.j-markets.jcampos.dev
 
 ## License
 

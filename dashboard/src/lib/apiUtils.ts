@@ -6,6 +6,7 @@
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const ORDERS_API_BASE_URL = import.meta.env.VITE_ORDERS_API_URL || 'http://localhost:8000';
 
 /**
  * Build a URL for organization-scoped API endpoints
@@ -21,6 +22,21 @@ export function buildOrgApiUrl(
 ): string {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${API_BASE_URL}/api/users/${userId}/organization/${organizationId}${cleanEndpoint}`;
+}
+
+/**
+ * Build a URL for orders service organization-scoped endpoints
+ * Used for products, categories, orders, clients, confirmations
+ * @param organizationId - The organization ID
+ * @param endpoint - The endpoint path (e.g., '/products', '/categories', '/orders')
+ * @returns Full Orders API URL
+ */
+export function buildOrdersApiUrl(
+  organizationId: string,
+  endpoint: string
+): string {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${ORDERS_API_BASE_URL}/api/organizations/${organizationId}${cleanEndpoint}`;
 }
 
 /**

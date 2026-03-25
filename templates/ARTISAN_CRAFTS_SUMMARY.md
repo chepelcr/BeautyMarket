@@ -8,7 +8,7 @@ The Artisan Crafts template has been successfully built following the multi-temp
 
 - **Name**: Artisan Crafts
 - **Category**: Handmade Crafts & Artisanal Goods
-- **Live URL**: https://artisan-crafts-example.jmarkets.jcampos.dev
+- **Live URL**: https://artisan-crafts-example.j-markets.jcampos.dev
 - **Build Output**: `dist/templates/artisan-crafts/`
 - **Dev Server Port**: 5175
 
@@ -286,7 +286,7 @@ npm run preview
 3. Deploy to S3 bucket: `artisan-crafts-example-{bucket}`
 4. Configure CloudFront distribution
 5. Update Route53 DNS record
-6. Test live URL: https://artisan-crafts-example.jmarkets.jcampos.dev
+6. Test live URL: https://artisan-crafts-example.j-markets.jcampos.dev
 
 ### Future Enhancements
 - [ ] Add real product data integration
@@ -449,7 +449,7 @@ The **Artisan Crafts template is complete** and ready for testing and deployment
 **Template**: Artisan Crafts
 **Status**: ✅ Build Complete
 **Ready for**: Testing and Deployment
-**Live URL**: https://artisan-crafts-example.jmarkets.jcampos.dev (pending deployment)
+**Live URL**: https://artisan-crafts-example.j-markets.jcampos.dev (pending deployment)
 **Created**: January 5, 2026
 **Implementation Time**: ~2 hours
 **Files**: 15 files, ~1,500 lines of code

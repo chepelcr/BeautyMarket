@@ -2,27 +2,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHacienda } from "@/hooks/useHacienda";
 
 interface CabysModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (cabys: { codigo: string; descripcion: string; impuesto: number }) => void;
+  initialSearchTerm?: string;
 }
 
-export function CabysModal({ isOpen, onClose, onSelect }: CabysModalProps) {
+export function CabysModal({ isOpen, onClose, onSelect, initialSearchTerm = "" }: CabysModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { searchCabysByName } = useHacienda();
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+  // Update search term when modal opens with initial value and trigger search
+  useEffect(() => {
+    if (isOpen) {
+      setSearchTerm(initialSearchTerm);
+      if (initialSearchTerm.trim()) {
+        // Trigger search automatically if there's an initial search term
+        handleSearchWithTerm(initialSearchTerm);
+      } else {
+        setResults([]);
+      }
+    }
+  }, [isOpen, initialSearchTerm]);
+
+  const handleSearchWithTerm = async (term: string) => {
+    if (!term.trim()) return;
     
     setIsLoading(true);
     try {
-      const data = await searchCabysByName(searchTerm, 20);
+      const data = await searchCabysByName(term, 20);
       setResults(data);
     } catch (error) {
       console.error('Error searching CABYS:', error);
@@ -30,6 +44,10 @@ export function CabysModal({ isOpen, onClose, onSelect }: CabysModalProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearch = async () => {
+    await handleSearchWithTerm(searchTerm);
   };
 
   const handleSelect = (cabys: any) => {

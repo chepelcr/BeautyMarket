@@ -23,7 +23,7 @@ export default function CreateOrganization() {
   const { createOrganization, checkSlugAvailable, checkSubdomainAvailable } = useOrganization();
   const [, navigate] = useLocation();
 
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
   // Redirect if not authenticated
   useEffect(() => {

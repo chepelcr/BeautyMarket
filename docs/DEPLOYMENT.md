@@ -35,7 +35,7 @@ This guide covers the complete setup and deployment of the JMarkets AWS infrastr
 │                    ┌──────────────────┴──────────────────┐     │
 │                    ↓                                    ↓      │
 │              [API Gateway]                     [Supabase]      │
-│          api.jmarkets.jcampos.dev           PostgreSQL         │
+│          markets-api.jcampos.dev           PostgreSQL         │
 │                    ↓                                           │
 │        REST API for Client & Organizations                     │
 │                                                                │
@@ -44,7 +44,7 @@ This guide covers the complete setup and deployment of the JMarkets AWS infrastr
 │         [CloudFront] ↔ [CDN for orgs]                          │
 │                                                                │
 │                      [Static Website]                         │
-│                 www.jmarkets.jcampos.dev                       │
+│                 www.j-markets.jcampos.dev                       │
 │                   [S3 + CloudFront]                           │
 │                      React App                                │
 │                                                                │
@@ -82,7 +82,7 @@ aws configure --profile J-CAMPOS
 ```
 
 ### 2. Domain & Hosted Zone
-- Domain registered (e.g., jmarkets.jcampos.dev)
+- Domain registered (e.g., j-markets.jcampos.dev)
 - Route53 hosted zone created
 - Hosted Zone ID available (format: Z1234567890ABC)
 
@@ -130,11 +130,11 @@ cd /Users/jcampos/WebstormProjects/BeautyMarket
 ### Manual Step-by-Step
 
 ```bash
-./deploys/deploy-cognito.sh
-./deploys/deploy-pipeline-roles.sh
+# Cognito — run in infra repo: ./cognito/build-cognito.sh dev
+./deploys/deploy-sns.sh
 ./deploys/deploy-lambda.sh
 ./deploys/deploy-api-gateway.sh
-./deploys/deploy-static-website.sh
+node setup-template-bucket.js   # frontend: templates + dashboard + landing
 ./deploys/deploy-pipeline.sh
 ```
 
@@ -161,10 +161,10 @@ Best for first-time deployment. Single command deploys all components in correct
 Best for targeted updates or troubleshooting.
 
 ```bash
-./deploys/deploy-pipeline-roles.sh      # Step 1
+./deploys/deploy-sns.sh                 # Step 1 — SNS org events topic
 ./deploys/deploy-lambda.sh              # Step 2
 ./deploys/deploy-api-gateway.sh         # Step 3
-./deploys/deploy-static-website.sh      # Step 4
+node setup-template-bucket.js           # Step 4 — all frontend sites
 ./deploys/deploy-pipeline.sh            # Step 5
 ```
 
@@ -241,7 +241,7 @@ Stack: `jmarkets-api-gateway`
 
 **Interactive Prompts:**
 - Lambda ARN (auto-loaded)
-- API domain name (default: api.jmarkets.jcampos.dev)
+- API domain name (default: markets-api.jcampos.dev)
 - Route53 hosted zone ID
 - API Gateway name
 
@@ -251,17 +251,15 @@ Stack: `jmarkets-api-gateway`
 3. Click "Create records in Route53"
 4. Wait 5-10 minutes for validation
 
-### 5. Static Website
+### 5. Frontend Sites (templates, dashboard, landing)
 
-Stack: `jmarkets-static-website`
+Deployed via script — no CloudFormation stack required.
 
 ```bash
-./deploys/deploy-static-website.sh
+node setup-template-bucket.js
 ```
 
-**Interactive Prompts:**
-- Website domain name (default: www.jmarkets.jcampos.dev)
-- Route53 hosted zone ID
+Automatically provisions S3 + CloudFront + Route53 for all 10 sites and uploads built files.
 
 **Post-Deployment:**
 
@@ -315,12 +313,12 @@ LAMBDA_FUNCTION_ARN=arn:aws:lambda:us-east-1:123456789:function:...
 # API Gateway
 API_GATEWAY_ID=abcdef1234
 API_GATEWAY_URL=https://abcdef1234.execute-api.us-east-1.amazonaws.com/dev
-API_DOMAIN_NAME=https://api.jmarkets.jcampos.dev
+API_DOMAIN_NAME=https://markets-api.jcampos.dev
 
 # Static Website
 CLIENT_BUCKET_NAME=jmarkets-website-dev-123456789
 CLIENT_CLOUDFRONT_ID=E1234ABCD
-CLIENT_CLOUDFRONT_URL=https://www.jmarkets.jcampos.dev
+CLIENT_CLOUDFRONT_URL=https://www.j-markets.jcampos.dev
 
 # CodePipeline
 CODEPIPELINE_NAME=jmarkets-pipeline
@@ -365,10 +363,10 @@ aws cloudfront create-invalidation \
 
 ```bash
 # Test API
-curl https://api.jmarkets.jcampos.dev/api/health
+curl https://markets-api.jcampos.dev/api/health
 
 # Test Website
-curl https://www.jmarkets.jcampos.dev
+curl https://www.j-markets.jcampos.dev
 ```
 
 ### 4. Verify GitHub CodeStar Connection

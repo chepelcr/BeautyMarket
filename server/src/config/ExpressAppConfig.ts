@@ -37,6 +37,11 @@ export class ExpressAppConfig {
           return callback(null, true);
         }
 
+        // Allow any subdomain of j-markets.jcampos.dev (org storefronts)
+        if (/^https:\/\/[a-z0-9-]+\.j-markets\.jcampos\.dev$/.test(origin)) {
+          return callback(null, true);
+        }
+
         // Allow Capacitor origins (starts with capacitor:// or ionic://)
         if (origin.startsWith('capacitor://') || origin.startsWith('ionic://')) {
           return callback(null, true);
@@ -106,11 +111,6 @@ export class ExpressAppConfig {
 
   private _getAllowedOrigins(): string[] {
     const defaultOrigins = [...APP_CONFIG.ALLOWED_ORIGINS];
-
-    /*const cloudfrontUrl = APP_CONFIG.VITE_CLOUDFRONT_URL;
-    if (cloudfrontUrl) {
-      defaultOrigins.push(cloudfrontUrl);
-    }*/
 
     return defaultOrigins;
   }

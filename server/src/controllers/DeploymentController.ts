@@ -17,7 +17,7 @@ export class DeploymentController {
 
   /**
    * @swagger
-   * /api/deployments:
+   * /api/users/{userId}/organization/{orgId}/deployments:
    *   post:
    *     summary: Trigger auto-deployment for organization
    *     tags: [Deployment]
@@ -55,7 +55,7 @@ export class DeploymentController {
 
   /**
    * @swagger
-   * /api/deployments/status:
+   * /api/users/{userId}/organization/{orgId}/deployments/status:
    *   get:
    *     summary: Get deployment status for organization
    *     tags: [Deployment]
@@ -87,7 +87,7 @@ export class DeploymentController {
 
   /**
    * @swagger
-   * /api/deployments/history:
+   * /api/users/{userId}/organization/{orgId}/deployments/history:
    *   get:
    *     summary: Get deployment history for organization
    *     tags: [Deployment]

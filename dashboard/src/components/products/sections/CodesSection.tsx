@@ -12,30 +12,32 @@ import { ClearButton } from "@/components/common/ClearButton";
 
 interface CodesSectionProps {
   form: UseFormReturn<InsertProduct>;
+  disabled?: boolean;
+  forceCollapsed?: boolean;
 }
 
 const CODE_TYPES = [
-  { codeTypeId: 1, code: "01", description: "Código de producto del vendedor" },
-  { codeTypeId: 2, code: "02", description: "Código de producto estándar" },
-  { codeTypeId: 3, code: "03", description: "Código de producto del comprador" },
-  { codeTypeId: 4, code: "04", description: "Código uso interno" },
+  { codeTypeId: "01", code: "01", description: "Código del producto del vendedor" },
+  { codeTypeId: "02", code: "02", description: "Código del producto del comprador" },
+  { codeTypeId: "04", code: "04", description: "Código uso interno" },
+  { codeTypeId: "99", code: "99", description: "Otros" },
 ];
 
-export function CodesSection({ form }: CodesSectionProps) {
+export function CodesSection({ form, disabled = false, forceCollapsed = false }: CodesSectionProps) {
   const { t } = useLanguage();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!forceCollapsed);
   const [selectedCodeType, setSelectedCodeType] = useState("");
 
   const addCode = () => {
     if (!selectedCodeType) return;
     
     const currentCodes = form.getValues("codes") || [];
-    const codeType = CODE_TYPES.find(ct => ct.codeTypeId.toString() === selectedCodeType);
+    const codeType = CODE_TYPES.find(ct => ct.codeTypeId === selectedCodeType);
     
     form.setValue("codes", [
       ...currentCodes,
       {
-        codeTypeId: parseInt(selectedCodeType),
+        codeTypeId: selectedCodeType,
         number: "",
         description: codeType?.description || ""
       }
@@ -59,7 +61,7 @@ export function CodesSection({ form }: CodesSectionProps) {
             {t("products.form.codes")}
           </div>
           <div className="flex items-center gap-2">
-            <Select value={selectedCodeType} onValueChange={setSelectedCodeType}>
+            <Select value={selectedCodeType} onValueChange={setSelectedCodeType} disabled={disabled}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Agregar código" />
               </SelectTrigger>
@@ -67,13 +69,13 @@ export function CodesSection({ form }: CodesSectionProps) {
                 {CODE_TYPES.filter(codeType => 
                   !codes.some((code: any) => code.codeTypeId === codeType.codeTypeId)
                 ).map((codeType) => (
-                  <SelectItem key={codeType.codeTypeId} value={codeType.codeTypeId.toString()}>
-                    {codeType.description}
+                  <SelectItem key={codeType.codeTypeId} value={codeType.codeTypeId}>
+                    {codeType.code} - {codeType.description}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button size="sm" onClick={addCode} disabled={!selectedCodeType} type="button">
+            <Button size="sm" onClick={addCode} disabled={!selectedCodeType || disabled} type="button">
               <Plus className="h-4 w-4" />
             </Button>
             <Button
@@ -81,7 +83,7 @@ export function CodesSection({ form }: CodesSectionProps) {
               size="sm"
               variant="outline"
               onClick={() => setIsExpanded(!isExpanded)}
-              disabled={codes.length === 0}
+              disabled={codes.length === 0 || disabled}
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -95,6 +97,9 @@ export function CodesSection({ form }: CodesSectionProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {codes.map((code: any, index: number) => {
               const isLastOdd = codes.length % 2 === 1 && index === codes.length - 1;
+              const codeType = CODE_TYPES.find(ct => ct.codeTypeId === code.codeTypeId);
+              const codeLabel = codeType?.description || "Código";
+              
               return (
                 <FormField
                   key={index}
@@ -102,7 +107,7 @@ export function CodesSection({ form }: CodesSectionProps) {
                   name={`codes.${index}.number`}
                   render={({ field }) => (
                     <FormItem className={`flex flex-col space-y-2 ${isLastOdd ? "md:col-span-2" : ""}`}>
-                      <FormLabel>{code.description || "Código"}</FormLabel>
+                      <FormLabel>{codeLabel}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input

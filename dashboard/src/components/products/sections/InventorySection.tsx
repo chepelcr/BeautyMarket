@@ -11,11 +11,12 @@ import { useState } from "react";
 
 interface InventorySectionProps {
   form: UseFormReturn<InsertProduct>;
+  disabled?: boolean;
 }
 
-export function InventorySection({ form }: InventorySectionProps) {
+export function InventorySection({ form, disabled = false }: InventorySectionProps) {
   const { t } = useLanguage();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!disabled);
 
   return (
     <Card>
@@ -30,6 +31,7 @@ export function InventorySection({ form }: InventorySectionProps) {
             size="sm"
             variant="outline"
             onClick={() => setIsExpanded(!isExpanded)}
+            disabled={disabled}
           >
             <Eye className="h-4 w-4" />
           </Button>

@@ -172,8 +172,8 @@ npm run build
 - **Ready for**: S3 + CloudFront deployment
 
 ### Deployment URL
-- **Live URL**: https://artisan-crafts-example.jmarkets.jcampos.dev
-- **SSL Certificate**: Wildcard `*.jmarkets.jcampos.dev`
+- **Live URL**: https://artisan-crafts-example.j-markets.jcampos.dev
+- **SSL Certificate**: Wildcard `*.j-markets.jcampos.dev`
 - **CDN**: CloudFront distribution
 
 ### Deployment Integration
@@ -300,7 +300,7 @@ The template is ready to be deployed using the existing deployment infrastructur
 1. Run `./build-artisan-crafts.sh`
 2. Use `setup-template-bucket.js` to deploy to S3
 3. Verify CloudFront distribution
-4. Test live URL: https://artisan-crafts-example.jmarkets.jcampos.dev
+4. Test live URL: https://artisan-crafts-example.j-markets.jcampos.dev
 
 ### Future Enhancements
 1. Add product detail pages
@@ -406,7 +406,7 @@ The Artisan Crafts template is **fully implemented** and ready for testing and d
 
 **Status**: Ready for `npm install && npm run build`
 
-**Live URL**: https://artisan-crafts-example.jmarkets.jcampos.dev (pending deployment)
+**Live URL**: https://artisan-crafts-example.j-markets.jcampos.dev (pending deployment)
 
 ---
 

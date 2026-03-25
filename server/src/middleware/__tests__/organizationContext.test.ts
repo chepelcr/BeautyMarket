@@ -63,8 +63,8 @@ describe('Organization Context Middleware', () => {
 
     it('should extract organization from subdomain', async () => {
       const mockOrg = { id: 'org-1', name: 'Test Org' };
-      mockReq.hostname = 'mystore.jmarkets.jcampos.dev';
-      process.env.BASE_DOMAIN = 'jmarkets.jcampos.dev';
+      mockReq.hostname = 'mystore.j-markets.jcampos.dev';
+      process.env.BASE_DOMAIN = 'j-markets.jcampos.dev';
       vi.mocked(mockOrgService.getBySubdomain!).mockResolvedValue(mockOrg as any);
 
       const middleware = createOrganizationContextMiddleware(
@@ -82,7 +82,7 @@ describe('Organization Context Middleware', () => {
     it('should extract organization from custom domain', async () => {
       const mockOrg = { id: 'org-1', name: 'Test Org' };
       mockReq.hostname = 'www.customstore.com';
-      process.env.BASE_DOMAIN = 'jmarkets.jcampos.dev';
+      process.env.BASE_DOMAIN = 'j-markets.jcampos.dev';
       vi.mocked(mockOrgService.getByCustomDomain!).mockResolvedValue(mockOrg as any);
 
       const middleware = createOrganizationContextMiddleware(

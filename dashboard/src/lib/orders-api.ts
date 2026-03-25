@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/queryClient';
+
 const ORDERS_API_URL = import.meta.env.VITE_ORDERS_API_URL;
 
 export class OrdersApi {
@@ -9,18 +11,9 @@ export class OrdersApi {
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
     const url = `${ORDERS_API_URL}${endpoint}`;
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
-    }
-
+    const method = ((options.method as string) || 'GET').toUpperCase();
+    const data = options.body ? JSON.parse(options.body as string) : undefined;
+    const response = await apiRequest(method, url, data);
     return response.json();
   }
 

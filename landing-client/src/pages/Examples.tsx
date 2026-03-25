@@ -79,7 +79,7 @@ export default function Examples() {
     displayName: template.displayName,
     description: template.description,
     category: template.category,
-    url: `https://${template.name}-example.jmarkets.jcampos.dev`,
+    url: `https://${template.name}-example.j-markets.jcampos.dev`,
     icon: getCategoryIcon(template.category),
     featured: featuredTemplateNames.includes(template.name),
   }));
@@ -155,7 +155,7 @@ export default function Examples() {
         titleKey="examples.cta.title"
         subtitleKey="examples.cta.subtitle"
         buttonTextKey="examples.cta.button"
-        onClick={() => window.open('https://admin.jmarkets.jcampos.dev/register', '_blank', 'noopener,noreferrer')}
+        onClick={() => window.open('https://admin.j-markets.jcampos.dev/register', '_blank', 'noopener,noreferrer')}
         buttonIcon={null}
         variant="light"
       />

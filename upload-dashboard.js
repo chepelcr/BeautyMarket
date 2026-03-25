@@ -105,7 +105,7 @@ async function main() {
   console.log(`   ⏱️  Invalidation will complete in 1-5 minutes\n`);
 
   console.log('✅ Dashboard deployed successfully!');
-  console.log(`   URL: https://admin.jmarkets.jcampos.dev\n`);
+  console.log(`   URL: https://admin.j-markets.jcampos.dev\n`);
 }
 
 main().catch((error) => {

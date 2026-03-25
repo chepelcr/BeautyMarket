@@ -12,7 +12,7 @@ export default function SelectOrganization() {
   const { useUserOrganizations } = useOrganization();
   const [, navigate] = useLocation();
 
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
   // Fetch user's organizations
   const { data: organizations, isLoading: orgsLoading, error } = useUserOrganizations(user?.id);

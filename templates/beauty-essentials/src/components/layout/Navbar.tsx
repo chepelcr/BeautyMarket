@@ -11,7 +11,7 @@ export default function Navbar() {
   const { organization } = useSubdomainContext();
   const { data: theme } = useTheme();
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://jmarkets.jcampos.dev';
+  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.dev';
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 

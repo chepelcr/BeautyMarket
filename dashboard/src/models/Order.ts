@@ -1,3 +1,15 @@
+export const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const;
+export type OrderStatus = typeof ORDER_STATUSES[number];
+
+export type ReportColorScheme = 'green' | 'orange' | 'blue' | 'green_alt';
+
+export const REPORT_COLOR_OPTIONS: { value: ReportColorScheme; label: string; hex: string }[] = [
+  { value: 'green',     label: 'Verde',       hex: '#0e5c23' },
+  { value: 'orange',    label: 'Naranja',     hex: '#c65811' },
+  { value: 'blue',      label: 'Azul',        hex: '#1e4e77' },
+  { value: 'green_alt', label: 'Verde Claro', hex: '#375522' },
+];
+
 export interface OrderParty {
   name: string;
   gln: string;
@@ -27,12 +39,13 @@ export interface Order {
   order_type: string;
   creation_date: string;
   delivery_date: string;
-  order_status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  order_status: OrderStatus;
   client: OrderParty;
   supplier: OrderParty;
   delivery_location: DeliveryLocation;
   event: string;
   department: string;
+  report_color?: ReportColorScheme;
   comment: string;
   line_count: number;
   total_quantities: number;

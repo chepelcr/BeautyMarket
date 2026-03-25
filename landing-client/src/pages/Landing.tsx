@@ -26,7 +26,7 @@ export default function Landing() {
   const isScrollingRef = useRef(false);
 
   // Base domain for subdomain display
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
   useEffect(() => {
     document.title = t('hero.title') + " | JMarkets";
@@ -146,7 +146,7 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="https://admin.jmarkets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
+              <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
                 <Button
                   size="lg"
                   className="px-8 py-6 text-lg text-white hover:opacity-90 border-0"
@@ -279,7 +279,7 @@ export default function Landing() {
                     <PricingFeature key={i}>{t(`pricing.free.features.${i}`)}</PricingFeature>
                   ))}
                 </ul>
-                <a href="https://admin.jmarkets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" className="mt-6 block">
+                <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" className="mt-6 block">
                   <Button className="w-full border border-primary text-primary hover:bg-primary/20 dark:hover:bg-primary/30 bg-primary/10">
                     {t('pricing.cta')}
                   </Button>

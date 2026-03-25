@@ -131,7 +131,8 @@ export function useAuth() {
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: Infinity, // profile never goes stale — cleared only on logout
+    gcTime: Infinity,
   });
 
   // Register mutation

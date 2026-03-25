@@ -29,7 +29,7 @@ const exampleStores = [
     id: "tech-gadgets",
     title: "Tech Gadgets Pro",
     description: "Últimos gadgets y accesorios electrónicos. Smartphones, laptops, tablets y dispositivos innovadores para la vida moderna.",
-    url: "https://tech-gadgets.jmarkets.jcampos.dev",
+    url: "https://tech-gadgets.j-markets.jcampos.dev",
     icon: <Leaf className="h-6 w-6" />,
     category: "Electrónica",
     featured: false
@@ -38,7 +38,7 @@ const exampleStores = [
     id: "vintage-fashion",
     title: "Vintage Fashion Co",
     description: "Colección curada de ropa vintage y retro. Piezas únicas de décadas pasadas con estilo atemporal.",
-    url: "https://vintage-fashion.jmarkets.jcampos.dev",
+    url: "https://vintage-fashion.j-markets.jcampos.dev",
     icon: <Sparkles className="h-6 w-6" />,
     category: "Moda",
     featured: false
@@ -47,7 +47,7 @@ const exampleStores = [
     id: "artisan-crafts",
     title: "Artisan Crafts Studio",
     description: "Manualidades y suministros para DIY. Materiales para tejer, pintar, trabajar la madera y artículos únicos hechos a mano.",
-    url: "https://artisan-crafts.jmarkets.jcampos.dev",
+    url: "https://artisan-crafts.j-markets.jcampos.dev",
     icon: <Crown className="h-6 w-6" />,
     category: "Artesanías",
     featured: true
@@ -56,7 +56,7 @@ const exampleStores = [
     id: "gourmet-foods",
     title: "Gourmet Foods Market",
     description: "Alimentos orgánicos y especiales premium. Quesos artesanales, especias exóticas, bebidas artesanales y productos especiales.",
-    url: "https://gourmet-foods.jmarkets.jcampos.dev",
+    url: "https://gourmet-foods.j-markets.jcampos.dev",
     icon: <Heart className="h-6 w-6" />,
     category: "Alimentos",
     featured: false
@@ -65,7 +65,7 @@ const exampleStores = [
     id: "fitness-hub",
     title: "Fitness Equipment Hub",
     description: "Equipamiento de fitness para hogar y gimnasio. Mancuernas, tapetes de yoga, bandas de resistencia y accesorios de entrenamiento.",
-    url: "https://fitness-hub.jmarkets.jcampos.dev",
+    url: "https://fitness-hub.j-markets.jcampos.dev",
     icon: <Star className="h-6 w-6" />,
     category: "Deportes",
     featured: false
@@ -74,7 +74,7 @@ const exampleStores = [
     id: "pet-supplies",
     title: "Pet Care Supplies",
     description: "Todo para tus mascotas. Juguetes, productos de aseo, nutrición y camas cómodas para gatos y perros.",
-    url: "https://pet-supplies.jmarkets.jcampos.dev",
+    url: "https://pet-supplies.j-markets.jcampos.dev",
     icon: <Scissors className="h-6 w-6" />,
     category: "Mascotas",
     featured: true

@@ -36,7 +36,7 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
       <SelectContent>
         <SelectItem value="all">{t('products.filters.allCategories')}</SelectItem>
         {categories.map((category) => (
-          <SelectItem key={category.id} value={category.id}>
+          <SelectItem key={category.categoryId} value={category.categoryId}>
             {category.name}
           </SelectItem>
         ))}

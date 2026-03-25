@@ -7,6 +7,7 @@ import {
   OrganizationRepository,
   OrganizationMemberRepository,
   OrganizationInvitationRepository,
+  OrganizationSettingsRepository,
   RBACRepository,
   ThemeSettingsRepository,
   ContactSettingsRepository,
@@ -20,7 +21,7 @@ import {
 } from './repositories';
 
 // AWS DAOs
-import { S3Dao, CloudFrontDao } from './aws-daos';
+import { S3Dao } from './aws-daos';
 
 // Services
 import {
@@ -30,11 +31,11 @@ import {
   CognitoService,
   UserService,
   OrganizationService,
+  OrganizationEventPublisher,
   MembershipService,
   InvitationService,
   RBACService,
   EmailService,
-  OrganizationInfrastructureService,
   ThemeSettingsService,
   ContactSettingsService,
   PaymentSettingsService,
@@ -81,6 +82,7 @@ export const preDeploymentRepository = new PreDeploymentRepository();
 export const organizationRepository = new OrganizationRepository();
 export const organizationMemberRepository = new OrganizationMemberRepository();
 export const organizationInvitationRepository = new OrganizationInvitationRepository();
+export const organizationSettingsRepository = new OrganizationSettingsRepository();
 export const rbacRepository = new RBACRepository();
 
 // Settings repositories
@@ -98,28 +100,25 @@ export const sectionContentRepository = new SectionContentRepository();
 
 // Create centralized AWS DAOs (shared across all services)
 export const s3Dao = new S3Dao();
-export const cloudfrontDao = new CloudFrontDao();
 
 // Create services
 
-// Organization infrastructure service (needed by preDeploymentService)
-export const organizationInfrastructureService = new OrganizationInfrastructureService(
-  organizationRepository,
-  s3Dao,
-  cloudfrontDao
-);
+// Event publisher (SNS)
+export const organizationEventPublisher = new OrganizationEventPublisher();
 
 export const preDeploymentService = new PreDeploymentService(
   preDeploymentRepository,
   organizationRepository,
-  organizationInfrastructureService
+  organizationSettingsRepository,
+  organizationEventPublisher
 );
 
 export const deploymentService = new DeploymentService(
   preDeploymentRepository,
   deploymentRepository,
   organizationRepository,
-  organizationInfrastructureService,
+  organizationSettingsRepository,
+  organizationEventPublisher,
   s3Dao
 );
 export const s3UploadService = new S3UploadService(s3Dao);
@@ -134,7 +133,8 @@ export const organizationService = new OrganizationService(
   organizationMemberRepository,
   rbacRepository,
   contactSettingsRepository,
-  templateCloneService
+  templateCloneService,
+  organizationEventPublisher
 );
 export const membershipService = new MembershipService(
   organizationMemberRepository,
@@ -186,7 +186,6 @@ export const userController = new UserController(userService);
 export const organizationController = new OrganizationController(
   organizationService,
   rbacService,
-  organizationInfrastructureService,
   templateCloneService,
   organizationMemberRepository
 );

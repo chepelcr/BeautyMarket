@@ -7,9 +7,6 @@ export interface Organization {
   subdomain: string | null;
   customDomain: string | null;
   domainVerified: boolean | null;
-  s3BucketName: string | null;
-  cloudfrontDistributionId: string | null;
-  cloudfrontDomain: string | null;
   settings: OrganizationSettings | null;
   plan: string;
   billingEmail: string | null;

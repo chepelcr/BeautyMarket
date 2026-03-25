@@ -197,6 +197,7 @@ export default function Dashboard() {
           icon={Package}
           isLoading={isLoading}
           description={t('dashboard.stats.activeProducts')}
+          onClick={() => setLocation('/admin/products')}
         />
         <StatCard
           title={t('dashboard.stats.activeCategories')}
@@ -204,6 +205,7 @@ export default function Dashboard() {
           icon={LayoutGrid}
           isLoading={isLoading}
           description={t('dashboard.stats.productCategories')}
+          onClick={() => setLocation('/admin/categories')}
         />
         <StatCard
           title={t('dashboard.stats.orders')}
@@ -211,6 +213,7 @@ export default function Dashboard() {
           icon={ShoppingCart}
           isLoading={isLoading}
           description={t('dashboard.stats.pendingOrders')}
+          onClick={() => setLocation('/admin/orders')}
         />
         <StatCard
           title={t('dashboard.stats.revenue')}

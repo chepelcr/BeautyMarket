@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -86,6 +87,7 @@ export default function CreateOrganization() {
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [checkingSubdomain, setCheckingSubdomain] = useState(false);
 
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const {
@@ -97,7 +99,7 @@ export default function CreateOrganization() {
   } = useOrganization();
   const [location, navigate] = useLocation();
 
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
   const steps = [
     { id: 'info', title: 'Información Básica', description: 'Nombre y identificador' },
@@ -132,7 +134,7 @@ export default function CreateOrganization() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      navigate('/register');
+      navigate('/login');
     }
   }, [isAuthenticated, authLoading, navigate]);
 
@@ -410,13 +412,8 @@ export default function CreateOrganization() {
       // Clear the resume orgId from sessionStorage
       sessionStorage.removeItem('resumeOrgId');
 
-      // Store selected organization and redirect to dashboard
-      localStorage.setItem('selectedOrganization', JSON.stringify({
-        id: createdOrgId,
-        name: step1Data.name,
-        slug: step1Data.slug,
-        subdomain: step1Data.subdomain,
-      }));
+      // Select the org (same pattern as SelectOrganization)
+      sessionStorage.setItem('selectedOrgId', createdOrgId);
 
       navigate('/admin');
       return;
@@ -441,13 +438,11 @@ export default function CreateOrganization() {
       // Clear the resume orgId from sessionStorage
       sessionStorage.removeItem('resumeOrgId');
 
-      // Store selected organization and redirect to dashboard
-      localStorage.setItem('selectedOrganization', JSON.stringify({
-        id: createdOrgId,
-        name: step1Data.name,
-        slug: step1Data.slug,
-        subdomain: step1Data.subdomain,
-      }));
+      // Select the org immediately (same pattern as SelectOrganization)
+      // and pre-populate the React Query cache to avoid a loading state in admin
+      sessionStorage.setItem('selectedOrgId', organization.id);
+      queryClient.setQueryData(['user-organizations', user.id], [organization]);
+      queryClient.setQueryData(['default-organization', user.id], organization);
 
       navigate('/admin');
     } catch (error: any) {

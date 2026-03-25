@@ -6,6 +6,8 @@ export interface ProductFilters {
   isActive?: boolean;
   priceMin?: number;
   priceMax?: number;
+  salePriceMin?: number;
+  salePriceMax?: number;
 }
 
 export interface ProductListState {
@@ -19,9 +21,9 @@ export interface ProductListState {
   clearFilters: () => void;
 
   // Sorting
-  sortBy: 'name' | 'price' | 'createdAt';
+  sortBy: 'name' | 'description' | 'createdOn' | 'updatedOn';
   sortOrder: 'asc' | 'desc';
-  setSorting: (sortBy: 'name' | 'price' | 'createdAt', sortOrder: 'asc' | 'desc') => void;
+  setSorting: (sortBy: 'name' | 'description' | 'createdOn' | 'updatedOn', sortOrder: 'asc' | 'desc') => void;
 
   // Pagination
   page: number;
@@ -50,7 +52,7 @@ export const useProductListStore = create<ProductListState>()(
       clearFilters: () => set({ filters: {}, page: 1 }),
 
       // Sorting
-      sortBy: 'createdAt',
+      sortBy: 'createdOn',
       sortOrder: 'desc',
       setSorting: (sortBy, sortOrder) => set({ sortBy, sortOrder, page: 1 }),
 

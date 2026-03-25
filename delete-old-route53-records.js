@@ -12,13 +12,13 @@ const route53Client = new Route53Client({
 });
 
 const OLD_RECORDS = [
-  { name: 'beauty-demo-example.jmarkets.jcampos.dev.', target: 'd2g913p7fy7cbf.cloudfront.net.' },
-  { name: 'beauty-salon-example.jmarkets.jcampos.dev.', target: 'd2m8tidvf48e1t.cloudfront.net.' },
-  { name: 'bella-natural-example.jmarkets.jcampos.dev.', target: 'dipzf740pvzwf.cloudfront.net.' },
-  { name: 'glam-studio-example.jmarkets.jcampos.dev.', target: 'droqz87wu2k26.cloudfront.net.' },
-  { name: 'pro-nails-example.jmarkets.jcampos.dev.', target: 'd199frglt4oawk.cloudfront.net.' },
-  { name: 'royal-hair-example.jmarkets.jcampos.dev.', target: 'd2oh5zn4u4kjcx.cloudfront.net.' },
-  { name: 'skin-love-example.jmarkets.jcampos.dev.', target: 'dss6ul7nxkrws.cloudfront.net.' },
+  { name: 'beauty-demo-example.j-markets.jcampos.dev.', target: 'd2g913p7fy7cbf.cloudfront.net.' },
+  { name: 'beauty-salon-example.j-markets.jcampos.dev.', target: 'd2m8tidvf48e1t.cloudfront.net.' },
+  { name: 'bella-natural-example.j-markets.jcampos.dev.', target: 'dipzf740pvzwf.cloudfront.net.' },
+  { name: 'glam-studio-example.j-markets.jcampos.dev.', target: 'droqz87wu2k26.cloudfront.net.' },
+  { name: 'pro-nails-example.j-markets.jcampos.dev.', target: 'd199frglt4oawk.cloudfront.net.' },
+  { name: 'royal-hair-example.j-markets.jcampos.dev.', target: 'd2oh5zn4u4kjcx.cloudfront.net.' },
+  { name: 'skin-love-example.j-markets.jcampos.dev.', target: 'dss6ul7nxkrws.cloudfront.net.' },
 ];
 
 async function deleteOldRecords() {

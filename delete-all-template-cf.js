@@ -25,7 +25,7 @@ async function deleteAllTemplateDistributions() {
     const allDistributions = listResponse.DistributionList?.Items || [];
 
     const templateDistributions = allDistributions.filter((dist) =>
-      dist.Comment?.includes('example.jmarkets.jcampos.dev')
+      dist.Comment?.includes('example.j-markets.jcampos.dev')
     );
 
     console.log(`Found ${templateDistributions.length} template distributions\n`);

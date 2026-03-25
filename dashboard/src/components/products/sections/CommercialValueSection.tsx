@@ -12,6 +12,7 @@ import { getTaxConfig } from "@/types/taxTypeConfig";
 
 interface CommercialValueSectionProps {
   form: UseFormReturn<InsertProduct>;
+  disabled?: boolean;
 }
 
 const TAX_TYPES = [
@@ -21,8 +22,8 @@ const TAX_TYPES = [
   { taxId: 3, code: '99', description: 'Otros' }
 ];
 
-export function CommercialValueSection({ form }: CommercialValueSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+export function CommercialValueSection({ form, disabled = false }: CommercialValueSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(!disabled);
 
   const price = form.watch("price") || 0;
   const discounts = form.watch("discounts") || [];
@@ -75,6 +76,7 @@ export function CommercialValueSection({ form }: CommercialValueSectionProps) {
             size="sm"
             variant="outline"
             onClick={() => setIsExpanded(!isExpanded)}
+            disabled={disabled}
           >
             <Eye className="h-4 w-4" />
           </Button>

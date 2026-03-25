@@ -170,7 +170,7 @@ export default function CreateOrganizationWizard() {
                   placeholder="my-beauty-store"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your store will be available at: {formData.slug}.jmarkets.jcampos.dev
+                  Your store will be available at: {formData.slug}.j-markets.jcampos.dev
                 </p>
               </div>
               <div>

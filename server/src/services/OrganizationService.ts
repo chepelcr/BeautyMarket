@@ -4,6 +4,7 @@ import type { OrganizationMemberRepository } from "../repositories/OrganizationM
 import type { RBACRepository } from "../repositories/RBACRepository";
 import type { ContactSettingsRepository } from "../repositories/ContactSettingsRepository";
 import type { TemplateCloneService } from "./TemplateCloneService";
+import type { OrganizationEventPublisher } from "./OrganizationEventPublisher";
 
 export interface IOrganizationService {
   getById(id: string): Promise<Organization | null>;
@@ -28,7 +29,8 @@ export class OrganizationService implements IOrganizationService {
     private memberRepo: OrganizationMemberRepository,
     private rbacRepo: RBACRepository,
     private contactSettingsRepo: ContactSettingsRepository,
-    private templateCloneService: TemplateCloneService
+    private templateCloneService: TemplateCloneService,
+    private eventPublisher?: OrganizationEventPublisher
   ) {}
 
   async getById(id: string): Promise<Organization | null> {
@@ -89,6 +91,20 @@ export class OrganizationService implements IOrganizationService {
       isDefault: true,
       invitedBy: ownerId,
     });
+
+    // Publish domain event to trigger infrastructure provisioning (fire-and-forget)
+    try {
+      await this.eventPublisher?.publishOrganizationRegistered({
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+        domain: organization.customDomain ?? undefined,
+        subdomain: organization.subdomain ?? undefined,
+      });
+    } catch (err) {
+      console.error('[OrganizationService] Failed to publish OrganizationRegistered:', err);
+      // intentionally swallowed — org creation has already succeeded
+    }
 
     return organization;
   }

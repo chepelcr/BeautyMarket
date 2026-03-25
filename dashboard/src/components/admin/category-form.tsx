@@ -6,15 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCategorySchema, type InsertCategory, type Category } from "@/models";
+import { insertCategorySchema, type InsertCategory, type Category, type ImageDTO } from "@/models";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ImageUpload } from "@/components/image-upload";
-import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { createCategory, updateCategory, fileToBase64, validateImage } from "@/services/categoriesApi";
 
 interface CategoryFormProps {
   category?: Category;
@@ -37,10 +35,26 @@ function getContrastingColor(backgroundColor: string): string {
   return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
 }
 
+// Form data type (for local state)
+interface CategoryFormData {
+  name: string;
+  slug: string;
+  description: string;
+  backgroundColor: string;
+  buttonColor: string;
+  image1File?: File;
+  image2File?: File;
+  sortOrder: number;
+}
+
 export default function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showPreview, setShowPreview] = useState(false);
+  const [image1Preview, setImage1Preview] = useState<string | null>(category?.image1Url || null);
+  const [image2Preview, setImage2Preview] = useState<string | null>(category?.image2Url || null);
+  const image1InputRef = useRef<HTMLInputElement>(null);
+  const image2InputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!category;
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
@@ -53,17 +67,20 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
     watch,
     setValue,
     formState: { errors },
-  } = useForm<InsertCategory>({
-    resolver: zodResolver(insertCategorySchema),
-    defaultValues: category || {
+  } = useForm<CategoryFormData>({
+    defaultValues: category ? {
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      backgroundColor: category.backgroundColor,
+      buttonColor: category.buttonColor,
+      sortOrder: category.sortOrder,
+    } : {
       name: "",
       slug: "",
       description: "",
       backgroundColor: "#fce7f3",
       buttonColor: "#e91e63",
-      image1Url: "",
-      image2Url: "",
-      isActive: true,
       sortOrder: 0,
     },
   });
@@ -84,14 +101,92 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
     setValue('buttonColor', buttonColor);
   };
 
+  // Handle image file selection
+  const handleImage1Change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      toast({
+        title: t("categories.form.error"),
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImage1Preview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImage2Change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImage(file);
+    if (!validation.valid) {
+      toast({
+        title: t("categories.form.error"),
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImage2Preview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const mutation = useMutation({
-    mutationFn: async (data: InsertCategory) => {
-      if (!user?.id || !defaultOrg?.id) throw new Error("Missing context");
-      const url = isEditing
-        ? buildOrgApiUrl(user.id, defaultOrg.id, `/categories/${category!.id}`)
-        : buildOrgApiUrl(user.id, defaultOrg.id, "/categories");
-      const method = isEditing ? "PUT" : "POST";
-      return await apiRequest(method, url, data);
+    mutationFn: async (data: CategoryFormData) => {
+      if (!defaultOrg?.id) throw new Error("Missing organization");
+
+      // Prepare the request payload
+      const payload: InsertCategory = {
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        backgroundColor: data.backgroundColor,
+        buttonColor: data.buttonColor,
+        sortOrder: data.sortOrder,
+      };
+
+      // Add image1 if file is selected
+      if (image1InputRef.current?.files?.[0]) {
+        const file = image1InputRef.current.files[0];
+        const base64 = await fileToBase64(file);
+        payload.image1 = {
+          data: base64,
+          name: file.name,
+          contentType: file.type,
+        };
+      }
+
+      // Add image2 if file is selected
+      if (image2InputRef.current?.files?.[0]) {
+        const file = image2InputRef.current.files[0];
+        const base64 = await fileToBase64(file);
+        payload.image2 = {
+          data: base64,
+          name: file.name,
+          contentType: file.type,
+        };
+      }
+
+      if (isEditing) {
+        return await updateCategory(defaultOrg.id, category!.categoryId, payload);
+      } else {
+        return await createCategory(defaultOrg.id, payload);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -112,7 +207,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
     },
   });
 
-  const onSubmit = (data: InsertCategory) => {
+  const onSubmit = (data: CategoryFormData) => {
     mutation.mutate(data);
   };
 
@@ -141,9 +236,9 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
           {/* Images */}
           <div className="flex space-x-4">
             <div className="w-24 h-24 bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl flex items-center justify-center">
-              {watchedValues.image1Url ? (
+              {image1Preview ? (
                 <img 
-                  src={watchedValues.image1Url} 
+                  src={image1Preview} 
                   alt="Imagen 1" 
                   className="w-full h-full object-cover rounded-xl"
                 />
@@ -152,9 +247,9 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
               )}
             </div>
             <div className="w-24 h-24 bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl flex items-center justify-center">
-              {watchedValues.image2Url ? (
+              {image2Preview ? (
                 <img 
-                  src={watchedValues.image2Url} 
+                  src={image2Preview} 
                   alt="Imagen 2" 
                   className="w-full h-full object-cover rounded-xl"
                 />
@@ -268,21 +363,49 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <ImageUpload
-                    value={watchedValues.image1Url || ''}
-                    onChange={(url) => setValue('image1Url', url)}
-                    label={t("categories.form.image1")}
-                    folder="images/categories"
+                  <Label htmlFor="image1">{t("categories.form.image1")}</Label>
+                  <Input
+                    id="image1"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                    ref={image1InputRef}
+                    onChange={handleImage1Change}
                   />
+                  {image1Preview && (
+                    <div className="mt-2">
+                      <img 
+                        src={image1Preview} 
+                        alt="Preview 1" 
+                        className="w-full h-32 object-cover rounded"
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max 5MB. PNG, JPEG, GIF, WEBP
+                  </p>
                 </div>
 
                 <div>
-                  <ImageUpload
-                    value={watchedValues.image2Url || ''}
-                    onChange={(url) => setValue('image2Url', url)}
-                    label={t("categories.form.image2")}
-                    folder="images/categories"
+                  <Label htmlFor="image2">{t("categories.form.image2")}</Label>
+                  <Input
+                    id="image2"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                    ref={image2InputRef}
+                    onChange={handleImage2Change}
                   />
+                  {image2Preview && (
+                    <div className="mt-2">
+                      <img 
+                        src={image2Preview} 
+                        alt="Preview 2" 
+                        className="w-full h-32 object-cover rounded"
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max 5MB. PNG, JPEG, GIF, WEBP
+                  </p>
                 </div>
               </div>
 

@@ -11,7 +11,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { buildOrgApiUrl } from '@/lib/apiUtils';
-import { fetchAuthSession } from 'aws-amplify/auth';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -93,18 +92,7 @@ export default function DeploymentHistory() {
     queryKey: ['pre-deployments', user?.id, organization?.id],
     queryFn: async () => {
       if (!user?.id || !organization?.id) return [];
-      const session = await fetchAuthSession();
-      const idToken = session.tokens?.idToken?.toString();
-      const response = await fetch(
-        buildOrgApiUrl(user.id, organization.id, '/pre-deployments'),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(idToken && { Authorization: `Bearer ${idToken}` }),
-          },
-        }
-      );
-      if (!response.ok) throw new Error('Failed to fetch pre-deployments');
+      const response = await apiRequest('GET', buildOrgApiUrl(user.id, organization.id, '/pre-deployments'));
       const data = await response.json();
       return data.filter((d: PreDeployment) => d.status === 'ready').slice(0, 1);
     },
@@ -115,18 +103,7 @@ export default function DeploymentHistory() {
     queryKey: ['deployments', user?.id, organization?.id],
     queryFn: async () => {
       if (!user?.id || !organization?.id) return [];
-      const session = await fetchAuthSession();
-      const idToken = session.tokens?.idToken?.toString();
-      const response = await fetch(
-        buildOrgApiUrl(user.id, organization.id, '/deployments/history'),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(idToken && { Authorization: `Bearer ${idToken}` }),
-          },
-        }
-      );
-      if (!response.ok) throw new Error('Failed to fetch deployments');
+      const response = await apiRequest('GET', buildOrgApiUrl(user.id, organization.id, '/deployments/history'));
       return response.json();
     },
     enabled: !!user?.id && !!organization?.id,

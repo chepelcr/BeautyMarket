@@ -1,7 +1,7 @@
 🚀 Setting up template buckets and CloudFront distributions for all template organizations
 
 📋 Template organizations: 7
-🌍 Base domain: jmarkets.jcampos.dev
+🌍 Base domain: j-markets.jcampos.dev
 
 📦 Setting up main template bucket...
 
@@ -16,16 +16,35 @@
 📋 Template bucket contents:
    Total files: 71
 
-🔐 Checking for existing wildcard certificate for *.jmarkets.jcampos.dev...
-  📝 Requesting new wildcard certificate for *.jmarkets.jcampos.dev...
+🔐 Checking for existing wildcard certificate for *.j-markets.jcampos.dev...
+  📝 Requesting new wildcard certificate for *.j-markets.jcampos.dev...
   ✅ Certificate requested: arn:aws:acm:us-east-1:938590657428:certificate/cc67da08-a116-4562-a46a-cbc4483f0de6
   ⏳ Waiting for validation records to be generated...
   📝 Adding DNS validation records to Route53...
   ⚠️  Warning: Failed to add DNS validation records: UnknownError
   ℹ️  You may need to manually add the validation records
   ⏳ Waiting for certificate validation (max 10 minutes)...
-  ⏳ Still pending... (attempt 1, elapsed 0s)  ⏳ Still pending... (attempt 2, elapsed 30s)  ⏳ Still pending... (attempt 3, elapsed 61s)  ⏳ Still pending... (attempt 4, elapsed 91s)  ⏳ Still pending... (attempt 5, elapsed 122s)  ⏳ Still pending... (attempt 6, elapsed 152s)  ⏳ Still pending... (attempt 7, elapsed 182s)  ⏳ Still pending... (attempt 8, elapsed 213s)  ⏳ Still pending... (attempt 9, elapsed 243s)  ⏳ Still pending... (attempt 10, elapsed 274s)  ⏳ Still pending... (attempt 11, elapsed 304s)  ⏳ Still pending... (attempt 12, elapsed 335s)  ⏳ Still pending... (attempt 13, elapsed 365s)  ⏳ Still pending... (attempt 14, elapsed 395s)  ⏳ Still pending... (attempt 15, elapsed 426s)  ⏳ Still pending... (attempt 16, elapsed 456s)  ⏳ Still pending... (attempt 17, elapsed 487s)  ⏳ Still pending... (attempt 18, elapsed 517s)  ⏳ Still pending... (attempt 19, elapsed 548s)  ⏳ Still pending... (attempt 20, elapsed 578s)
-  ⏰ Timeout waiting for certificate validation after 10 minutes
+  ⏳ Still pending... (attempt 1, elapsed 0s)
+  ⏳ Still pending... (attempt 2, elapsed 30s)
+  ⏳ Still pending... (attempt 3, elapsed 61s)
+  ⏳ Still pending... (attempt 4, elapsed 91s)
+  ⏳ Still pending... (attempt 5, elapsed 122s)j-markets.jcampos.dev
+  ⏳ Still pending... (attempt 6, elapsed 152s)
+  ⏳ Still pending... (attempt 7, elapsed 182s)
+  ⏳ Still pending... (attempt 8, elapsed 213s)
+  ⏳ Still pending... (attempt 9, elapsed 243s)
+  ⏳ Still pending... (attempt 10, elapsed 274s)
+  ⏳ Still pending... (attempt 11, elapsed 304s)
+  ⏳ Still pending... (attempt 12, elapsed 335s)
+  ⏳ Still pending... (attempt 13, elapsed 365s)j-markets.jcampos.dev
+  ⏳ Still pending... (attempt 14, elapsed 395s)
+  ⏳ Still pending... (attempt 15, elapsed 426s)
+  ⏳ Still pending... (attempt 16, elapsed 456s)
+  ⏳ Still pending... (attempt 17, elapsed 487s)
+  ⏳ Still pending... (attempt 18, elapsed 517s)
+  ⏳ Still pending... (attempt 19, elapsed 548s)
+  ⏳ Still pending... (attempt 20, elapsed 578s)
+  ⏰ Timeout waiting for certificate validation after 10 minuj-markets.jcampos.dev
   ℹ️  Certificate validation may still complete. Check ACM console.
 
 🏗️  Setting up infrastructure for: jmarkets-demo-example.jmarkets.jcampos.dev
@@ -33,7 +52,7 @@
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   🔐 Creating distribution with SSL certificate
   ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
-  ❌ Failed to setup jmarkets-demo-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup jmarkets-demo-example: The specified SSj-markets.jcampos.devt exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
 Failed to setup jmarkets-demo-example, continuing with next...
 
 🏗️  Setting up infrastructure for: tech-gadgets-example.jmarkets.jcampos.dev
@@ -41,7 +60,7 @@ Failed to setup jmarkets-demo-example, continuing with next...
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   🔐 Creating distribution with SSL certificate
   ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
-  ❌ Failed to setup tech-gadgets-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup tech-gadgets-example: The specified SSj-markets.jcampos.devt exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
 Failed to setup tech-gadgets-example, continuing with next...
 
 🏗️  Setting up infrastructure for: vintage-fashion-example.jmarkets.jcampos.dev
@@ -49,7 +68,7 @@ Failed to setup tech-gadgets-example, continuing with next...
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   🔐 Creating distribution with SSL certificate
   ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
-  ❌ Failed to setup vintage-fashion-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup vintage-fashion-example: The specifij-markets.jcampos.devoesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
 Failed to setup vintage-fashion-example, continuing with next...
 
 🏗️  Setting up infrastructure for: artisan-crafts-example.jmarkets.jcampos.dev
@@ -57,7 +76,7 @@ Failed to setup vintage-fashion-example, continuing with next...
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   🔐 Creating distribution with SSL certificate
   ❌ Failed to create CloudFront distribution: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
-  ❌ Failed to setup artisan-crafts-example: The specified SSL certificate doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
+  ❌ Failed to setup artisan-crafts-example: The specij-markets.jcampos.dev doesn't exist, isn't in us-east-1 region, isn't valid, or doesn't include a valid certificate chain.
 Failed to setup artisan-crafts-example, continuing with next...
 
 🏗️  Setting up infrastructure for: gourmet-foods-example.jmarkets.jcampos.dev

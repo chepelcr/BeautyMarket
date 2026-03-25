@@ -1,11 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -16,24 +10,31 @@ import {
 import { Filter, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { OrderFilters as OrderFiltersType } from '@/store/order-list-store';
+import { ORDER_STATUSES } from '@/models/Order';
 
 interface OrderFiltersProps {
   filters: OrderFiltersType;
   onFiltersChange: (filters: OrderFiltersType) => void;
 }
 
-const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-
 export function OrderFilters({ filters, onFiltersChange }: OrderFiltersProps) {
   const { t } = useLanguage();
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const selectedStatuses = filters.status ?? [];
 
-  const handleStatusChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      status: value === 'all' ? undefined : value,
-    });
+  const activeFilterCount = [
+    selectedStatuses.length > 0 ? 1 : 0,
+    filters.startDate ? 1 : 0,
+    filters.endDate ? 1 : 0,
+    filters.creationStartDate ? 1 : 0,
+    filters.creationEndDate ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  const handleStatusToggle = (status: string) => {
+    const next = selectedStatuses.includes(status)
+      ? selectedStatuses.filter((s) => s !== status)
+      : [...selectedStatuses, status];
+    onFiltersChange({ ...filters, status: next.length ? next : undefined });
   };
 
   const clearFilters = () => {
@@ -70,25 +71,26 @@ export function OrderFilters({ filters, onFiltersChange }: OrderFiltersProps) {
             )}
           </div>
 
-          {/* Status filter */}
+          {/* Status filter - multi-select checkboxes */}
           <div className="space-y-2">
             <Label>{t('orders.filters.status')}</Label>
-            <Select
-              value={filters.status || 'all'}
-              onValueChange={handleStatusChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('orders.filters.allStatuses')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('orders.filters.allStatuses')}</SelectItem>
-                {ORDER_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
+            <div className="space-y-2">
+              {ORDER_STATUSES.map((status) => (
+                <div key={status} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`status-${status}`}
+                    checked={selectedStatuses.includes(status)}
+                    onCheckedChange={() => handleStatusToggle(status)}
+                  />
+                  <label
+                    htmlFor={`status-${status}`}
+                    className="text-sm cursor-pointer"
+                  >
                     {t(`orders.status.${status}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Delivery date range */}

@@ -8,3 +8,4 @@ vite.config.ts.*
 logs/
 
 *.production
+lambda-package.zip

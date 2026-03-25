@@ -1,13 +1,5 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-export interface SesClientConfig {
-  region?: string;
-  credentials?: {
-    accessKeyId: string;
-    secretAccessKey: string;
-  };
-}
-
 export interface SendEmailOptions {
   from: string;
   to: string;
@@ -19,21 +11,10 @@ export interface SendEmailOptions {
 export class SesDao {
   private client: SESClient;
 
-  constructor(config?: SesClientConfig) {
-    const region = config?.region || process.env.AWS_REGION || 'us-east-1';
-
-    const clientConfig: any = { region };
-
-    if (config?.credentials) {
-      clientConfig.credentials = config.credentials;
-    } else if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-      clientConfig.credentials = {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      };
-    }
-
-    this.client = new SESClient(clientConfig);
+  constructor() {
+    this.client = new SESClient({
+      region: process.env.AWS_REGION || 'us-east-1',
+    });
   }
 
   async sendEmail(options: SendEmailOptions): Promise<{ messageId: string }> {

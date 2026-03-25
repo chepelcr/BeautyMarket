@@ -2,7 +2,7 @@
 
 **Date:** January 5, 2026
 **Template:** Pet Care (Pet Products & Services)
-**Live URL:** https://pet-care-example.jmarkets.jcampos.dev
+**Live URL:** https://pet-care-example.j-markets.jcampos.dev
 **Build Output:** `dist/templates/pet-care`
 
 ---

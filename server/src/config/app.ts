@@ -2,18 +2,13 @@ export const APP_CONFIG = {
     PORT: process.env.PORT || 5000,
     NODE_ENV: process.env.NODE_ENV || 'development',
     JWT_SECRET: process.env.JWT_SECRET || 'demo-jwt-secret-for-development-only-change-in-production',
-    SESSION_SECRET: process.env.SESSION_SECRET || 'demo-session-secret-for-development-only',
 
     // AWS Configuration
     AWS_REGION: process.env.AWS_REGION,
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     SQS_QUEUE_URL: process.env.SQS_QUEUE_URL,
 
     // Email Configuration
     FROM_EMAIL: process.env.FROM_EMAIL,
-    AWS_SES_SMTP_USERNAME: process.env.AWS_SES_SMTP_USERNAME,
-    AWS_SES_SMTP_PASSWORD: process.env.AWS_SES_SMTP_PASSWORD,
 
     // Payment Configuration
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
@@ -25,7 +20,6 @@ export const APP_CONFIG = {
 
     // Frontend Configuration
     FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
-    VITE_CLOUDFRONT_URL: process.env.VITE_CLOUDFRONT_URL,
 
     // Encryption
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || 'demo-encryption-key-change-in-production',
@@ -38,16 +32,16 @@ export const APP_CONFIG = {
         'http://localhost:5000',
         'http://localhost:5173', // Vite dev server (dashboard)
         'http://localhost:9000',
-        'https://jmarkets.jcampos.dev', // Landing page production
-        'https://admin.jmarkets.jcampos.dev', // Dashboard production
+        'https://j-markets.jcampos.dev', // Landing page production
+        'https://admin.j-markets.jcampos.dev', // Dashboard production
         // Template organization domains
-        'https://jmarkets-demo-example.jmarkets.jcampos.dev',
-        'https://tech-gadgets-example.jmarkets.jcampos.dev',
-        'https://vintage-fashion-example.jmarkets.jcampos.dev',
-        'https://artisan-crafts-example.jmarkets.jcampos.dev',
-        'https://gourmet-foods-example.jmarkets.jcampos.dev',
-        'https://fitness-hub-example.jmarkets.jcampos.dev',
-        'https://pet-care-example.jmarkets.jcampos.dev',
-        'https://beauty-essentials-example.jmarkets.jcampos.dev',
+        'https://jmarkets-demo-example.j-markets.jcampos.dev',
+        'https://tech-gadgets-example.j-markets.jcampos.dev',
+        'https://vintage-fashion-example.j-markets.jcampos.dev',
+        'https://artisan-crafts-example.j-markets.jcampos.dev',
+        'https://gourmet-foods-example.j-markets.jcampos.dev',
+        'https://fitness-hub-example.j-markets.jcampos.dev',
+        'https://pet-care-example.j-markets.jcampos.dev',
+        'https://beauty-essentials-example.j-markets.jcampos.dev',
     ]
 } as const;

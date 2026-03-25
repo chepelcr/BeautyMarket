@@ -62,14 +62,12 @@ export default function OrganizationSettings() {
     useOrganizationMembers,
     useOrganizationInvitations,
     useSystemRoles,
-    useDomainStatus,
     updateOrganization,
     inviteMember,
     cancelInvitation,
     resendInvitation,
     updateMemberRole,
     removeMember,
-    provisionInfrastructure,
   } = useOrganization();
 
   // Form state
@@ -84,8 +82,6 @@ export default function OrganizationSettings() {
   const { data: members, isLoading: membersLoading } = useOrganizationMembers(id);
   const { data: invitations, isLoading: invitationsLoading } = useOrganizationInvitations(id);
   const { data: roles } = useSystemRoles();
-  const { data: domainStatus } = useDomainStatus(id);
-
   useDynamicTitle(organization?.name ? `${organization.name} - ${t('organizations.settings.title')}` : t('organizations.settings.title'));
 
   // Redirect if not authenticated
@@ -222,24 +218,6 @@ export default function OrganizationSettings() {
         description: t('organizations.settings.memberRemovedDescription').replace('{name}', memberToRemove.name),
       });
       setMemberToRemove(null);
-    } catch (error: any) {
-      toast({
-        title: t('organizations.settings.saveError'),
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleProvisionInfrastructure = async () => {
-    if (!id) return;
-
-    try {
-      await provisionInfrastructure.mutateAsync(id);
-      toast({
-        title: t('organizations.settings.infrastructureInProgress'),
-        description: t('organizations.settings.infrastructureInProgressDescription'),
-      });
     } catch (error: any) {
       toast({
         title: t('organizations.settings.saveError'),
@@ -538,7 +516,7 @@ export default function OrganizationSettings() {
                 <Label>{t('organizations.settings.subdomain')}</Label>
                 <div className="flex items-center gap-2">
                   <Input value={organization.subdomain || ''} disabled />
-                  <span className="text-muted-foreground">.jmarkets.jcampos.dev</span>
+                  <span className="text-muted-foreground">.j-markets.jcampos.dev</span>
                 </div>
                 {organization.subdomain && (
                   <p className="text-sm text-muted-foreground">
@@ -547,45 +525,6 @@ export default function OrganizationSettings() {
                 )}
               </div>
 
-              {/* Infrastructure Status */}
-              <div className="space-y-2">
-                <Label>{t('organizations.settings.infrastructureStatus')}</Label>
-                <div className="flex items-center gap-2">
-                  <Badge variant={
-                    domainStatus?.infrastructureStatus === 'active' ? 'default' :
-                    domainStatus?.infrastructureStatus === 'provisioning' ? 'secondary' :
-                    domainStatus?.infrastructureStatus === 'failed' ? 'destructive' : 'outline'
-                  }>
-                    {domainStatus?.infrastructureStatus === 'active' ? t('organizations.settings.statusActive') :
-                     domainStatus?.infrastructureStatus === 'provisioning' ? t('organizations.settings.statusProvisioning') :
-                     domainStatus?.infrastructureStatus === 'failed' ? t('organizations.settings.statusFailed') :
-                     t('organizations.settings.statusPending')}
-                  </Badge>
-                </div>
-                {domainStatus?.infrastructureStatus === 'pending' && (
-                  <Button
-                    onClick={handleProvisionInfrastructure}
-                    disabled={provisionInfrastructure.isPending}
-                  >
-                    {provisionInfrastructure.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t('organizations.settings.configuring')}
-                      </>
-                    ) : (
-                      t('organizations.settings.activateHosting')
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              {/* CloudFront Domain */}
-              {domainStatus?.cloudfrontDomain && (
-                <div className="space-y-2">
-                  <Label>{t('organizations.settings.cloudfrontDomain')}</Label>
-                  <Input value={domainStatus.cloudfrontDomain} disabled />
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

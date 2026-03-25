@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,8 +14,9 @@ export default function SelectOrganization() {
   const { useUserOrganizations } = useOrganization();
   const { t } = useLanguage();
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
 
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'jmarkets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
   // Fetch user's organizations
   const { data: organizations, isLoading: orgsLoading, error } = useUserOrganizations(user?.id);
@@ -22,7 +24,7 @@ export default function SelectOrganization() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      navigate('/register');
+      navigate('/login');
     }
   }, [isAuthenticated, authLoading, navigate]);
 
@@ -33,6 +35,7 @@ export default function SelectOrganization() {
       // Only auto-redirect if onboarding is complete (step 3)
       if (org.onboardingStep === 3) {
         sessionStorage.setItem('selectedOrgId', org.id);
+        queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
         navigate('/admin');
       }
       // If incomplete, let user see the organization and choose to continue setup
@@ -50,6 +53,8 @@ export default function SelectOrganization() {
 
     // Organization is complete, go to admin dashboard
     sessionStorage.setItem('selectedOrgId', org.id);
+    // Invalidate so useDefaultOrganization re-runs its select with the new selectedOrgId
+    queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
     navigate('/admin');
   };
 

@@ -126,22 +126,6 @@ export class OrganizationRepository implements IOrganizationRepository {
       .orderBy(organizations.name);
   }
 
-  async updateAWSResources(
-    id: string,
-    resources: {
-      s3BucketName?: string;
-      cloudfrontDistributionId?: string;
-      cloudfrontDomain?: string;
-    }
-  ): Promise<Organization | null> {
-    const result = await db
-      .update(organizations)
-      .set({ ...resources, updatedAt: new Date() })
-      .where(eq(organizations.id, id))
-      .returning();
-    return result[0] || null;
-  }
-
   async verifyDomain(id: string): Promise<Organization | null> {
     const result = await db
       .update(organizations)

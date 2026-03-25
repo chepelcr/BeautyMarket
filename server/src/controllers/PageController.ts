@@ -19,7 +19,7 @@ export class PageController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages:
+   * /api/users/{userId}/organization/{orgId}/pages:
    *   get:
    *     summary: Get all pages for an organization
    *     tags: [Pages]
@@ -75,7 +75,7 @@ export class PageController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}:
    *   get:
    *     summary: Get page by ID
    *     tags: [Pages]
@@ -119,7 +119,7 @@ export class PageController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages:
+   * /api/users/{userId}/organization/{orgId}/pages:
    *   post:
    *     summary: Create a new page
    *     tags: [Pages]
@@ -191,7 +191,7 @@ export class PageController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}:
    *   put:
    *     summary: Update a page
    *     tags: [Pages]
@@ -257,7 +257,7 @@ export class PageController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}:
    *   delete:
    *     summary: Delete a page
    *     tags: [Pages]

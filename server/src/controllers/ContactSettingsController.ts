@@ -16,7 +16,7 @@ export class ContactSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/contact:
+   * /api/users/{userId}/organization/{orgId}/settings/contact:
    *   get:
    *     summary: Get contact settings for an organization
    *     tags: [Settings]
@@ -55,7 +55,7 @@ export class ContactSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/contact:
+   * /api/users/{userId}/organization/{orgId}/settings/contact:
    *   put:
    *     summary: Update contact settings for an organization
    *     tags: [Settings]

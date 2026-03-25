@@ -7,7 +7,7 @@ Multi-template e-commerce system with completely different designs for different
 ### 1. Tech Gadgets (Technology & Electronics)
 **Status:** ✅ Complete
 **Directory:** `templates/tech-gadgets/`
-**Live URL:** https://tech-gadgets-example.jmarkets.jcampos.dev
+**Live URL:** https://tech-gadgets-example.j-markets.jcampos.dev
 **Dev Port:** 3002
 
 **Theme:**
@@ -129,16 +129,16 @@ Each template builds to: `dist/templates/{template-name}/`
 
 ### CloudFront + S3
 Each template deploys to its own subdomain:
-- `{template-name}-example.jmarkets.jcampos.dev`
+- `{template-name}-example.j-markets.jcampos.dev`
 
 ### SSL Certificate
-Wildcard certificate: `*.jmarkets.jcampos.dev`
+Wildcard certificate: `*.j-markets.jcampos.dev`
 ARN: `arn:aws:acm:us-east-1:938590657428:certificate/a18f46b0-b2b1-46d0-80c1-233ad9addf91`
 
 ### Deployment Process
 1. Build template: `npm run build:template:{name}`
 2. Output to: `dist/templates/{name}/`
-3. Upload to S3 bucket: `{name}-example.jmarkets.jcampos.dev`
+3. Upload to S3 bucket: `{name}-example.j-markets.jcampos.dev`
 4. Configure CloudFront distribution
 5. Set up DNS (CNAME record)
 

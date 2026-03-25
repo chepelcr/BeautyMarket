@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { buildOrdersApiUrl } from '@/lib/apiUtils';
+import { apiRequest } from '@/lib/queryClient';
 import type { Confirmation } from '@/models';
 
 export interface ConfirmationsQueryParams {
@@ -16,8 +18,7 @@ export interface ConfirmationsResponse {
   totalPages: number;
 }
 
-const baseUrl = (orgId: string) =>
-  `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${orgId}/confirmations`;
+const baseUrl = (orgId: string) => buildOrdersApiUrl(orgId, '/confirmations');
 
 async function fetchConfirmations(params: ConfirmationsQueryParams): Promise<ConfirmationsResponse> {
   const { orgId, page = 1, pageSize = 12 } = params;
@@ -26,12 +27,7 @@ async function fetchConfirmations(params: ConfirmationsQueryParams): Promise<Con
   queryParams.append('page', String(page));
   queryParams.append('pageSize', String(pageSize));
 
-  const response = await fetch(`${baseUrl(orgId)}?${queryParams.toString()}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch confirmations');
-  }
-
+  const response = await apiRequest('GET', `${baseUrl(orgId)}?${queryParams.toString()}`);
   const data = await response.json();
 
   return {
@@ -66,8 +62,7 @@ export function useConfirmation(orgId: string, confirmationNumber: string) {
   return useQuery<Confirmation>({
     queryKey: ['confirmation', confirmationNumber],
     queryFn: async () => {
-      const response = await fetch(`${baseUrl(orgId)}/${confirmationNumber}`);
-      if (!response.ok) throw new Error('Failed to fetch confirmation');
+      const response = await apiRequest('GET', `${baseUrl(orgId)}/${confirmationNumber}`);
       return response.json();
     },
     enabled: !!orgId && !!confirmationNumber,
@@ -79,15 +74,7 @@ export function useCreateConfirmation(orgId: string) {
 
   return useMutation({
     mutationFn: async (body: { confirmation_number: string; document_numbers: string[] }) => {
-      const response = await fetch(baseUrl(orgId), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to create confirmation (${response.status})`);
-      }
+      const response = await apiRequest('POST', baseUrl(orgId), body);
       return response.json();
     },
     onSuccess: () => {
@@ -101,15 +88,7 @@ export function useUpdateConfirmation(orgId: string, confirmationNumber: string)
 
   return useMutation({
     mutationFn: async (body: { document_numbers: string[] }) => {
-      const response = await fetch(`${baseUrl(orgId)}/${confirmationNumber}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to update confirmation (${response.status})`);
-      }
+      const response = await apiRequest('PUT', `${baseUrl(orgId)}/${confirmationNumber}`, body);
       return response.json();
     },
     onSuccess: () => {
@@ -124,15 +103,7 @@ export function useUpdateConfirmationStatus(orgId: string, confirmationNumber: s
 
   return useMutation({
     mutationFn: async (status: number) => {
-      const response = await fetch(`${baseUrl(orgId)}/${confirmationNumber}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to update status (${response.status})`);
-      }
+      const response = await apiRequest('PATCH', `${baseUrl(orgId)}/${confirmationNumber}/status`, { status });
       return response.json();
     },
     onSuccess: () => {
@@ -147,14 +118,7 @@ export function useRemoveOrderFromConfirmation(orgId: string, confirmationNumber
 
   return useMutation({
     mutationFn: async (documentNumber: string) => {
-      const response = await fetch(
-        `${baseUrl(orgId)}/${confirmationNumber}/orders/${documentNumber}`,
-        { method: 'DELETE' }
-      );
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to remove order (${response.status})`);
-      }
+      const response = await apiRequest('DELETE', `${baseUrl(orgId)}/${confirmationNumber}/orders/${documentNumber}`);
       return response.json();
     },
     onSuccess: () => {

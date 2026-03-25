@@ -97,7 +97,7 @@ Builds to: `../../dist/templates/vintage-fashion`
 
 ## Live Demo
 
-URL: https://vintage-fashion-example.jmarkets.jcampos.dev
+URL: https://vintage-fashion-example.j-markets.jcampos.dev
 
 ## Components
 

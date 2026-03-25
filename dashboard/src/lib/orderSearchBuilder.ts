@@ -1,6 +1,12 @@
+import { ORDER_STATUSES } from '@/models/Order';
+
+const DEFAULT_STATUSES = ORDER_STATUSES.filter(
+  (s) => s !== 'delivered' && s !== 'cancelled'
+);
+
 export interface OrderSearchFilters {
   textSearch?: string;
-  status?: string;
+  status?: string[];
   startDate?: string;          // delivery date range start (YYYY-MM-DD)
   endDate?: string;            // delivery date range end (YYYY-MM-DD)
   creationStartDate?: string;  // creation date range start (YYYY-MM-DD)
@@ -30,8 +36,11 @@ export function buildOrderSearchString(filters: OrderSearchFilters): string {
     parts.push(`(documentNumber:${v},clientName:${v},deliverToName:${v},deliverToCode:${v},confirmationNumber:${v})`);
   }
 
-  if (filters.status) {
-    parts.push(`orderStatus:${filters.status}`);
+  const activeStatuses = filters.status?.length ? filters.status : DEFAULT_STATUSES;
+  if (activeStatuses.length === 1) {
+    parts.push(`orderStatus:${activeStatuses[0]}`);
+  } else {
+    parts.push(`(${activeStatuses.map((s) => `orderStatus:${s}`).join(',')})`);
   }
 
   // Delivery date range

@@ -1,0 +1,1898 @@
+{
+  "base_url": "https://markets-api.jcampos.dev",
+  "auth": "Authorization: Bearer <cognito-id-token>",
+  "cognito_pool_arn_export": "jmarkets-cognito-UserPoolArn",
+  "public_prefixes": [
+    "/health",
+    "/api/templates",
+    "/api/public/",
+    "/api/invitations/token/",
+    "/api/invitations/accept/",
+    "/api/organizations/check-slug/",
+    "/api/organizations/by-subdomain/"
+  ],
+  "services": [
+    {
+      "name": "jmarkets",
+      "endpoints": [
+        {
+          "path": "/api/components",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all components",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [
+            {
+              "name": "type",
+              "type": "string",
+              "required": false,
+              "description": "Filter components by type (system/custom/all)"
+            }
+          ],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/components/{id}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get component by ID",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/invitations/accept/{token}",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Accept an invitation",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/invitations/token/{token}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get invitation by token",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all organizations",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Create a new organization (Step 1 of onboarding)",
+          "description": "Creates organization draft with basic info. Sets onboardingStep = 1.",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/by-slug/{slug}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization by slug",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "slug",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/by-subdomain/{subdomain}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization by subdomain",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "subdomain",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/check-slug/{slug}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Check if slug is available",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "slug",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/check-subdomain/{subdomain}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Check if subdomain is available",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "subdomain",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/{id}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization by ID",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/{id}",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/{id}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Delete an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/{id}/onboarding/step2",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Complete onboarding step 2 (contact information)",
+          "description": "Updates contact settings and advances onboardingStep to 2",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/{id}/onboarding/step3",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Complete onboarding step 3 (apply template and finalize)",
+          "description": "Applies selected template to organization and sets onboardingStep = 3",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/organizations/{id}/settings",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update organization settings",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/public/organizations/{orgId}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization details",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/public/organizations/{orgId}/contact",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization contact information",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/public/organizations/{orgId}/pages",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization pages",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/public/organizations/{orgId}/pages/{slug}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization page by slug",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "slug",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/public/organizations/{orgId}/theme",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get organization theme settings",
+          "description": "",
+          "auth_required": false,
+          "path_params": [
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Add a member to an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/default",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get user's default organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/default/{organizationId}",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Set user's default organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/organization/{organizationId}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Remove a member from an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/organization/{organizationId}/count",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get member count for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/organization/{organizationId}/members",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all members of an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/organizations",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all organizations a user belongs to",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/{memberId}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get member by ID",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "memberId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/memberships/{memberId}/role",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update member's role",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "memberId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/deployments",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Trigger auto-deployment for organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/deployments/history",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get deployment history for organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/deployments/status",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get deployment status for organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all invitations for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Create a new invitation",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations/expire-old",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Expire old invitations",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations/pending/{email}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get pending invitations for an email",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations/{id}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get invitation by ID",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations/{id}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Cancel an invitation",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/invitations/{id}/resend",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Resend an invitation",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all pages for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [
+            {
+              "name": "activeOnly",
+              "type": "boolean",
+              "required": false,
+              "description": "Return only active pages"
+            }
+          ],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Create a new page",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get page by ID",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update a page",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Delete a page",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all sections for a page",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [
+            {
+              "name": "activeOnly",
+              "type": "boolean",
+              "required": false,
+              "description": "Return only active sections"
+            }
+          ],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Create a new section",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update a section",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "sectionId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Delete a section",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "sectionId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all content for a section",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "sectionId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/bulk",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Bulk upsert content for a section",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "sectionId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update a content item",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "sectionId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "contentId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Delete a content item",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "pageId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "sectionId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "contentId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pre-deployments",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all pre-deployments",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pre-deployments/active",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get active pre-deployment",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/pre-deployments/{id}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Delete a pre-deployment",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/actions",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all available actions",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/check-permission",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Check if user has permission",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/modules",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all modules with submodules",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get all system roles",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Create a new role",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles/organization",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get roles for an organization (includes system roles)",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get role by ID",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update a role",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}",
+          "method": "DELETE",
+          "operation_id": "",
+          "summary": "Delete a role",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}/permissions",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get permissions for a role",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}/permissions",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Set permissions for a role",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/rbac/user-role",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get user's role in an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "organizationId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/contact",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get contact settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/contact",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update contact settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/payment",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get payment settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/payment",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update payment settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/shipping",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get shipping settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/shipping",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update shipping settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/theme",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get theme settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/settings/theme",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update theme settings for an organization",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "orgId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/organization/{orgId}/upload/presigned",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Get presigned URL for S3 upload",
+          "description": "",
+          "auth_required": true,
+          "path_params": [],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/profile",
+          "method": "GET",
+          "operation_id": "",
+          "summary": "Get user profile",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/profile",
+          "method": "PUT",
+          "operation_id": "",
+          "summary": "Update user profile",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": ""
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        },
+        {
+          "path": "/api/users/{userId}/verify-email-complete",
+          "method": "POST",
+          "operation_id": "",
+          "summary": "Complete email verification process (fetches user data from Cognito by userId)",
+          "description": "",
+          "auth_required": true,
+          "path_params": [
+            {
+              "name": "userId",
+              "type": "string",
+              "required": true,
+              "description": "Cognito user ID (sub)"
+            }
+          ],
+          "query_params": [],
+          "response": {
+            "is_list": false,
+            "fields": []
+          }
+        }
+      ]
+    }
+  ]
+}

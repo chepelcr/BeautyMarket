@@ -9,8 +9,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
       "react": path.resolve(__dirname, "node_modules/react"),
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "@radix-ui/react-context": path.resolve(__dirname, "node_modules/@radix-ui/react-context"),
+      "@radix-ui/react-tooltip": path.resolve(__dirname, "node_modules/@radix-ui/react-tooltip"),
+      "@radix-ui/react-popover": path.resolve(__dirname, "node_modules/@radix-ui/react-popover"),
+      "@radix-ui/react-alert-dialog": path.resolve(__dirname, "node_modules/@radix-ui/react-alert-dialog"),
     },
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', '@radix-ui/react-context', '@radix-ui/react-popover', '@radix-ui/react-alert-dialog'],
   },
   optimizeDeps: {
     include: [

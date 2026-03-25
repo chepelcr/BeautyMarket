@@ -1,0 +1,3225 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "JMarkets API Documentation",
+    "version": "1.0.0",
+    "description": "Multi-tenant marketplace platform API with CMS, authentication, RBAC, and auto-deployment",
+    "contact": {
+      "name": "JMarkets Support",
+      "url": "https://j-markets.jcampos.dev"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://markets-api.jcampos.dev",
+      "description": "Production API"
+    },
+    {
+      "url": "http://localhost:5000",
+      "description": "Development API"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "user"
+            ],
+            "default": "admin"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "backgroundColor": {
+            "type": "string"
+          },
+          "buttonColor": {
+            "type": "string"
+          },
+          "image1Url": {
+            "type": "string",
+            "nullable": true
+          },
+          "image2Url": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "default": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "customerPhone": {
+            "type": "string"
+          },
+          "provincia": {
+            "type": "string"
+          },
+          "canton": {
+            "type": "string"
+          },
+          "distrito": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "deliveryMethod": {
+            "type": "string",
+            "enum": [
+              "correos",
+              "uber-flash",
+              "personal"
+            ]
+          },
+          "items": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "default": "pending"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/components": {
+      "get": {
+        "summary": "Get all components",
+        "tags": [
+          "Components"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "custom",
+                "all"
+              ]
+            },
+            "description": "Filter components by type (system/custom/all)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of components"
+          }
+        }
+      }
+    },
+    "/api/components/{id}": {
+      "get": {
+        "summary": "Get component by ID",
+        "tags": [
+          "Components"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Component data"
+          },
+          "404": {
+            "description": "Component not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/settings/contact": {
+      "get": {
+        "summary": "Get contact settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact settings"
+          },
+          "404": {
+            "description": "Contact settings not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update contact settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "facebookUrl": {
+                    "type": "string"
+                  },
+                  "instagramUrl": {
+                    "type": "string"
+                  },
+                  "twitterUrl": {
+                    "type": "string"
+                  },
+                  "whatsappNumber": {
+                    "type": "string"
+                  },
+                  "businessHours": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contact settings updated successfully"
+          },
+          "404": {
+            "description": "Contact settings not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/deployments": {
+      "post": {
+        "summary": "Trigger auto-deployment for organization",
+        "tags": [
+          "Deployment"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment triggered successfully"
+          },
+          "400": {
+            "description": "Organization context required"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/deployments/status": {
+      "get": {
+        "summary": "Get deployment status for organization",
+        "tags": [
+          "Deployment"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current deployment status"
+          },
+          "400": {
+            "description": "Organization context required"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/deployments/history": {
+      "get": {
+        "summary": "Get deployment history for organization",
+        "tags": [
+          "Deployment"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of deployments"
+          },
+          "400": {
+            "description": "Organization context required"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/invitations": {
+      "get": {
+        "summary": "Get all invitations for an organization",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of invitations"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new invitation",
+        "tags": [
+          "Invitations"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "organizationId",
+                  "email",
+                  "roleId",
+                  "invitedBy"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "roleId": {
+                    "type": "string"
+                  },
+                  "invitedBy": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invitation created"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/invitations/pending/{email}": {
+      "get": {
+        "summary": "Get pending invitations for an email",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pending invitations"
+          }
+        }
+      }
+    },
+    "/api/invitations/token/{token}": {
+      "get": {
+        "summary": "Get invitation by token",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation data"
+          },
+          "404": {
+            "description": "Invitation not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/invitations/{id}": {
+      "get": {
+        "summary": "Get invitation by ID",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation data"
+          },
+          "404": {
+            "description": "Invitation not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Cancel an invitation",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation cancelled"
+          },
+          "400": {
+            "description": "Cannot cancel invitation"
+          },
+          "404": {
+            "description": "Invitation not found"
+          }
+        }
+      }
+    },
+    "/api/invitations/accept/{token}": {
+      "post": {
+        "summary": "Accept an invitation",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invitation accepted"
+          },
+          "400": {
+            "description": "Cannot accept invitation"
+          },
+          "404": {
+            "description": "Invitation not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/invitations/{id}/resend": {
+      "post": {
+        "summary": "Resend an invitation",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation resent"
+          },
+          "400": {
+            "description": "Cannot resend invitation"
+          },
+          "404": {
+            "description": "Invitation not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/invitations/expire-old": {
+      "post": {
+        "summary": "Expire old invitations",
+        "tags": [
+          "Invitations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of expired invitations"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/organizations": {
+      "get": {
+        "summary": "Get all organizations a user belongs to",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of organizations"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/default": {
+      "get": {
+        "summary": "Get user's default organization",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default organization"
+          },
+          "404": {
+            "description": "No organization found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/default/{organizationId}": {
+      "put": {
+        "summary": "Set user's default organization",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default organization updated"
+          },
+          "400": {
+            "description": "Not a member of organization"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/organization/{organizationId}/members": {
+      "get": {
+        "summary": "Get all members of an organization",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of members"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/organization/{organizationId}/count": {
+      "get": {
+        "summary": "Get member count for an organization",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member count"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/{memberId}": {
+      "get": {
+        "summary": "Get member by ID",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member data"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships": {
+      "post": {
+        "summary": "Add a member to an organization",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "organizationId",
+                  "userId",
+                  "roleId"
+                ],
+                "properties": {
+                  "organizationId": {
+                    "type": "string"
+                  },
+                  "userId": {
+                    "type": "string"
+                  },
+                  "roleId": {
+                    "type": "string"
+                  },
+                  "invitedBy": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member added"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/{memberId}/role": {
+      "put": {
+        "summary": "Update member's role",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "roleId",
+                  "updatedBy"
+                ],
+                "properties": {
+                  "roleId": {
+                    "type": "string"
+                  },
+                  "updatedBy": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated"
+          },
+          "400": {
+            "description": "Cannot update role"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/memberships/organization/{organizationId}": {
+      "delete": {
+        "summary": "Remove a member from an organization",
+        "tags": [
+          "Memberships"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "removedBy"
+                ],
+                "properties": {
+                  "removedBy": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member removed"
+          },
+          "400": {
+            "description": "Cannot remove member"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        }
+      }
+    },
+    "/api/organizations": {
+      "get": {
+        "summary": "Get all organizations",
+        "tags": [
+          "Organizations"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of organizations"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new organization (Step 1 of onboarding)",
+        "tags": [
+          "Organizations"
+        ],
+        "description": "Creates organization draft with basic info. Sets onboardingStep = 1.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "slug",
+                  "ownerId"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "subdomain": {
+                    "type": "string"
+                  },
+                  "ownerId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organization draft created (onboardingStep = 1)"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}": {
+      "get": {
+        "summary": "Get organization by ID",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization data"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an organization",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "subdomain": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Organization updated"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an organization",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization deleted"
+          },
+          "400": {
+            "description": "Cannot delete organization"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/organizations/by-slug/{slug}": {
+      "get": {
+        "summary": "Get organization by slug",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization data"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/organizations/by-subdomain/{subdomain}": {
+      "get": {
+        "summary": "Get organization by subdomain",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subdomain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization data"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/organizations/check-slug/{slug}": {
+      "get": {
+        "summary": "Check if slug is available",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability status"
+          }
+        }
+      }
+    },
+    "/api/organizations/check-subdomain/{subdomain}": {
+      "get": {
+        "summary": "Check if subdomain is available",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subdomain",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability status"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/settings": {
+      "put": {
+        "summary": "Update organization settings",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/onboarding/step2": {
+      "post": {
+        "summary": "Complete onboarding step 2 (contact information)",
+        "tags": [
+          "Organizations"
+        ],
+        "description": "Updates contact settings and advances onboardingStep to 2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "postalCode": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contact info saved, onboardingStep = 2"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/organizations/{id}/onboarding/step3": {
+      "post": {
+        "summary": "Complete onboarding step 3 (apply template and finalize)",
+        "tags": [
+          "Organizations"
+        ],
+        "description": "Applies selected template to organization and sets onboardingStep = 3",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "templateId"
+                ],
+                "properties": {
+                  "templateId": {
+                    "type": "string",
+                    "description": "The organization ID of the template to clone"
+                  },
+                  "includeCategories": {
+                    "type": "boolean",
+                    "description": "Whether to clone categories from template",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template applied, organization ready to use (onboardingStep = 3)"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages": {
+      "get": {
+        "summary": "Get all pages for an organization",
+        "tags": [
+          "Pages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activeOnly",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Return only active pages"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pages"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new page",
+        "tags": [
+          "Pages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "slug",
+                  "title"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "metaDescription": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  },
+                  "templateId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Page created successfully"
+          },
+          "400": {
+            "description": "Invalid data"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages/{pageId}": {
+      "get": {
+        "summary": "Get page by ID",
+        "tags": [
+          "Pages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page data"
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a page",
+        "tags": [
+          "Pages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "metaDescription": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  },
+                  "templateId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Page updated successfully"
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a page",
+        "tags": [
+          "Pages"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page deleted successfully"
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/settings/payment": {
+      "get": {
+        "summary": "Get payment settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment settings"
+          },
+          "404": {
+            "description": "Payment settings not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update payment settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
+                  "stripeEnabled": {
+                    "type": "boolean"
+                  },
+                  "stripePublishableKey": {
+                    "type": "string"
+                  },
+                  "stripeSecretKey": {
+                    "type": "string"
+                  },
+                  "cashOnDeliveryEnabled": {
+                    "type": "boolean"
+                  },
+                  "bankTransferEnabled": {
+                    "type": "boolean"
+                  },
+                  "bankAccountDetails": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment settings updated successfully"
+          },
+          "404": {
+            "description": "Payment settings not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pre-deployments": {
+      "get": {
+        "summary": "Get all pre-deployments",
+        "tags": [
+          "Pre-Deployment"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pre-deployments"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pre-deployments/active": {
+      "get": {
+        "summary": "Get active pre-deployment",
+        "tags": [
+          "Pre-Deployment"
+        ],
+        "responses": {
+          "200": {
+            "description": "Active pre-deployment or null"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pre-deployments/{id}": {
+      "delete": {
+        "summary": "Delete a pre-deployment",
+        "tags": [
+          "Pre-Deployment"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pre-deployment deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/public/organizations/{orgId}": {
+      "get": {
+        "summary": "Get organization details",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization details"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/public/organizations/{orgId}/theme": {
+      "get": {
+        "summary": "Get organization theme settings",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theme settings"
+          },
+          "404": {
+            "description": "Theme not found"
+          }
+        }
+      }
+    },
+    "/api/public/organizations/{orgId}/contact": {
+      "get": {
+        "summary": "Get organization contact information",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact information"
+          },
+          "404": {
+            "description": "Contact not found"
+          }
+        }
+      }
+    },
+    "/api/public/organizations/{orgId}/pages": {
+      "get": {
+        "summary": "Get organization pages",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pages"
+          }
+        }
+      }
+    },
+    "/api/public/organizations/{orgId}/pages/{slug}": {
+      "get": {
+        "summary": "Get organization page by slug",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page with sections and content"
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/roles": {
+      "get": {
+        "summary": "Get all system roles",
+        "tags": [
+          "RBAC"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of system roles"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new role",
+        "tags": [
+          "RBAC"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "organizationId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Role created"
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/roles/organization": {
+      "get": {
+        "summary": "Get roles for an organization (includes system roles)",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of roles"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}": {
+      "get": {
+        "summary": "Get role by ID",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role data"
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a role",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated"
+          },
+          "400": {
+            "description": "Cannot update system role"
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a role",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role deleted"
+          },
+          "400": {
+            "description": "Cannot delete system role"
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/modules": {
+      "get": {
+        "summary": "Get all modules with submodules",
+        "tags": [
+          "RBAC"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of modules"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/actions": {
+      "get": {
+        "summary": "Get all available actions",
+        "tags": [
+          "RBAC"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of actions"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}/permissions": {
+      "get": {
+        "summary": "Get permissions for a role",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of permissions"
+          }
+        }
+      },
+      "put": {
+        "summary": "Set permissions for a role",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "moduleId": {
+                      "type": "string"
+                    },
+                    "actionId": {
+                      "type": "string"
+                    },
+                    "submoduleId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permissions updated"
+          },
+          "400": {
+            "description": "Cannot modify system role permissions"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/check-permission": {
+      "post": {
+        "summary": "Check if user has permission",
+        "tags": [
+          "RBAC"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "organizationId",
+                  "module",
+                  "action"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "organizationId": {
+                    "type": "string"
+                  },
+                  "module": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string"
+                  },
+                  "submodule": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permission check result"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/user-role": {
+      "get": {
+        "summary": "Get user's role in an organization",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User's role"
+          },
+          "404": {
+            "description": "User not a member of organization"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/upload/presigned": {
+      "post": {
+        "summary": "Get presigned URL for S3 upload",
+        "tags": [
+          "Upload"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "fileName",
+                  "fileType"
+                ],
+                "properties": {
+                  "fileName": {
+                    "type": "string"
+                  },
+                  "fileType": {
+                    "type": "string"
+                  },
+                  "folder": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Presigned URL generated"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content": {
+      "get": {
+        "summary": "Get all content for a section",
+        "tags": [
+          "Section Content"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of content items"
+          },
+          "404": {
+            "description": "Section not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/bulk": {
+      "post": {
+        "summary": "Bulk upsert content for a section",
+        "tags": [
+          "Section Content"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "value",
+                        "displayName",
+                        "valueType"
+                      ],
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        },
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "valueType": {
+                          "type": "string",
+                          "enum": [
+                            "text",
+                            "color",
+                            "image",
+                            "boolean",
+                            "json",
+                            "background"
+                          ]
+                        },
+                        "componentId": {
+                          "type": "string"
+                        },
+                        "sortOrder": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Content upserted successfully"
+          },
+          "400": {
+            "description": "Invalid data"
+          },
+          "404": {
+            "description": "Section not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}": {
+      "put": {
+        "summary": "Update a content item",
+        "tags": [
+          "Section Content"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "valueType": {
+                    "type": "string"
+                  },
+                  "componentId": {
+                    "type": "string"
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Content updated successfully"
+          },
+          "404": {
+            "description": "Content not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a content item",
+        "tags": [
+          "Section Content"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Content deleted successfully"
+          },
+          "404": {
+            "description": "Content not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections": {
+      "get": {
+        "summary": "Get all sections for a page",
+        "tags": [
+          "Sections"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "activeOnly",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Return only active sections"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sections"
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new section",
+        "tags": [
+          "Sections"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sectionType",
+                  "name"
+                ],
+                "properties": {
+                  "sectionType": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Section created successfully"
+          },
+          "400": {
+            "description": "Invalid data"
+          },
+          "404": {
+            "description": "Page not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}": {
+      "put": {
+        "summary": "Update a section",
+        "tags": [
+          "Sections"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sectionType": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Section updated successfully"
+          },
+          "404": {
+            "description": "Section not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a section",
+        "tags": [
+          "Sections"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "pageId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Section deleted successfully"
+          },
+          "404": {
+            "description": "Section not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/settings/shipping": {
+      "get": {
+        "summary": "Get shipping settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipping settings"
+          },
+          "404": {
+            "description": "Shipping settings not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update shipping settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "freeShippingThreshold": {
+                    "type": "integer"
+                  },
+                  "defaultShippingCost": {
+                    "type": "integer"
+                  },
+                  "enableLocalPickup": {
+                    "type": "boolean"
+                  },
+                  "enableCorreosShipping": {
+                    "type": "boolean"
+                  },
+                  "enableUberFlash": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shipping settings updated successfully"
+          },
+          "404": {
+            "description": "Shipping settings not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/settings/theme": {
+      "get": {
+        "summary": "Get theme settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theme settings"
+          },
+          "404": {
+            "description": "Theme settings not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update theme settings for an organization",
+        "tags": [
+          "Settings"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "primaryColor": {
+                    "type": "string"
+                  },
+                  "secondaryColor": {
+                    "type": "string"
+                  },
+                  "logoUrl": {
+                    "type": "string"
+                  },
+                  "faviconUrl": {
+                    "type": "string"
+                  },
+                  "fontFamily": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Theme settings updated successfully"
+          },
+          "404": {
+            "description": "Theme settings not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/profile": {
+      "get": {
+        "summary": "Get user profile",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile data"
+          },
+          "403": {
+            "description": "Email not verified"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user profile",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/verify-email-complete": {
+      "post": {
+        "summary": "Complete email verification process (fetches user data from Cognito by userId)",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cognito user ID (sub)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verification completed"
+          },
+          "404": {
+            "description": "User not found in Cognito"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

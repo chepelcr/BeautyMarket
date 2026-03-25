@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { Send, Phone, MapPin, Package } from 'lucide-react';
-import type { Order } from '@/models';
+import { REPORT_COLOR_OPTIONS, type Order } from '@/models';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface OrderCardProps {
@@ -47,6 +47,13 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               <h3 className="font-semibold text-lg truncate">
                 {t('orders.orderNumber')} #{order.document_number}
               </h3>
+              {order.report_color && (
+                <span
+                  className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+                  style={{ backgroundColor: REPORT_COLOR_OPTIONS.find(o => o.value === order.report_color)?.hex }}
+                  title={REPORT_COLOR_OPTIONS.find(o => o.value === order.report_color)?.label}
+                />
+              )}
             </div>
             <p className="text-sm text-muted-foreground font-medium truncate">
               {order.client.name}

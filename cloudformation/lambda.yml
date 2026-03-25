@@ -2,53 +2,21 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: JMarkets Lambda Function (Simple CloudFormation - No SAM)
 
 Parameters:
-  FunctionNameParam:
-    Description: Function Name
+  Environment:
     Type: String
-    Default: "jmarkets-api-handler"
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name — used to import shared infra policy and Cognito exports
 
-  SessionSecretParam:
-    Description: Session Secret
+  FunctionNameParam:
+    Description: "Function Name (pattern: jmarkets-{env}-api-handler)"
     Type: String
-    NoEcho: true
+    Default: "jmarkets-dev-api-handler"
 
   DatabaseURLParam:
     Description: Database URL
     Type: String
     NoEcho: true
-
-  CloudfrontURLParam:
-    Description: Cloudfront URL
-    Type: String
-    Default: "https://cloudfront.dev.jmarkets.io"
-
-  CognitoUserPoolIdParam:
-    Description: AWS Cognito User Pool ID
-    Type: String
-    NoEcho: true
-
-  CognitoClientIdParam:
-    Description: AWS Cognito Client ID
-    Type: String
-    NoEcho: true
-
-  SesSmtpUsernameParam:
-    Description: AWS SES SMTP Username
-    Type: String
-    NoEcho: true
-
-  SesSmtpPasswordParam:
-    Description: AWS SES SMTP Password
-    Type: String
-    NoEcho: true
-
-  IAMPolicyArn:
-    Description: IAM Policy ARN for Lambda execution (from jmarkets-iam-dev stack)
-    Type: String
-    Default: ""
-
-Conditions:
-  UseExternalPolicy: !Not [!Equals [!Ref IAMPolicyArn, ""]]
 
 Resources:
   LambdaFunction:
@@ -73,18 +41,18 @@ Resources:
       Environment:
         Variables:
           NODE_ENV: production
-          SESSION_SECRET: !Ref SessionSecretParam
           NEW_DATABASE_URL: !Ref DatabaseURLParam
-          AWS_CLOUDFRONT_URL: !Ref CloudfrontURLParam
-          AWS_COGNITO_USER_POOL_ID: !Ref CognitoUserPoolIdParam
-          AWS_COGNITO_CLIENT_ID: !Ref CognitoClientIdParam
-          SES_SMTP_USERNAME: !Ref SesSmtpUsernameParam
-          SES_SMTP_PASSWORD: !Ref SesSmtpPasswordParam
+          AWS_COGNITO_USER_POOL_ID:
+            Fn::ImportValue: "jmarkets-cognito-UserPoolId"
+          AWS_COGNITO_CLIENT_ID:
+            Fn::ImportValue: "jmarkets-cognito-UserPoolClientId"
+          ORGANIZATION_TOPIC_ARN:
+            Fn::ImportValue: !Sub "jmarkets-${Environment}-organization-events-topic-arn"
 
   LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "${AWS::StackName}-role"
+      RoleName: !Sub "jmarkets-${Environment}-lambda-role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -97,108 +65,11 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - !If
-          - UseExternalPolicy
-          - !Ref IAMPolicyArn
-          - !Ref AWS::NoValue
-      Policies: !If
-        - UseExternalPolicy
-        - !Ref AWS::NoValue
-        - - PolicyName: CognitoAdminPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - cognito-idp:AdminCreateUser
-                    - cognito-idp:AdminSetUserPassword
-                    - cognito-idp:AdminUpdateUserAttributes
-                    - cognito-idp:AdminGetUser
-                    - cognito-idp:AdminInitiateAuth
-                    - cognito-idp:AdminRespondToAuthChallenge
-                    - cognito-idp:ListUsers
-                  Resource: '*'
-          - PolicyName: SQSSNSPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - sqs:ReceiveMessage
-                    - sqs:DeleteMessage
-                    - sqs:GetQueueAttributes
-                    - sns:Publish
-                  Resource: '*'
-          - PolicyName: SecretsManagerPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - secretsmanager:GetSecretValue
-                    - secretsmanager:CreateSecret
-                    - secretsmanager:UpdateSecret
-                    - secretsmanager:PutSecretValue
-                  Resource: '*'
-          - PolicyName: SESPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - ses:SendEmail
-                    - ses:SendRawEmail
-                  Resource: '*'
-          - PolicyName: S3Policy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - s3:PutObject
-                    - s3:GetObject
-                    - s3:DeleteObject
-                    - s3:ListBucket
-                    - s3:CopyObject
-                  Resource:
-                    - 'arn:aws:s3:::jmarkets-*'
-                    - 'arn:aws:s3:::jmarkets-*/*'
-          - PolicyName: CloudFrontPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - cloudfront:CreateInvalidation
-                    - cloudfront:GetDistribution
-                    - cloudfront:CreateDistribution
-                    - cloudfront:UpdateDistribution
-                    - cloudfront:ListDistributions
-                    - cloudfront:CreateOriginAccessControl
-                    - cloudfront:ListOriginAccessControls
-                  Resource: '*'
-          - PolicyName: Route53Policy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - route53:ChangeResourceRecordSets
-                    - route53:GetChange
-                    - route53:ListHostedZones
-                    - route53:GetHostedZone
-                  Resource: '*'
-          - PolicyName: ACMPolicy
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - acm:RequestCertificate
-                    - acm:DescribeCertificate
-                    - acm:ListCertificates
-                    - acm:DeleteCertificate
-                  Resource: '*'
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-cognito-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-s3-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-ses-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-sns-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-sqs-policy-arn"
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup
@@ -211,10 +82,10 @@ Outputs:
     Description: Lambda Function ARN
     Value: !GetAtt LambdaFunction.Arn
     Export:
-      Name: !Sub "${AWS::StackName}-LambdaArn"
+      Name: !Sub "jmarkets-${Environment}-lambda-arn"
 
   LambdaFunctionName:
     Description: Lambda Function Name
     Value: !Ref LambdaFunction
     Export:
-      Name: !Sub "${AWS::StackName}-LambdaName"
+      Name: !Sub "jmarkets-${Environment}-lambda-name"

@@ -1,43 +1,32 @@
-# Multi-stage build for AWS Lambda deployment
-FROM node:20-alpine AS builder
+FROM node:22-alpine
 
-# Set working directory
+# Install bash for script compatibility
+RUN apk add --no-cache bash
+
 WORKDIR /app
 
-# Copy package files
+# Copy package files for dependency installation
 COPY package*.json ./
-COPY tsconfig.json ./
+COPY landing-client/package*.json ./landing-client/
+COPY dashboard/package*.json ./dashboard/
 
-# Install all dependencies (including devDependencies for building)
-RUN npm ci
+# Install all dependencies
+RUN npm install
+RUN cd landing-client && npm install
+RUN cd dashboard && npm install
 
-# Copy source code
+# Copy only required source folders
 COPY server/ ./server/
-COPY shared/ ./shared/
-COPY lambda.ts ./
+COPY landing-client/ ./landing-client/
+COPY dashboard/ ./dashboard/
+COPY scripts/ ./scripts/
+COPY migrations/ ./migrations/
 
-# Build the application
-RUN npm run build:lambda
+# Create logs directory
+RUN mkdir -p logs
 
-# Production stage
-FROM public.ecr.aws/lambda/nodejs:20
+# Expose all required ports
+EXPOSE 5000 3001 3002 9000
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV AWS_LAMBDA_RUNTIME_API=127.0.0.1:9001
-
-# Copy built application
-COPY --from=builder /app/dist/ ${LAMBDA_TASK_ROOT}/
-COPY --from=builder /app/node_modules/ ${LAMBDA_TASK_ROOT}/node_modules/
-COPY --from=builder /app/package.json ${LAMBDA_TASK_ROOT}/
-
-# Install only production dependencies
-WORKDIR ${LAMBDA_TASK_ROOT}
-RUN npm ci --only=production && npm cache clean --force
-
-# Set the CMD to your handler
-CMD [ "lambda.handler" ]
-
-# Health check (optional)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/2015-03-31/functions/function/invocations -d '{}' || exit 1
+# Start all services like reboot-server.sh does
+CMD ["npm", "run", "dev:all"]

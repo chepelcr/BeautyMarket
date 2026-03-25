@@ -140,12 +140,12 @@ export default function LandingNavbar({ transitionStage = '' }: LandingNavbarPro
           <div className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
-            <a href="https://admin.jmarkets.jcampos.dev" target="_blank" rel="noopener noreferrer">
+            <a href="https://admin.j-markets.jcampos.dev" target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="sm">
                 {t('nav.login')}
               </Button>
             </a>
-            <a href="https://admin.jmarkets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
+            <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
               <Button size="sm" className="btn-primary">
                 {t('nav.register')}
               </Button>
@@ -242,12 +242,12 @@ export default function LandingNavbar({ transitionStage = '' }: LandingNavbarPro
               </Link>
 
               <div className="flex flex-col gap-2 pt-4 border-t">
-                <a href="https://admin.jmarkets.jcampos.dev" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
+                <a href="https://admin.j-markets.jcampos.dev" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full">
                     {t('nav.login')}
                   </Button>
                 </a>
-                <a href="https://admin.jmarkets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
+                <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full btn-primary">
                     {t('nav.register')}
                   </Button>

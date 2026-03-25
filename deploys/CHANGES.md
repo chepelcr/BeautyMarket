@@ -264,11 +264,11 @@ After deployment, verify:
 
 1. **API Gateway**
    ```bash
-   curl https://api.jmarkets.jcampos.dev/api/health
+   curl https://markets-api.jcampos.dev/api/health
    ```
 
 2. **Static Website**
-   - Visit: https://www.jmarkets.jcampos.dev
+   - Visit: https://www.j-markets.jcampos.dev
    - Check console for errors
 
 3. **Cognito**

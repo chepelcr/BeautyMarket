@@ -22,7 +22,7 @@ export class SectionController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections:
    *   get:
    *     summary: Get all sections for a page
    *     tags: [Sections]
@@ -79,7 +79,7 @@ export class SectionController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections:
    *   post:
    *     summary: Create a new section
    *     tags: [Sections]
@@ -156,7 +156,7 @@ export class SectionController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections/{sectionId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}:
    *   put:
    *     summary: Update a section
    *     tags: [Sections]
@@ -226,7 +226,7 @@ export class SectionController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections/{sectionId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}:
    *   delete:
    *     summary: Delete a section
    *     tags: [Sections]

@@ -164,7 +164,7 @@ Collection of pet-themed icons:
 
 ## Live URL
 
-https://pet-care-example.jmarkets.jcampos.dev
+https://pet-care-example.j-markets.jcampos.dev
 
 ## Template Type
 

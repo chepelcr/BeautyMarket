@@ -531,11 +531,11 @@ export default function OrganizationSettings() {
                 <Label>Subdominio</Label>
                 <div className="flex items-center gap-2">
                   <Input value={organization.subdomain || ''} disabled />
-                  <span className="text-muted-foreground">.jmarkets.jcampos.dev</span>
+                  <span className="text-muted-foreground">.j-markets.jcampos.dev</span>
                 </div>
                 {organization.subdomain && (
                   <p className="text-sm text-muted-foreground">
-                    Tu tienda: https://{organization.subdomain}.jmarkets.jcampos.dev
+                    Tu tienda: https://{organization.subdomain}.j-markets.jcampos.dev
                   </p>
                 )}
               </div>

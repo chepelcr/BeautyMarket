@@ -25,7 +25,7 @@ export class SectionContentController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections/{sectionId}/content:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content:
    *   get:
    *     summary: Get all content for a section
    *     tags: [Section Content]
@@ -112,7 +112,7 @@ export class SectionContentController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections/{sectionId}/content/bulk:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/bulk:
    *   post:
    *     summary: Bulk upsert content for a section
    *     tags: [Section Content]
@@ -220,7 +220,7 @@ export class SectionContentController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}:
    *   put:
    *     summary: Update a content item
    *     tags: [Section Content]
@@ -309,7 +309,7 @@ export class SectionContentController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}:
+   * /api/users/{userId}/organization/{orgId}/pages/{pageId}/sections/{sectionId}/content/{contentId}:
    *   delete:
    *     summary: Delete a content item
    *     tags: [Section Content]

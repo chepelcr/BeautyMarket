@@ -11,6 +11,7 @@ import { ClearButton } from "@/components/common/ClearButton";
 interface DiscountsSectionProps {
   form: any;
   disabled?: boolean;
+  forceCollapsed?: boolean;
 }
 
 const DISCOUNT_TYPES = [
@@ -21,9 +22,9 @@ const DISCOUNT_TYPES = [
   { id: 5, code: '99', description: 'Otro' }
 ];
 
-export function DiscountsSection({ form, disabled = false }: DiscountsSectionProps) {
+export function DiscountsSection({ form, disabled = false, forceCollapsed = false }: DiscountsSectionProps) {
   const discounts = form.watch("discounts") || [];
-  const [isExpanded, setIsExpanded] = useState(discounts.length > 0);
+  const [isExpanded, setIsExpanded] = useState(!forceCollapsed && discounts.length > 0);
   const [selectedDiscountType, setSelectedDiscountType] = useState<string>("");
   const [cardExpanded, setCardExpanded] = useState<{[key: string]: boolean}>({});
 
@@ -126,7 +127,7 @@ export function DiscountsSection({ form, disabled = false }: DiscountsSectionPro
                 size="sm" 
                 variant="outline" 
                 onClick={() => setIsExpanded(!isExpanded)}
-                disabled={discounts.length === 0}
+                disabled={discounts.length === 0 || disabled}
               >
                 <Eye className="h-4 w-4" />
               </Button>

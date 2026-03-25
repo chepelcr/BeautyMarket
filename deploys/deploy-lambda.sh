@@ -2,10 +2,12 @@
 
 # JMarkets - Lambda Deployment Script (Simple CloudFormation)
 STACK_NAME="jmarkets-lambda"
+ENVIRONMENT=${1:-dev}
 PROFILE="J-CAMPOS"
 REGION="us-east-1"
 
 echo "🚀 JMarkets Lambda Deployment (Simple CloudFormation)"
+echo "   Environment: $ENVIRONMENT"
 
 # Check AWS credentials
 echo "Checking AWS credentials..."
@@ -18,6 +20,7 @@ fi
 # Build and package Lambda function
 echo "📦 Building and packaging Lambda function..."
 cd "$(dirname "$0")/.."
+mkdir -p dist
 npm run package:lambda
 
 if [ $? -ne 0 ]; then
@@ -40,41 +43,17 @@ if [ ! -f ".env" ]; then
 fi
 
 # Extract variables from .env file
-SESSION_SECRET=$(grep '^SESSION_SECRET=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
 DATABASE_URL=$(grep '^NEW_DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-CLOUDFRONT_URL=$(grep '^AWS_CLOUDFRONT_URL=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-COGNITO_USER_POOL_ID=$(grep '^AWS_COGNITO_USER_POOL_ID=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-COGNITO_CLIENT_ID=$(grep '^AWS_COGNITO_CLIENT_ID=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-SES_SMTP_USERNAME=$(grep '^SES_SMTP_USERNAME=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-SES_SMTP_PASSWORD=$(grep '^SES_SMTP_PASSWORD=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-
-# Check if we should use external IAM policy
-IAM_POLICY_ARN=""
-if aws cloudformation describe-stacks --stack-name jmarkets-iam-dev --profile $PROFILE --region $REGION &> /dev/null; then
-    IAM_POLICY_ARN=$(aws cloudformation describe-stacks \
-        --stack-name jmarkets-iam-dev \
-        --profile $PROFILE \
-        --region $REGION \
-        --query 'Stacks[0].Outputs[?OutputKey==`BackendPolicyArn`].OutputValue' \
-        --output text)
-    echo "✅ Found IAM policy: $IAM_POLICY_ARN"
-fi
-
-# Deploy lambda stack with environment variables
+# Deploy lambda stack
 echo "🚀 Deploying $STACK_NAME..."
 aws cloudformation deploy \
     --template-file cloudformation/lambda.yml \
     --stack-name $STACK_NAME \
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
     --parameter-overrides \
-        SessionSecretParam="$SESSION_SECRET" \
+        Environment="$ENVIRONMENT" \
         DatabaseURLParam="$DATABASE_URL" \
-        CloudfrontURLParam="$CLOUDFRONT_URL" \
-        CognitoUserPoolIdParam="$COGNITO_USER_POOL_ID" \
-        CognitoClientIdParam="$COGNITO_CLIENT_ID" \
-        SesSmtpUsernameParam="$SES_SMTP_USERNAME" \
-        SesSmtpPasswordParam="$SES_SMTP_PASSWORD" \
-        IAMPolicyArn="$IAM_POLICY_ARN" \
+        FunctionNameParam="jmarkets-${ENVIRONMENT}-api-handler" \
     --profile $PROFILE \
     --region $REGION
 
@@ -87,7 +66,7 @@ echo "✅ $STACK_NAME deployed successfully!"
 # Update Lambda function code with the actual package
 echo "🔄 Updating Lambda function code..."
 aws lambda update-function-code \
-    --function-name jmarkets-api-handler \
+    --function-name "jmarkets-${ENVIRONMENT}-api-handler" \
     --zip-file fileb://lambda-package.zip \
     --region $REGION \
     --profile $PROFILE >/dev/null 2>&1
@@ -100,4 +79,4 @@ fi
 echo "✅ Lambda code updated successfully!"
 echo ""
 echo "✅ Lambda deployment completed!"
-echo "📝 Run ./deploys/deploy-api-gateway.sh to deploy API Gateway"
+echo "📝 Run ./deploys/deploy-api.sh to deploy API Gateway"

@@ -6,7 +6,7 @@ import {
 } from '../templates/emails';
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@jcampos.dev';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://jmarkets.jcampos.dev';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://j-markets.jcampos.dev';
 
 export type EmailLanguage = 'en' | 'es';
 

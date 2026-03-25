@@ -22,3 +22,4 @@ export * from './UserRepository';
 export * from './HomePageContentRepository';
 export * from './DeploymentRepository';
 export * from './PreDeploymentRepository';
+export * from './OrganizationSettingsRepository';

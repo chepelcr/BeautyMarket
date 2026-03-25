@@ -1,12 +1,13 @@
 # AWS SES Email List for Development
 # Add one email per line
 # Lines starting with # are ignored
-
+#
 # Your test emails here
 chepelcr@outlook.com
 webbsolanoalejandro@gmail.com
 chepelcr70@gmail.com
 johnny.campos@gmail.com
 tatianathornton26@gmail.com
-
+jc_charpa@hotmail.com
+#
 # Add more emails below as needed

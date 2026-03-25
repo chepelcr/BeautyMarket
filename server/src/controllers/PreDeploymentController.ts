@@ -21,7 +21,7 @@ export class PreDeploymentController {
 
   /**
    * @swagger
-   * /api/pre-deployments:
+   * /api/users/{userId}/organization/{orgId}/pre-deployments:
    *   get:
    *     summary: Get all pre-deployments
    *     tags: [Pre-Deployment]
@@ -41,7 +41,7 @@ export class PreDeploymentController {
 
   /**
    * @swagger
-   * /api/pre-deployments/active:
+   * /api/users/{userId}/organization/{orgId}/pre-deployments/active:
    *   get:
    *     summary: Get active pre-deployment
    *     tags: [Pre-Deployment]
@@ -62,7 +62,7 @@ export class PreDeploymentController {
 
   /**
    * @swagger
-   * /api/pre-deployments/{id}:
+   * /api/users/{userId}/organization/{orgId}/pre-deployments/{id}:
    *   delete:
    *     summary: Delete a pre-deployment
    *     tags: [Pre-Deployment]

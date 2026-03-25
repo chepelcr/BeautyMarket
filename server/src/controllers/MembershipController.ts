@@ -28,7 +28,7 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/user/{userId}/organizations:
+   * /api/users/{userId}/memberships/organizations:
    *   get:
    *     summary: Get all organizations a user belongs to
    *     tags: [Memberships]
@@ -55,7 +55,7 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/user/{userId}/default:
+   * /api/users/{userId}/memberships/default:
    *   get:
    *     summary: Get user's default organization
    *     tags: [Memberships]
@@ -89,7 +89,7 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/user/{userId}/default/{organizationId}:
+   * /api/users/{userId}/memberships/default/{organizationId}:
    *   put:
    *     summary: Set user's default organization
    *     tags: [Memberships]
@@ -129,11 +129,16 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/organization/{organizationId}/members:
+   * /api/users/{userId}/memberships/organization/{organizationId}/members:
    *   get:
    *     summary: Get all members of an organization
    *     tags: [Memberships]
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: organizationId
    *         required: true
@@ -156,11 +161,16 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/organization/{organizationId}/count:
+   * /api/users/{userId}/memberships/organization/{organizationId}/count:
    *   get:
    *     summary: Get member count for an organization
    *     tags: [Memberships]
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: organizationId
    *         required: true
@@ -183,11 +193,16 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/{memberId}:
+   * /api/users/{userId}/memberships/{memberId}:
    *   get:
    *     summary: Get member by ID
    *     tags: [Memberships]
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: memberId
    *         required: true
@@ -217,10 +232,16 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships:
+   * /api/users/{userId}/memberships:
    *   post:
    *     summary: Add a member to an organization
    *     tags: [Memberships]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *     requestBody:
    *       required: true
    *       content:
@@ -271,11 +292,16 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/{memberId}/role:
+   * /api/users/{userId}/memberships/{memberId}/role:
    *   put:
    *     summary: Update member's role
    *     tags: [Memberships]
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: memberId
    *         required: true
@@ -327,7 +353,7 @@ export class MembershipController {
 
   /**
    * @swagger
-   * /api/memberships/user/{userId}/organization/{organizationId}:
+   * /api/users/{userId}/memberships/organization/{organizationId}:
    *   delete:
    *     summary: Remove a member from an organization
    *     tags: [Memberships]

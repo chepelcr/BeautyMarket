@@ -24,7 +24,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations/organization/{organizationId}:
+   * /api/users/{userId}/organization/{orgId}/invitations:
    *   get:
    *     summary: Get all invitations for an organization
    *     tags: [Invitations]
@@ -51,7 +51,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations/pending/{email}:
+   * /api/users/{userId}/organization/{orgId}/invitations/pending/{email}:
    *   get:
    *     summary: Get pending invitations for an email
    *     tags: [Invitations]
@@ -112,7 +112,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations/{id}:
+   * /api/users/{userId}/organization/{orgId}/invitations/{id}:
    *   get:
    *     summary: Get invitation by ID
    *     tags: [Invitations]
@@ -146,7 +146,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations:
+   * /api/users/{userId}/organization/{orgId}/invitations:
    *   post:
    *     summary: Create a new invitation
    *     tags: [Invitations]
@@ -255,7 +255,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations/{id}/resend:
+   * /api/users/{userId}/organization/{orgId}/invitations/{id}/resend:
    *   post:
    *     summary: Resend an invitation
    *     tags: [Invitations]
@@ -292,7 +292,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations/{id}:
+   * /api/users/{userId}/organization/{orgId}/invitations/{id}:
    *   delete:
    *     summary: Cancel an invitation
    *     tags: [Invitations]
@@ -329,7 +329,7 @@ export class InvitationController {
 
   /**
    * @swagger
-   * /api/invitations/expire-old:
+   * /api/users/{userId}/organization/{orgId}/invitations/expire-old:
    *   post:
    *     summary: Expire old invitations
    *     tags: [Invitations]

@@ -1,4 +1,5 @@
 import { Calendar, MoreVertical, Eye, FileText, Upload, Loader2, RefreshCw, Send, ArrowRight, XCircle } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CrossdockingPDFPreview } from './CrossdockingPDFPreview';
-import { useRef, useState } from 'react';
+import { ReprocessDialog } from './ReprocessDialog';
+import { CrossdockingUploadDialog } from './CrossdockingUploadDialog';
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Order } from '@/models';
+import { REPORT_COLOR_OPTIONS, type Order } from '@/models';
 import { OrderStatusBadge } from './OrderStatusBadge';
 
 interface OrderHeaderProps {
@@ -28,18 +30,21 @@ interface OrderHeaderProps {
   organizationId: string;
   documentNumber: string;
   onReprocessSuccess?: (updatedOrder: Order) => void;
-  onCrossdockingUploadSuccess?: () => void;
+  onCrossdockingUploadSuccess?: (updatedOrder: Order) => void;
 }
 
 export function OrderHeader({ order, organizationId, documentNumber, onReprocessSuccess, onCrossdockingUploadSuccess }: OrderHeaderProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const [crossdockingPreviewOpen, setCrossdockingPreviewOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isReprocessing, setIsReprocessing] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showReprocessDialog, setShowReprocessDialog] = useState(false);
+  const [showCrossdockingUploadDialog, setShowCrossdockingUploadDialog] = useState(false);
+
+  const reportColorHex = order.report_color
+    ? REPORT_COLOR_OPTIONS.find(o => o.value === order.report_color)?.hex
+    : undefined;
 
   const formatDate = (dateStr: string) => {
     const [day, month, year] = dateStr.split('/');
@@ -49,97 +54,6 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
       month: 'long',
       day: 'numeric',
     });
-  };
-
-  const getDocumentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'ORDERS':
-        return t('orders.documentType.orders');
-      default:
-        return type;
-    }
-  };
-
-  const handleCrossdockingFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!(file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.type === 'application/vnd.ms-excel' ||
-        file.name.endsWith('.xlsx') ||
-        file.name.endsWith('.xls'))) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please select an Excel file (.xlsx or .xls)',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    toast({ title: t('orders.crossdocking.uploading') });
-
-    try {
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = reject;
-      });
-
-      const response = await fetch(
-        `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}/crossdocking/parse`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            data: base64Data,
-            name: file.name,
-            contentType: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-
-      toast({ title: t('orders.crossdocking.uploadSuccess') });
-      onCrossdockingUploadSuccess?.();
-    } catch (error) {
-      console.error('Crossdocking upload error:', error);
-      toast({
-        title: t('orders.crossdocking.uploadError'),
-        description: error instanceof Error ? error.message : 'Failed to upload crossdocking file',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleReprocess = async () => {
-    setIsReprocessing(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}/reprocess`,
-        { method: 'POST' }
-      );
-
-      if (!response.ok) throw new Error(`Reprocess failed: ${response.statusText}`);
-
-      const updatedOrder = await response.json();
-      toast({ title: t('orders.actions.reprocessSuccess') });
-      onReprocessSuccess?.(updatedOrder);
-    } catch (error) {
-      console.error('Reprocess error:', error);
-      toast({
-        title: t('orders.actions.reprocessError'),
-        description: error instanceof Error ? error.message : 'Failed to reprocess order',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsReprocessing(false);
-    }
   };
 
   const statusMap: Record<string, number> = {
@@ -164,17 +78,11 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
   const handleStatusUpdate = async (newStatus: string) => {
     setIsUpdatingStatus(true);
     try {
-      const response = await fetch(
+      const response = await apiRequest(
+        'PATCH',
         `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: statusMap[newStatus] })
-        }
+        { status: statusMap[newStatus] }
       );
-
-      if (!response.ok) throw new Error(`Status update failed: ${response.statusText}`);
-
       const updatedOrder = await response.json();
       toast({ title: t('orders.status.updateSuccess') });
       onReprocessSuccess?.(updatedOrder);
@@ -205,9 +113,18 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {t('orders.orderNumber')} #{order.document_number}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {t('orders.orderNumber')} #{order.document_number}
+                </h1>
+                {reportColorHex && (
+                  <span
+                    className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+                    style={{ backgroundColor: reportColorHex }}
+                    title={REPORT_COLOR_OPTIONS.find(o => o.value === order.report_color)?.label}
+                  />
+                )}
+              </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>{formatDate(order.creation_date)}</span>
@@ -223,8 +140,8 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
               <OrderStatusBadge status={order.order_status} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" disabled={isUploading || isReprocessing || isUpdatingStatus}>
-                    {(isUploading || isReprocessing || isUpdatingStatus) ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
+                  <Button variant="outline" size="sm" disabled={isUpdatingStatus}>
+                    {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -247,13 +164,13 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
                     </DropdownMenuItem>
                   )}
                   {isCrossdockingType && (
-                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                    <DropdownMenuItem onClick={() => setShowCrossdockingUploadDialog(true)}>
                       <Upload className="h-4 w-4 mr-2" />
                       {t('orders.crossdocking.upload')}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={handleReprocess} disabled={isReprocessing}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${isReprocessing ? 'animate-spin' : ''}`} />
+                  <DropdownMenuItem onClick={() => setShowReprocessDialog(true)}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
                     {t('orders.actions.reprocess')}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
@@ -276,16 +193,6 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
           </div>
         </CardContent>
       </Card>
-
-      {isCrossdockingType && (
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleCrossdockingFileSelect}
-          className="hidden"
-        />
-      )}
 
       {hasCrossdocking && (
         <CrossdockingPDFPreview
@@ -318,6 +225,24 @@ export function OrderHeader({ order, organizationId, documentNumber, onReprocess
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ReprocessDialog
+        open={showReprocessDialog}
+        onOpenChange={setShowReprocessDialog}
+        order={order}
+        organizationId={organizationId}
+        documentNumber={documentNumber}
+        onSuccess={onReprocessSuccess}
+      />
+
+      <CrossdockingUploadDialog
+        open={showCrossdockingUploadDialog}
+        onOpenChange={setShowCrossdockingUploadDialog}
+        order={order}
+        organizationId={organizationId}
+        documentNumber={documentNumber}
+        onSuccess={onCrossdockingUploadSuccess}
+      />
     </>
   );
 }

@@ -21,10 +21,11 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const { t } = useLanguage();
-  const { isAuthenticated, isLoading, login, forceLogout } = useAuth();
+  const { isLoading, login, forceLogout } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [sessionCleared, setSessionCleared] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -36,14 +37,8 @@ export default function Login() {
 
   // Force logout on page load to clear stale sessions
   useEffect(() => {
-    forceLogout();
+    forceLogout().then(() => setSessionCleared(true));
   }, []);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate("/organizations/select");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -81,7 +76,7 @@ export default function Login() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !sessionCleared) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20 dark:from-slate-900 dark:to-slate-800">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

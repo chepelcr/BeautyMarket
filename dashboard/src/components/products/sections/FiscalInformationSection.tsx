@@ -2,15 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Landmark, Eye, Search } from "lucide-react";
+import { Landmark, Eye, Search, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { InsertProduct } from "@/models";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CabysModal } from "@/components/products/CabysModal";
 
 interface FiscalInformationSectionProps {
   form: UseFormReturn<InsertProduct>;
+  isInsertMode?: boolean;
+  hasCabysSelected?: boolean;
+  onCabysSelect?: () => void;
+  onCabysClear?: () => void;
 }
 
 const PRODUCT_TYPES = [
@@ -18,15 +22,40 @@ const PRODUCT_TYPES = [
   { id: 2, description: "Servicio" },
 ];
 
-export function FiscalInformationSection({ form }: FiscalInformationSectionProps) {
+export function FiscalInformationSection({ 
+  form, 
+  isInsertMode = false,
+  hasCabysSelected = false,
+  onCabysSelect,
+  onCabysClear
+}: FiscalInformationSectionProps) {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showCabysModal, setShowCabysModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleCabysSelect = (cabys: { codigo: string; descripcion: string; impuesto: number }) => {
     form.setValue("cabys", cabys.codigo);
     form.setValue("cabysDescription", cabys.descripcion);
+    setSearchTerm(""); // Clear search term after selection
+    onCabysSelect?.();
   };
+  
+  const handleCabysClear = () => {
+    form.setValue("cabys", "");
+    form.setValue("cabysDescription", "");
+    setSearchTerm("");
+    onCabysClear?.();
+  };
+
+  const handleOpenModal = () => {
+    const currentDescription = form.getValues("cabysDescription");
+    setSearchTerm(currentDescription || "");
+    setShowCabysModal(true);
+  };
+  
+  const cabysValue = form.watch("cabys");
+  const showCabysCode = !isInsertMode || (isInsertMode && cabysValue);
 
   return (
     <Card>
@@ -76,7 +105,7 @@ export function FiscalInformationSection({ form }: FiscalInformationSectionProps
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-2">
+            <div className={showCabysCode ? "sm:col-span-2" : "sm:col-span-3"}>
               <FormField
                 control={form.control}
                 name="cabysDescription"
@@ -89,15 +118,34 @@ export function FiscalInformationSection({ form }: FiscalInformationSectionProps
                           placeholder="Descripción del código CABYS"
                           {...field}
                           value={field.value || ""}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (!hasCabysSelected) {
+                                handleOpenModal();
+                              }
+                            }
+                          }}
                         />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setShowCabysModal(true)}
-                        >
-                          <Search className="h-4 w-4" />
-                        </Button>
+                        {!hasCabysSelected ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={handleOpenModal}
+                          >
+                            <Search className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={handleCabysClear}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -105,24 +153,26 @@ export function FiscalInformationSection({ form }: FiscalInformationSectionProps
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="cabys"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Código CABYS</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="1234567890123"
-                      {...field}
-                      value={field.value || ""}
-                      maxLength={13}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {showCabysCode && (
+              <FormField
+                control={form.control}
+                name="cabys"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código CABYS</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="1234567890123"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={13}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </CardContent>
       </div>
@@ -131,6 +181,7 @@ export function FiscalInformationSection({ form }: FiscalInformationSectionProps
         isOpen={showCabysModal}
         onClose={() => setShowCabysModal(false)}
         onSelect={handleCabysSelect}
+        initialSearchTerm={searchTerm}
       />
     </Card>
   );

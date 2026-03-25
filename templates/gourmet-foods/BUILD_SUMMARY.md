@@ -1,7 +1,7 @@
 # Gourmet Foods Template - Build Summary
 
 **Template Name**: Gourmet Foods
-**Live URL**: https://gourmet-foods-example.jmarkets.jcampos.dev
+**Live URL**: https://gourmet-foods-example.j-markets.jcampos.devv
 **Build Output**: `dist/templates/gourmet-foods`
 **Status**: ✅ Complete
 
@@ -434,7 +434,7 @@ This will:
 1. Build the template
 2. Upload to S3 bucket
 3. Invalidate CloudFront cache
-4. Make available at: https://gourmet-foods-example.jmarkets.jcampos.dev
+4. Make available at: https://gourmet-foods-example.j-markets.jcampos.devv
 
 ---
 

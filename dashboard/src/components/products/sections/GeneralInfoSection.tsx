@@ -14,6 +14,7 @@ interface GeneralInfoSectionProps {
   form: UseFormReturn<InsertProduct>;
   categories: Category[];
   categoriesLoading: boolean;
+  disabled?: boolean;
 }
 
 const MEASUREMENT_UNITS = [
@@ -26,9 +27,9 @@ const MEASUREMENT_UNITS = [
   { unitId: 86, code: "Otros", description: "Otros" },
 ];
 
-export function GeneralInfoSection({ form, categories, categoriesLoading }: GeneralInfoSectionProps) {
+export function GeneralInfoSection({ form, categories, categoriesLoading, disabled = false }: GeneralInfoSectionProps) {
   const { t } = useLanguage();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!disabled);
 
   return (
     <Card>
@@ -43,6 +44,7 @@ export function GeneralInfoSection({ form, categories, categoriesLoading }: Gene
             size="sm"
             variant="outline"
             onClick={() => setIsExpanded(!isExpanded)}
+            disabled={disabled}
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -89,7 +91,7 @@ export function GeneralInfoSection({ form, categories, categoriesLoading }: Gene
                       </SelectItem>
                     ) : (
                       categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
+                        <SelectItem key={category.categoryId} value={category.categoryId}>
                           {category.name}
                         </SelectItem>
                       ))

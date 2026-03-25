@@ -5,7 +5,7 @@ import { useSubdomainContext } from "@/contexts/SubdomainContext";
 import { getSectionByType } from "@/lib/pageUtils";
 
 export default function Footer() {
-  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://jmarkets.jcampos.dev';
+  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.dev';
   const { data: contact } = useContact();
   const { organization } = useSubdomainContext();
   const { data: theme } = useTheme();

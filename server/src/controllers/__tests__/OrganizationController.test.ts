@@ -3,13 +3,15 @@ import { Request, Response } from 'express';
 import { OrganizationController } from '../OrganizationController';
 import type { IOrganizationService } from '../../services/OrganizationService';
 import type { IRBACService } from '../../services/RBACService';
-import type { IOrganizationInfrastructureService } from '../../services/OrganizationInfrastructureService';
+import type { TemplateCloneService } from '../../services/TemplateCloneService';
+import type { OrganizationMemberRepository } from '../../repositories/OrganizationMemberRepository';
 
 describe('OrganizationController', () => {
   let controller: OrganizationController;
   let mockOrgService: Partial<IOrganizationService>;
   let mockRbacService: Partial<IRBACService>;
-  let mockInfraService: Partial<IOrganizationInfrastructureService>;
+  let mockTemplateCloneService: Partial<TemplateCloneService>;
+  let mockMemberRepo: Partial<OrganizationMemberRepository>;
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
 
@@ -28,19 +30,14 @@ describe('OrganizationController', () => {
     };
 
     mockRbacService = {};
-
-    mockInfraService = {
-      provisionInfrastructure: vi.fn(),
-      deprovisionInfrastructure: vi.fn(),
-      requestCustomDomainCertificate: vi.fn(),
-      checkCertificateStatus: vi.fn(),
-      attachCustomDomainToDistribution: vi.fn(),
-    };
+    mockTemplateCloneService = {};
+    mockMemberRepo = {};
 
     controller = new OrganizationController(
       mockOrgService as IOrganizationService,
       mockRbacService as IRBACService,
-      mockInfraService as IOrganizationInfrastructureService
+      mockTemplateCloneService as TemplateCloneService,
+      mockMemberRepo as OrganizationMemberRepository
     );
 
     mockReq = {
@@ -327,242 +324,6 @@ describe('OrganizationController', () => {
       await controller.delete(mockReq as Request, mockRes as Response);
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
-    });
-  });
-
-  describe('provisionInfrastructure', () => {
-    it('should provision infrastructure successfully', async () => {
-      const mockOrg = { id: '1', name: 'Test Org' };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.provisionInfrastructure!).mockResolvedValue({
-        success: true,
-        s3BucketName: 'test-bucket',
-        cloudfrontDomain: 'd123.cloudfront.net',
-      });
-
-      await controller.provisionInfrastructure(mockReq as Request, mockRes as Response);
-
-      expect(mockInfraService.provisionInfrastructure).toHaveBeenCalledWith(mockOrg);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Infrastructure provisioned successfully',
-          success: true,
-        })
-      );
-    });
-
-    it('should return 404 if organization not found', async () => {
-      mockReq.params = { id: '999' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(null);
-
-      await controller.provisionInfrastructure(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-    });
-
-    it('should return 500 if provisioning fails', async () => {
-      const mockOrg = { id: '1', name: 'Test Org' };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.provisionInfrastructure!).mockResolvedValue({
-        success: false,
-        error: 'S3 creation failed',
-      });
-
-      await controller.provisionInfrastructure(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'S3 creation failed',
-      });
-    });
-  });
-
-  describe('deprovisionInfrastructure', () => {
-    it('should deprovision infrastructure successfully', async () => {
-      const mockOrg = { id: '1' };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.deprovisionInfrastructure!).mockResolvedValue(true);
-
-      await controller.deprovisionInfrastructure(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Infrastructure deprovisioned successfully',
-      });
-    });
-
-    it('should return 404 if organization not found', async () => {
-      mockReq.params = { id: '999' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(null);
-
-      await controller.deprovisionInfrastructure(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-    });
-
-    it('should return 500 if deprovisioning fails', async () => {
-      const mockOrg = { id: '1' };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.deprovisionInfrastructure!).mockResolvedValue(false);
-
-      await controller.deprovisionInfrastructure(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-    });
-  });
-
-  describe('requestCustomDomain', () => {
-    it('should request certificate successfully', async () => {
-      const mockOrg = { id: '1' };
-      mockReq.params = { id: '1' };
-      mockReq.body = { customDomain: 'store.example.com' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.requestCustomDomainCertificate!).mockResolvedValue({
-        success: true,
-        certificateArn: 'arn:aws:acm:...',
-        validationRecords: [{ Name: '_validation', Type: 'CNAME', Value: 'xxx' }],
-      });
-
-      await controller.requestCustomDomain(mockReq as Request, mockRes as Response);
-
-      expect(mockInfraService.requestCustomDomainCertificate).toHaveBeenCalledWith(
-        '1',
-        'store.example.com'
-      );
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          certificateArn: 'arn:aws:acm:...',
-        })
-      );
-    });
-
-    it('should return 400 if customDomain missing', async () => {
-      mockReq.params = { id: '1' };
-      mockReq.body = {};
-
-      await controller.requestCustomDomain(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Custom domain is required',
-      });
-    });
-
-    it('should return 404 if organization not found', async () => {
-      mockReq.params = { id: '999' };
-      mockReq.body = { customDomain: 'store.example.com' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(null);
-
-      await controller.requestCustomDomain(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-    });
-  });
-
-  describe('getDomainStatus', () => {
-    it('should return domain status', async () => {
-      const mockOrg = {
-        id: '1',
-        subdomain: 'mystore',
-        customDomain: 'store.example.com',
-        domainVerified: true,
-        infrastructureStatus: 'active',
-        cloudfrontDomain: 'd123.cloudfront.net',
-        acmCertificateArn: 'arn:aws:acm:...',
-        acmValidationRecords: [],
-      };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.checkCertificateStatus!).mockResolvedValue('ISSUED');
-
-      await controller.getDomainStatus(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.json).toHaveBeenCalledWith({
-        subdomain: 'mystore',
-        customDomain: 'store.example.com',
-        domainVerified: true,
-        infrastructureStatus: 'active',
-        cloudfrontDomain: 'd123.cloudfront.net',
-        certificateStatus: 'ISSUED',
-        validationRecords: [],
-      });
-    });
-
-    it('should return null certificateStatus if no certificate', async () => {
-      const mockOrg = {
-        id: '1',
-        subdomain: 'mystore',
-      };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-
-      await controller.getDomainStatus(mockReq as Request, mockRes as Response);
-
-      expect(mockInfraService.checkCertificateStatus).not.toHaveBeenCalled();
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          certificateStatus: null,
-        })
-      );
-    });
-  });
-
-  describe('attachCustomDomain', () => {
-    it('should attach custom domain successfully', async () => {
-      const mockOrg = {
-        id: '1',
-        customDomain: 'store.example.com',
-        acmCertificateArn: 'arn:aws:acm:...',
-        cloudfrontDomain: 'd123.cloudfront.net',
-      };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.attachCustomDomainToDistribution!).mockResolvedValue(
-        true
-      );
-
-      await controller.attachCustomDomain(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Custom domain attached successfully. Point your domain CNAME to:',
-        cloudfrontDomain: 'd123.cloudfront.net',
-      });
-    });
-
-    it('should return 400 if no certificate requested', async () => {
-      const mockOrg = { id: '1' };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-
-      await controller.attachCustomDomain(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'No custom domain certificate requested',
-      });
-    });
-
-    it('should return 400 if attach fails', async () => {
-      const mockOrg = {
-        id: '1',
-        customDomain: 'store.example.com',
-        acmCertificateArn: 'arn:aws:acm:...',
-      };
-      mockReq.params = { id: '1' };
-      vi.mocked(mockOrgService.getById!).mockResolvedValue(mockOrg as any);
-      vi.mocked(mockInfraService.attachCustomDomainToDistribution!).mockResolvedValue(
-        false
-      );
-
-      await controller.attachCustomDomain(mockReq as Request, mockRes as Response);
-
-      expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Failed to attach custom domain',
-      });
     });
   });
 });

@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import type { Order } from '@/models';
 import { OrderHeader } from '@/components/orders/OrderHeader';
 import { OrderCustomerInfo } from '@/components/orders/OrderCustomerInfo';
@@ -39,10 +40,7 @@ export default function OrderDetailsPage() {
     enabled: !!user?.id && !!organizationId && !!documentNumber,
     queryFn: async () => {
       const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch order');
-      }
+      const response = await apiRequest('GET', url);
       return response.json();
     },
   });
@@ -51,14 +49,7 @@ export default function OrderDetailsPage() {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ status }: { status: string }) => {
       const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders/${documentNumber}/status`;
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
+      const response = await apiRequest('PUT', url, { status });
       return response.json();
     },
     onSuccess: () => {
@@ -142,8 +133,8 @@ export default function OrderDetailsPage() {
             onReprocessSuccess={(updatedOrder) => {
               queryClient.setQueryData(['order', documentNumber], updatedOrder);
             }}
-            onCrossdockingUploadSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ['order', documentNumber] });
+            onCrossdockingUploadSuccess={(updatedOrder) => {
+              queryClient.setQueryData(['order', documentNumber], updatedOrder);
             }}
           />
 

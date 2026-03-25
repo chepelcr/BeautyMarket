@@ -238,7 +238,7 @@ case $option in
         EMAILS=(
             "test@example.com"
             "dev@jcampos.dev"
-            "admin@jmarkets.jcampos.dev"
+            "admin@j-markets.jcampos.dev"
         )
         echo ""
         echo -e "${BLUE}Using default test emails:${NC}"

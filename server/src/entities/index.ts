@@ -1,5 +1,6 @@
 // Organization and Multi-tenancy
-export { organizations, type Organization, type InsertOrganization, type OrganizationSettings, type ACMValidationRecord, type InfrastructureStatus } from "./Organization";
+export { organizations, type Organization, type InsertOrganization, type OrganizationSettings } from "./Organization";
+export { organizationSettingsTable, type OrganizationSettingsRecord, type InfrastructureStatus } from "./OrganizationSettings";
 export { organizationMembers, type OrganizationMember, type InsertOrganizationMember } from "./OrganizationMember";
 export { organizationInvitations, type OrganizationInvitation, type InsertOrganizationInvitation } from "./OrganizationInvitation";
 

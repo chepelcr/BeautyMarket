@@ -1,7 +1,7 @@
 🚀 Setting up template buckets and CloudFront distributions for all template organizations
 
 📋 Template organizations: 8
-🌍 Base domain: jmarkets.jcampos.dev
+🌍 Base domain: j-markets.jcampos.dev
 🔐 AWS Profile: J-CAMPOS
 🌎 AWS Region: us-east-1
 
@@ -32,103 +32,103 @@
 📋 Template bucket contents:
    Total files: 119
 
-🔐 Checking for existing wildcard certificate for *.jmarkets.jcampos.dev...
+🔐 Checking for existing wildcard certificate for *.j-markets.jcampos.dev...
   ✅ Found existing certificate: arn:aws:acm:us-east-1:938590657428:certificate/a18f46b0-b2b1-46d0-80c1-233ad9addf91
   📊 Certificate status: ISSUED
   ✅ Certificate is already validated and issued
 
-🏗️  Setting up infrastructure for: jmarkets-demo-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: jmarkets-demo-example.j-markets.jcampos.dev
   ✅ Bucket already exists: jmarkets-demo-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E29GSEG6NWVUCN
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: jmarkets-demo-example.jmarkets.jcampos.dev → dxza0iq0xyaau.cloudfront.net
+  ✅ Created Route53 A record: jmarkets-demo-example.j-markets.jcampos.dev → dxza0iq0xyaau.cloudfront.net
   📤 Uploading files to jmarkets-demo-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to jmarkets-demo-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for jmarkets-demo-example
 
-🏗️  Setting up infrastructure for: tech-gadgets-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: tech-gadgets-example.j-markets.jcampos.dev
   ✅ Bucket already exists: tech-gadgets-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E369L8QE6LBBB
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: tech-gadgets-example.jmarkets.jcampos.dev → d3jqegbbvxm7mi.cloudfront.net
+  ✅ Created Route53 A record: tech-gadgets-example.j-markets.jcampos.dev → d3jqegbbvxm7mi.cloudfront.net
   📤 Uploading files to tech-gadgets-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to tech-gadgets-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for tech-gadgets-example
 
-🏗️  Setting up infrastructure for: vintage-fashion-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: vintage-fashion-example.j-markets.jcampos.dev
   ✅ Bucket already exists: vintage-fashion-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: ETYKCVMQ5Q9AK
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: vintage-fashion-example.jmarkets.jcampos.dev → d1wbb0vdcvdli8.cloudfront.net
+  ✅ Created Route53 A record: vintage-fashion-example.j-markets.jcampos.dev → d1wbb0vdcvdli8.cloudfront.net
   📤 Uploading files to vintage-fashion-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to vintage-fashion-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for vintage-fashion-example
 
-🏗️  Setting up infrastructure for: artisan-crafts-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: artisan-crafts-example.j-markets.jcampos.dev
   ✅ Bucket already exists: artisan-crafts-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E350ZODWYO1VLH
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: artisan-crafts-example.jmarkets.jcampos.dev → d3pw5ikkms83b7.cloudfront.net
+  ✅ Created Route53 A record: artisan-crafts-example.j-markets.jcampos.dev → d3pw5ikkms83b7.cloudfront.net
   📤 Uploading files to artisan-crafts-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to artisan-crafts-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for artisan-crafts-example
 
-🏗️  Setting up infrastructure for: gourmet-foods-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: gourmet-foods-example.j-markets.jcampos.dev
   ✅ Bucket already exists: gourmet-foods-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E2SP6SDOUWD9IB
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: gourmet-foods-example.jmarkets.jcampos.dev → d1yjltpk9zcx1w.cloudfront.net
+  ✅ Created Route53 A record: gourmet-foods-example.j-markets.jcampos.dev → d1yjltpk9zcx1w.cloudfront.net
   📤 Uploading files to gourmet-foods-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to gourmet-foods-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for gourmet-foods-example
 
-🏗️  Setting up infrastructure for: fitness-hub-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: fitness-hub-example.j-markets.jcampos.dev
   ✅ Bucket already exists: fitness-hub-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E18NG4IIDMCK3E
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: fitness-hub-example.jmarkets.jcampos.dev → dj90yg6p7v9kk.cloudfront.net
+  ✅ Created Route53 A record: fitness-hub-example.j-markets.jcampos.dev → dj90yg6p7v9kk.cloudfront.net
   📤 Uploading files to fitness-hub-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to fitness-hub-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for fitness-hub-example
 
-🏗️  Setting up infrastructure for: pet-care-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: pet-care-example.j-markets.jcampos.dev
   ✅ Bucket already exists: pet-care-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E3IEFTN8LQNGE2
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: pet-care-example.jmarkets.jcampos.dev → dx34nbodpdc6u.cloudfront.net
+  ✅ Created Route53 A record: pet-care-example.j-markets.jcampos.dev → dx34nbodpdc6u.cloudfront.net
   📤 Uploading files to pet-care-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to pet-care-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for pet-care-example
 
-🏗️  Setting up infrastructure for: beauty-essentials-example.jmarkets.jcampos.dev
+🏗️  Setting up infrastructure for: beauty-essentials-example.j-markets.jcampos.dev
   ✅ Bucket already exists: beauty-essentials-example-jmarkets-jcampos-dev
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   ✅ CloudFront distribution already exists: E1HSDDHCUXQRC1
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: beauty-essentials-example.jmarkets.jcampos.dev → d1uqmrn3vz5mka.cloudfront.net
+  ✅ Created Route53 A record: beauty-essentials-example.j-markets.jcampos.dev → d1uqmrn3vz5mka.cloudfront.net
   📤 Uploading files to beauty-essentials-example-jmarkets-jcampos-dev...
   ✅ Files uploaded to beauty-essentials-example-jmarkets-jcampos-dev
   ✅ Infrastructure setup complete for beauty-essentials-example
 
-🏠 Setting up landing page infrastructure for: jmarkets.jcampos.dev
+🏠 Setting up landing page infrastructure for: j-markets.jcampos.dev
   ✅ Bucket already exists: jmarkets-jcampos-dev-landing
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
   🔐 Creating distribution with SSL certificate
   ✅ CloudFront distribution already exists: E3ISJMB7PXI17V
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: jmarkets.jcampos.dev → d1zztehn4ayoes.cloudfront.net
+  ✅ Created Route53 A record: j-markets.jcampos.dev → d1zztehn4ayoes.cloudfront.net
   📤 Uploading landing page files to jmarkets-jcampos-dev-landing...
   ✅ Landing page files uploaded to jmarkets-jcampos-dev-landing
   ✅ Landing page infrastructure setup complete
 
-🎛️  Setting up dashboard infrastructure for: admin.jmarkets.jcampos.dev
+🎛️  Setting up dashboard infrastructure for: admin.j-markets.jcampos.dev
   ✅ Created bucket: admin-jmarkets-jcampos-dev
   🔒 Configured bucket access settings
 ✅ Using existing Origin Access Control: E2LAEKPMBMQRHG
@@ -136,7 +136,7 @@
   ✅ Created CloudFront distribution: E32CF99EJB1AO2
   🌐 CloudFront domain: d2r1b764ia220d.cloudfront.net
   🔐 Updated bucket policy for CloudFront access
-  ✅ Created Route53 A record: admin.jmarkets.jcampos.dev → d2r1b764ia220d.cloudfront.net
+  ✅ Created Route53 A record: admin.j-markets.jcampos.dev → d2r1b764ia220d.cloudfront.net
   📤 Uploading dashboard files to admin-jmarkets-jcampos-dev...
   ⚠️  Dashboard folder ./dashboard/dist does not exist
    Run "cd dashboard && npm run build" first to build the dashboard.
@@ -148,75 +148,75 @@
 ================================================================================
 ✅ Main template bucket: jmarkets-template-market
 ✅ Template organizations processed: 8/8
-✅ Landing page deployed: https://jmarkets.jcampos.dev
-✅ Dashboard deployed: https://admin.jmarkets.jcampos.dev
+✅ Landing page deployed: https://j-markets.jcampos.dev
+✅ Dashboard deployed: https://admin.j-markets.jcampos.dev
 
 
 🏠 LANDING PAGE:
 
-  jmarkets.jcampos.dev
+  j-markets.jcampos.dev
     S3 Bucket:        jmarkets-jcampos-dev-landing
     Distribution ID:  E3ISJMB7PXI17V
     CloudFront URL:   https://d1zztehn4ayoes.cloudfront.net
-    Custom Domain:    https://jmarkets.jcampos.dev
+    Custom Domain:    https://j-markets.jcampos.dev
 
 🎛️  DASHBOARD:
 
-  admin.jmarkets.jcampos.dev
+  admin.j-markets.jcampos.dev
     S3 Bucket:        admin-jmarkets-jcampos-dev
     Distribution ID:  E32CF99EJB1AO2
     CloudFront URL:   https://d2r1b764ia220d.cloudfront.net
-    Custom Domain:    https://admin.jmarkets.jcampos.dev
+    Custom Domain:    https://admin.j-markets.jcampos.dev
 
 ✅ TEMPLATE ORGANIZATIONS (8):
 
-  jmarkets-demo-example.jmarkets.jcampos.dev
+  jmarkets-demo-example.j-markets.jcampos.dev
     S3 Bucket:        jmarkets-demo-example-jmarkets-jcampos-dev
     Distribution ID:  E29GSEG6NWVUCN
     CloudFront URL:   https://dxza0iq0xyaau.cloudfront.net
-    Custom Domain:    https://jmarkets-demo-example.jmarkets.jcampos.dev
+    Custom Domain:    https://jmarkets-demo-example.j-markets.jcampos.dev
 
-  tech-gadgets-example.jmarkets.jcampos.dev
+  tech-gadgets-example.j-markets.jcampos.dev
     S3 Bucket:        tech-gadgets-example-jmarkets-jcampos-dev
     Distribution ID:  E369L8QE6LBBB
     CloudFront URL:   https://d3jqegbbvxm7mi.cloudfront.net
-    Custom Domain:    https://tech-gadgets-example.jmarkets.jcampos.dev
+    Custom Domain:    https://tech-gadgets-example.j-markets.jcampos.dev
 
-  vintage-fashion-example.jmarkets.jcampos.dev
+  vintage-fashion-example.j-markets.jcampos.dev
     S3 Bucket:        vintage-fashion-example-jmarkets-jcampos-dev
     Distribution ID:  ETYKCVMQ5Q9AK
     CloudFront URL:   https://d1wbb0vdcvdli8.cloudfront.net
-    Custom Domain:    https://vintage-fashion-example.jmarkets.jcampos.dev
+    Custom Domain:    https://vintage-fashion-example.j-markets.jcampos.dev
 
-  artisan-crafts-example.jmarkets.jcampos.dev
+  artisan-crafts-example.j-markets.jcampos.dev
     S3 Bucket:        artisan-crafts-example-jmarkets-jcampos-dev
     Distribution ID:  E350ZODWYO1VLH
     CloudFront URL:   https://d3pw5ikkms83b7.cloudfront.net
-    Custom Domain:    https://artisan-crafts-example.jmarkets.jcampos.dev
+    Custom Domain:    https://artisan-crafts-example.j-markets.jcampos.dev
 
-  gourmet-foods-example.jmarkets.jcampos.dev
+  gourmet-foods-example.j-markets.jcampos.dev
     S3 Bucket:        gourmet-foods-example-jmarkets-jcampos-dev
     Distribution ID:  E2SP6SDOUWD9IB
     CloudFront URL:   https://d1yjltpk9zcx1w.cloudfront.net
-    Custom Domain:    https://gourmet-foods-example.jmarkets.jcampos.dev
+    Custom Domain:    https://gourmet-foods-example.j-markets.jcampos.dev
 
-  fitness-hub-example.jmarkets.jcampos.dev
+  fitness-hub-example.j-markets.jcampos.dev
     S3 Bucket:        fitness-hub-example-jmarkets-jcampos-dev
     Distribution ID:  E18NG4IIDMCK3E
     CloudFront URL:   https://dj90yg6p7v9kk.cloudfront.net
-    Custom Domain:    https://fitness-hub-example.jmarkets.jcampos.dev
+    Custom Domain:    https://fitness-hub-example.j-markets.jcampos.dev
 
-  pet-care-example.jmarkets.jcampos.dev
+  pet-care-example.j-markets.jcampos.dev
     S3 Bucket:        pet-care-example-jmarkets-jcampos-dev
     Distribution ID:  E3IEFTN8LQNGE2
     CloudFront URL:   https://dx34nbodpdc6u.cloudfront.net
-    Custom Domain:    https://pet-care-example.jmarkets.jcampos.dev
+    Custom Domain:    https://pet-care-example.j-markets.jcampos.dev
 
-  beauty-essentials-example.jmarkets.jcampos.dev
+  beauty-essentials-example.j-markets.jcampos.dev
     S3 Bucket:        beauty-essentials-example-jmarkets-jcampos-dev
     Distribution ID:  E1HSDDHCUXQRC1
     CloudFront URL:   https://d1uqmrn3vz5mka.cloudfront.net
-    Custom Domain:    https://beauty-essentials-example.jmarkets.jcampos.dev
+    Custom Domain:    https://beauty-essentials-example.j-markets.jcampos.dev
 
 
 📝 NEXT STEPS:

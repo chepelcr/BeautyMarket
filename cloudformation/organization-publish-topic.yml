@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  JMarkets — Organization Events SNS Topic.
+  Published when an organization is created or requires infrastructure re-provisioning.
+  The infrastructure microservice subscribes to this topic to provision S3, CloudFront,
+  Route53, and ACM resources and writes results to the organization_settings table.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Deployment environment
+
+Resources:
+
+  OrganizationEventsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub 'jmarkets-${Environment}-organization-events'
+      DisplayName: !Sub 'JMarkets Organization Events (${Environment})'
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: jmarkets-backend
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+
+  OrganizationEventsTopicArn:
+    Description: ARN of the Organization Events SNS Topic
+    Value: !Ref OrganizationEventsTopic
+    Export:
+      Name: !Sub 'jmarkets-${Environment}-organization-events-topic-arn'
+
+  OrganizationEventsTopicName:
+    Description: Name of the Organization Events SNS Topic
+    Value: !GetAtt OrganizationEventsTopic.TopicName
+    Export:
+      Name: !Sub 'jmarkets-${Environment}-organization-events-topic-name'

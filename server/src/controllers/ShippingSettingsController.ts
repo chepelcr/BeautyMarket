@@ -16,7 +16,7 @@ export class ShippingSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/shipping:
+   * /api/users/{userId}/organization/{orgId}/settings/shipping:
    *   get:
    *     summary: Get shipping settings for an organization
    *     tags: [Settings]
@@ -55,7 +55,7 @@ export class ShippingSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/shipping:
+   * /api/users/{userId}/organization/{orgId}/settings/shipping:
    *   put:
    *     summary: Update shipping settings for an organization
    *     tags: [Settings]

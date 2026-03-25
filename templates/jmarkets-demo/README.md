@@ -44,7 +44,7 @@ Builds to: `dist/templates/jmarkets-demo/`
 ## Deployment
 
 This template is designed to be deployed to:
-- **Live URL**: https://jmarkets-demo-example.jmarkets.jcampos.dev
+- **Live URL**: https://jmarkets-demo-example.j-markets.jcampos.dev
 - **S3 Bucket**: jmarkets-demo-example
 - **CloudFront**: With wildcard SSL certificate
 

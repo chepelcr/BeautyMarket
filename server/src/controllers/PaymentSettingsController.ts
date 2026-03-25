@@ -16,7 +16,7 @@ export class PaymentSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/payment:
+   * /api/users/{userId}/organization/{orgId}/settings/payment:
    *   get:
    *     summary: Get payment settings for an organization
    *     tags: [Settings]
@@ -55,7 +55,7 @@ export class PaymentSettingsController {
 
   /**
    * @swagger
-   * /api/users/{userId}/organizations/{orgId}/payment:
+   * /api/users/{userId}/organization/{orgId}/settings/payment:
    *   put:
    *     summary: Update payment settings for an organization
    *     tags: [Settings]

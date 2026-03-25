@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { buildOrdersApiUrl } from '@/lib/apiUtils';
+import { apiRequest } from '@/lib/queryClient';
 import type { Order } from '@/models';
 
 export interface OrdersQueryParams {
@@ -25,13 +27,8 @@ async function fetchOrders(params: OrdersQueryParams): Promise<OrdersResponse> {
   queryParams.append('page', String(page));
   queryParams.append('pageSize', String(pageSize));
 
-  const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${orgId}/orders?${queryParams.toString()}`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch orders');
-  }
-
+  const url = buildOrdersApiUrl(orgId, `/orders?${queryParams.toString()}`);
+  const response = await apiRequest('GET', url);
   const data = await response.json();
 
   return {

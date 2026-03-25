@@ -74,7 +74,7 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 // Subdomain detection for multi-app serving
-const BASE_DOMAIN = process.env.BASE_DOMAIN || 'jmarkets.jcampos.dev';
+const BASE_DOMAIN = process.env.BASE_DOMAIN || 'j-markets.jcampos.dev';
 
 function getSubdomain(hostname: string): string | null {
   // Handle localhost development

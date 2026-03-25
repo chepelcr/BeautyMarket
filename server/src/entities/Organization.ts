@@ -10,19 +10,6 @@ export const organizations = pgTable("organizations", {
   customDomain: varchar("custom_domain", { length: 255 }).unique(),
   domainVerified: boolean("domain_verified").default(false),
 
-  // AWS Resources
-  s3BucketName: varchar("s3_bucket_name", { length: 100 }),
-  cloudfrontDistributionId: varchar("cloudfront_distribution_id", { length: 100 }),
-  cloudfrontDomain: varchar("cloudfront_domain", { length: 255 }),
-  route53RecordId: varchar("route53_record_id", { length: 100 }),
-
-  // ACM Certificate (for custom domains)
-  acmCertificateArn: varchar("acm_certificate_arn", { length: 255 }),
-  acmValidationRecords: jsonb("acm_validation_records"),
-
-  // Infrastructure status
-  infrastructureStatus: varchar("infrastructure_status", { length: 50 }).default("pending"),
-
   // Settings (JSON for theme, logo, colors, payment config, shipping config)
   // NOTE: This will be deprecated and removed after migration to normalized tables
   settings: jsonb("settings"),
@@ -55,17 +42,6 @@ export const organizations = pgTable("organizations", {
 
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = typeof organizations.$inferInsert;
-
-// Infrastructure status type
-export type InfrastructureStatus = "pending" | "provisioning" | "active" | "failed" | "deleting";
-
-// ACM validation record type
-export interface ACMValidationRecord {
-  name: string;
-  type: string;
-  value: string;
-  status: "PENDING_VALIDATION" | "SUCCESS" | "FAILED";
-}
 
 // Organization settings type
 export interface OrganizationSettings {

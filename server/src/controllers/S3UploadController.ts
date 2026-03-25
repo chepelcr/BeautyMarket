@@ -15,7 +15,7 @@ export class S3UploadController {
 
   /**
    * @swagger
-   * /api/upload/presigned:
+   * /api/users/{userId}/organization/{orgId}/upload/presigned:
    *   post:
    *     summary: Get presigned URL for S3 upload
    *     tags: [Upload]

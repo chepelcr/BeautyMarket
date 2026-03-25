@@ -90,7 +90,7 @@ export default function Landing() {
             <FeatureCard
               icon={<Globe className="h-6 w-6" />}
               title="Tu propio subdominio"
-              description="Obtén tu-tienda.jmarkets.jcampos.dev o conecta tu dominio personalizado"
+              description="Obtén tu-tienda.j-markets.jcampos.dev o conecta tu dominio personalizado"
             />
             <FeatureCard
               icon={<Palette className="h-6 w-6" />}

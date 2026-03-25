@@ -174,7 +174,7 @@ export class InvitationService implements IInvitationService {
   }
 
   private async sendInvitationEmail(invitation: OrganizationInvitation): Promise<void> {
-    const frontendUrl = process.env.FRONTEND_URL || "https://jmarkets.jcampos.dev";
+    const frontendUrl = process.env.FRONTEND_URL || "https://j-markets.jcampos.dev";
     const inviteUrl = `${frontendUrl}/join/${invitation.token}`;
 
     // For now, log the invitation URL

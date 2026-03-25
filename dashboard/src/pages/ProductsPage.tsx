@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Plus, PackageSearch, ArrowUpDown } from 'lucide-react';
+import { Plus, PackageSearch, ArrowUpDown, Upload, ChevronDown, Save, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +38,7 @@ import { ProductFilters } from '@/components/products/ProductFilters';
 import { BulkActions } from '@/components/products/BulkActions';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Pagination } from '@/components/products/Pagination';
+import { ProductExcelUpload } from '@/components/products/ProductExcelUpload';
 import ProductForm from '@/components/admin/product-form';
 import { apiRequest } from '@/lib/queryClient';
 import { buildOrgApiUrl } from '@/lib/apiUtils';
@@ -82,12 +89,10 @@ export default function ProductsPage() {
     total,
     totalPages,
     isLoading: productsLoading,
-    activateProducts,
-    deactivateProducts,
     deleteProducts,
-    isActivating,
-    isDeactivating,
+    updateProductStatus,
     isDeleting,
+    isUpdating,
   } = useProducts({
     userId: user?.id || '',
     orgId: organizationId || '',
@@ -104,17 +109,13 @@ export default function ProductsPage() {
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id || !organizationId) return;
+    if (!organizationId) return;
 
     const loadCategories = async () => {
       try {
-        const response = await apiRequest(
-          'GET',
-          buildOrgApiUrl(user.id, organizationId, '/categories')
-        );
-        if (response.ok) {
-          setCategories(await response.json());
-        }
+        const { listCategories } = await import('@/services/categoriesApi');
+        const response = await listCategories(organizationId, 1, 100);
+        setCategories(response.data);
       } catch (error) {
         console.error('Failed to load categories:', error);
       } finally {
@@ -123,11 +124,15 @@ export default function ProductsPage() {
     };
 
     loadCategories();
-  }, [user?.id, organizationId]);
+  }, [organizationId]);
 
   // Product form dialog
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isProductFormSubmitting, setIsProductFormSubmitting] = useState(false);
+
+  // Excel upload dialog
+  const [showExcelUpload, setShowExcelUpload] = useState(false);
 
   // Delete dialog
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -147,6 +152,11 @@ export default function ProductsPage() {
   const handleCloseForm = () => {
     setShowProductForm(false);
     setEditingProduct(null);
+  };
+
+  const handleExcelUploadSuccess = () => {
+    setShowExcelUpload(false);
+    // Products will be automatically refreshed by the useProducts hook
   };
 
   const handleDeleteProduct = (product: Product) => {
@@ -181,7 +191,11 @@ export default function ProductsPage() {
   // Bulk actions
   const handleBulkActivate = async () => {
     try {
-      await activateProducts(Array.from(selectedProductIds));
+      await Promise.all(
+        Array.from(selectedProductIds).map(id => 
+          updateProductStatus({ id, status: 1 })
+        )
+      );
       toast({
         title: t('products.toast.activated.title'),
         description: t('products.toast.activated.description').replace('{count}', String(selectedProductIds.size)),
@@ -198,7 +212,11 @@ export default function ProductsPage() {
 
   const handleBulkDeactivate = async () => {
     try {
-      await deactivateProducts(Array.from(selectedProductIds));
+      await Promise.all(
+        Array.from(selectedProductIds).map(id => 
+          updateProductStatus({ id, status: 0 })
+        )
+      );
       toast({
         title: t('products.toast.deactivated.title'),
         description: t('products.toast.deactivated.description').replace('{count}', String(selectedProductIds.size)),
@@ -234,13 +252,13 @@ export default function ProductsPage() {
     if (selectedProductIds.size === products.length) {
       clearSelection();
     } else {
-      selectAll(products.map((p) => p.id));
+      selectAll(products.map((p) => p.productId || p.id));
     }
   };
 
   const handleSortChange = (value: string) => {
     const [newSortBy, newSortOrder] = value.split('-') as [
-      'name' | 'price' | 'createdAt',
+      'name' | 'description' | 'createdOn' | 'updatedOn',
       'asc' | 'desc'
     ];
     setSorting(newSortBy, newSortOrder);
@@ -260,7 +278,7 @@ export default function ProductsPage() {
   }
 
   const isLoading = productsLoading || categoriesLoading;
-  const isBulkActionLoading = isActivating || isDeactivating || isDeleting;
+  const isBulkActionLoading = isUpdating || isDeleting;
 
   return (
     <div className="space-y-6 p-6">
@@ -272,10 +290,25 @@ export default function ProductsPage() {
             {t('products.subtitle')}
           </p>
         </div>
-        <Button onClick={handleAddProduct} size="lg">
-          <Plus className="h-5 w-5 mr-2" />
-          {t('products.addProduct')}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleAddProduct} size="lg">
+            <Plus className="h-5 w-5 mr-2" />
+            {t('products.addProduct')}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="lg" variant="outline">
+                <ChevronDown className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowExcelUpload(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                {t('products.excel.uploadExcel')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Toolbar */}
@@ -295,12 +328,13 @@ export default function ProductsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="createdAt-desc">{t('products.sort.newestFirst')}</SelectItem>
-              <SelectItem value="createdAt-asc">{t('products.sort.oldestFirst')}</SelectItem>
+              <SelectItem value="createdOn-desc">{t('products.sort.newestFirst')}</SelectItem>
+              <SelectItem value="createdOn-asc">{t('products.sort.oldestFirst')}</SelectItem>
               <SelectItem value="name-asc">{t('products.sort.nameAsc')}</SelectItem>
               <SelectItem value="name-desc">{t('products.sort.nameDesc')}</SelectItem>
-              <SelectItem value="price-asc">{t('products.sort.priceAsc')}</SelectItem>
-              <SelectItem value="price-desc">{t('products.sort.priceDesc')}</SelectItem>
+              <SelectItem value="description-asc">{t('products.sort.descriptionAsc')}</SelectItem>
+              <SelectItem value="description-desc">{t('products.sort.descriptionDesc')}</SelectItem>
+              <SelectItem value="updatedOn-desc">{t('products.sort.recentlyUpdated')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -366,11 +400,11 @@ export default function ProductsPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product) => (
               <ProductCard
-                key={product.id}
+                key={product.productId || product.id}
                 product={product}
                 categories={categories}
-                isSelected={isSelected(product.id)}
-                onToggleSelection={() => toggleSelection(product.id)}
+                isSelected={isSelected(product.productId || product.id)}
+                onToggleSelection={() => toggleSelection(product.productId || product.id)}
                 onEdit={() => handleEditProduct(product)}
                 onDelete={() => handleDeleteProduct(product)}
               />
@@ -391,13 +425,60 @@ export default function ProductsPage() {
 
       {/* Product Form Dialog */}
       <Dialog open={showProductForm} onOpenChange={handleCloseForm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-2xl">
               {editingProduct ? t('products.editProduct') : t('products.addProduct')}
             </DialogTitle>
           </DialogHeader>
-          <ProductForm product={editingProduct} onSuccess={handleCloseForm} />
+          <div className="flex-1 overflow-y-auto px-6 min-h-0">
+            <ProductForm 
+              product={editingProduct} 
+              categories={categories}
+              categoriesLoading={categoriesLoading}
+              onSuccess={handleCloseForm}
+              onSubmittingChange={setIsProductFormSubmitting}
+            />
+          </div>
+          <DialogFooter className="flex justify-end space-x-4 pt-4">
+            <Button type="button" variant="outline" onClick={handleCloseForm}>
+              {t('common.cancel')}
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isProductFormSubmitting}
+              onClick={() => {
+                const form = document.querySelector('form');
+                if (form) {
+                  const event = new Event('submit', { bubbles: true, cancelable: true });
+                  form.dispatchEvent(event);
+                }
+              }}
+            >
+              {isProductFormSubmitting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {editingProduct ? t('common.update') : t('common.save')} {t('products.product')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Excel Upload Dialog */}
+      <Dialog open={showExcelUpload} onOpenChange={setShowExcelUpload}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{t('products.excel.uploadExcel')}</DialogTitle>
+            <DialogDescription>
+              {t('products.excel.uploadDescription') || 'Upload an Excel file to import products in bulk. The file must contain the required headers.'}
+            </DialogDescription>
+          </DialogHeader>
+          <ProductExcelUpload 
+            organizationId={organizationId} 
+            onUploadSuccess={handleExcelUploadSuccess}
+          />
         </DialogContent>
       </Dialog>
 

@@ -334,7 +334,7 @@ node setup-template-bucket.js
 
 ### Live URL
 After deployment, template will be available at:
-**https://vintage-fashion-example.jmarkets.jcampos.dev**
+**https://vintage-fashion-example.j-markets.jcampos.dev**
 
 ## Troubleshooting
 
@@ -370,7 +370,7 @@ After deployment, template will be available at:
 6. ⏳ Test local development (`npm run dev:template:vintage-fashion`)
 7. ⏳ Build for production (`npm run build:template:vintage-fashion`)
 8. ⏳ Deploy to S3/CloudFront
-9. ⏳ Verify live at https://vintage-fashion-example.jmarkets.jcampos.dev
+9. ⏳ Verify live at https://vintage-fashion-example.j-markets.jcampos.dev
 
 ## Support
 

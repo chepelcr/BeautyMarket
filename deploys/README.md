@@ -80,22 +80,11 @@ Creates API Gateway with custom domain and Lambda integration.
 
 **Note:** ACM certificate validation required (5-10 minutes)
 
-#### 5. Static Website
+#### 5. Frontend Deployment (templates, dashboard, landing)
 ```bash
-./deploys/deploy-static-website.sh
+node setup-template-bucket.js
 ```
-Creates S3 bucket and CloudFront distribution for React client.
-
-**Requires:**
-- Route53 Hosted Zone ID
-
-**Outputs:**
-- S3 Bucket Name
-- CloudFront Distribution ID
-- CloudFront URL
-- Custom Domain URL
-
-**Note:** ACM certificate validation required (5-10 minutes)
+Builds and deploys all frontend apps (8 templates, dashboard, landing page) to S3 + CloudFront + Route53. No CloudFormation required — fully automated via the script.
 
 #### 6. CodePipeline
 ```bash
@@ -363,7 +352,7 @@ aws lambda get-function-configuration --function-name jmarkets-api-handler --pro
 
 ### Test API Gateway
 ```bash
-curl https://api.jmarkets.jcampos.dev/api/health
+curl https://markets-api.jcampos.dev/api/health
 ```
 
 ## Support

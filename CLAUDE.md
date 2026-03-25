@@ -29,7 +29,7 @@ Database URL: Configure in .env as NEW_DATABASE_URL
 
 ### Authentication & Email Verification
 
-**📘 See [AUTH_FLOW.md](./AUTH_FLOW.md)** for complete authentication flow documentation.
+**📘 See [AUTH_FLOW.md](./docs/app/AUTH_FLOW.md)** for complete authentication flow documentation.
 
 **Security measures:**
 - ✅ Email verification required before accessing the system
@@ -138,7 +138,7 @@ node setup-template-bucket.js        # Build & deploy all frontend apps (templat
    - Builds store client (`npm run build:store`)
 
 2. **SSL Certificate Management**:
-   - Requests or retrieves wildcard SSL certificate for `*.jmarkets.jcampos.dev`
+   - Requests or retrieves wildcard SSL certificate for `*.j-markets.jcampos.dev`
    - Automatically adds DNS validation records to Route53
    - Waits for certificate validation (max 10 minutes)
    - Reuses existing validated certificates
@@ -154,17 +154,17 @@ node setup-template-bucket.js        # Build & deploy all frontend apps (templat
    - Creates CloudFront invalidation to clear cache (immediate updates)
 
 4. **Deployments Created**:
-   - **Landing page**: `jmarkets.jcampos.dev`
-   - **Dashboard**: `admin.jmarkets.jcampos.dev`
+   - **Landing page**: `j-markets.jcampos.dev`
+   - **Dashboard**: `admin.j-markets.jcampos.dev`
    - **8 Template Organizations**:
-     - `jmarkets-demo-example.jmarkets.jcampos.dev`
-     - `tech-gadgets-example.jmarkets.jcampos.dev`
-     - `vintage-fashion-example.jmarkets.jcampos.dev`
-     - `artisan-crafts-example.jmarkets.jcampos.dev`
-     - `gourmet-foods-example.jmarkets.jcampos.dev`
-     - `fitness-hub-example.jmarkets.jcampos.dev`
-     - `pet-care-example.jmarkets.jcampos.dev`
-     - `beauty-essentials-example.jmarkets.jcampos.dev`
+     - `jmarkets-demo-example.j-markets.jcampos.dev`
+     - `tech-gadgets-example.j-markets.jcampos.dev`
+     - `vintage-fashion-example.j-markets.jcampos.dev`
+     - `artisan-crafts-example.j-markets.jcampos.dev`
+     - `gourmet-foods-example.j-markets.jcampos.dev`
+     - `fitness-hub-example.j-markets.jcampos.dev`
+     - `pet-care-example.j-markets.jcampos.dev`
+     - `beauty-essentials-example.j-markets.jcampos.dev`
 
 **Configuration** (environment variables in `.env`):
 ```bash
@@ -201,15 +201,15 @@ node setup-template-bucket.js
 ```
 ✅ Main template bucket: jmarkets-template-market
 ✅ Template organizations processed: 8/8
-✅ Landing page deployed: https://jmarkets.jcampos.dev
-✅ Dashboard deployed: https://admin.jmarkets.jcampos.dev
+✅ Landing page deployed: https://j-markets.jcampos.dev
+✅ Dashboard deployed: https://admin.j-markets.jcampos.dev
 
 🏠 LANDING PAGE:
-  jmarkets.jcampos.dev
+  j-markets.jcampos.dev
     S3 Bucket:        jmarkets-jcampos-dev-landing
     Distribution ID:  E1ABC23DEF4GHI
     CloudFront URL:   https://d1abc2def3ghi.cloudfront.net
-    Custom Domain:    https://jmarkets.jcampos.dev
+    Custom Domain:    https://j-markets.jcampos.dev
 
 [... similar output for dashboard and 8 template organizations ...]
 ```
@@ -248,7 +248,7 @@ The `organizationContext` middleware (`server/src/middleware/organizationContext
 
 1. **Route parameters**: `/api/user/:userId/organization/:orgId` → Direct orgId lookup
 2. **X-Organization-ID header**: Explicit organization selection
-3. **Subdomain**: `storename.jmarkets.jcampos.dev` → Organization lookup by subdomain
+3. **Subdomain**: `storename.j-markets.jcampos.dev` → Organization lookup by subdomain
 4. **Custom domain**: `www.customstore.com` → Organization lookup by custom domain
 5. **Query parameter**: `?organizationId=xyz` → For testing/development only
 
@@ -382,7 +382,7 @@ This project has **three separate React applications**:
 
 1. **landing-client/** - Pure marketing website
    - Port: 3001 in development
-   - Deployment: `jmarkets.jcampos.dev`
+   - Deployment: `j-markets.jcampos.dev`
    - Routes: Landing, Examples, About, Blog, Contact, Terms, Privacy, Cookies
    - Purpose: Public-facing marketing site
    - Build output: `dist/landing/`
@@ -390,7 +390,7 @@ This project has **three separate React applications**:
 
 2. **dashboard/** - Complete admin application
    - Port: 5173 in development (Vite default)
-   - Deployment: `admin.jmarkets.jcampos.dev` and organization subdomains
+   - Deployment: `admin.j-markets.jcampos.dev` and organization subdomains
    - Routes:
      - **Auth**: Login, Register, VerifyEmail, ForgotPassword, ResetPassword
      - **Organizations**: CreateOrganization (3-step onboarding), SelectOrganization, OrganizationSettings, AcceptInvitation
@@ -401,7 +401,7 @@ This project has **three separate React applications**:
 
 3. **templates/** - Individual store frontends (public-facing stores)
    - Multiple independent Vite apps (jmarkets-demo, tech-gadgets, vintage-fashion, artisan-crafts, gourmet-foods, fitness-hub, pet-care, beauty-essentials)
-   - Deployment: Organization subdomains (`{org-slug}.jmarkets.jcampos.dev`)
+   - Deployment: Organization subdomains (`{org-slug}.j-markets.jcampos.dev`)
    - Purpose: Customer-facing e-commerce stores
    - Each template has unique design, colors, and components
    - See "Template System" section below for details
@@ -413,7 +413,7 @@ All three apps use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix 
 
 ### Frontend Standards & Patterns
 
-**📘 See [FRONTEND_STANDARDS.md](./FRONTEND_STANDARDS.md) for comprehensive frontend patterns including:**
+**📘 See [FRONTEND_STANDARDS.md](./docs/app/FRONTEND_STANDARDS.md) for comprehensive frontend patterns including:**
 - Translation system (i18n with LanguageContext)
 - Styling standards (Tailwind CSS + CSS variables)
 - Component architecture patterns
@@ -468,7 +468,7 @@ All three apps use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix 
 ### Custom Hooks
 
 - `useAuth()` (`dashboard/src/hooks/useAuth.ts`) - Authentication lifecycle with AWS Cognito
-  - **📘 See [AUTH_FLOW.md](./AUTH_FLOW.md)** for complete authentication flow documentation
+  - **📘 See [AUTH_FLOW.md](./docs/app/AUTH_FLOW.md)** for complete authentication flow documentation
   - Handles login, registration, email verification, and user profile management
   - Automatic user sync from Cognito to database
   - Email verification validation on every profile fetch
@@ -500,7 +500,7 @@ All requests automatically include AWS Cognito JWT tokens via React Query's `que
 
 The platform supports **multiple template designs** for customer-facing stores. Each template is a completely independent React application with unique visual identity, components, and user experience.
 
-**📘 See [MULTI_TEMPLATE_ARCHITECTURE.md](./MULTI_TEMPLATE_ARCHITECTURE.md)** for complete template system documentation.
+**📘 See [MULTI_TEMPLATE_ARCHITECTURE.md](./docs/app/MULTI_TEMPLATE_ARCHITECTURE.md)** for complete template system documentation.
 
 ### Available Templates
 
@@ -515,7 +515,7 @@ The platform supports **multiple template designs** for customer-facing stores. 
 7. **pet-care** - Pet supplies (Playful Purple `#a855f7`, friendly, fun)
 8. **beauty-essentials** - Beauty & cosmetics (Soft Rose `#f43f5e`, elegant, luxurious)
 
-All templates deployed to: `{template-name}-example.jmarkets.jcampos.dev`
+All templates deployed to: `{template-name}-example.j-markets.jcampos.dev`
 
 ### Template Structure
 
@@ -674,12 +674,13 @@ Organization → HomePageContent
 5. **API Gateway** (`cloudformation/api-gateway.yml`)
    - REST API with Lambda proxy integration
    - JWT authorizer validates Cognito tokens
-   - ACM certificate + custom domain (api.jmarkets.jcampos.dev)
+   - ACM certificate + custom domain (markets-api.jcampos.dev)
    - Route53 DNS records
 
-6. **Static Website** (`cloudformation/static-website.yml`)
-   - S3 bucket + CloudFront distribution
-   - SPA error handling (404/403 → index.html)
+6. **Frontend Deployment** (`setup-template-bucket.js`)
+   - Programmatically provisions S3 + CloudFront + Route53 for all sites
+   - Covers: 8 templates, dashboard, landing page
+   - Run: `node setup-template-bucket.js`
 
 7. **CodePipeline** (`cloudformation/codepipeline.yml`)
    - GitHub integration via CodeStar Connection
@@ -688,10 +689,10 @@ Organization → HomePageContent
 
 ### Deployment Scripts
 
-**Master orchestrator**: `./deploys/deploy-all.sh` runs all 7 stacks sequentially with validation.
+**Master orchestrator**: `./deploys/deploy-all.sh` runs backend stacks sequentially with validation.
 
 **IAM Policy Management**:
-- Local development uses IAM user credentials from `deploy-iam.sh`
+- IAM policies are managed in the shared infra repo (`biller-apps/Infrastructure/policies/jcampos-iam-policies.yaml`)
 - Lambda function imports the same managed policy ARN (shared permissions)
 - Policy includes: Cognito (with `ListUsers`), S3, SES, CloudFront, Route53, Secrets Manager
 - See `cloudformation/IAM_DEPLOYMENT.md` for detailed deployment guide

@@ -104,7 +104,7 @@ node setup-template-bucket.js
 ```
 
 ### Live URL
-https://artisan-crafts-example.jmarkets.jcampos.dev
+https://artisan-crafts-example.j-markets.jcampos.dev
 
 ## 📚 Documentation
 

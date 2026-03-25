@@ -9,10 +9,11 @@ import { useState, useEffect } from "react";
 
 interface PackagingSectionProps {
   form: UseFormReturn<InsertProduct>;
+  disabled?: boolean;
 }
 
-export function PackagingSection({ form }: PackagingSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+export function PackagingSection({ form, disabled = false }: PackagingSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(!disabled);
   const isPackaged = form.watch("isPackaged");
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function PackagingSection({ form }: PackagingSectionProps) {
             size="sm"
             variant="outline"
             onClick={() => setIsExpanded(!isExpanded)}
+            disabled={disabled}
           >
             <Eye className="h-4 w-4" />
           </Button>

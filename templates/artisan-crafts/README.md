@@ -127,7 +127,7 @@ All component styles are in `src/index.css` using Tailwind's `@layer components`
 
 ## Live Demo
 
-**URL**: https://artisan-crafts-example.jmarkets.jcampos.dev
+**URL**: https://artisan-crafts-example.j-markets.jcampos.dev
 
 ## Target Audience
 
