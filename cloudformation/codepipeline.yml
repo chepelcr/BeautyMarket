@@ -176,10 +176,12 @@ Resources:
                 Version: "1"
               Configuration:
                 ProjectName: !Ref UpdateFunctionProject
+                PrimarySource: SourceCode
                 EnvironmentVariables: !Sub |
                   [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
                    {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"}]
               InputArtifacts:
+                - Name: SourceCode
                 - Name: BuildOutput
               OutputArtifacts:
                 - Name: UpdateOutput

@@ -11,11 +11,15 @@ echo "  Function    : ${FUNCTION_NAME}"
 echo "  Region      : ${REGION}"
 echo ""
 
-# Verify artifact is present
-if [ ! -f "lambda-package.zip" ]; then
-  echo "ERROR: lambda-package.zip not found in workspace"
+# Locate lambda-package.zip — in secondary artifact dir when run via CodePipeline,
+# or in the working directory when run standalone.
+ZIP_PATH="${CODEBUILD_SRC_DIR_BuildOutput:-$PWD}/lambda-package.zip"
+
+if [ ! -f "$ZIP_PATH" ]; then
+  echo "ERROR: lambda-package.zip not found at $ZIP_PATH"
   exit 1
 fi
+echo "Using zip: $ZIP_PATH"
 
 # Check function exists
 if ! aws lambda get-function --function-name "$FUNCTION_NAME" --region "$REGION" &>/dev/null; then
@@ -29,7 +33,7 @@ for attempt in 1 2 3; do
   echo "Attempt ${attempt}: updating ${FUNCTION_NAME}..."
   if aws lambda update-function-code \
       --function-name "$FUNCTION_NAME" \
-      --zip-file fileb://lambda-package.zip \
+      --zip-file "fileb://$ZIP_PATH" \
       --region "$REGION" \
       --output text --query 'FunctionArn'; then
     UPDATED=true
