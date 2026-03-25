@@ -95,7 +95,7 @@ const hero = getSectionByType(sections, 'hero')?.content || {};
 To test the implementation:
 ```bash
 # 1. Seed the database
-npx tsx run-template-seed.ts
+npm run db:seed:templates
 
 # 2. Build templates
 npm run build:templates

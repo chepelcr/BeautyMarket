@@ -15,7 +15,7 @@ Parameters:
 
   SourceRepoParam:
     Type: String
-    Default: JMarkets
+    Default: BeautyMarket
     Description: GitHub repository name
 
   SourceBranchParam:
@@ -78,7 +78,7 @@ Resources:
       TimeoutInMinutes: 20
       LogsConfig:
         CloudWatchLogs:
-          GroupName: !GetAtt BuildLogGroup.LogGroupName
+          GroupName: !Ref BuildLogGroup
           Status: ENABLED
 
   # ── Phase 2: Update Lambda function code ─────────────────────────────────────
@@ -112,7 +112,7 @@ Resources:
       TimeoutInMinutes: 10
       LogsConfig:
         CloudWatchLogs:
-          GroupName: !GetAtt UpdateLogGroup.LogGroupName
+          GroupName: !Ref UpdateLogGroup
           Status: ENABLED
 
   # ── Pipeline ─────────────────────────────────────────────────────────────────

@@ -23,7 +23,7 @@
 
 ### 4. Created Seed System
 - ✅ `template-seed.ts` - Seeds templates with sample data
-- ✅ `run-template-seed.ts` - Script to execute template seed
+- ✅ `server/src/scripts/run-template-seed.ts` - Script to execute template seed (`npm run db:seed:templates`)
 - ✅ `package.json` - Added `db:seed:templates` script
 
 ## 🚀 Next Steps to Execute

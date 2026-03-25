@@ -120,7 +120,7 @@ npm run db:seed               # Run RBAC seed script
 ./deploys/deploy-pipeline.sh         # Deploy CI/CD pipeline
 
 # Frontend Deployment (All-in-One)
-node setup-template-bucket.js        # Build & deploy all frontend apps (templates, landing, dashboard)
+node deploys/setup-template-bucket.js        # Build & deploy all frontend apps (templates, landing, dashboard)
 
 # Utilities
 ./deploys/add-ses-emails.sh          # Add/verify emails in SES for development
@@ -187,7 +187,7 @@ HOSTED_ZONE_ID=Z0123456789ABC                  # Route53 hosted zone ID for DNS 
 **Usage**:
 ```bash
 # Run the complete deployment (build + deploy)
-node setup-template-bucket.js
+node deploys/setup-template-bucket.js
 
 # The script will:
 # 1. Build all applications (takes 5-10 minutes)
@@ -680,7 +680,7 @@ Organization → HomePageContent
 6. **Frontend Deployment** (`setup-template-bucket.js`)
    - Programmatically provisions S3 + CloudFront + Route53 for all sites
    - Covers: 8 templates, dashboard, landing page
-   - Run: `node setup-template-bucket.js`
+   - Run: `node deploys/setup-template-bucket.js`
 
 7. **CodePipeline** (`cloudformation/codepipeline.yml`)
    - GitHub integration via CodeStar Connection

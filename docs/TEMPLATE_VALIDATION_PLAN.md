@@ -47,7 +47,7 @@ All templates have these pages that use hooks:
 ### Demo Templates
 1. `setup-template-bucket.js` runs
 2. Uploads template files to S3
-3. `generate-bucket-configs.js` creates config.json with templateId
+3. `scripts/generate-bucket-configs.js` creates config.json with templateId
 4. Frontend fetches config.json and uses template endpoints
 
 ### Production Orgs
@@ -58,7 +58,7 @@ All templates have these pages that use hooks:
 
 ## Testing Checklist
 - [ ] Run `npm run db:seed` to create/update template data
-- [ ] Run `node generate-bucket-configs.js` to create config files
+- [ ] Run `node scripts/generate-bucket-configs.js` to create config files
 - [ ] Test demo template: `https://beauty-essentials-example.j-markets.jcampos.dev`
 - [ ] Verify products load from API
 - [ ] Verify deals/services/programs pages work

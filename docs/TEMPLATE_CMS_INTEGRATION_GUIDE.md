@@ -151,7 +151,7 @@ const { data: contact } = useContact();
 ## Testing
 
 After updating each template:
-1. Run `npx tsx run-template-seed.ts` to ensure data is seeded
+1. Run `npm run db:seed:templates` to ensure data is seeded
 2. Start dev server: `npm run dev`
 3. Visit template URL
 4. Verify all sections load from database

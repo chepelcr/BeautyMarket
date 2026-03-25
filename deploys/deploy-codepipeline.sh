@@ -21,6 +21,9 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_IAM \
   --parameter-overrides \
       Environment="$ENVIRONMENT" \
+      SourceRepoParam="BeautyMarket" \
+      SourceOwnerParam="chepelcr" \
+      SourceBranchParam="develop" \
   --profile "$PROFILE" \
   --region "$REGION" \
   --no-fail-on-empty-changeset

@@ -88,7 +88,7 @@ Templates to update:
 ## Testing
 
 To test the implementation:
-1. Run `npx tsx run-template-seed.ts` to seed homepage data
+1. Run `npm run db:seed:templates` to seed homepage data
 2. Start server: `npm run dev:server`
 3. Visit beauty-essentials template
 4. Verify all sections load from database
