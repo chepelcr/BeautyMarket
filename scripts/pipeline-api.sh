@@ -37,6 +37,7 @@ python3 scripts/gen_api_template.py
 # Step 3: SAM deploy
 echo "Deploying API Gateway..."
 sam deploy \
+  --template-file api-gateway/template.yml \
   --config-file api-gateway/samconfig.toml \
   --config-env "$ENVIRONMENT" \
   --no-confirm-changeset \
