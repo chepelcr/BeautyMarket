@@ -11,16 +11,228 @@ export class TemplateController {
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
+    /**
+     * @openapi
+     * /api/templates:
+     *   get:
+     *     tags: [Templates]
+     *     summary: List all templates
+     *     parameters:
+     *       - in: query
+     *         name: activeOnly
+     *         schema:
+     *           type: boolean
+     *         description: Return only active templates
+     *       - in: query
+     *         name: category
+     *         schema:
+     *           type: string
+     *         description: Filter by category
+     *     responses:
+     *       200:
+     *         description: Array of templates
+     */
     router.get('/', this.getAllTemplates.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get template by ID
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Template object
+     *       404:
+     *         description: Not found
+     */
     router.get('/:id', this.getTemplateById.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/content:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get full content for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Template content
+     */
     router.get('/:id/content', this.getTemplateContent.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/theme:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get theme settings for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Theme settings
+     */
     router.get('/:id/theme', this.getTemplateTheme.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/contact:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get contact settings for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Contact settings
+     */
     router.get('/:id/contact', this.getTemplateContact.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/payment:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get payment settings for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Payment settings
+     */
     router.get('/:id/payment', this.getTemplatePayment.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/shipping:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get shipping settings for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Shipping settings
+     */
     router.get('/:id/shipping', this.getTemplateShipping.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/pages:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get pages for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Array of pages
+     */
     router.get('/:id/pages', this.getTemplatePages.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/pages/{slug}:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get a template page by slug
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *       - in: path
+     *         name: slug
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Page with sections
+     *       404:
+     *         description: Not found
+     */
     router.get('/:id/pages/:slug', this.getTemplatePageBySlug.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/categories:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get categories for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Array of categories
+     */
     router.get('/:id/categories', this.getTemplateCategories.bind(this));
+
+    /**
+     * @openapi
+     * /api/templates/{id}/products:
+     *   get:
+     *     tags: [Templates]
+     *     summary: Get products for a template
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *       - in: query
+     *         name: isService
+     *         schema:
+     *           type: boolean
+     *       - in: query
+     *         name: onSale
+     *         schema:
+     *           type: boolean
+     *       - in: query
+     *         name: type
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Array of products
+     */
     router.get('/:id/products', this.getTemplateProducts.bind(this));
 
     return router;

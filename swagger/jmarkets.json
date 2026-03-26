@@ -3023,6 +3023,302 @@
         }
       }
     },
+    "/api/templates": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "List all templates",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "activeOnly",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Return only active templates"
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of templates"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get template by ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template object"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/content": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get full content for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template content"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/theme": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get theme settings for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theme settings"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/contact": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get contact settings for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact settings"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/payment": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get payment settings for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment settings"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/shipping": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get shipping settings for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipping settings"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/pages": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get pages for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of pages"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/pages/{slug}": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get a template page by slug",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page with sections"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/categories": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get categories for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of categories"
+          }
+        }
+      }
+    },
+    "/api/templates/{id}/products": {
+      "get": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Get products for a template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isService",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "onSale",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of products"
+          }
+        }
+      }
+    },
     "/api/users/{userId}/organization/{orgId}/settings/theme": {
       "get": {
         "summary": "Get theme settings for an organization",
