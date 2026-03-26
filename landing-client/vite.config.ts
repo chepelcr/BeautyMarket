@@ -18,7 +18,7 @@ export default defineConfig({
           // Vendor chunks for better caching
           'vendor-react': ['react', 'react-dom'],
           'vendor-router': ['wouter'],
-          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge'],
+          'vendor-utils': ['clsx', 'tailwind-merge'],
         },
       },
     },

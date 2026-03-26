@@ -255,7 +255,16 @@ for DOMAIN in "${ALL_DOMAINS[@]}"; do
 
   log "Emptying bucket: $BUCKET"
   if [ "$DRY_RUN" = "false" ]; then
-    ${AWS} s3 rm "s3://${BUCKET}" --recursive --quiet
+    # Delete all current objects
+    ${AWS} s3 rm "s3://${BUCKET}" --recursive --quiet || true
+    # Delete all versioned objects and delete markers (in case versioning is enabled)
+    ${AWS} s3api list-object-versions --bucket "$BUCKET" \
+      --query '[Versions,DeleteMarkers][].[Key,VersionId]' \
+      --output text 2>/dev/null \
+      | while read -r KEY VER; do
+          [ -z "$KEY" ] || [ -z "$VER" ] && continue
+          ${AWS} s3api delete-object --bucket "$BUCKET" --key "$KEY" --version-id "$VER" > /dev/null 2>&1 || true
+        done
     ${AWS} s3api delete-bucket --bucket "$BUCKET"
     ok "Deleted bucket $BUCKET"
   else
