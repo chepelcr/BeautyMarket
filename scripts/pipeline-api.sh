@@ -32,7 +32,7 @@ npm run generate:swagger
 
 # Step 2: Generate SAM template from swagger
 echo "Generating api-gateway/template.yml..."
-py -3 scripts/gen_api_template.py
+python3 scripts/gen_api_template.py
 
 # Step 3: SAM deploy
 echo "Deploying API Gateway..."
