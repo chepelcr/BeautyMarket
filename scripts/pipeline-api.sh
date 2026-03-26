@@ -34,11 +34,10 @@ npm run generate:swagger
 echo "Generating api-gateway/template.yml..."
 python3 scripts/gen_api_template.py
 
-# Step 3: SAM deploy
+# Step 3: SAM deploy (run from api-gateway/ so samconfig.toml is auto-discovered)
 echo "Deploying API Gateway..."
+cd api-gateway
 sam deploy \
-  --template-file api-gateway/template.yml \
-  --config-file api-gateway/samconfig.toml \
   --config-env "$ENVIRONMENT" \
   --no-confirm-changeset \
   --no-fail-on-empty-changeset \
@@ -47,6 +46,7 @@ sam deploy \
     "Environment=$ENVIRONMENT" \
     "DomainName=$API_DOMAIN" \
     "HostedZoneId=$HOSTED_ZONE_ID"
+cd ..
 
 echo ""
 echo "API Gateway update complete."
