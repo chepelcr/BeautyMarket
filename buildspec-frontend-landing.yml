@@ -1,0 +1,30 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "dev"
+    REGION: "us-east-1"
+    FRONTEND_DOMAIN: "j-markets.jcampos.dev"
+    ROOT_DOMAIN: "jcampos.dev"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - cd landing-client && npm ci && cd ..
+
+  build:
+    commands:
+      - echo "Building landing page..."
+      - npm run build:landing
+
+  post_build:
+    commands:
+      - bash scripts/pipeline-frontend-landing.sh
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist/landing
+  discard-paths: no

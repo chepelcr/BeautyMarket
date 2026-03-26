@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: JMarkets CI/CD pipeline — BuildLambda + UpdateFunction + UpdateApiGateway phases
+Description: JMarkets CI/CD pipeline — BuildLambda + UpdateFunction + UpdateApiGateway + DeployLanding + DeployDashboard + DeployTemplates
 
 Parameters:
   Environment:
@@ -40,6 +40,11 @@ Parameters:
     Type: String
     Default: jcampos.dev
     Description: Root domain for Route53 hosted zone lookup
+
+  FrontendDomainParam:
+    Type: String
+    Default: j-markets.jcampos.dev
+    Description: Base domain for all frontend apps (landing, dashboard, templates)
 
 Resources:
 
@@ -171,6 +176,147 @@ Resources:
           GroupName: !Ref ApiGatewayLogGroup
           Status: ENABLED
 
+  # ── Phase 4: Deploy landing page ─────────────────────────────────────────────
+
+  DeployLandingLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-landing"
+      RetentionInDays: 14
+
+  DeployLandingProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jmarkets-${Environment}-frontend-landing"
+      Description: Build landing-client and deploy to S3+CloudFront via CFN stack
+      ServiceRole:
+        Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref Environment
+          - Name: REGION
+            Type: PLAINTEXT
+            Value: !Ref AWS::Region
+          - Name: FRONTEND_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref FrontendDomainParam
+          - Name: ROOT_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref RootDomainParam
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-frontend-landing.yml
+      TimeoutInMinutes: 30
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Ref DeployLandingLogGroup
+          Status: ENABLED
+
+  # ── Phase 5: Deploy admin dashboard ──────────────────────────────────────────
+
+  DeployDashboardLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-dashboard"
+      RetentionInDays: 14
+
+  DeployDashboardProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jmarkets-${Environment}-frontend-dashboard"
+      Description: Build admin dashboard and deploy to S3+CloudFront via CFN stack
+      ServiceRole:
+        Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref Environment
+          - Name: REGION
+            Type: PLAINTEXT
+            Value: !Ref AWS::Region
+          - Name: FRONTEND_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref FrontendDomainParam
+          - Name: ROOT_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref RootDomainParam
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-frontend-dashboard.yml
+      TimeoutInMinutes: 30
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Ref DeployDashboardLogGroup
+          Status: ENABLED
+
+  # ── Phase 6: Deploy all 8 template storefronts ───────────────────────────────
+
+  DeployTemplatesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-templates"
+      RetentionInDays: 14
+
+  DeployTemplatesProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jmarkets-${Environment}-frontend-templates"
+      Description: Build all 8 template storefronts and deploy to S3+CloudFront via CFN stacks
+      ServiceRole:
+        Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        # MEDIUM: building 8 Vite apps needs more RAM than the Lambda build
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref Environment
+          - Name: REGION
+            Type: PLAINTEXT
+            Value: !Ref AWS::Region
+          - Name: FRONTEND_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref FrontendDomainParam
+          - Name: ROOT_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref RootDomainParam
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-frontend-templates.yml
+      # Initial creation: 8 parallel CFN stacks (CloudFront + ACM) ≈ 20 min
+      # + npm install + 8 Vite builds + 8 S3 syncs ≈ 20 min → 60 min is safe
+      TimeoutInMinutes: 60
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Ref DeployTemplatesLogGroup
+          Status: ENABLED
+
   # ── Pipeline ─────────────────────────────────────────────────────────────────
 
   JmarketsPipeline:
@@ -262,6 +408,69 @@ Resources:
                 - Name: SourceCode
               OutputArtifacts:
                 - Name: ApiOutput
+              RunOrder: 1
+
+        - Name: DeployLanding
+          Actions:
+            - Name: DeployLanding
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref DeployLandingProject
+                EnvironmentVariables: !Sub |
+                  [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
+                   {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
+                   {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
+                   {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"}]
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: LandingOutput
+              RunOrder: 1
+
+        - Name: DeployDashboard
+          Actions:
+            - Name: DeployDashboard
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref DeployDashboardProject
+                EnvironmentVariables: !Sub |
+                  [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
+                   {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
+                   {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
+                   {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"}]
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: DashboardOutput
+              RunOrder: 1
+
+        - Name: DeployTemplates
+          Actions:
+            - Name: DeployTemplates
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref DeployTemplatesProject
+                EnvironmentVariables: !Sub |
+                  [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
+                   {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
+                   {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
+                   {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"}]
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: TemplatesOutput
               RunOrder: 1
 
 Outputs:

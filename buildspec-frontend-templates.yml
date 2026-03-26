@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "dev"
+    REGION: "us-east-1"
+    FRONTEND_DOMAIN: "j-markets.jcampos.dev"
+    ROOT_DOMAIN: "jcampos.dev"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      # Install deps for all 8 templates in parallel
+      - |
+        for TMPL in jmarkets-demo tech-gadgets vintage-fashion artisan-crafts gourmet-foods fitness-hub pet-care beauty-essentials; do
+          (cd templates/$TMPL && npm ci) &
+        done
+        wait
+
+  build:
+    commands:
+      - echo "Building all 8 template storefronts..."
+      - npm run build:templates
+
+  post_build:
+    commands:
+      - bash scripts/pipeline-frontend-templates.sh

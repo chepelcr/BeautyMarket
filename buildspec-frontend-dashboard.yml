@@ -1,0 +1,30 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "dev"
+    REGION: "us-east-1"
+    FRONTEND_DOMAIN: "j-markets.jcampos.dev"
+    ROOT_DOMAIN: "jcampos.dev"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - cd dashboard && npm ci && cd ..
+
+  build:
+    commands:
+      - echo "Building admin dashboard..."
+      - npm run build:dashboard
+
+  post_build:
+    commands:
+      - bash scripts/pipeline-frontend-dashboard.sh
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist/dashboard
+  discard-paths: no
