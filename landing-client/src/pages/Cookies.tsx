@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings } from "lucide-react";
 
 export default function Cookies() {
@@ -16,126 +14,92 @@ export default function Cookies() {
     {
       name: t('cookies.essential'),
       description: t('cookies.essential.description'),
-      examples: 'Session tokens, security tokens, ' + t('language.es')
+      examples: `Session tokens, security tokens, ${t('language.es')}`,
     },
     {
       name: t('cookies.analytics'),
       description: t('cookies.analytics.description'),
-      examples: 'Google Analytics, user interaction tracking'
+      examples: 'Google Analytics, seguimiento de interacciones',
     },
     {
       name: t('cookies.marketing'),
       description: t('cookies.marketing.description'),
-      examples: 'Conversion tracking, personalized advertisements'
+      examples: 'Seguimiento de conversiones, anuncios personalizados',
     },
     {
       name: t('cookies.preferences'),
       description: t('cookies.preferences.description'),
-      examples: 'Theme preferences, language settings, user choices'
-    }
+      examples: 'Tema visual, idioma, preferencias del usuario',
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header Section */}
-      <section className="bg-white dark:bg-slate-800 border-b">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <section className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <Badge variant="secondary" className="mb-4">
-              <Settings className="h-3 w-3 mr-1" />
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
+              <Settings className="h-3.5 w-3.5" />
               {t('cookies.badge')}
-            </Badge>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            </span>
+            <h1 className="font-serif text-4xl sm:text-5xl font-bold text-foreground mb-4">
               {t('cookies.title')}
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               {t('cookies.subtitle')}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Content Section */}
+      {/* Content */}
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* What are Cookies */}
+
+          {/* What are cookies */}
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('cookies.what')}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4 text-justify">
-              {t('cookies.explanation')}
-            </p>
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-justify">
-              {t('cookies.browser')}
-            </p>
+            <h2 className="text-3xl font-bold text-foreground mb-4">{t('cookies.what')}</h2>
+            <p className="text-muted-foreground leading-relaxed mb-4 text-justify">{t('cookies.explanation')}</p>
+            <p className="text-muted-foreground leading-relaxed text-justify">{t('cookies.browser')}</p>
           </div>
 
-          {/* Types of Cookies */}
+          {/* Types */}
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-              {t('cookies.types')}
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {cookieTypes.map((cookie, index) => (
-                <Card key={index} className="bg-white dark:bg-slate-800 flex flex-col">
-                  <CardHeader className="flex-grow">
-                    <CardTitle className="text-lg">{cookie.name}</CardTitle>
-                    <CardDescription className="text-justify">{cookie.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground text-justify">
-                      <strong>Examples:</strong> {cookie.examples}
-                    </p>
-                  </CardContent>
-                </Card>
+            <h2 className="text-3xl font-bold text-foreground mb-8">{t('cookies.types')}</h2>
+            <div className="grid md:grid-cols-2 gap-5">
+              {cookieTypes.map((cookie) => (
+                <div key={cookie.name} className="rounded-2xl p-6 bg-card border border-border hover:border-primary/20 transition-all">
+                  <h3 className="font-semibold text-foreground mb-2">{cookie.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-3 text-justify">{cookie.description}</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    <span className="font-medium text-muted-foreground">{t('common.examples') || 'Ejemplos'}:</span> {cookie.examples}
+                  </p>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* How to Manage Cookies */}
+          {/* How to manage */}
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-              {t('cookies.manage')}
-            </h2>
+            <h2 className="text-3xl font-bold text-foreground mb-6">{t('cookies.manage')}</h2>
             <div className="space-y-4">
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  {t('cookies.usingBrowser')}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm text-justify">
-                  {t('cookies.usingBrowserDesc')}
-                </p>
-              </div>
-
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  {t('cookies.consent')}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm text-justify">
-                  {t('cookies.consentDesc')}
-                </p>
-              </div>
-
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  {t('cookies.third')}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm text-justify">
-                  {t('cookies.thirdDesc')}
-                </p>
-              </div>
+              {[
+                { title: t('cookies.usingBrowser'), desc: t('cookies.usingBrowserDesc') },
+                { title: t('cookies.consent'),      desc: t('cookies.consentDesc') },
+                { title: t('cookies.third'),        desc: t('cookies.thirdDesc') },
+              ].map(({ title, desc }) => (
+                <div key={title} className="p-5 bg-muted/40 rounded-xl border border-border">
+                  <h3 className="font-semibold text-foreground mb-2">{title}</h3>
+                  <p className="text-muted-foreground text-sm text-justify">{desc}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Important Note */}
-          <div className="p-6 bg-primary/10 dark:bg-primary/20 rounded-lg border border-primary/20">
-            <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
-              {t('cookies.important')}
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300 text-justify">
-              {t('cookies.importantDesc')}
-            </p>
+          <div className="p-6 bg-primary/10 rounded-xl border border-primary/20">
+            <h3 className="font-semibold text-lg mb-2 text-foreground">{t('cookies.important')}</h3>
+            <p className="text-sm text-muted-foreground text-justify">{t('cookies.importantDesc')}</p>
           </div>
         </div>
       </section>

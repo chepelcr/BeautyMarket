@@ -1,396 +1,262 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CTASecuritySection } from "@/components/sections/cta-security-section";
-import { useEffect, useRef } from "react";
+import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link, useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
 import {
-  Store,
-  Users,
-  Globe,
-  Shield,
-  Zap,
-  BarChart3,
-  Palette,
-  CreditCard,
-  Truck,
-  Check,
+  UserPlus,
+  Package,
+  Share2,
+  Scale,
+  Leaf,
+  MapPin,
+  Eye,
   ArrowRight,
-  Sparkles
+  Sprout,
 } from "lucide-react";
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function StepCard({ number, icon: Icon, titleKey, descriptionKey }: {
+  number: number;
+  icon: React.ElementType;
+  titleKey: string;
+  descriptionKey: string;
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className="relative flex flex-col items-center text-center px-6">
+      <div className="relative mb-5">
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+          <Icon className="h-7 w-7 text-primary" />
+        </div>
+        <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+          {number}
+        </span>
+      </div>
+      <h3 className="font-serif text-lg font-bold text-foreground mb-2">{t(titleKey)}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{t(descriptionKey)}</p>
+    </div>
+  );
+}
+
+function ValueCard({ icon: Icon, titleKey, descriptionKey, accent }: {
+  icon: React.ElementType;
+  titleKey: string;
+  descriptionKey: string;
+  accent?: boolean;
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className={`group rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${
+      accent
+        ? 'bg-accent/5 border-accent/20 hover:border-accent/40'
+        : 'bg-card border-border hover:border-primary/30'
+    }`}>
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
+        accent ? 'bg-accent/10' : 'bg-primary/10'
+      }`}>
+        <Icon className={`h-5 w-5 ${accent ? 'text-accent' : 'text-primary'}`} />
+      </div>
+      <h3 className="font-semibold text-foreground mb-2">{t(titleKey)}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{t(descriptionKey)}</p>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function Landing() {
   const { t } = useLanguage();
-  const [location] = useLocation();
-  const isScrollingRef = useRef(false);
-
-  // Base domain for subdomain display
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
-
-  useEffect(() => {
-    document.title = t('hero.title') + " | JMarkets";
-  }, [t]);
-
-  // Handle direct URL navigation to sections
-  useEffect(() => {
-    // Get section from URL path (e.g., /features -> features)
-    const pathParts = location.split('/').filter(Boolean);
-    const targetSection = pathParts[0];
-
-    if (targetSection && targetSection !== "home") {
-      // Disable scroll spy during programmatic scroll
-      isScrollingRef.current = true;
-
-      // Wait for page to render completely
-      const timer = setTimeout(() => {
-        const element = document.getElementById(targetSection);
-        if (element) {
-          const headerOffset = 0; // No offset, scroll to section start
-          const elementPosition = element.offsetTop;
-          const offsetPosition = elementPosition - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth"
-          });
-
-          // Re-enable scroll spy after animation completes (give smooth scroll time)
-          setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 3000);
-        } else {
-          isScrollingRef.current = false;
-        }
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [location]);
-
-  // Listen for programmatic scroll events from navbar
-  useEffect(() => {
-    const handleProgrammaticScroll = (e: CustomEvent) => {
-      isScrollingRef.current = e.detail.scrolling;
-    };
-
-    window.addEventListener('programmaticScroll', handleProgrammaticScroll as EventListener);
-    return () => window.removeEventListener('programmaticScroll', handleProgrammaticScroll as EventListener);
-  }, []);
-
-  // Scroll spy - updates URL based on visible section
-  useEffect(() => {
-    const updateURL = () => {
-      // Skip if programmatically scrolling
-      if (isScrollingRef.current) return;
-
-      // If at the very top, always set to home
-      if (window.scrollY < 10) {
-        if (window.location.pathname !== '/') {
-          window.history.replaceState({}, '', '/');
-        }
-        return;
-      }
-
-      const sections = ["home", "features", "pricing"];
-      const scrollPosition = window.scrollY + 64; // Nav height
-
-      let currentSection = "home";
-
-      for (const sectionId of sections) {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          const elementTop = window.scrollY + rect.top;
-
-          if (scrollPosition >= elementTop) {
-            currentSection = sectionId;
-          }
-        }
-      }
-
-      const expectedPath = currentSection === "home" ? "/" : `/${currentSection}`;
-      if (window.location.pathname !== expectedPath) {
-        window.history.replaceState({}, '', expectedPath);
-      }
-    };
-
-    window.addEventListener('scroll', updateURL, { passive: true });
-    return () => window.removeEventListener('scroll', updateURL);
-  }, []);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section id="home" className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/10 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="absolute inset-0">
-          <svg viewBox="0 0 1440 800" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-            <path d="M0,400 Q360,300 720,400 T1440,400 L1440,800 L0,800 Z" fill="hsl(var(--primary) / 0.05)" />
-            <path d="M0,500 Q360,350 720,500 T1440,500 L1440,800 L0,800 Z" fill="hsl(var(--primary) / 0.1)" />
-          </svg>
-        </div>
+    <div className="min-h-screen bg-background">
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="mb-6 px-4 py-1">
-              <Sparkles className="h-3 w-3 mr-1" />
+      {/* ═══════════════════════════════════════════════════════════ HERO */}
+      <section id="home" className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/10 pointer-events-none" />
+        <div className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-secondary/10 blur-2xl pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32">
+          <div className="max-w-3xl mx-auto text-center">
+
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
+              <Sprout className="h-3.5 w-3.5" />
               {t('hero.badge')}
-            </Badge>
+            </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
+            <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-6">
               {t('hero.title')}
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
               {t('hero.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://admin.j-markets.jcampos.dev/register"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Button
                   size="lg"
-                  className="px-8 py-6 text-lg text-white hover:opacity-90 border-0"
-                  style={{ backgroundColor: 'hsl(var(--primary))' }}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 py-6 text-base font-semibold gap-2 shadow-lg shadow-primary/20"
                 >
                   {t('hero.cta')}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </a>
-              <Link href="/examples">
-                <Button size="lg" variant="outline" className="px-8 py-6 text-lg border-primary text-primary hover:bg-primary/10">
+              <Link href="/ejemplos">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full px-8 py-6 text-base border-border text-foreground hover:bg-muted/50"
+                >
                   {t('hero.secondary')}
                 </Button>
               </Link>
             </div>
 
-            <p className="mt-6 text-sm text-muted-foreground">
-              {t('pricing.free.description')}
-            </p>
+            <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                {t('values.fairTrade.title')}
+              </span>
+              <span className="text-border">·</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                {t('values.local.title')}
+              </span>
+              <span className="text-border">·</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                {t('values.transparency.title')}
+              </span>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-12 bg-background dark:bg-slate-800">
+      {/* ══════════════════════════════════════ CÓMO FUNCIONA */}
+      <section id="como-funciona" className="py-20 lg:py-28 bg-card border-y border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('features.title')}
+
+          <div className="text-center mb-14">
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">{t('howItWorks.title')}</span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mt-2 mb-4">
+              {t('howItWorks.subtitle')}
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              {t('features.subtitle')}
-            </p>
           </div>
 
-          {/* First Row - 2-line text cards */}
-          <div className="grid lg:grid-cols-3 gap-8 mb-8">
-            <FeatureCard
-              icon={<Store className="h-6 w-6" />}
-              title={t('features.ecommerce.title')}
-              description={t('features.ecommerce.description')}
-              compact
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6">
+            <StepCard
+              number={1}
+              icon={UserPlus}
+              titleKey="howItWorks.step1.title"
+              descriptionKey="howItWorks.step1.description"
             />
-            <FeatureCard
-              icon={<BarChart3 className="h-6 w-6" />}
-              title={t('features.analytics.title')}
-              description={t('features.analytics.description')}
-              useSecondary
-              compact
+            <StepCard
+              number={2}
+              icon={Package}
+              titleKey="howItWorks.step2.title"
+              descriptionKey="howItWorks.step2.description"
             />
-            <FeatureCard
-              icon={<Zap className="h-6 w-6" />}
-              title="CDN"
-              description={t('features.analytics.description')}
-              compact
+            <StepCard
+              number={3}
+              icon={Share2}
+              titleKey="howItWorks.step3.title"
+              descriptionKey="howItWorks.step3.description"
             />
           </div>
 
-          {/* Second Row - 1-line text cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<Globe className="h-6 w-6" />}
-              title={t('features.customization.title')}
-              description={`tu-tienda.${baseDomain}`}
-              useSecondary
-              compact
-            />
-            <FeatureCard
-              icon={<Palette className="h-6 w-6" />}
-              title={t('features.customization.title')}
-              description={t('features.customization.description')}
-              compact
-            />
-            <FeatureCard
-              icon={<CreditCard className="h-6 w-6" />}
-              title={t('features.payments.title')}
-              description={t('features.payments.description')}
-              useSecondary
-              compact
-            />
-            <FeatureCard
-              icon={<Truck className="h-6 w-6" />}
-              title={t('features.inventory.title')}
-              description={t('features.inventory.description')}
-              compact
-            />
-            <FeatureCard
-              icon={<Users className="h-6 w-6" />}
-              title={t('features.support.title')}
-              description={t('features.support.description')}
-              useSecondary
-              compact
-            />
-            <FeatureCard
-              icon={<Shield className="h-6 w-6" />}
-              title="SSL"
-              description={t('footer.links.privacy')}
-              compact
-            />
+          <div className="text-center mt-12">
+            <Link href="/funcionalidades">
+              <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 gap-2 rounded-full">
+                {t('howItWorks.learnMore')}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
+
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-12 bg-background dark:bg-slate-800">
+      {/* ══════════════════════════════════════════════ VALORES */}
+      <section id="valores" className="py-20 lg:py-28 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('pricing.title')}
+
+          <div className="text-center mb-14">
+            <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t('values.title')}</span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mt-2 mb-4">
+              {t('values.subtitle')}
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              {t('pricing.subtitle')}
-            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
-            {/* Free Plan */}
-            <Card className="relative flex flex-col bg-card dark:bg-slate-700 border-2 border-primary/30 transition-all duration-300 hover:shadow-xl hover:scale-105">
-              <CardHeader>
-                <CardTitle>{t('pricing.free.name')}</CardTitle>
-                <CardDescription>{t('pricing.free.description')}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">{t('pricing.free.price')}</span>
-                  <span className="text-muted-foreground">/mes</span>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <ul className="space-y-3 flex-grow">
-                  {[0, 1, 2, 3].map((i) => (
-                    <PricingFeature key={i}>{t(`pricing.free.features.${i}`)}</PricingFeature>
-                  ))}
-                </ul>
-                <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" className="mt-6 block">
-                  <Button className="w-full border border-primary text-primary hover:bg-primary/20 dark:hover:bg-primary/30 bg-primary/10">
-                    {t('pricing.cta')}
-                  </Button>
-                </a>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <ValueCard
+              icon={Scale}
+              titleKey="values.fairTrade.title"
+              descriptionKey="values.fairTrade.description"
+            />
+            <ValueCard
+              icon={Leaf}
+              titleKey="values.conscious.title"
+              descriptionKey="values.conscious.description"
+            />
+            <ValueCard
+              icon={MapPin}
+              titleKey="values.local.title"
+              descriptionKey="values.local.description"
+              accent
+            />
+            <ValueCard
+              icon={Eye}
+              titleKey="values.transparency.title"
+              descriptionKey="values.transparency.description"
+              accent
+            />
+          </div>
 
-            {/* Pro Plan */}
-            <Card className="relative border-primary border-2 flex flex-col bg-card dark:bg-slate-700 transition-all duration-300 hover:shadow-xl hover:scale-105">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <Badge>{t('pricing.popular')}</Badge>
-              </div>
-              <CardHeader>
-                <CardTitle>{t('pricing.pro.name')}</CardTitle>
-                <CardDescription>{t('pricing.pro.description')}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">{t('pricing.pro.price')}</span>
-                  <span className="text-muted-foreground">{t('pricing.pro.period')}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <ul className="space-y-3 flex-grow">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <PricingFeature key={i}>{t(`pricing.pro.features.${i}`)}</PricingFeature>
-                  ))}
-                </ul>
-                <Button
-                  disabled
-                  className="w-full mt-6 btn-primary opacity-50 cursor-not-allowed"
-                >
-                  Proximamente
-                </Button>
-              </CardContent>
-            </Card>
+        </div>
+      </section>
 
-            {/* Enterprise Plan */}
-            <Card className="relative border-secondary border-2 flex flex-col bg-card dark:bg-slate-700 transition-all duration-300 hover:shadow-xl hover:scale-105">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <Badge variant="secondary">Premium</Badge>
-              </div>
-              <CardHeader>
-                <CardTitle>{t('pricing.enterprise.name')}</CardTitle>
-                <CardDescription>{t('pricing.enterprise.description')}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">{t('pricing.enterprise.price')}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <ul className="space-y-3 flex-grow">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <PricingFeature key={i}>{t(`pricing.enterprise.features.${i}`)}</PricingFeature>
-                  ))}
-                </ul>
-                <Button
-                  disabled
-                  className="w-full mt-6 border-0 opacity-50 cursor-not-allowed text-gray-900"
-                  style={{ backgroundColor: 'hsl(var(--secondary))' }}
-                >
-                  Proximamente
-                </Button>
-              </CardContent>
-            </Card>
+      {/* ══════════════════════════════════════════ FINAL CTA */}
+      <section className="py-20 bg-gradient-to-br from-primary to-primary/80">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mb-4">
+            {t('cta.community.title')}
+          </h2>
+          <p className="text-lg text-white/80 mb-8">
+            {t('cta.community.subtitle')}
+          </p>
+          <a
+            href="https://admin.j-markets.jcampos.dev/register"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button
+              size="lg"
+              className="bg-white text-primary hover:bg-white/90 rounded-full px-10 py-6 text-base font-semibold shadow-lg"
+            >
+              {t('cta.community.button')}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </a>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            {(['values.transparency.title', 'values.fairTrade.title', 'values.local.title'] as const).map((key) => (
+              <span
+                key={key}
+                className="px-4 py-1.5 rounded-full bg-white/15 text-white/90 text-sm font-medium border border-white/20"
+              >
+                {t(key)}
+              </span>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section with Security Footer */}
-      <CTASecuritySection
-        titleKey="examples.cta.title"
-        subtitleKey="examples.cta.subtitle"
-        buttonTextKey="hero.cta"
-        buttonLink="/register"
-      />
     </div>
-  );
-}
-
-// Feature Card Component
-function FeatureCard({ icon, title, description, useSecondary = false, compact = false }: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  useSecondary?: boolean;
-  compact?: boolean;
-}) {
-  const bgColor = useSecondary ? 'bg-secondary/10 dark:bg-secondary/20' : 'bg-primary/10 dark:bg-primary/20';
-  const iconColor = useSecondary ? 'text-secondary' : 'text-primary';
-
-  return (
-    <Card className="transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50 bg-card dark:bg-slate-700 border">
-      <CardContent className="pt-6">
-        <div className={`flex gap-4 ${compact ? 'items-center' : 'items-end'}`}>
-          <div className={`p-3 ${bgColor} rounded-lg flex-shrink-0`}>
-            <div className={iconColor}>{icon}</div>
-          </div>
-          <div className={`flex-1 ${compact ? 'flex flex-col gap-1' : 'min-h-16 flex flex-col justify-between'}`}>
-            <h3 className="font-semibold text-base leading-tight">{title}</h3>
-            <p className="text-muted-foreground text-xs">{description}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Pricing Feature Component
-function PricingFeature({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="flex items-center gap-2">
-      <Check className="h-4 w-4 text-secondary flex-shrink-0" />
-      <span className="text-sm">{children}</span>
-    </li>
   );
 }

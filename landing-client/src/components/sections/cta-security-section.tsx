@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Lock, Shield, CreditCard, Building2 } from "lucide-react";
+import { Heart, Scale, Users, Building2 } from "lucide-react";
 
 interface CTASecuritySectionProps {
   titleKey: string;
@@ -85,22 +85,22 @@ export function CTASecuritySection({
       <div className={isGradient ? "py-10 bg-black/10" : "py-10 bg-gray-200 dark:bg-slate-800"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`grid md:grid-cols-3 gap-8 text-sm ${isGradient ? 'text-white/80' : 'text-muted-foreground'}`}>
-            <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-white dark:bg-slate-700'}`}>
+            <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-white dark:bg-card'}`}>
               <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                SSL
+                <Heart className="h-4 w-4" />
+                {t('values.transparency.title')}
               </div>
             </div>
-            <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-white dark:bg-slate-700'}`}>
+            <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-white dark:bg-card'}`}>
               <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                {t('footer.links.privacy')}
+                <Scale className="h-4 w-4" />
+                {t('values.fairTrade.title')}
               </div>
             </div>
-            <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-white dark:bg-slate-700'}`}>
+            <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-white dark:bg-card'}`}>
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                {t('features.payments.title')}
+                <Users className="h-4 w-4" />
+                {t('values.local.title')}
               </div>
             </div>
           </div>

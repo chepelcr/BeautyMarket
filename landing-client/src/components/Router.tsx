@@ -5,6 +5,9 @@ import { Suspense, lazy } from "react";
 const Landing = lazy(() => import("@/pages/Landing"));
 const Examples = lazy(() => import("@/pages/Examples"));
 const About = lazy(() => import("@/pages/About"));
+const Funcionalidades = lazy(() => import("@/pages/Funcionalidades"));
+const Ferias = lazy(() => import("@/pages/Ferias"));
+const Comunidad = lazy(() => import("@/pages/Comunidad"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const Terms = lazy(() => import("@/pages/Terms"));
@@ -32,16 +35,20 @@ export function Router({ displayLocation }: RouterProps) {
     <Suspense fallback={<LoadingFallback />}>
       <Switch location={displayLocation}>
         <Route path="/" component={Landing} />
+        <Route path="/funcionalidades" component={Funcionalidades} />
+        <Route path="/ferias" component={Ferias} />
+        <Route path="/comunidad" component={Comunidad} />
+        <Route path="/quienes-somos" component={About} />
+        <Route path="/ejemplos" component={Examples} />
         <Route path="/examples" component={Examples} />
-        <Route path="/about" component={About} />
         <Route path="/blog" component={Blog} />
+        <Route path="/contacto" component={Contact} />
         <Route path="/contact" component={Contact} />
+        <Route path="/terminos" component={Terms} />
         <Route path="/terms" component={Terms} />
+        <Route path="/privacidad" component={Privacy} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/cookies" component={Cookies} />
-        {/* Section routes for direct navigation - must be after specific routes */}
-        <Route path="/features" component={Landing} />
-        <Route path="/pricing" component={Landing} />
         <Route>404 - Page not found</Route>
       </Switch>
     </Suspense>
