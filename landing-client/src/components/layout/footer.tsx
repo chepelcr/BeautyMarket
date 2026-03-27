@@ -58,7 +58,7 @@ export default function LandingFooter() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          <p>{t('footer.copyright').replace('© 2024', `© ${currentYear}`)}</p>
+          <p>{t('footer.copyright').replace('© 2026', `© ${currentYear}`)}</p>
         </div>
       </div>
     </footer>
