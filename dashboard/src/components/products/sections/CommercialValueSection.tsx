@@ -44,7 +44,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
     taxTypes: TAX_TYPES,
     discounts,
     detailQuantity: 1,
-    cabys: form.watch("cabys"),
+    cabys: form.watch("cabys") ?? undefined,
     taxAmounts: {}
   });
 
@@ -57,7 +57,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
     form.setValue("salePrice", salePrice);
   }, [baseAmount, salePrice, hasIvace, form]);
 
-  const hasOtherTaxes = taxes.some(tax => {
+  const hasOtherTaxes = (taxes as any[]).some((tax: any) => {
     const taxType = TAX_TYPES.find(tt => tt.taxId === tax.taxTypeId);
     const taxConfig = getTaxConfig(taxType?.code);
     return taxType && !taxConfig?.iva;

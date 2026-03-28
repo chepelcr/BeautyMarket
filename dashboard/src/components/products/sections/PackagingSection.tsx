@@ -19,8 +19,8 @@ export function PackagingSection({ form, disabled = false }: PackagingSectionPro
   useEffect(() => {
     if (!isPackaged) {
       form.setValue("quantity", 1);
-      const netPrice = form.watch("netPrice") || 0;
-      form.setValue("unitPrice", netPrice);
+      const currentPrice = form.watch("price") || 0;
+      form.setValue("unitPrice", currentPrice);
     }
   }, [isPackaged, form]);
 
@@ -66,7 +66,7 @@ export function PackagingSection({ form, disabled = false }: PackagingSectionPro
                         const quantity = parseInt(e.target.value) || 1;
                         field.onChange(quantity);
                         const unitPrice = form.getValues("unitPrice") || 0;
-                        form.setValue("netPrice", unitPrice * quantity);
+                        form.setValue("price", unitPrice * quantity);
                       }}
                     />
                   </FormControl>
@@ -90,7 +90,7 @@ export function PackagingSection({ form, disabled = false }: PackagingSectionPro
                         const unitPrice = parseFloat(e.target.value) || 0;
                         field.onChange(unitPrice);
                         const quantity = form.getValues("quantity") || 1;
-                        form.setValue("netPrice", unitPrice * quantity);
+                        form.setValue("price", unitPrice * quantity);
                       }}
                     />
                   </FormControl>

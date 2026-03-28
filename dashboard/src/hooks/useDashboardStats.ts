@@ -107,10 +107,10 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
   };
 
   // Get recent products (last 5) - fetch separately with larger page size if needed
-  const recentProducts: RecentProduct[] = (productsData?.data || [])
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const recentProducts: RecentProduct[] = (productsData?.data || [] as any[])
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
-    .map(p => ({
+    .map((p: any) => ({
       id: p.id,
       name: p.name,
       price: p.price,

@@ -53,6 +53,60 @@ export interface CreateClientData {
 
 export interface UpdateClientData extends Partial<CreateClientData> {}
 
+export interface CreateCustomerData {
+  clientName?: string;
+  clientGln?: string;
+  identification?: {
+    type: number;
+    code: string;
+    number: string;
+  };
+  businessName?: string;
+  nationality?: string;
+  email?: string;
+  phone?: {
+    countryCode: string;
+    areaCode?: string;
+    number: string;
+    description?: string;
+  };
+  residence?: {
+    stateId: number;
+    countyId: number;
+    districtId: number;
+    address: string;
+  };
+  customerType?: number;
+}
+
+export interface UpdateCustomerData extends Partial<CreateCustomerData> {}
+
+export interface CustomerFormData {
+  clientName?: string;
+  clientGln?: string;
+  identification: {
+    type: number;
+    code: string;
+    number: string;
+  };
+  businessName?: string;
+  nationality?: string;
+  email?: string;
+  phone?: {
+    countryCode: string;
+    areaCode?: string;
+    number: string;
+    description?: string;
+  };
+  residence?: {
+    stateId: number;
+    countyId: number;
+    districtId: number;
+    address: string;
+  };
+  customerType?: number;
+}
+
 export interface ClientsResponse {
   data: Client[];
   pagination: {
@@ -82,6 +136,7 @@ export interface Customer {
   totalSpent: string;
   lastOrderDate?: string;
   notes?: string;
+  clientGln?: string;
   createdAt: string;
   updatedAt: string;
 }

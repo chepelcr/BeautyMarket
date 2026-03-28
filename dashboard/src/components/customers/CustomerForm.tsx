@@ -189,21 +189,21 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
 
   // Set state when states are loaded
   useEffect(() => {
-    if (initialData?.residence?.stateId && states && states.find(s => s.stateId === initialData.residence.stateId)) {
+    if (initialData?.residence?.stateId && states && states.find((s: any) => s.stateId === initialData.residence?.stateId)) {
       form.setValue("residence.stateId", initialData.residence.stateId);
     }
   }, [initialData, states, form]);
 
   // Set county when counties are loaded
   useEffect(() => {
-    if (initialData?.residence?.countyId && counties && counties.find(c => c.countyId === initialData.residence.countyId)) {
+    if (initialData?.residence?.countyId && counties && counties.find((c: any) => c.countyId === initialData.residence?.countyId)) {
       form.setValue("residence.countyId", initialData.residence.countyId);
     }
   }, [initialData, counties, form]);
 
   // Set district when districts are loaded
   useEffect(() => {
-    if (initialData?.residence?.districtId && districts && districts.find(d => d.districtId === initialData.residence.districtId)) {
+    if (initialData?.residence?.districtId && districts && districts.find((d: any) => d.districtId === initialData.residence?.districtId)) {
       form.setValue("residence.districtId", initialData.residence.districtId);
     }
   }, [initialData, districts, form]);
@@ -213,9 +213,9 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <PersonalDataSection
           form={form}
-          customerTypes={customerTypes}
-          countries={countries}
-          identificationTypes={identificationTypes}
+          customerTypes={customerTypes ?? []}
+          countries={countries ?? []}
+          identificationTypes={identificationTypes ?? []}
           isEditing={isEditing}
           fieldErrors={fieldErrors}
           onBusinessNameFromApi={setHasBusinessNameFromApi}
@@ -235,7 +235,7 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
 
         <ContactSection
           form={form}
-          countries={countries}
+          countries={countries ?? []}
           fieldErrors={fieldErrors}
           disabled={!shouldShowLocationAndContact || (watchedNationality === "188" && !hasBusinessNameFromApi && !isEditing)}
         />

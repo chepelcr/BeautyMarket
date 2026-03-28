@@ -391,6 +391,7 @@ export default function Admin() {
                     </DialogHeader>
                     <ProductForm
                         product={editingProduct}
+                        categories={categories}
                         onSuccess={handleCloseForm}
                     />
                 </DialogContent>

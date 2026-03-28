@@ -33,31 +33,34 @@ export function AdvancedTaxesSection({ form, disabled = false, forceCollapsed = 
   const subtotal = form.watch("price") || 0;
 
   // Fetch tax types
-  const { data: taxTypes = [] } = useQuery({
+  const { data: taxTypes = [] } = useQuery<any[]>({
     queryKey: ["taxTypes", user?.id, defaultOrg?.id],
-    queryFn: () => {
+    queryFn: async (): Promise<any[]> => {
       if (!user?.id || !defaultOrg?.id) return [];
-      return apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-types"));
+      const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-types"));
+      return res.json();
     },
     enabled: !!user?.id && !!defaultOrg?.id,
   });
 
   // Fetch tax rates
-  const { data: taxRates = [] } = useQuery({
+  const { data: taxRates = [] } = useQuery<any[]>({
     queryKey: ["taxRates", user?.id, defaultOrg?.id],
-    queryFn: () => {
+    queryFn: async (): Promise<any[]> => {
       if (!user?.id || !defaultOrg?.id) return [];
-      return apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-rates"));
+      const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-rates"));
+      return res.json();
     },
     enabled: !!user?.id && !!defaultOrg?.id,
   });
 
   // Fetch tax factors
-  const { data: taxFactors = [] } = useQuery({
+  const { data: taxFactors = [] } = useQuery<any[]>({
     queryKey: ["taxFactors", user?.id, defaultOrg?.id],
-    queryFn: () => {
+    queryFn: async (): Promise<any[]> => {
       if (!user?.id || !defaultOrg?.id) return [];
-      return apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-factors"));
+      const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-factors"));
+      return res.json();
     },
     enabled: !!user?.id && !!defaultOrg?.id,
   });
@@ -85,7 +88,8 @@ export function AdvancedTaxesSection({ form, disabled = false, forceCollapsed = 
     if (taxAmountsData[taxTypeId] || !user?.id || !defaultOrg?.id) return;
     
     try {
-      const amounts = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, `/catalogs/tax-amounts?taxTypeId=${taxTypeId}`));
+      const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, `/catalogs/tax-amounts?taxTypeId=${taxTypeId}`));
+      const amounts: any[] = await res.json();
       setTaxAmountsData(prev => ({ ...prev, [taxTypeId]: amounts }));
     } catch (error) {
       console.error('Error loading tax amounts:', error);
