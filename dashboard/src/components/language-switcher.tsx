@@ -38,8 +38,12 @@ export function LanguageSwitcher() {
       onClick={toggleLanguage}
       className="w-9 h-9 rounded-md relative"
     >
-      <span className="absolute text-base rotate-0 scale-100 transition-all [.language-transitioning_&]:rotate-90 [.language-transitioning_&]:scale-0">
-        {language === 'es' ? '🇪🇸' : '🇺🇸'}
+      <span className="absolute rotate-0 scale-100 transition-all [.language-transitioning_&]:rotate-90 [.language-transitioning_&]:scale-0">
+        <img
+          src={language === 'es' ? 'https://flagcdn.com/w20/cr.png' : 'https://flagcdn.com/w20/us.png'}
+          alt={language === 'es' ? 'Costa Rica' : 'United States'}
+          className="w-5 h-auto rounded-sm"
+        />
       </span>
       <span className="sr-only">Toggle language</span>
     </Button>
