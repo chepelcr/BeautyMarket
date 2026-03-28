@@ -2,11 +2,11 @@ import 'dotenv/config';
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import { ExpressAppConfig } from './config/ExpressAppConfig';
-
 const appConfig = new ExpressAppConfig();
 const app = appConfig.getApp();
 
 (async () => {
+
   const server = createServer(app);
 
   // Setup Vite or static serving based on environment

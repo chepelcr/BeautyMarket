@@ -3,17 +3,27 @@ import cors from 'cors';
 import { setupRoutes } from '../routes';
 import { setupSwagger } from './swagger';
 import { APP_CONFIG } from './app';
+import { initializeAppConfig } from './appConfig';
+import { initializeDatabase } from './database';
 
 export class ExpressAppConfig {
   private app: Express;
   private isLambda: boolean;
+  /** Resolves once SSM config and DB are ready. All requests wait on this. */
+  private _readyPromise: Promise<void>;
 
   constructor() {
     this.isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
     this.app = this._createApp();
+    this._readyPromise = this._initialize();
     this._configureMiddleware();
     this._configureRoutes();
     this._configureErrorHandler();
+  }
+
+  private async _initialize(): Promise<void> {
+    await initializeAppConfig();
+    await initializeDatabase();
   }
 
   private _createApp(): Express {
@@ -24,6 +34,12 @@ export class ExpressAppConfig {
   }
 
   private _configureMiddleware(): void {
+    // Readiness gate — blocks all requests until SSM config and DB are initialized.
+    // Resolves immediately on warm Lambda invocations (promise is already settled).
+    this.app.use((_req: Request, _res: Response, next: NextFunction) => {
+      this._readyPromise.then(() => next()).catch(next);
+    });
+
     // CORS configuration
     this.app.use(cors({
       origin: (origin: string | undefined, callback: (arg0: Error | null, arg1: boolean | undefined) => void) => {

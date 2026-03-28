@@ -1,25 +1,26 @@
+// ---------------------------------------------------------------------------
+// APP_CONFIG — static startup configuration (env vars only).
+//
+// SSM-backed runtime values (Cognito, S3, email/from, SNS, frontend URL, etc.)
+// are resolved via initializeAppConfig() in appConfig.ts at startup and
+// bridged back into process.env so services pick them up transparently.
+// ---------------------------------------------------------------------------
 export const APP_CONFIG = {
     PORT: process.env.PORT || 5000,
     NODE_ENV: process.env.NODE_ENV || 'development',
     JWT_SECRET: process.env.JWT_SECRET || 'demo-jwt-secret-for-development-only-change-in-production',
 
     // AWS Configuration
-    AWS_REGION: process.env.AWS_REGION,
+    AWS_REGION: process.env.AWS_REGION || 'us-east-1',
     SQS_QUEUE_URL: process.env.SQS_QUEUE_URL,
 
-    // Email Configuration
-    FROM_EMAIL: process.env.FROM_EMAIL,
-
-    // Payment Configuration
+    // Payment Configuration (optional integrations — not in SSM)
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
     PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET,
 
     // External APIs
     TRANSCRIPTION_WEBHOOK_SECRET: process.env.TRANSCRIPTION_WEBHOOK_SECRET,
-
-    // Frontend Configuration
-    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
 
     // Encryption
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || 'demo-encryption-key-change-in-production',

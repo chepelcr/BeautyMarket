@@ -42,9 +42,9 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Extract variables from .env file
-DATABASE_URL=$(grep '^NEW_DATABASE_URL=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
 # Deploy lambda stack
+# Note: no DatabaseURLParam — DB credentials are resolved at runtime via
+# SSM (/jcampos/{env}/jmarkets/aws/database) → Secrets Manager (jcampos/{env}/database)
 echo "🚀 Deploying $STACK_NAME..."
 aws cloudformation deploy \
     --template-file cloudformation/lambda.yml \
@@ -52,7 +52,6 @@ aws cloudformation deploy \
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
     --parameter-overrides \
         Environment="$ENVIRONMENT" \
-        DatabaseURLParam="$DATABASE_URL" \
         FunctionNameParam="jmarkets-${ENVIRONMENT}-api-handler" \
     --profile $PROFILE \
     --region $REGION

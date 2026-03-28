@@ -13,11 +13,6 @@ Parameters:
     Type: String
     Default: "jmarkets-dev-api-handler"
 
-  DatabaseURLParam:
-    Description: Database URL
-    Type: String
-    NoEcho: true
-
 Resources:
   LambdaFunction:
     Type: AWS::Lambda::Function
@@ -41,13 +36,7 @@ Resources:
       Environment:
         Variables:
           NODE_ENV: production
-          NEW_DATABASE_URL: !Ref DatabaseURLParam
-          AWS_COGNITO_USER_POOL_ID:
-            Fn::ImportValue: "jmarkets-cognito-UserPoolId"
-          AWS_COGNITO_CLIENT_ID:
-            Fn::ImportValue: "jmarkets-cognito-UserPoolClientId"
-          ORGANIZATION_TOPIC_ARN:
-            Fn::ImportValue: !Sub "jmarkets-${Environment}-organization-events-topic-arn"
+          SSM_BASE_PATH: !Sub "/jcampos/${Environment}/jmarkets"
 
   LambdaRole:
     Type: AWS::IAM::Role
@@ -70,6 +59,9 @@ Resources:
         - Fn::ImportValue: !Sub "jcampos-${Environment}-ses-policy-arn"
         - Fn::ImportValue: !Sub "jcampos-${Environment}-sns-policy-arn"
         - Fn::ImportValue: !Sub "jcampos-${Environment}-sqs-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-ssm-parameter-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-secrets-manager-policy-arn"
+        - Fn::ImportValue: !Sub "jcampos-${Environment}-decrypt-policy-arn"
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup

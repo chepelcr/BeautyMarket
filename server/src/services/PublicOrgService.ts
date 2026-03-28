@@ -22,24 +22,24 @@ export class PublicOrgService {
   }
 
   async getTheme(orgId: string) {
-    return await this.themeSettingsRepository.findByOrganizationId(orgId);
+    return await this.themeSettingsRepository.getByOrganizationId(orgId);
   }
 
   async getContact(orgId: string) {
-    return await this.contactSettingsRepository.findByOrganizationId(orgId);
+    return await this.contactSettingsRepository.getByOrganizationId(orgId);
   }
 
   async getPages(orgId: string) {
-    const orgPages = await this.pageRepository.findByOrganizationId(orgId);
+    const orgPages = await this.pageRepository.getByOrganizationId(orgId);
 
     const pagesWithContent = await Promise.all(
       orgPages.map(async (page) => {
-        const sections = await this.pageSectionRepository.findByPageId(page.id);
+        const sections = await this.pageSectionRepository.getByPageId(page.id);
 
         const sectionsWithContent = await Promise.all(
           sections.map(async (section) => ({
             ...section,
-            content: await this.sectionContentRepository.findBySectionId(section.id),
+            content: await this.sectionContentRepository.getBySectionId(section.id),
           }))
         );
 
@@ -51,16 +51,16 @@ export class PublicOrgService {
   }
 
   async getPageBySlug(orgId: string, slug: string) {
-    const page = await this.pageRepository.findBySlugAndOrganizationId(slug, orgId);
+    const page = await this.pageRepository.getByOrganizationAndSlug(orgId, slug);
 
     if (!page) return null;
 
-    const sections = await this.pageSectionRepository.findByPageId(page.id);
+    const sections = await this.pageSectionRepository.getByPageId(page.id);
 
     const sectionsWithContent = await Promise.all(
       sections.map(async (section) => ({
         ...section,
-        content: await this.sectionContentRepository.findBySectionId(section.id),
+        content: await this.sectionContentRepository.getBySectionId(section.id),
       }))
     );
 

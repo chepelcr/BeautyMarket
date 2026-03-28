@@ -14,6 +14,21 @@ phases:
     commands:
       - cd landing-client && npm ci && cd ..
 
+  pre_build:
+    commands:
+      - |
+        SSM_PATH="/jcampos/${ENVIRONMENT}/jmarkets"
+        cat > landing-client/.env << EOF
+        VITE_AWS_REGION=$(aws ssm get-parameter --name "${SSM_PATH}/aws/region" --query 'Parameter.Value' --output text --region ${REGION})
+        VITE_AWS_COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/user-pool-id" --query 'Parameter.Value' --output text --region ${REGION})
+        VITE_AWS_COGNITO_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/client-id" --query 'Parameter.Value' --output text --region ${REGION})
+        VITE_API_URL=$(aws ssm get-parameter --name "${SSM_PATH}/api/url" --query 'Parameter.Value' --output text --region ${REGION})
+        VITE_BASE_DOMAIN=${FRONTEND_DOMAIN}
+        VITE_APP_URL=https://${FRONTEND_DOMAIN}
+        EOF
+      - echo "landing-client/.env written:"
+      - cat landing-client/.env
+
   build:
     commands:
       - echo "Building landing page..."

@@ -19,6 +19,53 @@ phases:
         done
         wait
 
+  pre_build:
+    commands:
+      # Fetch shared SSM values once
+      - |
+        SSM_PATH="/jcampos/${ENVIRONMENT}/jmarkets"
+        AWS_REGION_VAL=$(aws ssm get-parameter --name "${SSM_PATH}/aws/region" --query 'Parameter.Value' --output text --region ${REGION})
+        USER_POOL_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/user-pool-id" --query 'Parameter.Value' --output text --region ${REGION})
+        CLIENT_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/client-id" --query 'Parameter.Value' --output text --region ${REGION})
+        API_URL=$(aws ssm get-parameter --name "${SSM_PATH}/api/url" --query 'Parameter.Value' --output text --region ${REGION})
+        echo "SSM values fetched successfully"
+
+        declare -A DISPLAY_NAMES=(
+          [jmarkets-demo]="JMarkets Demo"
+          [tech-gadgets]="Tech Gadgets"
+          [vintage-fashion]="Vintage Fashion"
+          [artisan-crafts]="Artisan Crafts"
+          [gourmet-foods]="Gourmet Foods"
+          [fitness-hub]="Fitness Hub"
+          [pet-care]="Pet Care"
+          [beauty-essentials]="Beauty Essentials"
+        )
+        declare -A INDUSTRIES=(
+          [jmarkets-demo]="general"
+          [tech-gadgets]="electronics"
+          [vintage-fashion]="fashion"
+          [artisan-crafts]="crafts"
+          [gourmet-foods]="food"
+          [fitness-hub]="fitness"
+          [pet-care]="pets"
+          [beauty-essentials]="beauty"
+        )
+
+        for TMPL in jmarkets-demo tech-gadgets vintage-fashion artisan-crafts gourmet-foods fitness-hub pet-care beauty-essentials; do
+          cat > templates/${TMPL}/.env << EOF
+        VITE_AWS_REGION=${AWS_REGION_VAL}
+        VITE_AWS_COGNITO_USER_POOL_ID=${USER_POOL_ID}
+        VITE_AWS_COGNITO_CLIENT_ID=${CLIENT_ID}
+        VITE_API_URL=${API_URL}
+        VITE_BASE_DOMAIN=${FRONTEND_DOMAIN}
+        VITE_LANDING_PAGE_URL=https://${FRONTEND_DOMAIN}
+        VITE_TEMPLATE_NAME=${TMPL}
+        VITE_TEMPLATE_DISPLAY_NAME=${DISPLAY_NAMES[$TMPL]}
+        VITE_TEMPLATE_INDUSTRY=${INDUSTRIES[$TMPL]}
+        EOF
+          echo "templates/${TMPL}/.env written"
+        done
+
   build:
     commands:
       - echo "Building all 8 template storefronts..."
