@@ -1,6 +1,7 @@
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { OrganizationRegisteredEvent } from '../events/OrganizationRegisteredEvent';
 import type { OrganizationRegisteredData } from '../events/OrganizationRegisteredEvent';
+import { appConfig } from '../config/appConfig';
 
 /**
  * Publishes organization domain events to the SNS topic.
@@ -14,16 +15,15 @@ import type { OrganizationRegisteredData } from '../events/OrganizationRegistere
  */
 export class OrganizationEventPublisher {
   private readonly sns: SNSClient;
-  private readonly topicArn: string | undefined;
 
   constructor() {
     this.sns = new SNSClient({ region: process.env.AWS_REGION ?? 'us-east-1' });
-    this.topicArn = process.env.ORGANIZATION_TOPIC_ARN;
   }
 
   async publishOrganizationRegistered(data: OrganizationRegisteredData): Promise<void> {
-    if (!this.topicArn) {
-      console.warn('[OrganizationEventPublisher] ORGANIZATION_TOPIC_ARN is not set. Skipping SNS publish.');
+    const topicArn = await appConfig.getKey('sns.organization-topic-arn');
+    if (!topicArn) {
+      console.warn('[OrganizationEventPublisher] sns.organization-topic-arn is not set. Skipping SNS publish.');
       return;
     }
 
@@ -31,7 +31,7 @@ export class OrganizationEventPublisher {
     const message = JSON.stringify(event.toSqsMessage());
 
     await this.sns.send(new PublishCommand({
-      TopicArn: this.topicArn,
+      TopicArn: topicArn,
       Message: message,
       Subject: event.eventType,
       MessageAttributes: {

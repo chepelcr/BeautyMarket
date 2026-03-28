@@ -50,7 +50,7 @@ export class S3UploadController {
         });
       }
 
-      if (!this.s3UploadService.validateConfiguration()) {
+      if (!await this.s3UploadService.validateConfiguration()) {
         return res.status(500).json({
           success: false,
           error: 'AWS S3 bucket not configured'

@@ -9,6 +9,7 @@ import {
   ListUsersCommand,
   MessageActionType,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { appConfig } from '../config/appConfig';
 
 export interface CognitoUserAttributes {
   email?: string;
@@ -33,7 +34,6 @@ export interface CognitoUser {
 
 export class CognitoDao {
   private client: CognitoIdentityProviderClient;
-  private userPoolId: string;
 
   constructor() {
     this.client = new CognitoIdentityProviderClient({
@@ -49,7 +49,6 @@ export class CognitoDao {
             },
           }),
     });
-    this.userPoolId = process.env.AWS_COGNITO_USER_POOL_ID || '';
   }
 
   /**
@@ -57,8 +56,9 @@ export class CognitoDao {
    */
   async getUser(username: string): Promise<CognitoUser | null> {
     try {
+      const userPoolId = await appConfig.getKey('cognito.user-pool-id') ?? '';
       const command = new AdminGetUserCommand({
-        UserPoolId: this.userPoolId,
+        UserPoolId: userPoolId,
         Username: username,
       });
 
@@ -95,11 +95,12 @@ export class CognitoDao {
   async getUserById(userId: string): Promise<CognitoUser | null> {
     try {
       console.log(`🔍 [CognitoService] Getting user by ID: ${userId}`);
-      console.log(`🔍 [CognitoService] User Pool ID: ${this.userPoolId}`);
 
       // Query Cognito by sub attribute using ListUsers
+      const userPoolId = await appConfig.getKey('cognito.user-pool-id') ?? '';
+      console.log(`🔍 [CognitoService] User Pool ID: ${userPoolId}`);
       const command = new ListUsersCommand({
-        UserPoolId: this.userPoolId,
+        UserPoolId: userPoolId,
         Filter: `sub = "${userId}"`,
         Limit: 1,
       });
@@ -158,6 +159,7 @@ export class CognitoDao {
     temporaryPassword: string,
     attributes: CognitoUserAttributes
   ): Promise<CognitoUser> {
+    const userPoolId = await appConfig.getKey('cognito.user-pool-id') ?? '';
     const userAttributes = [
       { Name: 'email', Value: email },
       { Name: 'email_verified', Value: 'true' },
@@ -180,7 +182,7 @@ export class CognitoDao {
     }
 
     const command = new AdminCreateUserCommand({
-      UserPoolId: this.userPoolId,
+      UserPoolId: userPoolId,
       Username: email,
       UserAttributes: userAttributes,
       TemporaryPassword: temporaryPassword,
@@ -214,6 +216,7 @@ export class CognitoDao {
     username: string,
     attributes: CognitoUserAttributes
   ): Promise<void> {
+    const userPoolId = await appConfig.getKey('cognito.user-pool-id') ?? '';
     const userAttributes = [];
 
     if (attributes.given_name) {
@@ -234,7 +237,7 @@ export class CognitoDao {
     }
 
     const command = new AdminUpdateUserAttributesCommand({
-      UserPoolId: this.userPoolId,
+      UserPoolId: userPoolId,
       Username: username,
       UserAttributes: userAttributes,
     });
@@ -246,8 +249,9 @@ export class CognitoDao {
    * Set permanent password for a user (admin operation)
    */
   async setUserPassword(username: string, password: string): Promise<void> {
+    const userPoolId = await appConfig.getKey('cognito.user-pool-id') ?? '';
     const command = new AdminSetUserPasswordCommand({
-      UserPoolId: this.userPoolId,
+      UserPoolId: userPoolId,
       Username: username,
       Password: password,
       Permanent: true,

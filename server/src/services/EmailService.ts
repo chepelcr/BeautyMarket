@@ -4,9 +4,7 @@ import {
   generatePasswordResetEmailHtml,
   generateWelcomeEmailHtml
 } from '../templates/emails';
-
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@jcampos.dev';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://j-markets.jcampos.dev';
+import { appConfig } from '../config/appConfig';
 
 export type EmailLanguage = 'en' | 'es';
 
@@ -33,8 +31,9 @@ export class EmailService implements IEmailService {
 
   async sendEmail(template: EmailTemplate): Promise<boolean> {
     try {
+      const fromEmail = await appConfig.getKey('email.from', 'noreply@jcampos.dev') ?? 'noreply@jcampos.dev';
       await this.dao.sendEmail({
-        from: FROM_EMAIL,
+        from: fromEmail,
         to: template.to,
         subject: template.subject,
         htmlBody: template.htmlBody,
@@ -148,6 +147,7 @@ Tu éxito en línea
   }
 
   async sendWelcomeEmail(email: string, userName: string, language: EmailLanguage = 'es'): Promise<boolean> {
+    const frontendUrl = await appConfig.getKey('frontend.url', 'https://j-markets.jcampos.dev') ?? 'https://j-markets.jcampos.dev';
     const subjects = {
       en: 'Welcome to JMarkets!',
       es: '¡Bienvenida a JMarkets!',
@@ -167,7 +167,7 @@ What can you do now?
 - Customize your design
 - Start selling
 
-Visit us at: ${FRONTEND_URL}
+Visit us at: ${frontendUrl}
 
 Have questions? Contact us on our social networks.
 
@@ -188,7 +188,7 @@ Ya puedes comenzar a vender en tu tienda online.
 - Personaliza tu diseño
 - Comienza a vender
 
-Visítanos en: ${FRONTEND_URL}
+Visítanos en: ${frontendUrl}
 
 ¿Tienes preguntas? Contáctanos en nuestras redes sociales.
 
@@ -201,7 +201,7 @@ Tu éxito en línea
     const template: EmailTemplate = {
       to: email,
       subject: subjects[language],
-      htmlBody: generateWelcomeEmailHtml(userName, FRONTEND_URL, language),
+      htmlBody: generateWelcomeEmailHtml(userName, frontendUrl, language),
       textBody: textBodies[language],
     };
 

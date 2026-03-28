@@ -1,4 +1,5 @@
 import { S3Dao } from '../aws-daos';
+import { appConfig } from '../config/appConfig';
 
 export interface UploadResponse {
   success: boolean;
@@ -8,13 +9,9 @@ export interface UploadResponse {
 
 export class S3UploadService {
   private s3Dao: S3Dao;
-  private bucketName: string;
-  private cloudfrontDomain: string;
 
   constructor(s3Dao?: S3Dao) {
     this.s3Dao = s3Dao || new S3Dao();
-    this.bucketName = process.env.AWS_S3_BUCKET_NAME || '';
-    this.cloudfrontDomain = process.env.CLOUDFRONT_DOMAIN || 'd1taomm62uzhjk.cloudfront.net';
   }
 
   // Generate presigned URL for direct upload to S3
@@ -23,19 +20,22 @@ export class S3UploadService {
     fileType: string,
     folder: string = 'uploads'
   ): Promise<{ uploadUrl: string; fileUrl: string; s3Key: string }> {
+    const bucketName = await appConfig.getKey('s3.bucket') ?? '';
+    const cloudfrontDomain = await appConfig.getKey('cloudfront.domain', 'd1taomm62uzhjk.cloudfront.net') ?? 'd1taomm62uzhjk.cloudfront.net';
+
     // Use 'images' folder for CMS images to preserve them during deployments
     const actualFolder = folder === 'uploads' ? 'images' : folder;
     const key = `${actualFolder}/${Date.now()}-${fileName}`;
 
     const uploadUrl = await this.s3Dao.getPresignedUploadUrl({
-      bucket: this.bucketName,
+      bucket: bucketName,
       key,
       contentType: fileType,
       expiresIn: 900, // 15 minutes
     });
 
     // Use CloudFront URL for consistent image delivery
-    const fileUrl = `https://${this.cloudfrontDomain}/${key}`;
+    const fileUrl = `https://${cloudfrontDomain}/${key}`;
 
     return { uploadUrl, fileUrl, s3Key: key };
   }
@@ -43,13 +43,14 @@ export class S3UploadService {
   // Delete file from S3
   async deleteS3File(fileUrl: string): Promise<boolean> {
     try {
-      if (!fileUrl || !this.bucketName) return false;
+      const bucketName = await appConfig.getKey('s3.bucket') ?? '';
+      if (!fileUrl || !bucketName) return false;
 
       // Extract key from URL using the centralized service
-      const key = this.s3Dao.extractKeyFromUrl(fileUrl, this.bucketName);
+      const key = this.s3Dao.extractKeyFromUrl(fileUrl, bucketName);
       if (!key) return false;
 
-      await this.s3Dao.deleteObject(this.bucketName, key);
+      await this.s3Dao.deleteObject(bucketName, key);
 
       return true;
     } catch (error) {
@@ -59,7 +60,8 @@ export class S3UploadService {
   }
 
   // Validate bucket configuration
-  validateConfiguration(): boolean {
-    return !!this.bucketName;
+  async validateConfiguration(): Promise<boolean> {
+    const bucketName = await appConfig.getKey('s3.bucket') ?? '';
+    return !!bucketName;
   }
 }
