@@ -25,7 +25,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Landing page URL for registration and "Start your own store"
-  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.devv';
+  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.dev';
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

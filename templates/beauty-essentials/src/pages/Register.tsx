@@ -42,7 +42,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Landing page URL for "Start your own store"
-  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.devv';
+  const landingUrl = import.meta.env.VITE_LANDING_PAGE_URL || 'https://j-markets.jcampos.dev';
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),

@@ -95,7 +95,7 @@ npm run preview
 
 ## Live Demo
 
-**URL**: https://gourmet-foods-example.j-markets.jcampos.devv
+**URL**: https://gourmet-foods-example.j-markets.jcampos.dev
 
 ## Technology Stack
 
@@ -144,7 +144,7 @@ This template is designed to be deployed as part of the JMarkets multi-template 
 
 1. Build is output to `dist/templates/gourmet-foods`
 2. Deployment script uploads to S3
-3. CloudFront serves at `https://gourmet-foods-example.j-markets.jcampos.devv`
+3. CloudFront serves at `https://gourmet-foods-example.j-markets.jcampos.dev`
 
 ## Color Accessibility
 

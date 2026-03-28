@@ -61,7 +61,7 @@ Builds to: `../../dist/templates/fitness-hub`
 ## Deployment
 
 This template is designed to be deployed to:
-- **URL**: https://fitness-hub-example.j-markets.jcampos.devv
+- **URL**: https://fitness-hub-example.j-markets.jcampos.dev
 - **S3 Bucket**: fitness-hub-example
 - **CloudFront**: Configured with wildcard SSL cert
 

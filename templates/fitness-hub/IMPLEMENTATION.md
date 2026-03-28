@@ -233,7 +233,7 @@ npm run preview
 ## Deployment
 
 ### Target URL
-`https://fitness-hub-example.j-markets.jcampos.devv`
+`https://fitness-hub-example.j-markets.jcampos.dev`
 
 ### Deployment Steps
 
