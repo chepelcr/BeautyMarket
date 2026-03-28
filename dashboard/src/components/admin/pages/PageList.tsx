@@ -66,8 +66,8 @@ export function PageList({ pages, selectedPageId, onPageSelect }: PageListProps)
               onClick={() => onPageSelect(page.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                "hover:bg-gray-100 dark:hover:bg-gray-800",
-                isSelected && "bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400"
+                "hover:bg-muted",
+                isSelected && "bg-primary/10 text-primary"
               )}
             >
               <Icon

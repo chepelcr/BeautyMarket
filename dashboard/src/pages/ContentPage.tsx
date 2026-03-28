@@ -202,7 +202,7 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -278,13 +278,13 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
       </div>
 
       <Tabs value={validActiveSection} onValueChange={setActiveSection} className="w-full">
-        <TabsList className="grid w-full h-auto p-1 bg-gray-100 dark:bg-gray-700" style={{ gridTemplateColumns: `repeat(${availablePages.length}, minmax(0, 1fr))` }}>
+        <TabsList className="grid w-full h-auto p-1 bg-muted" style={{ gridTemplateColumns: `repeat(${availablePages.length}, minmax(0, 1fr))` }}>
           {availablePages.map((page) => (
             <TabsTrigger
               key={page.slug}
               value={page.slug}
               disabled={updateContentMutation.isPending}
-              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200"
+              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-primary rounded-md transition-all duration-200"
             >
               {getPageTitle(page)}
             </TabsTrigger>

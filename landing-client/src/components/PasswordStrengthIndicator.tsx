@@ -26,7 +26,7 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
   const strength = passedRules.length;
 
   const getStrengthColor = () => {
-    if (strength === 0) return 'bg-gray-200';
+    if (strength === 0) return 'bg-muted';
     if (strength <= 2) return 'bg-red-500';
     if (strength <= 4) return 'bg-yellow-500';
     return 'bg-green-500';
@@ -61,7 +61,7 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
               key={level}
               className={cn(
                 "h-2 flex-1 rounded-full transition-colors",
-                level <= strength ? getStrengthColor() : "bg-gray-200 dark:bg-gray-700"
+                level <= strength ? getStrengthColor() : "bg-muted"
               )}
             />
           ))}

@@ -22,6 +22,7 @@ const translations = {
     'common.next': 'Next',
     'common.submit': 'Submit',
     'common.or': 'or',
+    'common.examples': 'Examples',
 
     // Navigation
     'nav.features': 'Features',
@@ -36,7 +37,7 @@ const translations = {
     'nav.register': 'Join the community',
 
     // Hero (Landing)
-    'hero.badge': 'Community economy',
+    'hero.badge': 'Social Solidarity Economy',
     'hero.title': 'Your community, your market',
     'hero.subtitle': 'Connect with local entrepreneurs, publish your products, and participate in an economy that puts people first.',
     'hero.cta': 'Join the community',
@@ -110,7 +111,7 @@ const translations = {
     'fairs.types.physical.title': 'Local & physical fairs',
     'fairs.types.physical.description': 'In-person market events organized by local communities. Use JMarkets as your digital presence at the fair.',
     'fairs.types.barter.title': 'Barter & exchange fairs',
-    'fairs.types.barter.description': 'Special events dedicated to swapping products or services without money. Pure community economy.',
+    'fairs.types.barter.description': 'Special events dedicated to swapping products or services without money. Pure Social Solidarity Economy.',
     'fairs.howJoin.title': 'How to participate',
     'fairs.howJoin.step1.title': 'Set up your store',
     'fairs.howJoin.step1.description': 'Create or update your store with your products and contact info.',
@@ -223,7 +224,7 @@ const translations = {
     'examples.stores.beautySalon.category': 'Pets',
 
     // Footer
-    'footer.description': 'Community economy platform for entrepreneurs, local businesses, and organized communities.',
+    'footer.description': 'Social Solidarity Economy platform for entrepreneurs, local businesses, and organized communities.',
     'footer.product': 'Platform',
     'footer.company': 'Company',
     'footer.legal': 'Legal',
@@ -491,7 +492,7 @@ const translations = {
     'terms.section.liability': '6. Limitation of Liability',
     'terms.section.changes': '7. Changes to Terms',
     'terms.section.contact': '8. Contact Information',
-    'terms.acceptance.content': 'By accessing and using JMarkets, you accept and agree to be bound by these terms. JMarkets is a community economy platform born from the TCU "Comer Orgánico" at the Universidad de Costa Rica. If you do not agree with these terms, please do not use this platform.',
+    'terms.acceptance.content': 'By accessing and using JMarkets, you accept and agree to be bound by these terms. JMarkets is a Social Solidarity Economy platform born from the TCU "Comer Orgánico" at the Universidad de Costa Rica. If you do not agree with these terms, please do not use this platform.',
     'terms.accounts.content': 'You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to use the platform in a respectful manner consistent with the values of the community: fair trade, transparency, and solidarity.',
     'terms.services.content': 'JMarkets provides a digital platform for community fairs, local trade, and barter (trueque). Users can create their own space, publish products and services, connect with their community, and participate in virtual or local fairs. The platform was designed to preserve and extend the culture of community fairs like the Feria del Trueque Verde Manantial in Guápiles, Costa Rica.',
     'terms.payment.content': 'JMarkets is a community platform. Any transactions, exchanges, or barter agreements made between users are the responsibility of the parties involved. JMarkets acts as a facilitator and does not intervene in private transactions between community members. Users are encouraged to operate under the principles of fair trade and honest exchange.',
@@ -568,6 +569,7 @@ const translations = {
     'common.next': 'Siguiente',
     'common.submit': 'Enviar',
     'common.or': 'o',
+    'common.examples': 'Ejemplos',
 
     // Navegación
     'nav.features': 'Funcionalidades',
@@ -582,7 +584,7 @@ const translations = {
     'nav.register': 'Únete a la comunidad',
 
     // Hero (Landing)
-    'hero.badge': 'Economía comunitaria',
+    'hero.badge': 'Economía Social Solidaria',
     'hero.title': 'Tu comunidad, tu mercado',
     'hero.subtitle': 'Conecta con emprendedores locales, publica tus productos y participa en una economía que pone a las personas primero.',
     'hero.cta': 'Únete a la comunidad',
@@ -656,7 +658,7 @@ const translations = {
     'fairs.types.physical.title': 'Ferias locales y presenciales',
     'fairs.types.physical.description': 'Eventos de mercado presencial organizados por comunidades locales. Usa JMarkets como tu presencia digital en la feria.',
     'fairs.types.barter.title': 'Ferias de trueque e intercambio',
-    'fairs.types.barter.description': 'Eventos especiales dedicados al intercambio de productos o servicios sin dinero. Economía comunitaria pura.',
+    'fairs.types.barter.description': 'Eventos especiales dedicados al intercambio de productos o servicios sin dinero. Economía Social Solidaria pura.',
     'fairs.howJoin.title': 'Cómo participar',
     'fairs.howJoin.step1.title': 'Configura tu tienda',
     'fairs.howJoin.step1.description': 'Crea o actualiza tu tienda con tus productos e información de contacto.',
@@ -769,7 +771,7 @@ const translations = {
     'examples.stores.beautySalon.category': 'Mascotas',
 
     // Footer
-    'footer.description': 'Plataforma de economía comunitaria para emprendedores, comercios locales y comunidades organizadas.',
+    'footer.description': 'Plataforma de Economía Social Solidaria para emprendedores, comercios locales y comunidades organizadas.',
     'footer.product': 'Plataforma',
     'footer.company': 'Empresa',
     'footer.legal': 'Legal',
@@ -1037,7 +1039,7 @@ const translations = {
     'terms.section.liability': '6. Limitación de Responsabilidad',
     'terms.section.changes': '7. Cambios en los Términos',
     'terms.section.contact': '8. Información de Contacto',
-    'terms.acceptance.content': 'Al acceder y utilizar JMarkets, aceptas y te comprometes a cumplir estos términos. JMarkets es una plataforma de economía comunitaria nacida del TCU "Comer Orgánico" de la Universidad de Costa Rica. Si no estás de acuerdo con estos términos, por favor no uses esta plataforma.',
+    'terms.acceptance.content': 'Al acceder y utilizar JMarkets, aceptas y te comprometes a cumplir estos términos. JMarkets es una plataforma de Economía Social Solidaria nacida del TCU "Comer Orgánico" de la Universidad de Costa Rica. Si no estás de acuerdo con estos términos, por favor no uses esta plataforma.',
     'terms.accounts.content': 'Eres responsable de mantener la confidencialidad de tus credenciales de cuenta y de todas las actividades realizadas desde tu cuenta. Te comprometes a usar la plataforma de manera respetuosa y acorde con los valores de la comunidad: comercio justo, transparencia y solidaridad.',
     'terms.services.content': 'JMarkets es una plataforma digital para ferias comunitarias, comercio local y trueque. Los usuarios pueden crear su propio espacio, publicar productos y servicios, conectarse con su comunidad y participar en ferias virtuales o locales. La plataforma fue diseñada para preservar y extender la cultura de las ferias comunitarias como la Feria del Trueque Verde Manantial en Guápiles, Costa Rica.',
     'terms.payment.content': 'JMarkets es una plataforma comunitaria. Cualquier transacción, intercambio o acuerdo de trueque entre usuarios es responsabilidad de las partes involucradas. JMarkets actúa como facilitador y no interviene en transacciones privadas entre miembros de la comunidad. Se invita a los usuarios a operar bajo los principios de comercio justo e intercambio honesto.',

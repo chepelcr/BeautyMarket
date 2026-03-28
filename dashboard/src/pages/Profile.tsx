@@ -183,7 +183,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="py-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="py-5 bg-background min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center py-5">
             <div className="text-lg">{t('profile.loading')}</div>
@@ -194,22 +194,22 @@ export default function Profile() {
   }
 
   return (
-    <div className="py-5 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="py-5 bg-background min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
+        <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
           <div className="p-8">
             <div className="flex items-center gap-3 mb-8">
-              <User className="w-8 h-8 text-pink-primary" />
+              <User className="w-8 h-8 text-primary" />
               <h1 className="text-3xl font-serif font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
             </div>
 
             <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
               {/* Profile Information */}
-              <Card className="dark:bg-gray-700 dark:border-gray-600">
+              <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-pink-primary" />
+                      <User className="w-5 h-5 text-primary" />
                       <CardTitle className="text-gray-900 dark:text-white">{t('profile.personalInfo')}</CardTitle>
                     </div>
                     {!isEditingProfile && (
@@ -217,7 +217,7 @@ export default function Profile() {
                         onClick={() => setIsEditingProfile(true)}
                         variant="outline"
                         size="sm"
-                        className="text-pink-primary border-pink-primary hover:bg-pink-50 dark:hover:bg-pink-900/20"
+                        className="text-primary border-primary hover:bg-primary/10"
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         {t('profile.edit')}
@@ -325,7 +325,7 @@ export default function Profile() {
                           <Button
                             type="submit"
                             disabled={isUpdatingProfile}
-                            className="flex-1 bg-pink-primary hover:bg-pink-600"
+                            className="flex-1 bg-primary hover:bg-primary/90"
                           >
                             {isUpdatingProfile ? t('profile.saving') : t('profile.saveChanges')}
                           </Button>
@@ -352,10 +352,10 @@ export default function Profile() {
               </Card>
 
               {/* Security Section */}
-              <Card className="dark:bg-gray-700 dark:border-gray-600">
+              <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <Lock className="w-5 h-5 text-pink-primary" />
+                    <Lock className="w-5 h-5 text-primary" />
                     <CardTitle className="text-gray-900 dark:text-white">{t('profile.security')}</CardTitle>
                   </div>
                   <CardDescription>
@@ -372,7 +372,7 @@ export default function Profile() {
                         className="w-full justify-start text-left h-auto py-4 px-4"
                       >
                         <div className="flex items-center gap-3">
-                          <Lock className="w-5 h-5 text-pink-primary" />
+                          <Lock className="w-5 h-5 text-primary" />
                           <div>
                             <div className="font-medium">{t('profile.changePassword')}</div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -388,7 +388,7 @@ export default function Profile() {
                         className="w-full justify-start text-left h-auto py-4 px-4"
                       >
                         <div className="flex items-center gap-3">
-                          <RotateCcw className="w-5 h-5 text-pink-primary" />
+                          <RotateCcw className="w-5 h-5 text-primary" />
                           <div>
                             <div className="font-medium">{t('profile.resetPassword')}</div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -523,7 +523,7 @@ export default function Profile() {
                           <Button
                             type="submit"
                             disabled={isChangingPassword}
-                            className="w-full bg-pink-primary hover:bg-pink-600"
+                            className="w-full bg-primary hover:bg-primary/90"
                           >
                             {isChangingPassword ? t('profile.saving') : t('profile.changePassword')}
                           </Button>
@@ -571,7 +571,7 @@ export default function Profile() {
                           <Button
                             type="submit"
                             disabled={isSendingResetEmail}
-                            className="w-full bg-pink-primary hover:bg-pink-600"
+                            className="w-full bg-primary hover:bg-primary/90"
                           >
                             <Send className="w-4 h-4 mr-2" />
                             {isSendingResetEmail ? t('profile.saving') : t('profile.sendResetLink')}

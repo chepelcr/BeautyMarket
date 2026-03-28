@@ -69,7 +69,7 @@ export function ProgressSteps({ steps, currentStep, completedSteps, className }:
               {index < steps.length - 1 && (
                 <div className={cn(
                   "h-0.5 flex-1 mt-5 mx-1 transition-colors duration-300",
-                  index < currentIndex ? "bg-primary" : "bg-gray-300 dark:bg-gray-600"
+                  index < currentIndex ? "bg-primary" : "bg-border"
                 )} />
               )}
             </React.Fragment>

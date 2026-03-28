@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { CalendarCheck, Plus } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -52,11 +53,7 @@ export default function ConfirmationsPage() {
 
   // Loading states
   if (authLoading || orgLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} />;
   }
 
   if (!isAuthenticated || !organization || !organizationId) {

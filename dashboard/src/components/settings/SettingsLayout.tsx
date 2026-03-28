@@ -58,7 +58,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar Navigation */}
         <aside className="lg:w-64 flex-shrink-0">
-          <nav className="space-y-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-2">
+          <nav className="space-y-1 bg-card rounded-lg border border-border p-2">
             {settingsNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location === item.href;
@@ -70,7 +70,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
                       "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                       isActive
                         ? "bg-primary text-primary-foreground"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                   >
                     <Icon className="w-5 h-5" />

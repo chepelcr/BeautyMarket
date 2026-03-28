@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,11 +65,7 @@ export default function OrderDetailsPage() {
 
   // Loading states
   if (authLoading || orgLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} />;
   }
 
   if (!isAuthenticated || !organization || !organizationId) {

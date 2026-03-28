@@ -122,15 +122,15 @@ export default function CategoriesManager() {
       </div>
 
       {categories.length === 0 ? (
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
+        <Card>
           <CardContent className="p-12 text-center">
             <div className="space-y-4">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto">
-                <i className="fas fa-folder-open text-gray-400 text-2xl"></i>
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                <i className="fas fa-folder-open text-muted-foreground text-2xl"></i>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('categories.empty')}</h3>
-                <p className="text-gray-600 dark:text-gray-300">{t('categories.emptyDescription')}</p>
+                <h3 className="text-lg font-semibold text-foreground">{t('categories.empty')}</h3>
+                <p className="text-muted-foreground">{t('categories.emptyDescription')}</p>
               </div>
               <Button onClick={handleCreateCategory}>
                 {t('categories.createFirst')}
@@ -139,15 +139,15 @@ export default function CategoriesManager() {
           </CardContent>
         </Card>
       ) : filteredCategories.length === 0 ? (
-        <Card className="dark:bg-gray-800 dark:border-gray-700">
+        <Card>
           <CardContent className="p-12 text-center">
             <div className="space-y-4">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto">
-                <Search className="text-gray-400 w-8 h-8" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                <Search className="text-muted-foreground w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('categories.noResults')}</h3>
-                <p className="text-gray-600 dark:text-gray-300">{t('categories.noResultsDescription')}</p>
+                <h3 className="text-lg font-semibold text-foreground">{t('categories.noResults')}</h3>
+                <p className="text-muted-foreground">{t('categories.noResultsDescription')}</p>
               </div>
               <Button variant="outline" onClick={handleClearSearch}>
                 {t('categories.clearSearch')}
@@ -159,17 +159,17 @@ export default function CategoriesManager() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Add New Category Card */}
           <Card 
-            className="overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-pink-primary dark:hover:border-pink-400 cursor-pointer transition-all duration-300 hover:shadow-lg"
+            className="overflow-hidden border-2 border-dashed border-border hover:border-primary cursor-pointer transition-all duration-300 hover:shadow-lg"
             onClick={handleCreateCategory}
           >
             <CardContent className="flex items-center justify-center min-h-[280px] p-8 text-center">
               <div className="space-y-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900 dark:to-pink-800 rounded-full flex items-center justify-center mx-auto">
-                  <i className="fas fa-plus text-pink-primary dark:text-pink-400 text-2xl"></i>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <i className="fas fa-plus text-primary text-2xl"></i>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('categories.new')}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">{t('categories.newDescription')}</p>
+                  <h3 className="text-lg font-semibold text-foreground">{t('categories.new')}</h3>
+                  <p className="text-muted-foreground text-sm">{t('categories.newDescription')}</p>
                 </div>
               </div>
             </CardContent>
@@ -177,7 +177,7 @@ export default function CategoriesManager() {
 
           {/* Existing Categories */}
           {filteredCategories.map((category: Category) => (
-            <Card key={category.categoryId} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300 flex flex-col">
+            <Card key={category.categoryId} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
               <div 
                 className="h-24 p-4 flex items-center justify-between"
                 style={{ backgroundColor: category.backgroundColor }}
@@ -197,11 +197,11 @@ export default function CategoriesManager() {
               
               <CardContent className="p-4 flex-1 flex flex-col">
                 <div className="space-y-3 flex-1">
-                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
                     {category.description}
                   </p>
                   
-                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-muted-foreground">
                     <span>{t('categories.slug')}: {category.slug}</span>
                     <span>•</span>
                     <span>{t('categories.order')}: {category.sortOrder}</span>

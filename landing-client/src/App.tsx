@@ -16,7 +16,7 @@ export default function App() {
       <ThemeProvider>
         <PageTransition location={location}>
           {(displayLocation, transitionStage, isLayoutSwitch) => (
-            <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+            <div className="min-h-screen flex flex-col bg-background">
               <LandingNavbar transitionStage={isLayoutSwitch ? transitionStage : ''} />
               <main className={`flex-grow ${transitionStage}`}>
                 <Router displayLocation={displayLocation} />

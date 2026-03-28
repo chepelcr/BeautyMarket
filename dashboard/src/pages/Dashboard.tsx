@@ -1,4 +1,5 @@
 import { useLocation } from 'wouter';
+import { PageLoader } from '@/components/ui/page-loader';
 import {
   Package,
   Grid3X3,
@@ -35,14 +36,7 @@ export default function Dashboard() {
     useDashboardStats(user?.id, organization?.id);
 
   if (!user || !organization) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('dashboard.loading')}</p>
-        </div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} />;
   }
 
   // Determine deployment status

@@ -150,7 +150,7 @@ export function AddSectionButton({
             <Label htmlFor="component">{t('sections.fields.componentType')}</Label>
             {isLoadingComponents ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-pink-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : (
               <Select

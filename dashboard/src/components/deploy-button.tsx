@@ -196,12 +196,12 @@ export function DeployButton({ disabled, onDeployStart, onDeployComplete, classN
                 </Badge>
               </div>
 
-              <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+              <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
                 {deploymentStatus.message}
               </div>
 
               {deploymentStatus.buildId && (
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   Build ID: {deploymentStatus.buildId}
                 </div>
               )}

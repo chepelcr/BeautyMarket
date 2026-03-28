@@ -32,11 +32,11 @@ const getCategoryColor = (category: string): string => {
     skincare: "bg-rose-500/10 text-rose-700 dark:text-rose-400",
     nails: "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-400",
     salon: "bg-violet-500/10 text-violet-700 dark:text-violet-400",
-    tech: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+    tech: "bg-primary/10 text-primary",
     fashion: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
-    starter: "bg-gray-500/10 text-gray-700 dark:text-gray-400",
+    starter: "bg-muted text-muted-foreground",
   };
-  return colorMap[category.toLowerCase()] || "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+  return colorMap[category.toLowerCase()] || "bg-muted text-muted-foreground";
 };
 
 export function TemplateCard({ template, onSelect, onPreview, isSelected }: TemplateCardProps) {

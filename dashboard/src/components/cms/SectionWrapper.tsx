@@ -29,7 +29,7 @@ export function SectionWrapper({
   const { t } = useLanguage();
   
   return (
-    <Card className="dark:bg-gray-800 dark:border-gray-700">
+    <Card>
       {hasChanges && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 m-6 mb-0">
           <p className="text-yellow-800 dark:text-yellow-200 text-sm">

@@ -1,4 +1,5 @@
 import {useState, useEffect} from "react";
+import { PageLoader } from "@/components/ui/page-loader";
 import {Button} from "@/components/ui/button";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {
@@ -169,11 +170,7 @@ export default function Admin() {
 
     // Show loading while checking authentication or organization
     if (isLoading || orgLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
+        return <PageLoader />;
     }
 
     // Show nothing if not authenticated (redirect is in useEffect)
@@ -188,9 +185,9 @@ export default function Admin() {
 
     if (productsLoading) {
         return (
-            <div className="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+            <div className="py-8 bg-background min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
+                    <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
                         <div className="p-8">
                             <div className="space-y-4">
                                 {Array.from({length: 5}).map((_, i) => (
@@ -213,20 +210,20 @@ export default function Admin() {
     }
 
     return (
-        <div className="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+        <div className="py-8 bg-background min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
+                <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
                     {/* Admin Content */}
                     <div className="p-8">
                         {/* Mobile-Responsive Tabs */}
                         <div
-                            className="flex flex-col sm:flex-row gap-1 mb-8 bg-gray-100 dark:bg-gray-700 rounded-lg p-2 sm:p-1">
+                            className="flex flex-col sm:flex-row gap-1 mb-8 bg-muted rounded-lg p-2 sm:p-1">
                             <button
                                 onClick={() => setActiveTab('products')}
                                 className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                                     activeTab === 'products'
-                                        ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
-                                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-background text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
                                 <i className="fas fa-box mr-1 sm:mr-2"></i>
@@ -236,8 +233,8 @@ export default function Admin() {
                                 onClick={() => setActiveTab('categories')}
                                 className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                                     activeTab === 'categories'
-                                        ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
-                                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-background text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
                                 <i className="fas fa-tags mr-1 sm:mr-2"></i>
@@ -247,8 +244,8 @@ export default function Admin() {
                                 onClick={() => setActiveTab('content')}
                                 className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                                     activeTab === 'content'
-                                        ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
-                                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-background text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
                                 <i className="fas fa-edit mr-1 sm:mr-2"></i>
@@ -258,8 +255,8 @@ export default function Admin() {
                                 onClick={() => setActiveTab('organization')}
                                 className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                                     activeTab === 'organization'
-                                        ? 'bg-white dark:bg-gray-600 text-pink-primary dark:text-pink-400 shadow-sm'
-                                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-background text-primary shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
                                 <i className="fas fa-building mr-1 sm:mr-2"></i>
@@ -299,10 +296,10 @@ export default function Admin() {
                                     {/* Existing Products */}
                                     {products?.map((product) => (
                                         <Card key={product.id}
-                                              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+                                              className="bg-card border border-border hover:shadow-lg transition-shadow">
                                             <CardHeader className="pb-3">
                                                 <div
-                                                    className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 mb-3">
+                                                    className="aspect-square rounded-lg overflow-hidden bg-muted mb-3">
                                                     {product.imageUrl ? (
                                                         <img
                                                             className="w-full h-full object-cover"

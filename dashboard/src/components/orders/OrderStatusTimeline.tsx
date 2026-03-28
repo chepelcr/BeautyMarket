@@ -75,16 +75,16 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
 
   const statusColors: Record<string, { bg: string; border: string; text: string; label: string }> = {
     pending: {
-      bg: 'bg-gray-200 dark:bg-gray-700',
-      border: 'border-gray-300 dark:border-gray-600',
-      text: 'text-gray-700 dark:text-gray-200',
-      label: 'text-gray-700 dark:text-gray-200',
+      bg: 'bg-muted',
+      border: 'border-border',
+      text: 'text-muted-foreground',
+      label: 'text-muted-foreground',
     },
     processing: {
-      bg: 'bg-blue-100 dark:bg-blue-900',
-      border: 'border-blue-200 dark:border-blue-700',
-      text: 'text-blue-800 dark:text-blue-200',
-      label: 'text-blue-800 dark:text-blue-200',
+      bg: 'bg-primary/10',
+      border: 'border-primary/20',
+      text: 'text-primary',
+      label: 'text-primary',
     },
     shipped: {
       bg: 'bg-yellow-400 dark:bg-yellow-500',
@@ -120,7 +120,7 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                   <div
                     className={cn(
                       'absolute left-[18px] top-[36px] w-0.5 h-[calc(100%-0.5rem)]',
-                      isPast ? 'bg-blue-500' : isCurrent ? currentColors.bg : 'bg-muted'
+                      isPast ? 'bg-primary' : isCurrent ? currentColors.bg : 'bg-muted'
                     )}
                   />
                 )}
@@ -132,7 +132,7 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                     className={cn(
                       'flex items-center justify-center w-9 h-9 rounded-full border-2 flex-shrink-0',
                       isPast
-                        ? 'bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600'
+                        ? 'bg-primary border-primary text-primary-foreground'
                         : isCurrent
                           ? `${currentColors.bg} ${currentColors.border} ${currentColors.text}`
                           : 'bg-muted border-muted-foreground/20 text-muted-foreground'
@@ -147,7 +147,7 @@ export function OrderStatusTimeline({ order }: OrderStatusTimelineProps) {
                       className={cn(
                         'font-semibold',
                         isCurrent && currentColors.label,
-                        isPast && 'text-blue-600 dark:text-blue-400',
+                        isPast && 'text-primary',
                         !isCompleted && 'text-muted-foreground'
                       )}
                     >

@@ -252,7 +252,7 @@ export function OtherTaxSection({
                               <Input 
                                 value={`₡${calculateTaxAmount(tax).toFixed(2)}`} 
                                 disabled 
-                                className="bg-gray-100 dark:bg-gray-800 pr-10"
+                                className="bg-muted pr-10"
                               />
                               <Button
                                 type="button"
@@ -314,7 +314,7 @@ export function OtherTaxSection({
                                   value={taxType?.code === TAX_TYPES.IUC ? (form?.watch('quantity') || 1) : (tax.specialFields?.quantity || "")}
                                   onChange={taxType?.code === TAX_TYPES.IUC ? undefined : (e) => updateOtherTax(index, 'specialFields.quantity', Number(e.target.value))}
                                   readOnly={taxType?.code === TAX_TYPES.IUC}
-                                  className={taxType?.code === TAX_TYPES.IUC ? "bg-gray-100 dark:bg-gray-800" : ""}
+                                  className={taxType?.code === TAX_TYPES.IUC ? "bg-muted" : ""}
                                 />
                               </div>
                             )}
@@ -348,7 +348,7 @@ export function OtherTaxSection({
                                 <Input 
                                   value={`₡${calculateTaxAmount(isProduct && taxType?.code === TAX_TYPES.IUC ? {...tax, specialFields: {...tax.specialFields, quantity: 1}} : tax).toFixed(2)}`} 
                                   disabled 
-                                  className="bg-gray-100 dark:bg-gray-800 pr-10"
+                                  className="bg-muted pr-10"
                                 />
                                 <Button
                                   type="button"

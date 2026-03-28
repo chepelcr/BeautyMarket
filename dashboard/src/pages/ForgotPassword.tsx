@@ -52,7 +52,7 @@ export default function ForgotPassword() {
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-white dark:bg-gray-800">
+        <Card className="w-full max-w-md bg-card">
           <CardHeader className="text-center space-y-1">
             <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mb-4">
               <Mail className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -99,7 +99,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white dark:bg-gray-800">
+      <Card className="w-full max-w-md bg-card">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             {t('auth.forgotPassword.title')}

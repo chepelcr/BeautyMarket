@@ -669,7 +669,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Tipo de Fondo</Label>
                 <select 
-                  className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                  className="w-full p-2 text-sm border rounded-md bg-background border-input text-foreground"
                   value={JSON.parse(value || '{"type":"color"}').type}
                   onChange={(e) => {
                     const bgData = JSON.parse(value || '{"type":"color"}');
@@ -692,7 +692,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Modo de Colores</Label>
                 <select 
-                  className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                  className="w-full p-2 text-sm border rounded-md bg-background border-input text-foreground"
                   value={getSectionMode(section)}
                   onChange={(e) => {
                     updateSectionMode(section, e.target.value);
@@ -895,7 +895,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                         </div>
                       </div>
                       <select
-                        className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        className="w-full p-2 text-sm border rounded-md bg-background border-input text-foreground"
                         value={bgData.gradient?.direction || 'to-r'}
                         onChange={(e) => {
                           bgData.gradient = bgData.gradient || {};
@@ -970,7 +970,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                         </div>
                       </div>
                       <select
-                        className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        className="w-full p-2 text-sm border rounded-md bg-background border-input text-foreground"
                         value={bgData.gradient?.direction || 'to-r'}
                         onChange={(e) => {
                           bgData.gradient = bgData.gradient || {};
@@ -1017,7 +1017,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                           bgData.image.opacity = parseFloat(e.target.value);
                           handleInputChange(section, item.key, JSON.stringify(bgData));
                         }}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
                   </div>
@@ -1087,7 +1087,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -1168,12 +1168,12 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
       )}
 
       <Tabs defaultValue={validActiveSection} key={validActiveSection} className="w-full">
-        <TabsList className="grid grid-cols-5 w-full h-auto p-1 bg-gray-100 dark:bg-gray-700">
+        <TabsList className="grid grid-cols-5 w-full h-auto p-1 bg-muted">
           {availableSections.map((section) => (
             <TabsTrigger
               key={section}
               value={section}
-              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:text-pink-primary dark:data-[state=active]:text-pink-400 rounded-md transition-all duration-200 flex items-center gap-2"
+              className="capitalize text-xs sm:text-sm px-2 py-3 sm:px-4 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-primary rounded-md transition-all duration-200 flex items-center gap-2"
             >
               <span>
                 {section === 'hero' ? 'Inicio' :
@@ -1191,7 +1191,7 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
 
         {availableSections.map((section) => (
           <TabsContent key={section} value={section} className="mt-6">
-            <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <Card>
               <CardContent className="space-y-6 pt-6">
                 {Object.values(contentData[section] || {})
                   .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -1206,10 +1206,10 @@ export function CmsManager({ defaultActiveSection = "hero" }: CmsManagerProps) {
                           className={
                             item.valueType === 'color' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
                             item.valueType === 'background' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                            item.valueType === 'text' || item.valueType === 'string' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                            item.valueType === 'text' || item.valueType === 'string' ? 'bg-primary/10 text-primary' :
                             item.valueType === 'image_url' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                             item.valueType === 'json' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                            'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                            'bg-muted text-muted-foreground'
                           }
                         >
                           {item.valueType === 'background' ? 'fondo' : item.valueType}

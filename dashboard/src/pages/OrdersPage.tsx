@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { ShoppingBag, ArrowUpDown, Plus } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -114,11 +115,7 @@ export default function OrdersPage() {
 
   // Loading states
   if (authLoading || orgLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} />;
   }
 
   if (!isAuthenticated || !organization || !organizationId) {

@@ -104,7 +104,7 @@ export function DiscountsSection({ form, disabled = false, forceCollapsed = fals
                 <Input
                   value={`₡${totalDiscount.toFixed(2)}`}
                   readOnly
-                  className="w-32 bg-gray-100 dark:bg-gray-800"
+                  className="w-32 bg-muted"
                 />
               )}
               <Select value={selectedDiscountType} onValueChange={setSelectedDiscountType} disabled={disabled}>
@@ -212,7 +212,7 @@ export function DiscountsSection({ form, disabled = false, forceCollapsed = fals
                               <Input 
                                 value={`₡${DiscountCalculationService.calculateDiscountAmount(netPrice, discount).toFixed(2)}`} 
                                 disabled 
-                                className="bg-gray-100 dark:bg-gray-800 pr-10"
+                                className="bg-muted pr-10"
                               />
                               <ClearButton onClick={() => removeDiscount(discount.originalIndex)} />
                             </div>

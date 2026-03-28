@@ -115,7 +115,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
                   placeholder="0.00"
                   value={totalDiscountAmount.toFixed(2)}
                   readOnly
-                  className="bg-gray-100 dark:bg-gray-800"
+                  className="bg-muted"
                 />
               </FormControl>
             </FormItem>
@@ -149,7 +149,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
                     placeholder="0.00"
                     value={baseAmount.toFixed(2)}
                     readOnly
-                    className="bg-gray-100 dark:bg-gray-800"
+                    className="bg-muted"
                   />
                 </FormControl>
               </FormItem>
@@ -163,7 +163,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
                   placeholder="0.00"
                   value={ivaTaxTotal.toFixed(2)}
                   readOnly
-                  className="bg-gray-100 dark:bg-gray-800"
+                  className="bg-muted"
                 />
               </FormControl>
             </FormItem>
@@ -177,7 +177,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
                     placeholder="0.00"
                     value={otherTaxTotal.toFixed(2)}
                     readOnly
-                    className="bg-gray-100 dark:bg-gray-800"
+                    className="bg-muted"
                   />
                 </FormControl>
               </FormItem>
@@ -191,7 +191,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
                   placeholder="0.00"
                   value={salePrice.toFixed(2)}
                   readOnly
-                  className="bg-gray-100 dark:bg-gray-800"
+                  className="bg-muted"
                 />
               </FormControl>
             </FormItem>

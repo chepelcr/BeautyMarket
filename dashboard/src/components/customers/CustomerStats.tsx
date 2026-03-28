@@ -39,8 +39,8 @@ export function CustomerStats({ orders }: CustomerStatsProps) {
       title: t('customers.stats.totalOrders'),
       value: totalOrders.toString(),
       icon: ShoppingCart,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
     },
     {
       title: t('customers.stats.totalSpent'),

@@ -196,7 +196,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                 <FormLabel>{t('customers.country')}</FormLabel>
                 <Select onValueChange={isEditing ? undefined : field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className={`${isEditing ? "bg-gray-100 dark:bg-gray-800 pointer-events-none" : ""}`}>
+                    <SelectTrigger className={`${isEditing ? "bg-muted pointer-events-none" : ""}`}>
                       <SelectValue placeholder={t('customers.selectPlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
@@ -221,7 +221,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                 <FormLabel>{t('customers.identificationType')}</FormLabel>
                 <Select onValueChange={isEditing ? undefined : (value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                   <FormControl>
-                    <SelectTrigger className={`${isEditing ? "bg-gray-100 dark:bg-gray-800 pointer-events-none" : ""}`}>
+                    <SelectTrigger className={`${isEditing ? "bg-muted pointer-events-none" : ""}`}>
                       <SelectValue placeholder={t('customers.selectPlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
@@ -251,7 +251,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                       value={field.value || ''}
                       onChange={(e) => handleIdNumberChange(e.target.value)}
                       readOnly={idComplete || isEditing}
-                      className={(idComplete || isEditing) ? "bg-gray-100 dark:bg-gray-800 pr-10" : ""}
+                      className={(idComplete || isEditing) ? "bg-muted pr-10" : ""}
                     />
                     {idComplete && (
                       <ClearButton onClick={handleClearId} />
@@ -277,7 +277,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                       placeholder={t('customers.taxpayerName')} 
                       {...field} 
                       readOnly={isCostaRica || isEditing}
-                      className={`${(isCostaRica || isEditing) ? "bg-gray-100 dark:bg-gray-800" : ""}`}
+                      className={`${(isCostaRica || isEditing) ? "bg-muted" : ""}`}
                     />
                   </FormControl>
                   <FormMessage />

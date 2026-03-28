@@ -154,7 +154,7 @@ export function ContentField({
               Tipo de Fondo
             </Label>
             <select
-              className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+              className="w-full p-2 text-sm border rounded-md bg-background border-border text-foreground"
               value={bgData.type}
               onChange={(e) => {
                 bgData.type = e.target.value;
@@ -182,7 +182,7 @@ export function ContentField({
               Modo de Colores
             </Label>
             <select
-              className="w-full p-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+              className="w-full p-2 text-sm border rounded-md bg-background border-border text-foreground"
               value={sectionMode}
               onChange={(e) => onModeChange?.(e.target.value)}
             >
@@ -302,7 +302,7 @@ export function ContentField({
                   bgData.image.opacity = parseFloat(e.target.value);
                   onChange(JSON.stringify(bgData));
                 }}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
               />
             </div>
           </div>
@@ -616,12 +616,12 @@ export function ContentField({
               : item.valueType === "background"
               ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
               : item.valueType === "text" || item.valueType === "string"
-              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              ? "bg-primary/10 text-primary"
               : item.valueType === "image_url"
               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
               : item.valueType === "json"
               ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+              : "bg-muted text-muted-foreground"
           }
         >
           {item.valueType === "background" ? "fondo" : item.valueType}

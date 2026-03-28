@@ -51,25 +51,19 @@ export default {
         },
 
         // Brand color scales for explicit control
-        blue: {
-          50: 'hsl(var(--brand-blue-50))',
-          100: 'hsl(var(--brand-blue-100))',
-          500: 'hsl(var(--brand-blue-500))',
-          600: 'hsl(var(--brand-blue-600))',
-          700: 'hsl(var(--brand-blue-700))',
+        green: {
+          50: 'hsl(var(--brand-green-50))',
+          100: 'hsl(var(--brand-green-100))',
+          500: 'hsl(var(--brand-green-500))',
+          600: 'hsl(var(--brand-green-600))',
+          700: 'hsl(var(--brand-green-700))',
         },
-        lime: {
-          50: 'hsl(var(--brand-lime-50))',
-          100: 'hsl(var(--brand-lime-100))',
-          500: 'hsl(var(--brand-lime-500))',
-          600: 'hsl(var(--brand-lime-600))',
-          700: 'hsl(var(--brand-lime-700))',
-        },
-
-        // Extended slate colors for dark mode cards
-        slate: {
-          900: '#0f172a',
-          950: '#020617',
+        earth: {
+          50: 'hsl(var(--brand-earth-50))',
+          100: 'hsl(var(--brand-earth-100))',
+          500: 'hsl(var(--brand-earth-500))',
+          600: 'hsl(var(--brand-earth-600))',
+          700: 'hsl(var(--brand-earth-700))',
         },
       },
       borderRadius: {

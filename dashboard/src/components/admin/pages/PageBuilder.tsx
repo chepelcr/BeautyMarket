@@ -116,7 +116,7 @@ export function PageBuilder({ userId, organizationId }: PageBuilderProps) {
   if (isLoadingPages) {
     return (
       <div className="flex items-center justify-center h-[600px]">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -201,7 +201,7 @@ export function PageBuilder({ userId, organizationId }: PageBuilderProps) {
               <CardContent className="flex-1 overflow-y-auto pt-4">
                 {isLoadingSections ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-pink-500" />
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
                 ) : (
                   <SectionList

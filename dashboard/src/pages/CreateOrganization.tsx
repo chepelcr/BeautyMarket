@@ -486,7 +486,7 @@ export default function CreateOrganization() {
       </div>
 
       <div className="container max-w-4xl mx-auto pt-20 pb-10 px-4 min-h-screen flex items-center relative z-10">
-        <Card className="w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-xl">
+        <Card className="w-full bg-card/95 backdrop-blur-sm shadow-xl">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
             <Building2 className="h-8 w-8 text-primary" />
@@ -717,8 +717,8 @@ export default function CreateOrganization() {
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                        <Sparkles className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                      <div className="p-2 bg-muted rounded">
+                        <Sparkles className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <h4 className="font-semibold mb-1">Empezar desde cero</h4>

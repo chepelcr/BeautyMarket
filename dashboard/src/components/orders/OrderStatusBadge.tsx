@@ -13,12 +13,12 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     pending: {
       label: t('orders.status.pending'),
       icon: Clock,
-      className: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700',
+      className: 'bg-muted text-muted-foreground border-border',
     },
     processing: {
       label: t('orders.status.processing'),
       icon: Package,
-      className: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700',
+      className: 'bg-primary/10 text-primary border-primary/20',
     },
     shipped: {
       label: t('orders.status.shipped'),

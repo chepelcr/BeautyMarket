@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, PackageSearch, ArrowUpDown, Upload, ChevronDown, Save, Loader2 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -266,11 +267,7 @@ export default function ProductsPage() {
 
   // Loading states
   if (authLoading || orgLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} />;
   }
 
   if (!isAuthenticated || !organization || !organizationId) {

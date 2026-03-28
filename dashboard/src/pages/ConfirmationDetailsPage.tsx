@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
+import { PageLoader } from '@/components/ui/page-loader';
 import {
   ArrowLeft,
   Loader2,
@@ -130,11 +131,7 @@ export default function ConfirmationDetailsPage() {
   const isUpdating = statusMutation.isPending || removeOrderMutation.isPending;
 
   if (authLoading || orgLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} />;
   }
 
   if (!isAuthenticated || !organization || !organizationId) {

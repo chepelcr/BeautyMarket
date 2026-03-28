@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, Clock, ExternalLink, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, ExternalLink, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useDynamicTitle } from '@/hooks/useDynamicTitle';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -38,14 +38,14 @@ interface PreDeployment {
 }
 
 const statusColors = {
-  building: 'bg-blue-500',
+  building: 'bg-primary',
   uploading: 'bg-yellow-500',
   success: 'bg-green-500',
   error: 'bg-red-500'
 };
 
 const statusIcons = {
-  building: Loader,
+  building: Loader2,
   uploading: Clock,
   success: CheckCircle,
   error: AlertCircle
@@ -121,7 +121,7 @@ export default function DeploymentHistory() {
           </h1>
         </div>
         <div className="flex justify-center items-center py-12">
-          <Loader className="w-8 h-8 animate-spin text-gray-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
@@ -180,7 +180,7 @@ export default function DeploymentHistory() {
                   onClick={() => publishMutation.mutate(preDeployments[0].id)}
                   disabled={publishMutation.isPending}
                 >
-                  {publishMutation.isPending && <Loader className="w-4 h-4 mr-2 animate-spin" />}
+                  {publishMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   {publishMutation.isPending ? t('deployments.pending.publishing') : t('deployments.pending.publishButton')}
                 </Button>
               </CardContent>

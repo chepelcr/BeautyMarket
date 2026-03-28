@@ -47,7 +47,7 @@ export function ClientCard({ client }: ClientCardProps) {
       case 1:
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">{t('customers.status.active')}</Badge>;
       case 2:
-        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">{t('customers.status.inactive')}</Badge>;
+        return <Badge variant="outline" className="bg-muted text-muted-foreground border-border">{t('customers.status.inactive')}</Badge>;
       default:
         return null;
     }

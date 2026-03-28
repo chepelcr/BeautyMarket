@@ -44,12 +44,12 @@ export function StatusCard({
     pending: {
       icon: Clock,
       label: t('dashboard.status.pending'),
-      className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      className: 'bg-primary/10 text-primary',
     },
     info: {
       icon: AlertCircle,
       label: t('dashboard.status.info'),
-      className: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+      className: 'bg-muted text-muted-foreground',
     },
   };
 
