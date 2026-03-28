@@ -22,14 +22,7 @@ export function ClientCard({ client }: ClientCardProps) {
 
   const updateStatusMutation = useMutation({
     mutationFn: async (status: number) => {
-      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${client.companyId}/clients/${client.clientId}`;
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) throw new Error('Failed to update status');
-      return response.json();
+      return ordersApi.updateClientStatus(client.clientId, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

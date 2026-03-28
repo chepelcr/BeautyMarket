@@ -107,6 +107,46 @@ export interface CustomerFormData {
   customerType?: number;
 }
 
+export interface StoreResponse {
+  storeId: string;
+  companyId: string;
+  clientId: string;
+  storeCode: string;
+  storeName?: string;
+  slotId?: string;
+  chain?: string;
+  gln?: string;
+  status?: number;
+}
+
+export interface StoreRequestDTO {
+  storeCode: string;
+  storeName?: string;
+  slotId?: string;
+  chain?: string;
+}
+
+export interface DepartmentResponse {
+  departmentId: string;
+  companyId: string;
+  clientId: string;
+  departmentCode: string;
+  name?: string;
+  supplierCode?: string;
+}
+
+export interface CreateDepartmentDTO {
+  departmentCode: string;
+  name?: string;
+  supplierCode?: string;
+}
+
+export interface UpdateDepartmentDTO {
+  departmentCode?: string;
+  name?: string;
+  supplierCode?: string;
+}
+
 export interface ClientsResponse {
   data: Client[];
   pagination: {

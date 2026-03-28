@@ -3,6 +3,7 @@ import { useRoute, useLocation } from 'wouter';
 import { ArrowLeft, Loader2, Trash2 } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,13 +18,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { buildOrgApiUrl } from '@/lib/apiUtils';
-import type { Customer, Order } from '@/models';
+import { buildOrdersApiUrl } from '@/lib/apiUtils';
+import { ordersApi } from '@/lib/orders-api';
+import type { Client, Order } from '@/models';
 import { CustomerProfile } from '@/components/customers/CustomerProfile';
 import { CustomerStats } from '@/components/customers/CustomerStats';
 import { CustomerOrderHistory } from '@/components/customers/CustomerOrderHistory';
 import { CustomerModal } from '@/components/customers/CustomerModal';
 import { CustomerNotes } from '@/components/customers/CustomerNotes';
+import { StoresList } from '@/components/customers/StoresList';
+import { DepartmentsList } from '@/components/customers/DepartmentsList';
 
 export default function CustomerDetailsPage() {
   const { t } = useLanguage();
@@ -48,18 +52,14 @@ export default function CustomerDetailsPage() {
   }, [isAuthenticated, authLoading, navigate]);
 
   // Fetch customer details
-  const { data: customer, isLoading, error } = useQuery<Customer>({
+  const { data: customer, isLoading, error } = useQuery<Client>({
     queryKey: ['customer', customerId],
     enabled: !!organizationId && !!customerId,
     staleTime: 0,
     gcTime: 0,
     queryFn: async () => {
-      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch customer');
-      }
-      return response.json();
+      ordersApi.setOrganization(organizationId);
+      return ordersApi.getClient(customerId!);
     },
   });
 
@@ -69,11 +69,9 @@ export default function CustomerDetailsPage() {
     enabled: !!organizationId && !!customerId && !!customer?.clientGln,
     queryFn: async () => {
       const searchParam = `clientGln:${customer?.clientGln}`;
-      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/orders?search=${encodeURIComponent(searchParam)}`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
+      const url = buildOrdersApiUrl(organizationId, `/orders?search=${encodeURIComponent(searchParam)}`);
+      const { apiRequest } = await import('@/lib/queryClient');
+      const response = await apiRequest('GET', url);
       return response.json();
     },
   });
@@ -83,16 +81,8 @@ export default function CustomerDetailsPage() {
   // Update customer notes mutation
   const updateNotesMutation = useMutation({
     mutationFn: async (notes: string) => {
-      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update customer notes');
-      }
-      return response.json();
+      ordersApi.setOrganization(organizationId);
+      return ordersApi.updateClient(customerId!, { notes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
@@ -103,16 +93,8 @@ export default function CustomerDetailsPage() {
   // Delete customer mutation (soft delete with status=3)
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 3 }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete customer');
-      }
-      return response.json();
+      ordersApi.setOrganization(organizationId);
+      return ordersApi.updateClientStatus(customerId!, 3);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -135,13 +117,8 @@ export default function CustomerDetailsPage() {
   };
 
   const handleSubmit = async (data: any) => {
-    const url = `${import.meta.env.VITE_ORDERS_API_URL}/api/organizations/${organizationId}/clients/${customerId}`;
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to update client');
+    ordersApi.setOrganization(organizationId);
+    await ordersApi.updateClient(customerId!, data);
     queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
     queryClient.invalidateQueries({ queryKey: ['clients'] });
     setShowEditForm(false);
@@ -223,24 +200,43 @@ export default function CustomerDetailsPage() {
           {/* Statistics */}
           <CustomerStats orders={orders} />
 
-          {/* Profile and Notes Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CustomerProfile
-              customer={customer}
-              onEdit={handleEdit}
-            />
-            <CustomerNotes
-              notes={customer.notes}
-              onSave={handleSaveNotes}
-              isSaving={updateNotesMutation.isPending}
-            />
-          </div>
+          {/* Tabs */}
+          <Tabs defaultValue="overview">
+            <TabsList>
+              <TabsTrigger value="overview">{t('customers.tabs.overview')}</TabsTrigger>
+              <TabsTrigger value="stores">{t('customers.tabs.stores')}</TabsTrigger>
+              <TabsTrigger value="departments">{t('customers.tabs.departments')}</TabsTrigger>
+            </TabsList>
 
-          {/* Order History Row */}
-          <CustomerOrderHistory
-            orders={orders}
-            isLoading={ordersLoading}
-          />
+            <TabsContent value="overview" className="space-y-6 mt-6">
+              {/* Profile and Notes Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CustomerProfile
+                  customer={customer as any}
+                  onEdit={handleEdit}
+                />
+                <CustomerNotes
+                  notes={(customer as any).notes}
+                  onSave={handleSaveNotes}
+                  isSaving={updateNotesMutation.isPending}
+                />
+              </div>
+
+              {/* Order History Row */}
+              <CustomerOrderHistory
+                orders={orders}
+                isLoading={ordersLoading}
+              />
+            </TabsContent>
+
+            <TabsContent value="stores" className="mt-6">
+              <StoresList orgId={organizationId} clientId={customerId} />
+            </TabsContent>
+
+            <TabsContent value="departments" className="mt-6">
+              <DepartmentsList orgId={organizationId} clientId={customerId} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
