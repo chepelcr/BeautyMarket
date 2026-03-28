@@ -70,7 +70,7 @@ export default function App() {
           {(displayLocation, transitionStage, isLayoutSwitch) => (
             <>
               {isAuthPage ? (
-                <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 to-primary/20 dark:from-slate-900 dark:to-slate-800 relative">
+                <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 to-primary/20 dark:from-background dark:to-background relative">
                   <div className={`relative ${isLayoutSwitch ? transitionStage : ''}`}>
                     <AuthNavbar {...getNavbarProps()} />
                   </div>
