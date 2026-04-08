@@ -5,18 +5,19 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}Stopping JMarkets server...${NC}"
+echo -e "${GREEN}🔄 Rebooting JMarkets server...${NC}"
 
-# Kill node processes (Windows)
-taskkill //F //IM node.exe 2>/dev/null && echo -e "${GREEN}Node processes stopped.${NC}" || echo "No node processes found."
+# Kill existing server processes by name
+echo "Stopping existing processes..."
+taskkill //F //IM node.exe 2>/dev/null || true
+taskkill //F //IM tsx.exe 2>/dev/null || true
 
-# Force kill any processes on dev ports
-echo "Stopping processes on ports 3001, 3002, 5000..."
+# Force kill processes on specific ports
+echo "Stopping processes on ports 3001, 3002, 5000, 9000..."
 for port in 3001 3002 5000 9000; do
   pid=$(netstat -ano | grep ":$port" | grep LISTENING | awk '{print $5}' | head -1)
   if [ ! -z "$pid" ]; then
     taskkill //F //PID $pid 2>/dev/null || true
-    echo "  Killed PID $pid on port $port"
   fi
 done
 

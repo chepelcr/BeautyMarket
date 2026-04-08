@@ -44,10 +44,6 @@ export class OrdersApi {
     ];
   }
 
-  async getHaciendaTaxpayer(isoCode: string, idNumber: string) {
-    return this.makeRequest(`/api/countries/${isoCode}/hacienda-taxpayers/${idNumber}`);
-  }
-
   async getClient(clientId: string) {
     return this.makeRequest(`/api/organizations/${this.organizationId}/clients/${clientId}`);
   }

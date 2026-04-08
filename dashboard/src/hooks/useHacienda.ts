@@ -1,39 +1,21 @@
-const HACIENDA_API_BASE = import.meta.env.VITE_HACIENDA_API_URL || 'https://api.hacienda.go.cr';
-
-interface CabysResult {
-  codigo: string;
-  descripcion: string;
-  categorias: string[];
-  impuesto: number;
-  uri: string;
-  estado: string;
-}
-
-interface CabysSearchResponse {
-  total: number;
-  cantidad: number;
-  cabys: CabysResult[];
-}
+import { dataApiClient } from '../services/data-api';
+import type { CabysItem } from '../services/data-api';
 
 export function useHacienda() {
-  const searchCabysByName = async (query: string, limit: number = 20): Promise<CabysResult[]> => {
+  const searchCabysByName = async (iso_code: string, query: string, limit: number = 20): Promise<CabysItem[]> => {
     try {
-      const response = await fetch(`${HACIENDA_API_BASE}/fe/cabys?q=${encodeURIComponent(query)}&top=${limit}`);
-      if (!response.ok) throw new Error('Failed to search CABYS');
-      const data: CabysSearchResponse = await response.json();
-      return data.cabys || [];
+      const result = await dataApiClient.searchCabys({ iso_code, search: query, size: limit });
+      return result.items;
     } catch (error) {
       console.error('Error searching CABYS:', error);
       return [];
     }
   };
 
-  const getCabysByCode = async (code: string): Promise<CabysResult | null> => {
+  const getCabysByCode = async (iso_code: string, code: string): Promise<CabysItem | null> => {
     try {
-      const response = await fetch(`${HACIENDA_API_BASE}/fe/cabys?codigo=${code}`);
-      if (!response.ok) throw new Error('Failed to get CABYS');
-      const data: CabysResult[] = await response.json();
-      return data[0] || null;
+      const result = await dataApiClient.searchCabys({ iso_code, search: code, size: 1 });
+      return result.items[0] || null;
     } catch (error) {
       console.error('Error getting CABYS:', error);
       return null;
@@ -42,6 +24,6 @@ export function useHacienda() {
 
   return {
     searchCabysByName,
-    getCabysByCode
+    getCabysByCode,
   };
 }

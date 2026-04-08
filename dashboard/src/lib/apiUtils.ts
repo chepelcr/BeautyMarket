@@ -7,6 +7,7 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const ORDERS_API_BASE_URL = import.meta.env.VITE_ORDERS_API_URL || 'http://localhost:8000';
+const DATA_API_BASE_URL = import.meta.env.VITE_DATA_API_URL || 'https://data-api.jcampos.dev';
 
 /**
  * Build a URL for organization-scoped API endpoints
@@ -61,6 +62,30 @@ export function buildPublicApiUrl(endpoint: string): string {
 }
 
 /**
+ * Build a URL for Data API endpoints
+ * @param endpoint - The endpoint path (e.g., '/countries/188/document-versions')
+ * @param params - Optional query parameters
+ * @returns Full Data API URL
+ */
+export function buildDataApiUrl(
+  endpoint: string,
+  params?: Record<string, any>
+): string {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = new URL(cleanEndpoint, DATA_API_BASE_URL);
+  
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, String(value));
+      }
+    });
+  }
+  
+  return url.toString();
+}
+
+/**
  * API context for building URLs
  */
 export interface ApiContext {
@@ -102,6 +127,13 @@ export function createApiUrlBuilder(context: ApiContext) {
      */
     public(endpoint: string): string {
       return buildPublicApiUrl(endpoint);
+    },
+
+    /**
+     * Build Data API URL (no context required)
+     */
+    data(endpoint: string, params?: Record<string, any>): string {
+      return buildDataApiUrl(endpoint, params);
     }
   };
 }

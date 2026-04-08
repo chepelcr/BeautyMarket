@@ -9,24 +9,31 @@ import { InsertProduct } from "@/models";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { ClearButton } from "@/components/common/ClearButton";
+import { useAllCodes } from "@/hooks/useDataApi";
 
 interface CodesSectionProps {
   form: UseFormReturn<InsertProduct>;
   disabled?: boolean;
   forceCollapsed?: boolean;
+  isoCode?: string; // ISO code from organization context - when it changes, React Query automatically refetches
 }
 
-const CODE_TYPES = [
-  { codeTypeId: "01", code: "01", description: "Código del producto del vendedor" },
-  { codeTypeId: "02", code: "02", description: "Código del producto del comprador" },
-  { codeTypeId: "04", code: "04", description: "Código uso interno" },
-  { codeTypeId: "99", code: "99", description: "Otros" },
-];
-
-export function CodesSection({ form, disabled = false, forceCollapsed = false }: CodesSectionProps) {
+export function CodesSection({ form, disabled = false, forceCollapsed = false, isoCode = "CR" }: CodesSectionProps) {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(!forceCollapsed);
   const [selectedCodeType, setSelectedCodeType] = useState("");
+  
+  // Fetch code types from data API
+  const { data: codeTypesData, isLoading: codeTypesLoading, isError: codeTypesError, refetch: refetchCodeTypes } = 
+    useAllCodes({ iso_code: isoCode });
+  
+  // Transform API response to match existing CODE_TYPES structure
+  const CODE_TYPES = codeTypesData?.map(ct => ({
+    codeTypeId: ct.code,
+    code: ct.code,
+    description: ct.description
+  })) || [];
+
 
   const addCode = () => {
     if (!selectedCodeType) return;
@@ -51,6 +58,36 @@ export function CodesSection({ form, disabled = false, forceCollapsed = false }:
   };
 
   const codes = form.watch("codes") || [];
+  
+  // Show error state if code types failed to load
+  if (codeTypesError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <QrCode className="h-5 w-5" />
+              {t("products.form.codes")}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-destructive flex items-center gap-2">
+            {t('common.errorLoadingData')}
+            <Button 
+              type="button"
+              variant="link" 
+              size="sm" 
+              onClick={() => refetchCodeTypes()}
+              className="h-auto p-0"
+            >
+              {t('common.retry')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -61,9 +98,9 @@ export function CodesSection({ form, disabled = false, forceCollapsed = false }:
             {t("products.form.codes")}
           </div>
           <div className="flex items-center gap-2">
-            <Select value={selectedCodeType} onValueChange={setSelectedCodeType} disabled={disabled}>
+            <Select value={selectedCodeType} onValueChange={setSelectedCodeType} disabled={disabled || codeTypesLoading}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Agregar código" />
+                <SelectValue placeholder={codeTypesLoading ? t('common.loading') : "Agregar código"} />
               </SelectTrigger>
               <SelectContent>
                 {CODE_TYPES.filter(codeType => 
@@ -75,7 +112,7 @@ export function CodesSection({ form, disabled = false, forceCollapsed = false }:
                 ))}
               </SelectContent>
             </Select>
-            <Button size="sm" onClick={addCode} disabled={!selectedCodeType || disabled} type="button">
+            <Button size="sm" onClick={addCode} disabled={!selectedCodeType || disabled || codeTypesLoading} type="button">
               <Plus className="h-4 w-4" />
             </Button>
             <Button

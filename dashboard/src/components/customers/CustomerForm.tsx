@@ -1,9 +1,11 @@
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Form } from "@/components/ui/form";
 import { useQuery } from "@tanstack/react-query";
 import { useOrdersApi } from "@/hooks/useOrdersApi";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useAllDocumentTypes, useAllCustomerTypes, useAllCountries, useStates, useCounties, useDistricts } from "@/hooks/useDataApi";
 import { CustomerFormData } from "@/models";
 import { PersonalDataSection } from "./sections/PersonalDataSection";
 import { LocationSection } from "./sections/LocationSection";
@@ -39,32 +41,28 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
   const [hasBusinessNameFromApi, setHasBusinessNameFromApi] = useState(!!initialData?.businessName);
   const { user } = useAuth();
   const { api: ordersApi } = useOrdersApi();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
   
+  // Get ISO code from organization's organization_country field, default to "CR" (Costa Rica)
+  // When organization changes, isoCode will update and React Query will automatically
+  // refetch all reference data with the new ISO code (query keys include isoCode)
+  const isoCode = useMemo(() => {
+    // @ts-ignore - organization_country field will be added to Organization model
+    return defaultOrg?.organization_country || "CR";
+  }, [defaultOrg]);
 
+  // Fetch document types (identification types) from data API
+  const { data: identificationTypes, isLoading: identificationTypesLoading, isError: identificationTypesError, refetch: refetchIdentificationTypes } = 
+    useAllDocumentTypes({ iso_code: isoCode }, { enabled: !!user?.id });
   
-  const { data: identificationTypes } = useQuery({
-    queryKey: ['identificationTypes', user?.id],
-    queryFn: async () => {
-      return await ordersApi.getIdentificationTypes();
-    },
-    enabled: !!user?.id,
-  });
+  // Fetch customer types from data API
+  const { data: customerTypes, isLoading: customerTypesLoading, isError: customerTypesError, refetch: refetchCustomerTypes } = 
+    useAllCustomerTypes(undefined, { enabled: !!user?.id });
   
-  const { data: countries } = useQuery({
-    queryKey: ['countries', user?.id],
-    queryFn: async () => {
-      return await ordersApi.getCountries();
-    },
-    enabled: !!user?.id,
-  });
-  
-  const { data: customerTypes } = useQuery({
-    queryKey: ['customerTypes', user?.id],
-    queryFn: async () => {
-      return await ordersApi.getCustomerTypes();
-    },
-    enabled: !!user?.id,
-  });
+  // Fetch countries from data API
+  const { data: countries, isLoading: countriesLoading, isError: countriesError, refetch: refetchCountries } = 
+    useAllCountries(undefined, { enabled: !!user?.id });
   
   const form = externalForm || useForm<CustomerFormData>({
     defaultValues: {
@@ -105,7 +103,14 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValidEmail = watchedEmail && emailRegex.test(watchedEmail);
-  const isFormValid = watchedCustomerType && watchedNationality && watchedIdNumber && watchedBusinessName && isValidEmail;
+  
+  // Check if critical reference data is loading
+  const isCriticalDataLoading = identificationTypesLoading || customerTypesLoading || countriesLoading;
+  
+  // Check if critical reference data failed to load
+  const hasCriticalDataError = identificationTypesError || customerTypesError || countriesError;
+  
+  const isFormValid = watchedCustomerType && watchedNationality && watchedIdNumber && watchedBusinessName && isValidEmail && !isCriticalDataLoading && !hasCriticalDataError;
   const shouldShowLocationAndContact = watchedBusinessName || watchedNationality !== "188";
   
   const fieldErrors = {
@@ -121,42 +126,66 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
     onValidityChange?.(isFormValid);
   }, [isFormValid, onValidityChange]);
   
-  const { data: states } = useQuery({
-    queryKey: ['states', user?.id, watchedNationality],
-    queryFn: async () => {
-      return await ordersApi.getStates(watchedNationality);
-    },
-    enabled: !!user?.id && !!watchedNationality,
-  });
+  // Auto-populate phone country code when nationality changes
+  useEffect(() => {
+    if (watchedNationality && countries) {
+      const selectedCountry = countries.find((c: any) => c.isoCode === watchedNationality);
+      if (selectedCountry) {
+        form.setValue("phone.countryCode", selectedCountry.isoCode);
+      }
+    }
+  }, [watchedNationality, countries, form]);
   
-  const { data: counties } = useQuery({
-    queryKey: ['counties', user?.id, watchedNationality, watchedStateId],
-    queryFn: async () => {
-      return await ordersApi.getCounties(watchedNationality, watchedStateId);
-    },
-    enabled: !!user?.id && !!watchedNationality && !!watchedStateId,
-  });
-  
-  // Reset dependent fields when parent changes
-  const handleStateChange = (value: string) => {
-    form.setValue("residence.stateId", parseInt(value));
+  // Cascading location selector state management - clear child fields when parent changes
+  useEffect(() => {
+    // When nationality changes, clear all location fields
+    form.setValue("residence.stateId", 0);
     form.setValue("residence.countyId", 0);
     form.setValue("residence.districtId", 0);
+  }, [watchedNationality, form]);
+  
+  useEffect(() => {
+    // When state changes, clear county and district
+    if (watchedStateId) {
+      form.setValue("residence.countyId", 0);
+      form.setValue("residence.districtId", 0);
+    }
+  }, [watchedStateId, form]);
+  
+  useEffect(() => {
+    // When county changes, clear district
+    if (watchedCountyId) {
+      form.setValue("residence.districtId", 0);
+    }
+  }, [watchedCountyId, form]);
+  
+  // Fetch states from data API with conditional fetching
+  const { data: states, isLoading: statesLoading, isError: statesError, refetch: refetchStates } = 
+    useStates({ iso_code: isoCode }, { enabled: !!user?.id && !!watchedNationality });
+  
+  // Fetch counties from data API with conditional fetching
+  const { data: counties, isLoading: countiesLoading, isError: countiesError, refetch: refetchCounties } = 
+    useCounties(
+      { iso_code: isoCode, state_id: watchedStateId }, 
+      { enabled: !!user?.id && !!watchedNationality && !!watchedStateId && watchedStateId !== 0 }
+    );
+  
+  // Fetch districts from data API with conditional fetching
+  const { data: districts, isLoading: districtsLoading, isError: districtsError, refetch: refetchDistricts } = 
+    useDistricts(
+      { iso_code: isoCode, state_id: watchedStateId, county_id: watchedCountyId },
+      { enabled: !!user?.id && !!watchedNationality && !!watchedStateId && watchedStateId !== 0 && !!watchedCountyId && watchedCountyId !== 0 }
+    );
+  
+  // Reset dependent fields when parent changes (for LocationSection handlers)
+  const handleStateChange = (value: string) => {
+    form.setValue("residence.stateId", parseInt(value));
   };
   
   const handleCountyChange = (value: string) => {
     form.setValue("residence.countyId", parseInt(value));
-    form.setValue("residence.districtId", 0);
   };
   
-  const { data: districts } = useQuery({
-    queryKey: ['districts', user?.id, watchedNationality, watchedStateId, watchedCountyId],
-    queryFn: async () => {
-      return await ordersApi.getDistricts(watchedNationality, watchedStateId, watchedCountyId);
-    },
-    enabled: !!user?.id && !!watchedNationality && !!watchedStateId && !!watchedCountyId,
-  });
-
   // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
@@ -219,6 +248,15 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
           isEditing={isEditing}
           fieldErrors={fieldErrors}
           onBusinessNameFromApi={setHasBusinessNameFromApi}
+          identificationTypesLoading={identificationTypesLoading}
+          identificationTypesError={identificationTypesError}
+          refetchIdentificationTypes={refetchIdentificationTypes}
+          customerTypesLoading={customerTypesLoading}
+          customerTypesError={customerTypesError}
+          refetchCustomerTypes={refetchCustomerTypes}
+          countriesLoading={countriesLoading}
+          countriesError={countriesError}
+          refetchCountries={refetchCountries}
         />
 
         <LocationSection
@@ -231,6 +269,15 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
           handleStateChange={handleStateChange}
           handleCountyChange={handleCountyChange}
           disabled={!shouldShowLocationAndContact || (watchedNationality === "188" && !hasBusinessNameFromApi && !isEditing)}
+          statesLoading={statesLoading}
+          statesError={statesError}
+          refetchStates={refetchStates}
+          countiesLoading={countiesLoading}
+          countiesError={countiesError}
+          refetchCounties={refetchCounties}
+          districtsLoading={districtsLoading}
+          districtsError={districtsError}
+          refetchDistricts={refetchDistricts}
         />
 
         <ContactSection

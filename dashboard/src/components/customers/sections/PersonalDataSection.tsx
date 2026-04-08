@@ -4,7 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { User, X, Eye } from "lucide-react";
-import { useOrdersApi } from "@/hooks/useOrdersApi";
+import { dataApiClient } from "@/services/data-api";
 import { useToast } from "@/hooks/use-toast";
 import { ClearButton } from "@/components/common/ClearButton";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,15 @@ interface PersonalDataSectionProps {
   isEditing?: boolean;
   fieldErrors?: any;
   onBusinessNameFromApi?: (hasBusinessName: boolean) => void;
+  identificationTypesLoading?: boolean;
+  identificationTypesError?: boolean;
+  refetchIdentificationTypes?: () => void;
+  customerTypesLoading?: boolean;
+  customerTypesError?: boolean;
+  refetchCustomerTypes?: () => void;
+  countriesLoading?: boolean;
+  countriesError?: boolean;
+  refetchCountries?: () => void;
 }
 
 const applyIdMask = (value: string, code: string) => {
@@ -44,9 +53,8 @@ const validateIdLength = (value: string, code: string) => {
   return true;
 };
 
-export function PersonalDataSection({ form, customerTypes, countries, identificationTypes, isEditing = false, fieldErrors, onBusinessNameFromApi }: PersonalDataSectionProps) {
+export function PersonalDataSection({ form, customerTypes, countries, identificationTypes, isEditing = false, fieldErrors, onBusinessNameFromApi, identificationTypesLoading, identificationTypesError, refetchIdentificationTypes, customerTypesLoading, customerTypesError, refetchCustomerTypes, countriesLoading, countriesError, refetchCountries }: PersonalDataSectionProps) {
   const [isExpanded, setIsExpanded] = React.useState(true);
-  const { api: ordersApi } = useOrdersApi();
   const { toast } = useToast();
   const { t } = useLanguage();
   const watchedNationality = form.watch("nationality");
@@ -109,9 +117,9 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
     if (isCostaRica && isComplete) {
       const cleanId = maskedValue.replace(/\D/g, '');
       try {
-        const taxpayer = await ordersApi.getHaciendaTaxpayer(watchedNationality, cleanId);
-        if (taxpayer?.businessName) {
-          form.setValue('businessName', taxpayer.businessName);
+        const taxpayer = await dataApiClient.getTaxpayerInfo({ iso_code: watchedNationality, identification: cleanId });
+        if (taxpayer?.name) {
+          form.setValue('businessName', taxpayer.name);
           onBusinessNameFromApi?.(true);
         } else {
           onBusinessNameFromApi?.(false);
@@ -163,24 +171,43 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('customers.customerType')}</FormLabel>
-                <div className="flex gap-4">
-                  {customerTypes?.map((type: any) => (
-                    <div key={type.id} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id={`customerType-${type.id}`}
-                        value={type.id}
-                        checked={field.value === type.id}
-                        onChange={isEditing ? undefined : () => field.onChange(type.id)}
-                        className={`form-radio ${isEditing ? "pointer-events-none opacity-50" : ""}`}
-                        readOnly={isEditing}
-                      />
-                      <label htmlFor={`customerType-${type.id}`} className="text-sm">
-                        {type.description}
-                      </label>
+                {customerTypesError ? (
+                  <div className="space-y-2">
+                    <div className="text-sm text-destructive flex items-center gap-2">
+                      {t('common.errorLoadingData')}
+                      <Button 
+                        type="button"
+                        variant="link" 
+                        size="sm" 
+                        onClick={() => refetchCustomerTypes?.()}
+                        className="h-auto p-0"
+                      >
+                        {t('common.retry')}
+                      </Button>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : customerTypesLoading ? (
+                  <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
+                ) : (
+                  <div className="flex gap-4">
+                    {customerTypes?.map((type: any) => (
+                      <div key={type.id} className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id={`customerType-${type.id}`}
+                          value={type.id}
+                          checked={field.value === type.id}
+                          onChange={isEditing ? undefined : () => field.onChange(type.id)}
+                          className={`form-radio ${isEditing ? "pointer-events-none opacity-50" : ""}`}
+                          readOnly={isEditing}
+                        />
+                        <label htmlFor={`customerType-${type.id}`} className="text-sm">
+                          {type.description}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -194,20 +221,48 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('customers.country')}</FormLabel>
-                <Select onValueChange={isEditing ? undefined : field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className={`${isEditing ? "bg-muted pointer-events-none" : ""}`}>
-                      <SelectValue placeholder={t('customers.selectPlaceholder')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {countries?.map((country: any) => (
-                      <SelectItem key={country.isoCode} value={country.isoCode}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {countriesError ? (
+                  <div className="space-y-2">
+                    <Select disabled>
+                      <FormControl>
+                        <SelectTrigger className="bg-muted">
+                          <SelectValue placeholder={t('common.error')} />
+                        </SelectTrigger>
+                      </FormControl>
+                    </Select>
+                    <div className="text-sm text-destructive flex items-center gap-2">
+                      {t('common.errorLoadingData')}
+                      <Button 
+                        type="button"
+                        variant="link" 
+                        size="sm" 
+                        onClick={() => refetchCountries?.()}
+                        className="h-auto p-0"
+                      >
+                        {t('common.retry')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Select 
+                    onValueChange={isEditing ? undefined : field.onChange} 
+                    value={field.value}
+                    disabled={countriesLoading || isEditing}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={`${(isEditing || countriesLoading) ? "bg-muted pointer-events-none" : ""}`}>
+                        <SelectValue placeholder={countriesLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {countries?.map((country: any) => (
+                        <SelectItem key={country.isoCode} value={country.isoCode}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -219,20 +274,48 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('customers.identificationType')}</FormLabel>
-                <Select onValueChange={isEditing ? undefined : (value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger className={`${isEditing ? "bg-muted pointer-events-none" : ""}`}>
-                      <SelectValue placeholder={t('customers.selectPlaceholder')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {filteredIdentificationTypes?.map((type: any) => (
-                      <SelectItem key={type.typeId} value={type.typeId.toString()}>
-                        {type.description}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {identificationTypesError ? (
+                  <div className="space-y-2">
+                    <Select disabled>
+                      <FormControl>
+                        <SelectTrigger className="bg-muted">
+                          <SelectValue placeholder={t('common.error')} />
+                        </SelectTrigger>
+                      </FormControl>
+                    </Select>
+                    <div className="text-sm text-destructive flex items-center gap-2">
+                      {t('common.errorLoadingData')}
+                      <Button 
+                        type="button"
+                        variant="link" 
+                        size="sm" 
+                        onClick={() => refetchIdentificationTypes?.()}
+                        className="h-auto p-0"
+                      >
+                        {t('common.retry')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Select 
+                    onValueChange={isEditing ? undefined : (value) => field.onChange(parseInt(value))} 
+                    value={field.value?.toString()}
+                    disabled={identificationTypesLoading || isEditing}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={`${(isEditing || identificationTypesLoading) ? "bg-muted pointer-events-none" : ""}`}>
+                        <SelectValue placeholder={identificationTypesLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filteredIdentificationTypes?.map((type: any) => (
+                        <SelectItem key={type.typeId} value={type.typeId.toString()}>
+                          {type.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <FormMessage />
               </FormItem>
             )}

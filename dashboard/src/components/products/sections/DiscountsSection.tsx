@@ -7,26 +7,31 @@ import { Minus, Plus, Eye } from "lucide-react";
 import { useState } from "react";
 import { DiscountCalculationService } from "@/services/discountCalculationService";
 import { ClearButton } from "@/components/common/ClearButton";
+import { useAllDiscountTypes } from "@/hooks/useDataApi";
 
 interface DiscountsSectionProps {
   form: any;
   disabled?: boolean;
   forceCollapsed?: boolean;
+  isoCode?: string; // ISO code from organization context - when it changes, React Query automatically refetches
 }
 
-const DISCOUNT_TYPES = [
-  { id: 1, code: '01', description: 'Regalía' },
-  { id: 2, code: '02', description: 'Descuento comercial' },
-  { id: 3, code: '03', description: 'Bonificación' },
-  { id: 4, code: '04', description: 'Descuento por pronto pago' },
-  { id: 5, code: '99', description: 'Otro' }
-];
-
-export function DiscountsSection({ form, disabled = false, forceCollapsed = false }: DiscountsSectionProps) {
+export function DiscountsSection({ form, disabled = false, forceCollapsed = false, isoCode = "CR" }: DiscountsSectionProps) {
   const discounts = form.watch("discounts") || [];
   const [isExpanded, setIsExpanded] = useState(!forceCollapsed && discounts.length > 0);
   const [selectedDiscountType, setSelectedDiscountType] = useState<string>("");
   const [cardExpanded, setCardExpanded] = useState<{[key: string]: boolean}>({});
+  
+  // Fetch discount types from data API
+  const { data: discountTypesData, isLoading: discountTypesLoading, isError: discountTypesError, refetch: refetchDiscountTypes } = 
+    useAllDiscountTypes({ iso_code: isoCode });
+  
+  // Transform API response to match existing DISCOUNT_TYPES structure
+  const DISCOUNT_TYPES = discountTypesData?.map(dt => ({
+    id: dt.id,
+    code: dt.code,
+    description: dt.description
+  })) || [];
 
   const addDiscount = () => {
     if (!selectedDiscountType) return;
@@ -89,6 +94,34 @@ export function DiscountsSection({ form, disabled = false, forceCollapsed = fals
 
   const netPrice = form.watch("price") || 0;
   const totalDiscount = DiscountCalculationService.calculateTotalDiscountAmount(netPrice, discounts);
+  
+  // Show error state if discount types failed to load
+  if (discountTypesError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Minus className="h-4 w-4"/>
+            Descuentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-destructive flex items-center gap-2">
+            Error al cargar tipos de descuento
+            <Button 
+              type="button"
+              variant="link" 
+              size="sm" 
+              onClick={() => refetchDiscountTypes()}
+              className="h-auto p-0"
+            >
+              Reintentar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -107,9 +140,9 @@ export function DiscountsSection({ form, disabled = false, forceCollapsed = fals
                   className="w-32 bg-muted"
                 />
               )}
-              <Select value={selectedDiscountType} onValueChange={setSelectedDiscountType} disabled={disabled}>
+              <Select value={selectedDiscountType} onValueChange={setSelectedDiscountType} disabled={disabled || discountTypesLoading}>
                 <SelectTrigger className="w-48 pl-3">
-                  <SelectValue placeholder="Agregar descuento" />
+                  <SelectValue placeholder={discountTypesLoading ? "Cargando..." : "Agregar descuento"} />
                 </SelectTrigger>
                 <SelectContent>
                   {DISCOUNT_TYPES.map((type: any) => (
@@ -119,7 +152,7 @@ export function DiscountsSection({ form, disabled = false, forceCollapsed = fals
                   ))}
                 </SelectContent>
               </Select>
-              <Button size="sm" onClick={addDiscount} disabled={!selectedDiscountType || disabled}>
+              <Button size="sm" onClick={addDiscount} disabled={!selectedDiscountType || disabled || discountTypesLoading}>
                 <Plus className="h-4 w-4"/>
               </Button>
               <Button 

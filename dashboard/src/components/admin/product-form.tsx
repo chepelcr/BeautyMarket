@@ -264,6 +264,8 @@ export default function ProductForm({
           form={form}
           disabled={isInsertMode && !hasCabysSelected}
           forceCollapsed={isInsertMode && codesValue.length === 0}
+          {/* @ts-ignore - organization_country field will be added to Organization model */}
+          isoCode={defaultOrg?.organization_country || "CR"}
         />
         
         <InventorySection 
@@ -275,12 +277,16 @@ export default function ProductForm({
           form={form}
           disabled={isInsertMode && !hasCabysSelected}
           forceCollapsed={isInsertMode && discountsValue.length === 0}
+          {/* @ts-ignore - organization_country field will be added to Organization model */}
+          isoCode={defaultOrg?.organization_country || "CR"}
         />
         
         <AdvancedTaxesSection 
           form={form}
           disabled={isInsertMode && !hasCabysSelected}
           forceCollapsed={isInsertMode && taxesValue.length === 0}
+          {/* @ts-ignore - organization_country field will be added to Organization model */}
+          isoCode={defaultOrg?.organization_country || "CR"}
         />
         
         <CommercialValueSection 

@@ -10,14 +10,16 @@ import { apiRequest } from "@/lib/queryClient";
 import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useAllTaxes, useAllTaxRates } from "@/hooks/useDataApi";
 
 interface AdvancedTaxesSectionProps {
   form: any;
   disabled?: boolean;
   forceCollapsed?: boolean;
+  isoCode?: string; // ISO code from organization context - when it changes, React Query automatically refetches
 }
 
-export function AdvancedTaxesSection({ form, disabled = false, forceCollapsed = false }: AdvancedTaxesSectionProps) {
+export function AdvancedTaxesSection({ form, disabled = false, forceCollapsed = false, isoCode = "CR" }: AdvancedTaxesSectionProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
@@ -32,27 +34,43 @@ export function AdvancedTaxesSection({ form, disabled = false, forceCollapsed = 
   const baseAmount = form.watch("baseAmount") || 0;
   const subtotal = form.watch("price") || 0;
 
-  // Fetch tax types
-  const { data: taxTypes = [] } = useQuery<any[]>({
+  // Fetch tax types from data API
+  const { data: dataApiTaxTypes, isLoading: taxTypesLoading, isError: taxTypesError } = useAllTaxes(
+    { iso_code: isoCode }
+  );
+
+  // Fallback to organization-specific API if data API fails
+  const { data: orgTaxTypes } = useQuery<any[]>({
     queryKey: ["taxTypes", user?.id, defaultOrg?.id],
     queryFn: async (): Promise<any[]> => {
       if (!user?.id || !defaultOrg?.id) return [];
       const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-types"));
       return res.json();
     },
-    enabled: !!user?.id && !!defaultOrg?.id,
+    enabled: taxTypesError && !!user?.id && !!defaultOrg?.id,
   });
 
-  // Fetch tax rates
-  const { data: taxRates = [] } = useQuery<any[]>({
+  // Use data API data if available, otherwise fall back to org API data
+  const taxTypes = dataApiTaxTypes || orgTaxTypes || [];
+
+  // Fetch tax rates from data API
+  const { data: dataApiTaxRates, isLoading: taxRatesLoading, isError: taxRatesError } = useAllTaxRates(
+    { iso_code: isoCode }
+  );
+
+  // Fallback to organization-specific API if data API fails
+  const { data: orgTaxRates } = useQuery<any[]>({
     queryKey: ["taxRates", user?.id, defaultOrg?.id],
     queryFn: async (): Promise<any[]> => {
       if (!user?.id || !defaultOrg?.id) return [];
       const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-rates"));
       return res.json();
     },
-    enabled: !!user?.id && !!defaultOrg?.id,
+    enabled: taxRatesError && !!user?.id && !!defaultOrg?.id,
   });
+
+  // Use data API data if available, otherwise fall back to org API data
+  const taxRates = dataApiTaxRates || orgTaxRates || [];
 
   // Fetch tax factors
   const { data: taxFactors = [] } = useQuery<any[]>({

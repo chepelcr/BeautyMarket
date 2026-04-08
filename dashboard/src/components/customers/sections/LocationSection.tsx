@@ -17,6 +17,15 @@ interface LocationSectionProps {
   handleStateChange: (value: string) => void;
   handleCountyChange: (value: string) => void;
   disabled?: boolean;
+  statesLoading?: boolean;
+  statesError?: boolean;
+  refetchStates?: () => void;
+  countiesLoading?: boolean;
+  countiesError?: boolean;
+  refetchCounties?: () => void;
+  districtsLoading?: boolean;
+  districtsError?: boolean;
+  refetchDistricts?: () => void;
 }
 
 export function LocationSection({ 
@@ -28,7 +37,16 @@ export function LocationSection({
   watchedCountyId, 
   handleStateChange, 
   handleCountyChange,
-  disabled = false
+  disabled = false,
+  statesLoading,
+  statesError,
+  refetchStates,
+  countiesLoading,
+  countiesError,
+  refetchCounties,
+  districtsLoading,
+  districtsError,
+  refetchDistricts
 }: LocationSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const watchedNationality = form.watch("nationality");
@@ -84,21 +102,49 @@ export function LocationSection({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.province')}</FormLabel>
-                  <Select onValueChange={handleStateChange} value={field.value?.toString()}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('customers.selectPlaceholder')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="0">{t('customers.selectProvince')}</SelectItem>
-                      {states?.sort((a: any, b: any) => a.stateId - b.stateId).map((state: any) => (
-                        <SelectItem key={state.stateId} value={state.stateId.toString()}>
-                          {state.stateName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {statesError ? (
+                    <div className="space-y-2">
+                      <Select disabled>
+                        <FormControl>
+                          <SelectTrigger className="bg-muted">
+                            <SelectValue placeholder={t('common.error')} />
+                          </SelectTrigger>
+                        </FormControl>
+                      </Select>
+                      <div className="text-sm text-destructive flex items-center gap-2">
+                        {t('common.errorLoadingData')}
+                        <Button 
+                          type="button"
+                          variant="link" 
+                          size="sm" 
+                          onClick={() => refetchStates?.()}
+                          className="h-auto p-0"
+                        >
+                          {t('common.retry')}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Select 
+                      onValueChange={handleStateChange} 
+                      value={field.value?.toString()}
+                      disabled={statesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className={statesLoading ? "bg-muted" : ""}>
+                          <SelectValue placeholder={statesLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">{t('customers.selectProvince')}</SelectItem>
+                        {states?.sort((a: any, b: any) => a.stateId - b.stateId).map((state: any) => (
+                          <SelectItem key={state.stateId} value={state.stateId.toString()}>
+                            {state.stateName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -110,21 +156,49 @@ export function LocationSection({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.canton')}</FormLabel>
-                  <Select onValueChange={handleCountyChange} value={field.value?.toString()} disabled={!watchedStateId}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('customers.selectPlaceholder')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="0">{t('customers.selectCanton')}</SelectItem>
-                      {counties?.map((county: any) => (
-                        <SelectItem key={county.countyId} value={county.countyId.toString()}>
-                          {county.countyName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {countiesError ? (
+                    <div className="space-y-2">
+                      <Select disabled>
+                        <FormControl>
+                          <SelectTrigger className="bg-muted">
+                            <SelectValue placeholder={t('common.error')} />
+                          </SelectTrigger>
+                        </FormControl>
+                      </Select>
+                      <div className="text-sm text-destructive flex items-center gap-2">
+                        {t('common.errorLoadingData')}
+                        <Button 
+                          type="button"
+                          variant="link" 
+                          size="sm" 
+                          onClick={() => refetchCounties?.()}
+                          className="h-auto p-0"
+                        >
+                          {t('common.retry')}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Select 
+                      onValueChange={handleCountyChange} 
+                      value={field.value?.toString()} 
+                      disabled={!watchedStateId || watchedStateId === 0 || countiesLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className={(countiesLoading || !watchedStateId || watchedStateId === 0) ? "bg-muted" : ""}>
+                          <SelectValue placeholder={countiesLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">{t('customers.selectCanton')}</SelectItem>
+                        {counties?.map((county: any) => (
+                          <SelectItem key={county.countyId} value={county.countyId.toString()}>
+                            {county.countyName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -136,21 +210,49 @@ export function LocationSection({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.district')}</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()} disabled={!watchedCountyId}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('customers.selectPlaceholder')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="0">{t('customers.selectDistrict')}</SelectItem>
-                      {districts?.map((district: any) => (
-                        <SelectItem key={district.districtId} value={district.districtId.toString()}>
-                          {district.districtName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {districtsError ? (
+                    <div className="space-y-2">
+                      <Select disabled>
+                        <FormControl>
+                          <SelectTrigger className="bg-muted">
+                            <SelectValue placeholder={t('common.error')} />
+                          </SelectTrigger>
+                        </FormControl>
+                      </Select>
+                      <div className="text-sm text-destructive flex items-center gap-2">
+                        {t('common.errorLoadingData')}
+                        <Button 
+                          type="button"
+                          variant="link" 
+                          size="sm" 
+                          onClick={() => refetchDistricts?.()}
+                          className="h-auto p-0"
+                        >
+                          {t('common.retry')}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Select 
+                      onValueChange={(value) => field.onChange(parseInt(value))} 
+                      value={field.value?.toString()} 
+                      disabled={!watchedCountyId || watchedCountyId === 0 || districtsLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className={(districtsLoading || !watchedCountyId || watchedCountyId === 0) ? "bg-muted" : ""}>
+                          <SelectValue placeholder={districtsLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">{t('customers.selectDistrict')}</SelectItem>
+                        {districts?.map((district: any) => (
+                          <SelectItem key={district.districtId} value={district.districtId.toString()}>
+                            {district.districtName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
