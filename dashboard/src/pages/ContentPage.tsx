@@ -13,7 +13,7 @@ import { buildOrgApiUrl } from "@/lib/apiUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { BaseSectionEditor } from "@/components/cms/BaseSectionEditor";
-import { Page, PageSection, SectionContent, ContentSection } from "@/components/cms/types";
+import { Page, PageSection, ContentSection } from "@/components/cms/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ContentData {
@@ -220,7 +220,7 @@ export default function ContentPage({ defaultActiveSection = "hero" }: ContentPa
   };
 
   const getSectionDescription = (sectionKey: string) => {
-    const [pageSlug, sectionType] = sectionKey.split('-');
+    const [, sectionType] = sectionKey.split('-');
     const key = `content.sectionDescription.${sectionType}`;
     return t(key) !== key ? t(key) : `Edit ${sectionType} content`;
   };

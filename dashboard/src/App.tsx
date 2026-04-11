@@ -8,12 +8,39 @@ import { Router } from "@/components/Router";
 import { TransitionOverlay } from "@/components/TransitionOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { DocumentVersionProvider } from "@/contexts/DocumentVersionContext";
+import { useMemo, useEffect } from "react";
 
 export default function App() {
-  const [location] = useLocation();
-  const { user } = useAuth();
-  const { useUserOrganizations } = useOrganization();
+  const [location, setLocation] = useLocation();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { useUserOrganizations, useDefaultOrganization } = useOrganization();
   const { data: organizations = [] } = useUserOrganizations(user?.id);
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
+
+  // Handle direct URL navigation from 404.html redirect
+  useEffect(() => {
+    const redirectPath = sessionStorage.getItem('redirect_path');
+    if (redirectPath && redirectPath !== '/' && redirectPath !== '/index.html') {
+      sessionStorage.removeItem('redirect_path');
+      setLocation(redirectPath);
+    }
+  }, [setLocation]);
+
+  // Protect admin routes - redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated && location.startsWith('/admin')) {
+      // Store the intended destination
+      sessionStorage.setItem('redirect_after_login', location);
+      setLocation('/login');
+    }
+  }, [location, isAuthenticated, authLoading, setLocation]);
+  
+  // Get ISO code from organization
+  const isoCode = useMemo(() => {
+    // @ts-ignore - organization_country field will be added to Organization model
+    return defaultOrg?.organization_country || "188";
+  }, [defaultOrg]);
 
   // Pages that should show auth layout with gradient background
   const authPageRoutes = [
@@ -66,29 +93,31 @@ export default function App() {
     <>
       <TransitionOverlay />
       <ThemeProvider>
-        <PageTransition location={location}>
-          {(displayLocation, transitionStage, isLayoutSwitch) => (
-            <>
-              {isAuthPage ? (
-                <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 to-primary/20 dark:from-background dark:to-background relative">
-                  <div className={`relative ${isLayoutSwitch ? transitionStage : ''}`}>
-                    <AuthNavbar {...getNavbarProps()} />
+        <DocumentVersionProvider isoCode={isoCode}>
+          <PageTransition location={location}>
+            {(displayLocation, transitionStage, isLayoutSwitch) => (
+              <>
+                {isAuthPage ? (
+                  <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 to-primary/20 dark:from-background dark:to-background relative">
+                    <div className={`relative ${isLayoutSwitch ? transitionStage : ''}`}>
+                      <AuthNavbar {...getNavbarProps()} />
+                    </div>
+                    <main className={`flex-grow ${transitionStage}`}>
+                      <Router displayLocation={displayLocation} />
+                    </main>
                   </div>
-                  <main className={`flex-grow ${transitionStage}`}>
-                    <Router displayLocation={displayLocation} />
-                  </main>
-                </div>
-              ) : (
-                <AdminLayout>
-                  <div className={transitionStage}>
-                    <Router displayLocation={displayLocation} />
-                  </div>
-                </AdminLayout>
-              )}
-            </>
-          )}
-        </PageTransition>
-        <Toaster />
+                ) : (
+                  <AdminLayout>
+                    <div className={transitionStage}>
+                      <Router displayLocation={displayLocation} />
+                    </div>
+                  </AdminLayout>
+                )}
+              </>
+            )}
+          </PageTransition>
+          <Toaster />
+        </DocumentVersionProvider>
       </ThemeProvider>
     </>
   );

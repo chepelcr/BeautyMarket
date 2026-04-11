@@ -26,15 +26,6 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
     });
   };
 
-  const getDocumentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'ORDERS':
-        return t('orders.documentType.orders');
-      default:
-        return type;
-    }
-  };
-
   return (
     <Card
       className="group relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"

@@ -20,7 +20,7 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { buildOrdersApiUrl } from '@/lib/apiUtils';
 import { ordersApi } from '@/lib/orders-api';
-import type { Client, Order } from '@/models';
+import type { Client } from '@/models';
 import { CustomerProfile } from '@/components/customers/CustomerProfile';
 import { CustomerStats } from '@/components/customers/CustomerStats';
 import { CustomerOrderHistory } from '@/components/customers/CustomerOrderHistory';

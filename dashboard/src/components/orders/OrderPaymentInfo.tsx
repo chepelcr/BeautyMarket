@@ -1,6 +1,5 @@
-import { CreditCard, CheckCircle } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Order } from '@/models';
 

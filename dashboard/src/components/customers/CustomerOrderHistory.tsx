@@ -1,7 +1,7 @@
 import { useLocation } from 'wouter';
 import { ExternalLink, Send, MapPin, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge';
@@ -50,7 +50,7 @@ export function CustomerOrderHistory({ orders, isLoading }: CustomerOrderHistory
             {t('customers.orders.noOrders')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {orders.map((order) => {
               const itemCount = order.lines?.length || 0;
               return (

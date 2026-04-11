@@ -1,60 +1,86 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useHacienda } from "@/hooks/useHacienda";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CabysModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (cabys: { codigo: string; descripcion: string; impuesto: number }) => void;
   initialSearchTerm?: string;
+  productTypeId?: number;
 }
 
-export function CabysModal({ isOpen, onClose, onSelect, initialSearchTerm = "" }: CabysModalProps) {
+export function CabysModal({ isOpen, onClose, onSelect, initialSearchTerm = "", productTypeId }: CabysModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { searchCabysByName } = useHacienda();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const pageSize = 20;
+  
+  const { searchCabys } = useHacienda();
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  
+  const isoCode = defaultOrg?.iso_code || "188";
 
   // Update search term when modal opens with initial value and trigger search
   useEffect(() => {
     if (isOpen) {
       setSearchTerm(initialSearchTerm);
+      setCurrentPage(1);
       if (initialSearchTerm.trim()) {
         // Trigger search automatically if there's an initial search term
-        handleSearchWithTerm(initialSearchTerm);
+        handleSearchWithTerm(initialSearchTerm, 1);
       } else {
         setResults([]);
+        setTotalPages(1);
+        setTotalResults(0);
       }
     }
   }, [isOpen, initialSearchTerm]);
 
-  const handleSearchWithTerm = async (term: string) => {
+  const handleSearchWithTerm = async (term: string, page: number = 1) => {
     if (!term.trim()) return;
     
     setIsLoading(true);
     try {
-      const data = await searchCabysByName(term, 20);
-      setResults(data);
+      const response = await searchCabys(isoCode, term, page, pageSize, productTypeId);
+      setResults(response.items);
+      setTotalResults(response.total);
+      setTotalPages(Math.ceil(response.total / pageSize));
+      setCurrentPage(page);
     } catch (error) {
       console.error('Error searching CABYS:', error);
       setResults([]);
+      setTotalPages(1);
+      setTotalResults(0);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSearch = async () => {
-    await handleSearchWithTerm(searchTerm);
+    await handleSearchWithTerm(searchTerm, 1);
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || isLoading) return;
+    await handleSearchWithTerm(searchTerm, newPage);
   };
 
   const handleSelect = (cabys: any) => {
     onSelect({
-      codigo: cabys.codigo,
-      descripcion: cabys.descripcion,
-      impuesto: cabys.impuesto
+      codigo: cabys.code,
+      descripcion: cabys.description,
+      impuesto: cabys.tax_rate?.percentage || 0
     });
     onClose();
   };
@@ -91,25 +117,35 @@ export function CabysModal({ isOpen, onClose, onSelect, initialSearchTerm = "" }
           {isLoading ? (
             <div className="text-center py-8">Cargando...</div>
           ) : results.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {results.map((cabys) => (
-                <div
-                  key={cabys.codigo}
-                  className="p-4 border rounded cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleSelect(cabys)}
-                >
-                  <div className="flex flex-col h-full">
-                    <div className="font-medium text-lg">{cabys.codigo}</div>
-                    <div className="text-sm text-muted-foreground line-clamp-2 flex-1">
-                      {cabys.descripcion}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      IVA: {cabys.impuesto}%
+            <>
+              <div className="mb-4 text-sm text-muted-foreground">
+                Mostrando {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalResults)} de {totalResults} resultados
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {results.map((cabys) => (
+                  <div
+                    key={cabys.code}
+                    className="p-4 border rounded cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleSelect(cabys)}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className="font-medium text-lg">{cabys.code}</div>
+                      <div className="text-sm text-muted-foreground line-clamp-2 flex-1">
+                        {cabys.description}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        IVA: {cabys.tax_rate?.percentage || 0}%
+                      </div>
+                      {cabys.product_type && (
+                        <div className="text-xs text-muted-foreground">
+                          Tipo: {cabys.product_type.description}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           ) : searchTerm.trim() ? (
             <div className="text-center py-8 text-muted-foreground">
               No se encontraron resultados
@@ -120,6 +156,32 @@ export function CabysModal({ isOpen, onClose, onSelect, initialSearchTerm = "" }
             </div>
           )}
         </div>
+        
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Siguiente
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

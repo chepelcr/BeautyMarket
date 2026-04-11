@@ -16,7 +16,10 @@ export interface GetAllTaxFactorsParams {
  * status, created_on, updated_on, deleted_on
  */
 export interface TaxFactorResponse extends CatalogBase {
-  // All fields inherited from CatalogBase
+  /**
+   * Factor value (e.g., 0.13 for 13%)
+   */
+  factor: number;
 }
 
 export type TaxFactorListResponse = TaxFactorResponse[];

@@ -33,6 +33,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useProducts } from '@/hooks/useProducts';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useCategories } from '@/hooks/useCategories';
 import { useProductListStore } from '@/store/product-list-store';
 import { ProductSearch } from '@/components/products/ProductSearch';
 import { ProductFilters } from '@/components/products/ProductFilters';
@@ -44,7 +45,7 @@ import ProductForm from '@/components/admin/product-form';
 import { apiRequest } from '@/lib/queryClient';
 import { buildOrgApiUrl } from '@/lib/apiUtils';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { Product, Category } from '@/models';
+import type { Product } from '@/models';
 
 export default function ProductsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -106,26 +107,8 @@ export default function ProductsPage() {
   });
 
   // Fetch categories
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-
-  useEffect(() => {
-    if (!organizationId) return;
-
-    const loadCategories = async () => {
-      try {
-        const { listCategories } = await import('@/services/categoriesApi');
-        const response = await listCategories(organizationId, 1, 100);
-        setCategories(response.data);
-      } catch (error) {
-        console.error('Failed to load categories:', error);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-
-    loadCategories();
-  }, [organizationId]);
+  const { data: categoriesResponse, isLoading: categoriesLoading } = useCategories(organizationId);
+  const categories = categoriesResponse?.data || [];
 
   // Product form dialog
   const [showProductForm, setShowProductForm] = useState(false);

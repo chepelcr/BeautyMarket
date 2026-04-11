@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { buildOrgApiUrl, buildOrdersApiUrl } from '@/lib/apiUtils';
 import { apiRequest } from '@/lib/queryClient';
-import type { Product } from '@/models/Product';
-import type { Category } from '@/models/Category';
+
 import type { DeploymentHistory } from '@/models/Deployment';
 
 export interface DashboardStats {

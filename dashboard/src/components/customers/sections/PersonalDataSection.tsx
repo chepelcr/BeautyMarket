@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { User, X, Eye } from "lucide-react";
+import { User, Eye } from "lucide-react";
 import { dataApiClient } from "@/services/data-api";
 import { useToast } from "@/hooks/use-toast";
 import { ClearButton } from "@/components/common/ClearButton";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CUSTOMER_TYPES, IDENTIFICATION_CODES, COUNTRY_CODES } from "@/constants/customerTypes";
 
 interface PersonalDataSectionProps {
   form: any;
@@ -16,6 +17,7 @@ interface PersonalDataSectionProps {
   countries: any[];
   identificationTypes: any[];
   isEditing?: boolean;
+  customerStatus?: number;
   fieldErrors?: any;
   onBusinessNameFromApi?: (hasBusinessName: boolean) => void;
   identificationTypesLoading?: boolean;
@@ -31,50 +33,74 @@ interface PersonalDataSectionProps {
 
 const applyIdMask = (value: string, code: string) => {
   const numbers = value.replace(/\D/g, '');
-  if (code === '01') {
+  
+  // 01 - Cédula Física: 9 digits, format X-XXXX-XXXX
+  if (code === IDENTIFICATION_CODES.CEDULA_FISICA) {
     if (numbers.length <= 1) return numbers;
     if (numbers.length <= 5) return numbers.replace(/(\d{1})(\d+)/, '$1-$2');
     return numbers.replace(/(\d{1})(\d{4})(\d+)/, '$1-$2-$3');
   }
-  if (code === '02') {
+  
+  // 02 - Cédula Jurídica: 10 digits, format X-XXX-XXXXXX
+  if (code === IDENTIFICATION_CODES.CEDULA_JURIDICA) {
     if (numbers.length <= 1) return numbers;
     if (numbers.length <= 4) return numbers.replace(/(\d{1})(\d+)/, '$1-$2');
     return numbers.replace(/(\d{1})(\d{3})(\d+)/, '$1-$2-$3');
   }
+  
+  // 03 - DIMEX: 11-12 digits, no formatting
+  // 04 - NITE: 10 digits, no formatting
+  // 05 - Pasaporte: Variable length, no formatting
   return numbers;
 };
 
 const validateIdLength = (value: string, code: string) => {
   const numbers = value.replace(/\D/g, '');
-  if (code === '01') return numbers.length === 9;
-  if (code === '02') return numbers.length === 10;
-  if (code === '03') return numbers.length >= 11 && numbers.length <= 12;
-  if (code === '04') return numbers.length === 11;
+  
+  if (code === IDENTIFICATION_CODES.CEDULA_FISICA) return numbers.length === 9;
+  if (code === IDENTIFICATION_CODES.CEDULA_JURIDICA) return numbers.length === 10;
+  if (code === IDENTIFICATION_CODES.DIMEX) return numbers.length >= 11 && numbers.length <= 12;
+  if (code === IDENTIFICATION_CODES.NITE) return numbers.length === 10;
+  if (code === IDENTIFICATION_CODES.PASAPORTE) return numbers.length >= 6; // Passports typically 6-20 characters
+  
   return true;
 };
 
-export function PersonalDataSection({ form, customerTypes, countries, identificationTypes, isEditing = false, fieldErrors, onBusinessNameFromApi, identificationTypesLoading, identificationTypesError, refetchIdentificationTypes, customerTypesLoading, customerTypesError, refetchCustomerTypes, countriesLoading, countriesError, refetchCountries }: PersonalDataSectionProps) {
+export function PersonalDataSection({ form, customerTypes, countries, identificationTypes, isEditing = false, customerStatus, onBusinessNameFromApi, identificationTypesLoading, identificationTypesError, refetchIdentificationTypes, customerTypesLoading, customerTypesError, refetchCustomerTypes, countriesLoading, countriesError, refetchCountries }: PersonalDataSectionProps) {
   const [isExpanded, setIsExpanded] = React.useState(true);
   const { toast } = useToast();
   const { t } = useLanguage();
   const watchedNationality = form.watch("nationality");
   const watchedCustomerType = form.watch("customerType");
   const watchedIdCode = form.watch("identification.code");
-  const isCostaRica = watchedNationality === "CR";
+  const watchedIdType = form.watch("identification.type");
+  const isCostaRica = watchedNationality === COUNTRY_CODES.COSTA_RICA;
+  
+  // Allow editing critical fields if customer status is 0 (pending)
+  const isPendingCustomer = customerStatus === 0;
+  const canEditCriticalFields = !isEditing || isPendingCustomer;
   
   const getFilteredIdentificationTypes = () => {
     if (!identificationTypes) return [];
     
-    if (watchedNationality !== "CR") {
-      return identificationTypes.filter((type: any) => type.code === "05");
+    // If country is not Costa Rica, only show Passport (05)
+    if (watchedNationality !== COUNTRY_CODES.COSTA_RICA) {
+      return identificationTypes.filter((type: any) => type.code === IDENTIFICATION_CODES.PASAPORTE);
     }
     
-    if (watchedCustomerType === 1) {
-      return identificationTypes.filter((type: any) => ["01", "03", "04"].includes(type.code));
+    // Costa Rica - filter by customer type
+    if (watchedCustomerType === CUSTOMER_TYPES.PERSONA) {
+      // Persona: Physical ID (01), DIMEX (03), NITE (04), Passport (05)
+      return identificationTypes.filter((type: any) => 
+        [IDENTIFICATION_CODES.CEDULA_FISICA, IDENTIFICATION_CODES.DIMEX, IDENTIFICATION_CODES.NITE, IDENTIFICATION_CODES.PASAPORTE].includes(type.code)
+      );
     }
     
-    if (watchedCustomerType === 2) {
-      return identificationTypes.filter((type: any) => ["02", "04"].includes(type.code));
+    if (watchedCustomerType === CUSTOMER_TYPES.EMPRESA) {
+      // Empresa: Legal Entity ID (02), Passport (05)
+      return identificationTypes.filter((type: any) => 
+        [IDENTIFICATION_CODES.CEDULA_JURIDICA, IDENTIFICATION_CODES.PASAPORTE].includes(type.code)
+      );
     }
     
     return identificationTypes;
@@ -86,15 +112,15 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
   React.useEffect(() => {
     if (filteredIdentificationTypes.length > 0) {
       const currentType = form.getValues("identification.type");
-      const isCurrentTypeValid = filteredIdentificationTypes.some((type: any) => type.typeId === currentType);
+      const isCurrentTypeValid = filteredIdentificationTypes.some((type: any) => type.id === currentType);
       
       if (!isCurrentTypeValid) {
-        const newType = watchedNationality !== "CR" 
-          ? filteredIdentificationTypes.find((type: any) => type.code === "05")
+        const newType = watchedNationality !== COUNTRY_CODES.COSTA_RICA 
+          ? filteredIdentificationTypes.find((type: any) => type.code === IDENTIFICATION_CODES.PASAPORTE)
           : filteredIdentificationTypes[0];
         
         if (newType) {
-          form.setValue("identification.type", newType.typeId);
+          form.setValue("identification.type", newType.id);
           form.setValue("identification.code", newType.code);
           form.setValue("identification.number", "");
           form.setValue("businessName", "");
@@ -197,9 +223,9 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                           id={`customerType-${type.id}`}
                           value={type.id}
                           checked={field.value === type.id}
-                          onChange={isEditing ? undefined : () => field.onChange(type.id)}
-                          className={`form-radio ${isEditing ? "pointer-events-none opacity-50" : ""}`}
-                          readOnly={isEditing}
+                          onChange={canEditCriticalFields ? () => field.onChange(type.id) : undefined}
+                          className={`form-radio ${!canEditCriticalFields ? "pointer-events-none opacity-50" : ""}`}
+                          readOnly={!canEditCriticalFields}
                         />
                         <label htmlFor={`customerType-${type.id}`} className="text-sm">
                           {type.description}
@@ -245,18 +271,18 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                   </div>
                 ) : (
                   <Select 
-                    onValueChange={isEditing ? undefined : field.onChange} 
-                    value={field.value}
-                    disabled={countriesLoading || isEditing}
+                    onValueChange={canEditCriticalFields ? field.onChange : undefined} 
+                    value={field.value || "188"}
+                    disabled={countriesLoading || !canEditCriticalFields}
                   >
                     <FormControl>
-                      <SelectTrigger className={`${(isEditing || countriesLoading) ? "bg-muted pointer-events-none" : ""}`}>
+                      <SelectTrigger className={`${(!canEditCriticalFields || countriesLoading) ? "bg-muted pointer-events-none" : ""}`}>
                         <SelectValue placeholder={countriesLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {countries?.map((country: any) => (
-                        <SelectItem key={country.isoCode} value={country.isoCode}>
+                        <SelectItem key={country.iso_code} value={country.iso_code}>
                           {country.name}
                         </SelectItem>
                       ))}
@@ -298,20 +324,22 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                   </div>
                 ) : (
                   <Select 
-                    onValueChange={isEditing ? undefined : (value) => field.onChange(parseInt(value))} 
-                    value={field.value?.toString()}
-                    disabled={identificationTypesLoading || isEditing}
+                    onValueChange={canEditCriticalFields ? (value) => field.onChange(parseInt(value)) : undefined} 
+                    value={field.value ? field.value.toString() : undefined}
+                    disabled={identificationTypesLoading || !canEditCriticalFields}
                   >
                     <FormControl>
-                      <SelectTrigger className={`${(isEditing || identificationTypesLoading) ? "bg-muted pointer-events-none" : ""}`}>
+                      <SelectTrigger className={`${(!canEditCriticalFields || identificationTypesLoading) ? "bg-muted pointer-events-none" : ""}`}>
                         <SelectValue placeholder={identificationTypesLoading ? t('common.loading') : t('customers.selectPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {filteredIdentificationTypes?.map((type: any) => (
-                        <SelectItem key={type.typeId} value={type.typeId.toString()}>
-                          {type.description}
-                        </SelectItem>
+                        type.id != null && (
+                          <SelectItem key={type.id} value={type.id.toString()}>
+                            {type.description}
+                          </SelectItem>
+                        )
                       ))}
                     </SelectContent>
                   </Select>
@@ -333,10 +361,10 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
                       placeholder={t('customers.enterIdNumber')} 
                       value={field.value || ''}
                       onChange={(e) => handleIdNumberChange(e.target.value)}
-                      readOnly={idComplete || isEditing}
-                      className={(idComplete || isEditing) ? "bg-muted pr-10" : ""}
+                      readOnly={idComplete || !canEditCriticalFields}
+                      className={(idComplete || !canEditCriticalFields) ? "bg-muted pr-10" : ""}
                     />
-                    {idComplete && (
+                    {idComplete && canEditCriticalFields && (
                       <ClearButton onClick={handleClearId} />
                     )}
                   </div>

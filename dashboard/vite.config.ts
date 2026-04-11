@@ -53,6 +53,7 @@ export default defineConfig({
         },
       },
     },
+    copyPublicDir: true,
   },
   server: {
     port: 3002,

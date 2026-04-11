@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { ClearButton } from "@/components/common/ClearButton";
 import { useAllCodes } from "@/hooks/useDataApi";
+import type { GetAllCodesParams } from "@/services/data-api/dtos";
 
 interface CodesSectionProps {
   form: UseFormReturn<InsertProduct>;
@@ -18,14 +19,15 @@ interface CodesSectionProps {
   isoCode?: string; // ISO code from organization context - when it changes, React Query automatically refetches
 }
 
-export function CodesSection({ form, disabled = false, forceCollapsed = false, isoCode = "CR" }: CodesSectionProps) {
+export function CodesSection({ form, disabled = false, forceCollapsed = false, isoCode = "188" }: CodesSectionProps) {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(!forceCollapsed);
   const [selectedCodeType, setSelectedCodeType] = useState("");
   
   // Fetch code types from data API
+  // Note: document_version_id is automatically injected by the data API client
   const { data: codeTypesData, isLoading: codeTypesLoading, isError: codeTypesError, refetch: refetchCodeTypes } = 
-    useAllCodes({ iso_code: isoCode });
+    useAllCodes({ iso_code: isoCode } as GetAllCodesParams);
   
   // Transform API response to match existing CODE_TYPES structure
   const CODE_TYPES = codeTypesData?.map(ct => ({
@@ -50,6 +52,7 @@ export function CodesSection({ form, disabled = false, forceCollapsed = false, i
       }
     ]);
     setSelectedCodeType("");
+    setIsExpanded(true); // Expand when adding a code
   };
 
   const removeCode = (index: number) => {

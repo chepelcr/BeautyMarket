@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/image-upload";
-import type { SectionContent, ValueType } from "./types";
+import type { SectionContent } from "./types";
 
 interface SectionContentFieldsProps {
   content: SectionContent[];

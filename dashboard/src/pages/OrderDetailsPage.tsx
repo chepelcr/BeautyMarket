@@ -59,10 +59,6 @@ export default function OrderDetailsPage() {
     },
   });
 
-  const handleStatusUpdate = (status: string) => {
-    updateStatusMutation.mutate({ status });
-  };
-
   // Loading states
   if (authLoading || orgLoading) {
     return <PageLoader fullScreen={false} />;

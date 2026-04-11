@@ -63,11 +63,11 @@
  * - Clear service classification
  */
 
-export { SimpleBase } from './simple-base';
-export { GlobalCatalogBase } from './global-catalog-base';
-export { CatalogBase } from './catalog-base';
-export { CodedCatalogBase } from './coded-catalog-base';
-export { HaciendaBase } from './hacienda-base';
+export type { SimpleBase } from './simple-base';
+export type { GlobalCatalogBase } from './global-catalog-base';
+export type { CatalogBase } from './catalog-base';
+export type { CodedCatalogBase } from './coded-catalog-base';
+export type { HaciendaBase } from './hacienda-base';
 
 /**
  * Service classification type unions for better type safety

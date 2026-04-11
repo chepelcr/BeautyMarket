@@ -24,6 +24,9 @@ export interface TaxSpecialFields {
 
 export interface ProductTax {
   taxType: string;
+  taxTypeCode?: string; // Code-based field for tax type
+  taxRateCode?: string; // Code-based field for tax rate
+  taxFactorCode?: string; // Code-based field for tax factor
   rate?: number;
   amount?: number;
   taxRateId?: number;
@@ -51,6 +54,7 @@ export interface Product {
   stockQuantity?: number;
   lowStockThreshold?: number;
   trackInventory?: boolean;
+  hasFiscalInfo?: boolean;
   // Product codes
   internalCode?: string | null;
   originalCode?: string | null;
@@ -64,6 +68,7 @@ export interface Product {
   unitId?: number;
   commercialUnitMeasure?: string | null;
   // Packaging
+  hasPackageInfo?: boolean;
   isPackaged?: boolean;
   quantity?: number;
   unitPrice?: number;
@@ -92,6 +97,7 @@ export interface InsertProduct {
   stockQuantity?: number;
   lowStockThreshold?: number;
   trackInventory?: boolean;
+  hasFiscalInfo?: boolean;
   // Product codes
   internalCode?: string | null;
   originalCode?: string | null;
@@ -105,6 +111,7 @@ export interface InsertProduct {
   unitId?: number;
   commercialUnitMeasure?: string | null;
   // Packaging
+  hasPackageInfo?: boolean;
   isPackaged?: boolean;
   quantity?: number;
   unitPrice?: number;
@@ -131,6 +138,7 @@ export const insertProductSchema = z.object({
   stockQuantity: z.number().min(0).optional(),
   lowStockThreshold: z.number().min(0).optional(),
   trackInventory: z.boolean().optional(),
+  hasFiscalInfo: z.boolean().optional(),
   // Product codes
   internalCode: z.string().nullable().optional(),
   originalCode: z.string().nullable().optional(),
@@ -144,6 +152,7 @@ export const insertProductSchema = z.object({
   unitId: z.number().optional(),
   commercialUnitMeasure: z.string().nullable().optional(),
   // Packaging
+  hasPackageInfo: z.boolean().optional(),
   isPackaged: z.boolean().optional(),
   quantity: z.number().min(1).optional(),
   unitPrice: z.number().min(0).optional(),

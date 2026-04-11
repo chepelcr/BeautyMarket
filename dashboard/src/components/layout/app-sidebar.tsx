@@ -131,7 +131,7 @@ const settingsNavItems: MenuItem[] = [
 export function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { user, logout, isLoading } = useAuth();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const { t } = useLanguage();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
@@ -141,6 +141,14 @@ export function AppSidebar() {
       return location === "/admin" || location === "/admin/";
     }
     return location === href || location.startsWith(href + "/");
+  };
+
+  // Close mobile sidebar on navigation
+  const handleNavigation = (href: string) => {
+    setLocation(href);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   // Close settings dropdown when navigating away from settings pages
@@ -213,7 +221,7 @@ export function AppSidebar() {
                   >
                     <a href={item.href} onClick={(e) => {
                       e.preventDefault();
-                      setLocation(item.href);
+                      handleNavigation(item.href);
                     }}>
                       <item.icon />
                       <span>{t(item.titleKey)}</span>
@@ -251,7 +259,7 @@ export function AppSidebar() {
                           >
                             <a href={item.href} onClick={(e) => {
                               e.preventDefault();
-                              setLocation(item.href);
+                              handleNavigation(item.href);
                             }}>
                               <item.icon />
                               <span>{t(item.titleKey)}</span>
@@ -271,7 +279,7 @@ export function AppSidebar() {
                 >
                   <a href="/admin/members" onClick={(e) => {
                     e.preventDefault();
-                    setLocation("/admin/members");
+                    handleNavigation("/admin/members");
                   }}>
                     <Users />
                     <span>{t("sidebar.settings.teamMembers")}</span>
@@ -286,7 +294,7 @@ export function AppSidebar() {
                 >
                   <a href="/admin/deployments" onClick={(e) => {
                     e.preventDefault();
-                    setLocation("/admin/deployments");
+                    handleNavigation("/admin/deployments");
                   }}>
                     <Rocket />
                     <span>{t("sidebar.settings.deployments")}</span>
@@ -352,7 +360,7 @@ export function AppSidebar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setLocation("/admin/profile")}>
+                <DropdownMenuItem onClick={() => handleNavigation("/admin/profile")}>
                   <User className="mr-2 h-4 w-4" />
                   {t("sidebar.profile")}
                 </DropdownMenuItem>

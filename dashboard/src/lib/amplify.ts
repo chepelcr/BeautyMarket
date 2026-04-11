@@ -1,6 +1,6 @@
 import { Amplify } from 'aws-amplify';
 import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
-import { CookieStorage } from 'aws-amplify/utils';
+
 
 const amplifyConfig = {
   Auth: {

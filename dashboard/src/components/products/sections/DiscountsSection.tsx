@@ -16,7 +16,7 @@ interface DiscountsSectionProps {
   isoCode?: string; // ISO code from organization context - when it changes, React Query automatically refetches
 }
 
-export function DiscountsSection({ form, disabled = false, forceCollapsed = false, isoCode = "CR" }: DiscountsSectionProps) {
+export function DiscountsSection({ form, disabled = false, forceCollapsed = false, isoCode = "188" }: DiscountsSectionProps) {
   const discounts = form.watch("discounts") || [];
   const [isExpanded, setIsExpanded] = useState(!forceCollapsed && discounts.length > 0);
   const [selectedDiscountType, setSelectedDiscountType] = useState<string>("");

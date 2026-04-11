@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Package2, Eye } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
@@ -17,9 +16,17 @@ interface InventorySectionProps {
 export function InventorySection({ form, disabled = false }: InventorySectionProps) {
   const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(!disabled);
+  const trackInventory = form.watch("trackInventory");
+
+  if (!trackInventory) return null;
 
   return (
-    <Card>
+    <div className="transition-all duration-300 ease-in-out overflow-hidden"
+         style={{
+           maxHeight: trackInventory ? '500px' : '0',
+           opacity: trackInventory ? 1 : 0
+         }}>
+      <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -41,75 +48,7 @@ export function InventorySection({ form, disabled = false }: InventorySectionPro
         isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
       }`}>
       <CardContent className="space-y-4">
-        <FormField
-          control={form.control}
-          name="trackInventory"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">
-                  {t("products.inventory.trackInventory")}
-                </FormLabel>
-                <FormDescription>
-                  {t("products.inventory.trackInventoryDesc")}
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
         <div className="grid md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="sku"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("products.inventory.sku")}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={t("products.inventory.skuPlaceholder")}
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {t("products.inventory.skuDesc")}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="unitsPerBox"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("products.form.unitsPerBox")}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    {...field}
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || null)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {t("products.form.unitsPerBoxDesc")}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="stockQuantity"
@@ -123,7 +62,6 @@ export function InventorySection({ form, disabled = false }: InventorySectionPro
                     placeholder="0"
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    disabled={!form.watch("trackInventory")}
                   />
                 </FormControl>
                 <FormDescription>
@@ -147,7 +85,6 @@ export function InventorySection({ form, disabled = false }: InventorySectionPro
                     placeholder="10"
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 10)}
-                    disabled={!form.watch("trackInventory")}
                   />
                 </FormControl>
                 <FormDescription>
@@ -161,5 +98,6 @@ export function InventorySection({ form, disabled = false }: InventorySectionPro
       </CardContent>
       </div>
     </Card>
+    </div>
   );
 }

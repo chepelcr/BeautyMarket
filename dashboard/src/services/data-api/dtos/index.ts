@@ -46,9 +46,6 @@ export * from './consumer-identifications';
 export * from './consumer-exemptions';
 export * from './consumer-exchange-rate';
 
-// Legacy - deprecated
-export * from './common';
-
 /**
  * Service classification by base type.
  * 

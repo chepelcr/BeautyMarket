@@ -2,10 +2,10 @@ import { User, Mail, Phone, MapPin, Calendar, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { Customer } from '@/models';
+import type { Customer, Client } from '@/models';
 
 interface CustomerProfileProps {
-  customer: Customer;
+  customer: Customer | Client;
   onEdit: () => void;
 }
 
@@ -20,9 +20,21 @@ export function CustomerProfile({ customer, onEdit }: CustomerProfileProps) {
     });
   };
 
-  const fullName = [customer.firstName, customer.lastName]
-    .filter(Boolean)
-    .join(' ') || t('customers.noName');
+  // Handle both Customer and Client types
+  const isClient = 'clientName' in customer;
+  
+  const fullName = isClient 
+    ? (customer as Client).businessName || (customer as Client).clientName || t('customers.noName')
+    : [customer.firstName, customer.lastName].filter(Boolean).join(' ') || t('customers.noName');
+
+  const email = isClient ? (customer as Client).email : customer.email;
+  
+  // Handle phone - can be string (Customer) or object (Client)
+  const phoneDisplay = isClient && (customer as Client).phone && typeof (customer as Client).phone === 'object'
+    ? (customer as Client).phone?.number
+    : typeof customer.phone === 'string' 
+    ? customer.phone 
+    : null;
 
   const fullAddress = customer.address
     ? [
@@ -34,7 +46,11 @@ export function CustomerProfile({ customer, onEdit }: CustomerProfileProps) {
       ]
         .filter(Boolean)
         .join(', ')
+    : isClient && (customer as Client).residence
+    ? (customer as Client).residence?.address
     : null;
+
+  const createdAt = 'createdAt' in customer ? customer.createdAt : null;
 
   return (
     <Card>
@@ -61,21 +77,21 @@ export function CustomerProfile({ customer, onEdit }: CustomerProfileProps) {
         <div className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-muted-foreground" />
           <a
-            href={`mailto:${customer.email}`}
+            href={`mailto:${email}`}
             className="text-sm hover:underline"
           >
-            {customer.email}
+            {email}
           </a>
         </div>
 
-        {customer.phone && (
+        {phoneDisplay && (
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-muted-foreground" />
             <a
-              href={`tel:${customer.phone}`}
+              href={`tel:${phoneDisplay}`}
               className="text-sm hover:underline"
             >
-              {customer.phone}
+              {phoneDisplay}
             </a>
           </div>
         )}
@@ -87,14 +103,16 @@ export function CustomerProfile({ customer, onEdit }: CustomerProfileProps) {
           </div>
         )}
 
-        <div className="pt-4 border-t">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            <span>
-              {t('customers.details.memberSince')} {formatDate(customer.createdAt)}
-            </span>
+        {createdAt && (
+          <div className="pt-4 border-t">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>
+                {t('customers.details.memberSince')} {formatDate(createdAt)}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

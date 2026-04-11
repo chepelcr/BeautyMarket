@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+
 import { Form } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ImageUpload } from "@/components/image-upload";
+
 import { FiscalInformationSection } from "@/components/products/sections/FiscalInformationSection";
 import { GeneralInfoSection } from "@/components/products/sections/GeneralInfoSection";
 import { CodesSection } from "@/components/products/sections/CodesSection";
@@ -13,8 +12,9 @@ import { PackagingSection } from "@/components/products/sections/PackagingSectio
 import { CustomsSection } from "@/components/products/sections/CustomsSection";
 import { InventorySection } from "@/components/products/sections/InventorySection";
 import { DiscountsSection } from "@/components/products/sections/DiscountsSection";
-import { AdvancedTaxesSection } from "@/components/products/sections/AdvancedTaxesSection";
+import { OtherTaxSection } from "@/components/products/sections/OtherTaxSection";
 import { CommercialValueSection } from "@/components/products/sections/CommercialValueSection";
+import { ImageUploadSection } from "@/components/products/sections/ImageUploadSection";
 import {
   insertProductSchema,
   type Product,
@@ -57,6 +57,9 @@ export default function ProductForm({
   
   // Track CABYS selection state
   const [hasCabysSelected, setHasCabysSelected] = useState(!!product?.cabys);
+  
+  // Track if general info is complete (name, category, unit)
+  const [isGeneralInfoComplete, setIsGeneralInfoComplete] = useState(!isInsertMode);
 
   // Extract SKU from codes array (code type 03) and filter it out from codes
   const extractSkuFromCodes = (codes?: any[]) => {
@@ -86,6 +89,8 @@ export default function ProductForm({
       stockQuantity: product?.stockQuantity ?? 0,
       lowStockThreshold: product?.lowStockThreshold ?? 10,
       trackInventory: product?.trackInventory ?? true,
+      hasFiscalInfo: product?.hasFiscalInfo ?? false,
+      hasPackageInfo: product?.hasPackageInfo ?? false,
       internalCode: product?.internalCode || "",
       originalCode: product?.originalCode || "",
       clientArticleCode: product?.clientArticleCode || "",
@@ -94,7 +99,7 @@ export default function ProductForm({
       cabys: product?.cabys || "",
       cabysDescription: product?.cabysDescription || "",
       productTypeId: product?.productTypeId || 1,
-      unitId: product?.unitId || 85,
+      unitId: product?.unitId,
       commercialUnitMeasure: product?.commercialUnitMeasure || "",
       isPackaged: product?.isPackaged || false,
       quantity: product?.quantity || 1,
@@ -223,82 +228,109 @@ export default function ProductForm({
   const discountsValue = form.watch("discounts") || [];
   const taxesValue = form.watch("taxes") || [];
   
+  // Watch general info fields to check if complete
+  const nameValue = form.watch("name");
+  const categoryValue = form.watch("categoryId");
+  const unitValue = form.watch("unitId");
+  
+  // Update general info completion status
+  useEffect(() => {
+    if (isInsertMode) {
+      const isComplete = !!(nameValue && nameValue.trim() && categoryValue && unitValue);
+      setIsGeneralInfoComplete(isComplete);
+    }
+  }, [nameValue, categoryValue, unitValue, isInsertMode]);
+  
   // Update hasCabysSelected when CABYS changes
-  useState(() => {
+  useEffect(() => {
     if (cabysValue && cabysValue.length > 0) {
       setHasCabysSelected(true);
     } else if (isInsertMode) {
       setHasCabysSelected(false);
     }
-  });
+  }, [cabysValue, isInsertMode]);
   
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* 1. General Info - FIRST, required to unlock other sections */}
+        <GeneralInfoSection 
+          form={form} 
+          categories={categories} 
+          categoriesLoading={categoriesLoading}
+          disabled={false}
+          isInsertMode={isInsertMode}
+          onGeneralInfoComplete={() => setIsGeneralInfoComplete(true)}
+        />
+        
+        {/* 2. Packaging Section */}
+        <PackagingSection 
+          form={form}
+          disabled={isInsertMode && !isGeneralInfoComplete}
+        />
+        
+        {/* 3. Inventory Section */}
+        <InventorySection 
+          form={form}
+          disabled={isInsertMode && !isGeneralInfoComplete}
+        />
+        
+        {/* 4. Codes Section */}
+        <CodesSection 
+          form={form}
+          disabled={isInsertMode && !isGeneralInfoComplete}
+          forceCollapsed={isInsertMode && codesValue.length === 0}
+          // @ts-ignore - organization_country field will be added to Organization model
+          isoCode={defaultOrg?.organization_country || "188"}
+        />
+        
+        {/* 5. Discounts Section */}
+        <DiscountsSection 
+          form={form}
+          disabled={isInsertMode && !isGeneralInfoComplete}
+          forceCollapsed={isInsertMode && discountsValue.length === 0}
+          // @ts-ignore - organization_country field will be added to Organization model
+          isoCode={defaultOrg?.organization_country || "188"}
+        />
+        
+        {/* 6. Fiscal Information - OPTIONAL, includes CABYS + IVA Tax Section */}
         <FiscalInformationSection 
           form={form} 
           isInsertMode={isInsertMode}
           hasCabysSelected={hasCabysSelected}
           onCabysSelect={() => setHasCabysSelected(true)}
           onCabysClear={() => setHasCabysSelected(false)}
+          disabled={isInsertMode && !isGeneralInfoComplete}
+          // @ts-ignore - organization_country field will be added to Organization model
+          isoCode={defaultOrg?.organization_country || "188"}
         />
         
-        <GeneralInfoSection 
-          form={form} 
-          categories={categories} 
-          categoriesLoading={categoriesLoading}
-          disabled={isInsertMode && !hasCabysSelected}
-        />
-        
-        <PackagingSection 
+        {/* 7. Other Taxes - standalone section */}
+        <OtherTaxSection
           form={form}
-          disabled={isInsertMode && !hasCabysSelected}
+          disabled={isInsertMode && (!isGeneralInfoComplete || !hasCabysSelected)}
+          // @ts-ignore - organization_country field will be added to Organization model
+          isoCode={defaultOrg?.organization_country || "188"}
         />
         
+        {/* 8. Customs Section */}
         <CustomsSection 
           form={form}
-          disabled={isInsertMode && !hasCabysSelected}
+          disabled={isInsertMode && !isGeneralInfoComplete}
         />
         
-        <CodesSection 
-          form={form}
-          disabled={isInsertMode && !hasCabysSelected}
-          forceCollapsed={isInsertMode && codesValue.length === 0}
-          {/* @ts-ignore - organization_country field will be added to Organization model */}
-          isoCode={defaultOrg?.organization_country || "CR"}
-        />
-        
-        <InventorySection 
-          form={form}
-          disabled={isInsertMode && !hasCabysSelected}
-        />
-        
-        <DiscountsSection 
-          form={form}
-          disabled={isInsertMode && !hasCabysSelected}
-          forceCollapsed={isInsertMode && discountsValue.length === 0}
-          {/* @ts-ignore - organization_country field will be added to Organization model */}
-          isoCode={defaultOrg?.organization_country || "CR"}
-        />
-        
-        <AdvancedTaxesSection 
-          form={form}
-          disabled={isInsertMode && !hasCabysSelected}
-          forceCollapsed={isInsertMode && taxesValue.length === 0}
-          {/* @ts-ignore - organization_country field will be added to Organization model */}
-          isoCode={defaultOrg?.organization_country || "CR"}
-        />
-        
+        {/* 9. Commercial Value Section */}
         <CommercialValueSection 
           form={form}
-          disabled={isInsertMode && !hasCabysSelected}
+          disabled={isInsertMode && !isGeneralInfoComplete}
         />
 
-        <ImageUpload
+        {/* 10. Image Upload */}
+        <ImageUploadSection
           value={form.watch("imageUrl") || ""}
           onChange={(url) => form.setValue("imageUrl", url)}
-          label={t("products.form.image")}
           folder="images/products"
+          disabled={isInsertMode && !isGeneralInfoComplete}
         />
       </form>
     </Form>

@@ -9,27 +9,25 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tax {
-  taxTypeId: string;
-  taxRateId?: string;
-  taxFactorId?: string;
+  taxTypeCode: string;  // Use code instead of ID
+  taxRateCode?: string; // Use code instead of ID
+  taxFactorCode?: string; // Use code instead of ID
   rate: number;
 }
 
 interface TaxType {
-  id: string;
   code: string;
   name: string;
 }
 
 interface TaxRate {
-  id: string;
   code: string;
   name: string;
   rate: number;
 }
 
 interface TaxFactor {
-  id: string;
+  code: string;
   name: string;
   factor: number;
 }
@@ -77,34 +75,34 @@ export function IvaTaxSection({
   };
 
   const handleTaxTypeChange = (index: number, value: string) => {
-    const taxType = taxTypes.find(t => t.id === value);
+    const taxType = taxTypes.find(t => t.code === value);
     if (!taxType) return;
     
-    updateIvaTax(index, 'taxTypeId', value);
+    updateIvaTax(index, 'taxTypeCode', value);
     
     // Reset rate/factor when changing type
     if (taxType.code === TAX_TYPES.IVARBU) {
-      updateIvaTax(index, 'taxRateId', undefined);
+      updateIvaTax(index, 'taxRateCode', undefined);
       updateIvaTax(index, 'rate', 0);
     } else {
-      updateIvaTax(index, 'taxFactorId', undefined);
+      updateIvaTax(index, 'taxFactorCode', undefined);
       updateIvaTax(index, 'rate', suggestedTaxRate || 13);
     }
   };
 
   const handleRateChange = (index: number, value: string) => {
-    const rate = taxRates.find(r => r.id === value);
+    const rate = taxRates.find(r => r.code === value);
     if (!rate) return;
     
-    updateIvaTax(index, 'taxRateId', value);
+    updateIvaTax(index, 'taxRateCode', value);
     updateIvaTax(index, 'rate', rate.rate);
   };
 
   const handleFactorChange = (index: number, value: string) => {
-    const factor = taxFactors.find(f => f.id === value);
+    const factor = taxFactors.find(f => f.code === value);
     if (!factor) return;
     
-    updateIvaTax(index, 'taxFactorId', value);
+    updateIvaTax(index, 'taxFactorCode', value);
     updateIvaTax(index, 'rate', factor.factor);
   };
 
@@ -113,7 +111,7 @@ export function IvaTaxSection({
   );
 
   const shouldShowTaxRateWarning = (tax: Tax) => {
-    const taxType = taxTypes.find(t => t.id === tax.taxTypeId);
+    const taxType = taxTypes.find(t => t.code === tax.taxTypeCode);
     if (!taxType || taxType.code === TAX_TYPES.IVARBU) return false;
     if (!cabys) return false;
     
@@ -145,7 +143,7 @@ export function IvaTaxSection({
         <CardContent className="space-y-4">
           <div className="space-y-4">
             {ivaTaxes.map((tax, index) => {
-              const taxType = taxTypes.find(t => t.id === tax.taxTypeId);
+              const taxType = taxTypes.find(t => t.code === tax.taxTypeCode);
               const isCode08 = taxType?.code === TAX_TYPES.IVARBU;
               return (
                 <div key={index} className="space-y-4">
@@ -153,7 +151,7 @@ export function IvaTaxSection({
                     <div className="space-y-2">
                       <Label>{t('taxes.ivaType')}</Label>
                       <Select
-                        value={tax.taxTypeId}
+                        value={tax.taxTypeCode}
                         onValueChange={(value) => handleTaxTypeChange(index, value)}
                       >
                         <SelectTrigger>
@@ -161,7 +159,7 @@ export function IvaTaxSection({
                         </SelectTrigger>
                         <SelectContent>
                           {getIvaTaxTypes().map((type) => (
-                            <SelectItem key={type.id} value={type.id}>
+                            <SelectItem key={type.code} value={type.code}>
                               {type.name}
                             </SelectItem>
                           ))}
@@ -172,7 +170,7 @@ export function IvaTaxSection({
                       <div className="space-y-2">
                         <Label>{t('taxes.rate')}</Label>
                         <Select
-                          value={tax.taxRateId || ""}
+                          value={tax.taxRateCode || ""}
                           onValueChange={(value) => handleRateChange(index, value)}
                         >
                           <SelectTrigger>
@@ -180,7 +178,7 @@ export function IvaTaxSection({
                           </SelectTrigger>
                           <SelectContent>
                             {taxRates.map((rate) => (
-                              <SelectItem key={rate.id} value={rate.id}>
+                              <SelectItem key={rate.code} value={rate.code}>
                                 {rate.name}
                               </SelectItem>
                             ))}
@@ -192,7 +190,7 @@ export function IvaTaxSection({
                       <div className="space-y-2">
                         <Label>{t('taxes.selectFactor')}</Label>
                         <Select
-                          value={tax.taxFactorId || ""}
+                          value={tax.taxFactorCode || ""}
                           onValueChange={(value) => handleFactorChange(index, value)}
                         >
                           <SelectTrigger>
@@ -200,7 +198,7 @@ export function IvaTaxSection({
                           </SelectTrigger>
                           <SelectContent>
                             {taxFactors.map((factor) => (
-                              <SelectItem key={factor.id} value={factor.id}>
+                              <SelectItem key={factor.code} value={factor.code}>
                                 {factor.name}
                               </SelectItem>
                             ))}

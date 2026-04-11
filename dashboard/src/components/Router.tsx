@@ -37,19 +37,6 @@ const PaymentSettingsPage = lazy(() => import("@/pages/settings/PaymentSettingsP
 const ShippingSettingsPage = lazy(() => import("@/pages/settings/ShippingSettingsPage"));
 const TeamMembersPage = lazy(() => import("@/pages/TeamMembersPage"));
 
-// Placeholder pages - will be implemented by parallel agents
-const PlaceholderPage = ({ title }: { title: string }) => {
-  const { t } = useLanguage();
-  return (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">{title}</h2>
-        <p className="text-muted-foreground">{t('common.pageInProgress')}</p>
-      </div>
-    </div>
-  );
-};
-
 interface RouterProps {
   displayLocation: string;
 }

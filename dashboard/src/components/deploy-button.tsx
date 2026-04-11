@@ -32,7 +32,7 @@ export function DeployButton({ disabled, onDeployStart, onDeployComplete, classN
   const { toast } = useToast();
 
   // Query deployment status
-  const { data: deploymentStatus, refetch: refetchStatus } = useQuery<DeploymentStatus>({
+  const { data: deploymentStatus, refetch } = useQuery<DeploymentStatus>({
     queryKey: ["/api/deploy/status"],
     refetchInterval: (query) => {
       // Refetch more frequently during active deployment
@@ -117,21 +117,6 @@ export function DeployButton({ disabled, onDeployStart, onDeployComplete, classN
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
         return <Globe className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'building':
-        return 'blue';
-      case 'uploading':
-        return 'yellow';
-      case 'success':
-        return 'green';
-      case 'error':
-        return 'red';
-      default:
-        return 'gray';
     }
   };
 

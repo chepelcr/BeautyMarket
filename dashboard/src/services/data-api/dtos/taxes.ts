@@ -9,7 +9,7 @@ export interface GetTaxParams {
 
 export interface GetAllTaxesParams {
   iso_code: string;
-  document_version_id: number;
+  document_version_id?: number;
   status?: string;
 }
 
@@ -35,7 +35,7 @@ export interface GetTaxRateParams {
 
 export interface GetAllTaxRatesParams {
   iso_code: string;
-  document_version_id: number;
+  document_version_id?: number;
   status?: string;
 }
 

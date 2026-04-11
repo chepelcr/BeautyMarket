@@ -1,6 +1,6 @@
 import { buildOrdersApiUrl } from '@/lib/apiUtils';
 import { apiRequest } from '@/lib/queryClient';
-import type { Category, InsertCategory, UpdateCategoryStatus, CategoriesResponse } from '@/models/Category';
+import type { Category, InsertCategory, CategoriesResponse } from '@/models/Category';
 
 /**
  * Convert a File to base64 string

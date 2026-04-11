@@ -152,10 +152,37 @@ import type {
 } from './dtos';
 
 class DataApiClient {
+  private documentVersionId: number | undefined;
+
+  /**
+   * Set the active document version ID to be used for Hacienda-related endpoints.
+   * This is managed internally by the DocumentVersionContext.
+   */
+  setDocumentVersionId(id: number | undefined) {
+    this.documentVersionId = id;
+  }
+
+  /**
+   * Get the current document version ID.
+   */
+  getDocumentVersionId(): number | undefined {
+    return this.documentVersionId;
+  }
+
   private async request<T>(path: string, params?: Record<string, any>): Promise<T> {
     const url = buildDataApiUrl(path, params);
     const response = await apiRequest('GET', url);
     return response.json();
+  }
+
+  /**
+   * Automatically inject document_version_id for Hacienda endpoints if available.
+   */
+  private injectDocumentVersion(params: Record<string, any>): Record<string, any> {
+    if (this.documentVersionId !== undefined && !params.document_version_id) {
+      return { ...params, document_version_id: this.documentVersionId };
+    }
+    return params;
   }
 
   // Document Versions
@@ -177,12 +204,12 @@ class DataApiClient {
   // Codes
   async getCode(params: GetCodeParams): Promise<CodeResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/codes`, queryParams);
+    return this.request(`/countries/${iso_code}/codes`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllCodes(params: GetAllCodesParams): Promise<CodeListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/codes/all`, queryParams);
+    return this.request(`/countries/${iso_code}/codes/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Customer Types
@@ -230,34 +257,34 @@ class DataApiClient {
   // Exemptions
   async getExemption(params: GetExemptionParams): Promise<ExemptionResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/exemptions`, queryParams);
+    return this.request(`/countries/${iso_code}/exemptions`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllExemptions(params: GetAllExemptionsParams): Promise<ExemptionListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/exemptions/all`, queryParams);
+    return this.request(`/countries/${iso_code}/exemptions/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Exemptions Issuing Institutions
   async getExemptionIssuingInstitution(params: GetExemptionIssuingInstitutionParams): Promise<ExemptionIssuingInstitutionResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/exemptions-issuing-institutions`, queryParams);
+    return this.request(`/countries/${iso_code}/exemptions-issuing-institutions`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllExemptionIssuingInstitutions(params: GetAllExemptionIssuingInstitutionsParams): Promise<ExemptionIssuingInstitutionListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/exemptions-issuing-institutions/all`, queryParams);
+    return this.request(`/countries/${iso_code}/exemptions-issuing-institutions/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Factory Tax Charges
   async getFactoryTaxCharge(params: GetFactoryTaxChargeParams): Promise<FactoryTaxChargeResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/factory-tax-charges`, queryParams);
+    return this.request(`/countries/${iso_code}/factory-tax-charges`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllFactoryTaxCharges(params: GetAllFactoryTaxChargesParams): Promise<FactoryTaxChargeListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/factory-tax-charges/all`, queryParams);
+    return this.request(`/countries/${iso_code}/factory-tax-charges/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Identifications
@@ -274,12 +301,11 @@ class DataApiClient {
   // Measurement Units
   async getMeasurementUnit(params: GetMeasurementUnitParams): Promise<MeasurementUnitResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/measurement-units`, queryParams);
+    return this.request(`/measurement-units`, queryParams);
   }
 
-  async getAllMeasurementUnits(params: GetAllMeasurementUnitsParams): Promise<MeasurementUnitListResponse> {
-    const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/measurement-units/all`, queryParams);
+  async getAllMeasurementUnits(params?: GetAllMeasurementUnitsParams): Promise<MeasurementUnitListResponse> {
+    return this.request(`/measurement-units/all`, params || {});
   }
 
   // National Taxpayer Companies
@@ -316,23 +342,23 @@ class DataApiClient {
   // Other Charges
   async getOtherCharge(params: GetOtherChargeParams): Promise<OtherChargeResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/other-charges`, queryParams);
+    return this.request(`/countries/${iso_code}/other-charges`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllOtherCharges(params: GetAllOtherChargesParams): Promise<OtherChargeListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/other-charges/all`, queryParams);
+    return this.request(`/countries/${iso_code}/other-charges/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Payments
   async getPayment(params: GetPaymentParams): Promise<PaymentResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/payments`, queryParams);
+    return this.request(`/countries/${iso_code}/payments`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllPayments(params: GetAllPaymentsParams): Promise<PaymentListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/payments/all`, queryParams);
+    return this.request(`/countries/${iso_code}/payments/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Pharmaceutical Forms
@@ -348,33 +374,33 @@ class DataApiClient {
 
   // Product Types
   async getProductType(params: GetProductTypeParams): Promise<ProductTypeResponse> {
-    return this.request('/product-types', params);
+    return this.request('/products', params);
   }
 
   async getAllProductTypes(params?: GetAllProductTypesParams): Promise<ProductTypeListResponse> {
-    return this.request('/product-types/all', params);
+    return this.request('/products/all', params);
   }
 
   // Reference Codes
   async getReferenceCode(params: GetReferenceCodeParams): Promise<ReferenceCodeResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/reference-codes`, queryParams);
+    return this.request(`/countries/${iso_code}/reference-codes`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllReferenceCodes(params: GetAllReferenceCodesParams): Promise<ReferenceCodeListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/reference-codes/all`, queryParams);
+    return this.request(`/countries/${iso_code}/reference-codes/all`, this.injectDocumentVersion(queryParams));
   }
 
   // References
   async getReference(params: GetReferenceParams): Promise<ReferenceResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/references`, queryParams);
+    return this.request(`/countries/${iso_code}/references`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllReferences(params: GetAllReferencesParams): Promise<ReferenceListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/references/all`, queryParams);
+    return this.request(`/countries/${iso_code}/references/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Regimes
@@ -391,12 +417,12 @@ class DataApiClient {
   // Sale Conditions
   async getSaleCondition(params: GetSaleConditionParams): Promise<SaleConditionResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/sale-conditions`, queryParams);
+    return this.request(`/countries/${iso_code}/sale-conditions`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllSaleConditions(params: GetAllSaleConditionsParams): Promise<SaleConditionListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/sale-conditions/all`, queryParams);
+    return this.request(`/countries/${iso_code}/sale-conditions/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Tax Amounts (nested under taxes)
@@ -413,12 +439,12 @@ class DataApiClient {
   // Tax Conditions
   async getTaxCondition(params: GetTaxConditionParams): Promise<TaxConditionResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/tax-conditions`, queryParams);
+    return this.request(`/countries/${iso_code}/tax-conditions`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllTaxConditions(params: GetAllTaxConditionsParams): Promise<TaxConditionListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/tax-conditions/all`, queryParams);
+    return this.request(`/countries/${iso_code}/tax-conditions/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Tax Factors
@@ -444,12 +470,12 @@ class DataApiClient {
   // Transactions
   async getTransaction(params: GetTransactionParams): Promise<TransactionResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/transactions`, queryParams);
+    return this.request(`/countries/${iso_code}/transactions`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllTransactions(params: GetAllTransactionsParams): Promise<TransactionListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/transactions/all`, queryParams);
+    return this.request(`/countries/${iso_code}/transactions/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Locations - Countries
@@ -509,23 +535,23 @@ class DataApiClient {
   // Taxes
   async getTax(params: GetTaxParams): Promise<TaxResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/taxes`, queryParams);
+    return this.request(`/countries/${iso_code}/taxes`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllTaxes(params: GetAllTaxesParams): Promise<TaxListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/taxes/all`, queryParams);
+    return this.request(`/countries/${iso_code}/taxes/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Tax Rates
   async getTaxRate(params: GetTaxRateParams): Promise<TaxRateResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/tax-rates`, queryParams);
+    return this.request(`/countries/${iso_code}/tax-rates`, this.injectDocumentVersion(queryParams));
   }
 
   async getAllTaxRates(params: GetAllTaxRatesParams): Promise<TaxRateListResponse> {
     const { iso_code, ...queryParams } = params;
-    return this.request(`/countries/${iso_code}/tax-rates/all`, queryParams);
+    return this.request(`/countries/${iso_code}/tax-rates/all`, this.injectDocumentVersion(queryParams));
   }
 
   // Consumer - CABYS

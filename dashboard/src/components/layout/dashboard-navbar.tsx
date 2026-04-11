@@ -17,7 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function DashboardNavbar() {
-  const [location, setLocation] = useLocation();
+  const [location, setLocation, navigate] = useLocation();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -25,11 +25,29 @@ export function DashboardNavbar() {
   const customerIdMatch = location.match(/\/admin\/customers\/([a-f0-9-]+)/);
   const customerId = customerIdMatch?.[1];
 
-  // Get customer data from cache (already fetched by CustomerDetailsPage)
-  const customer = customerId ? queryClient.getQueryData(['customer', customerId]) : null;
+  // Try to get customer name from navigation state first (instant), then from cache (after API loads)
+  const [customerNameFromState] = React.useState(() => {
+    // Get from window.history.state if available (passed from ClientCard)
+    return (window.history.state as any)?.customerName || null;
+  });
+  
+  // Get customer data from cache as fallback
+  const customerData = customerId ? queryClient.getQueryData(['customer', customerId]) as any : null;
+  const customerName = customerNameFromState || customerData?.clientName || customerData?.businessName || null;
 
   // Force re-render when customer data changes
-  React.useEffect(() => {}, [customer]);
+  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+  React.useEffect(() => {
+    if (customerId && !customerNameFromState) {
+      // Subscribe to query cache changes for this customer
+      const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+        if (event?.query?.queryKey?.[0] === 'customer' && event?.query?.queryKey?.[1] === customerId) {
+          forceUpdate();
+        }
+      });
+      return unsubscribe;
+    }
+  }, [customerId, customerNameFromState, queryClient]);
 
   // Generate breadcrumbs based on current location
   const getBreadcrumbs = () => {
@@ -66,8 +84,8 @@ export function DashboardNavbar() {
       let label = translationKey ? t(translationKey) : segment;
       
       // Replace customer UUID with customer name
-      if (segment === customerId && customer) {
-        label = (customer as any).clientName || (customer as any).businessName || segment;
+      if (customerId && segment === customerId && customerName) {
+        label = customerName;
       }
       
       const isLast = index === paths.length - 1;

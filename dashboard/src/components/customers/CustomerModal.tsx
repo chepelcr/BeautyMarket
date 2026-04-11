@@ -38,6 +38,7 @@ export function CustomerModal({ isOpen, onClose, onSubmit, editingCustomer, isLo
               onSubmit={onSubmit}
               initialData={editingCustomer || undefined}
               isEditing={!!editingCustomer}
+              customerStatus={editingCustomer?.status}
               onValidityChange={setIsFormValid}
             />
           )}

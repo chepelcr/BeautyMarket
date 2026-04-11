@@ -5,25 +5,52 @@ import { Button } from "@/components/ui/button";
 import { DollarSign, Eye } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { InsertProduct } from "@/models";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DiscountCalculationService } from "@/services/discountCalculationService";
 import { TaxCalculationService } from "@/services/taxCalculationService";
-import { getTaxConfig } from "@/types/taxTypeConfig";
+import { useAllTaxes } from "@/hooks/useDataApi";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { buildOrgApiUrl } from "@/lib/apiUtils";
+import { getTaxConfig } from "@/constants/taxTypes";
 
 interface CommercialValueSectionProps {
   form: UseFormReturn<InsertProduct>;
   disabled?: boolean;
 }
 
-const TAX_TYPES = [
-  { taxId: 1, code: '01', description: 'IVA' },
-  { taxId: 2, code: '02', description: 'Impuesto Selectivo de Consumo' },
-  { taxId: 7, code: '07', description: 'IVA (Cálculo Especial)' },
-  { taxId: 3, code: '99', description: 'Otros' }
-];
-
 export function CommercialValueSection({ form, disabled = false }: CommercialValueSectionProps) {
   const [isExpanded, setIsExpanded] = useState(!disabled);
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  
+  // Get ISO code from organization
+  const isoCode = useMemo(() => {
+    // @ts-ignore - organization_country field will be added to Organization model
+    return defaultOrg?.organization_country || "188";
+  }, [defaultOrg]);
+
+  // Fetch tax types from data API (document_version_id is automatically injected)
+  const { data: dataApiTaxTypes, isError: taxTypesError } = useAllTaxes({
+    iso_code: isoCode
+  });
+
+  // Fallback to organization-specific API if data API fails
+  const { data: orgTaxTypes } = useQuery<any[]>({
+    queryKey: ["taxTypes", user?.id, defaultOrg?.id],
+    queryFn: async (): Promise<any[]> => {
+      if (!user?.id || !defaultOrg?.id) return [];
+      const res = await apiRequest("GET", buildOrgApiUrl(user.id, defaultOrg.id, "/catalogs/tax-types"));
+      return res.json();
+    },
+    enabled: taxTypesError && !!user?.id && !!defaultOrg?.id,
+  });
+
+  // Use data API data if available, otherwise fall back to org API data
+  const TAX_TYPES = dataApiTaxTypes || orgTaxTypes || [];
 
   const price = form.watch("price") || 0;
   const discounts = form.watch("discounts") || [];
@@ -33,7 +60,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
   const subtotal = DiscountCalculationService.calculateSubtotal(price, discounts);
 
   const hasIvace = taxes.some((tax: any) => {
-    const taxType = TAX_TYPES.find(tt => tt.taxId === tax.taxTypeId);
+    const taxType = TAX_TYPES.find((tt: any) => tt.id === tax.taxTypeId);
     return taxType?.code === '07';
   });
 
@@ -58,7 +85,7 @@ export function CommercialValueSection({ form, disabled = false }: CommercialVal
   }, [baseAmount, salePrice, hasIvace, form]);
 
   const hasOtherTaxes = (taxes as any[]).some((tax: any) => {
-    const taxType = TAX_TYPES.find(tt => tt.taxId === tax.taxTypeId);
+    const taxType = TAX_TYPES.find((tt: any) => tt.id === tax.taxTypeId);
     const taxConfig = getTaxConfig(taxType?.code);
     return taxType && !taxConfig?.iva;
   });

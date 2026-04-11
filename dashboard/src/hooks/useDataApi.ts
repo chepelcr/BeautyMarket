@@ -405,7 +405,7 @@ export function useMeasurementUnit(
 }
 
 export function useAllMeasurementUnits(
-  params: GetAllMeasurementUnitsParams,
+  params?: GetAllMeasurementUnitsParams,
   options?: Omit<UseQueryOptions<MeasurementUnitListResponse>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({

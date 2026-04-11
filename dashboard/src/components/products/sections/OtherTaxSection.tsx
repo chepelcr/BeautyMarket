@@ -3,34 +3,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Eye, X } from "lucide-react";
-import { TAX_TYPES, getTaxConfig, getRequiredSpecialFields } from "@/constants/taxTypes";
+import { Plus, Eye } from "lucide-react";
+import { ClearButton } from "@/components/common/ClearButton";
+import { TAX_TYPES, getTaxConfig } from "@/constants/taxTypes";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAllTaxes } from "@/hooks/useDataApi";
+import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
+import { apiRequest } from "@/lib/queryClient";
+import { buildDataApiUrl } from "@/lib/apiUtils";
+import type { TaxResponse } from "@/services/data-api";
 
 interface Tax {
-  taxTypeId: string;
-  taxRateId?: string;
+  taxTypeCode: string;  // Use code instead of ID
+  taxRateCode?: string; // Use code instead of ID
   rate: number;
   specialFields?: {
     quantity?: number;
     percentage?: number;
     volumeConsumption?: number;
-    taxAmountId?: string;
+    taxAmountId?: number;
   };
 }
 
 interface TaxType {
-  id: string;
   code: string;
   name: string;
-}
-
-interface TaxRate {
-  id: string;
-  code: string;
-  name: string;
-  rate: number;
 }
 
 interface TaxAmount {
@@ -40,76 +39,158 @@ interface TaxAmount {
 }
 
 interface OtherTaxSectionProps {
-  otherTaxes: Tax[];
-  taxTypes: TaxType[];
-  taxRates: TaxRate[];
-  taxAmounts: {[taxTypeId: string]: TaxAmount[]};
-  onOtherTaxesChange: (taxes: Tax[]) => void;
-  calculateTaxAmount: (tax: Tax) => number;
-  loadTaxAmounts: (taxTypeId: string) => void;
-  cabys?: string;
+  form: any;
   disabled?: boolean;
-  form?: any;
-  isProduct?: boolean;
+  isoCode?: string;
 }
 
 export function OtherTaxSection({
-  otherTaxes,
-  taxTypes,
-  taxRates,
-  taxAmounts,
-  onOtherTaxesChange,
-  calculateTaxAmount,
-  loadTaxAmounts,
-  cabys,
-  disabled = false,
   form,
-  isProduct = true
+  disabled = false,
+  isoCode = "188"
 }: OtherTaxSectionProps) {
   const { t } = useLanguage();
-  const [isExpanded, setIsExpanded] = useState(otherTaxes.length > 0);
+  const { user } = useAuth();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: defaultOrg } = useDefaultOrganization(user?.id);
+  
+  const [isExpanded, setIsExpanded] = useState(!disabled);
+  const [taxAmountsData, setTaxAmountsData] = useState<{[taxTypeCode: string]: TaxAmount[]}>({});
   const [showSpecialFields, setShowSpecialFields] = useState<{ [key: number]: boolean }>({});
   const [selectedTaxType, setSelectedTaxType] = useState<TaxType | null>(null);
+
+  const hasFiscalInfo = form.watch("hasFiscalInfo");
+  const taxes = form.watch("taxes") || [];
+  const cabys = form.watch("cabys");
+  const baseAmount = form.watch("baseAmount") || 0;
+
+  // Fetch tax types from data API only
+  const { data: dataApiTaxTypes } = useAllTaxes({
+    iso_code: isoCode
+  });
+
+  const taxTypes: TaxType[] = (dataApiTaxTypes || []).map((t: TaxResponse) => ({
+    code: t.code,
+    name: t.description
+  }));
+
+  // Split taxes into IVA and other taxes
+  const ivaTaxes = taxes.filter((t: any) => 
+    [TAX_TYPES.IVA, TAX_TYPES.IVACE, TAX_TYPES.IVARBU].includes(t.taxTypeCode as any)
+  );
+
+  const otherTaxes = taxes.filter((t: any) => 
+    ![TAX_TYPES.IVA, TAX_TYPES.IVACE, TAX_TYPES.IVARBU].includes(t.taxTypeCode as any)
+  );
+
+  const handleOtherTaxesChange = (newOtherTaxes: Tax[]) => {
+    form.setValue("taxes", [...ivaTaxes, ...newOtherTaxes]);
+  };
+
+  const loadTaxAmounts = async (taxTypeCode: string) => {
+    if (taxAmountsData[taxTypeCode] || !user?.id || !defaultOrg?.id) return;
+    
+    const dataApiTax = dataApiTaxTypes?.find(t => t.code === taxTypeCode);
+    if (!dataApiTax) return;
+    
+    try {
+      const res = await apiRequest("GET", buildDataApiUrl(`/countries/${isoCode}/taxes/${dataApiTax.id}/amounts/all`));
+      const amounts: any[] = await res.json();
+      const mappedAmounts = amounts.map((a: any) => ({
+        id: String(a.id),
+        name: a.description || a.name,
+        amount: a.amount || a.percentage
+      }));
+      setTaxAmountsData(prev => ({ ...prev, [taxTypeCode]: mappedAmounts }));
+    } catch (error) {
+      console.error('Error loading tax amounts:', error);
+    }
+  };
+
+  const calculateTaxAmount = (tax: Tax): number => {
+    const taxType = taxTypes.find((t: any) => t.code === tax.taxTypeCode);
+    if (!taxType) return 0;
+    
+    // IUC (03)
+    if (taxType.code === TAX_TYPES.IUC) {
+      const taxAmount = taxAmountsData[tax.taxTypeCode]?.find((ta: any) => ta.id === tax.specialFields?.taxAmountId);
+      return (taxAmount?.amount || 0) * (tax.specialFields?.quantity || 0);
+    }
+    
+    // ISEBA (04)
+    if (taxType.code === TAX_TYPES.ISEBA) {
+      const proportion = (tax.specialFields?.quantity || 0) * (tax.specialFields?.percentage || 0) / 100;
+      const taxAmount = taxAmountsData[tax.taxTypeCode]?.find((ta: any) => ta.id === tax.specialFields?.taxAmountId);
+      const detailQuantity = form.watch('quantity') || 1;
+      return detailQuantity * proportion * (taxAmount?.amount || 0);
+    }
+    
+    // IPT (06)
+    if (taxType.code === TAX_TYPES.IPT) {
+      const taxAmount = taxAmountsData[tax.taxTypeCode]?.find((ta: any) => ta.id === tax.specialFields?.taxAmountId);
+      const detailQuantity = form.watch('quantity') || 1;
+      return detailQuantity * (tax.specialFields?.quantity || 0) * (taxAmount?.amount || 0);
+    }
+    
+    // ISEBEC (05)
+    if (taxType.code === TAX_TYPES.ISEBEC) {
+      const isNonAlcoholicBeverage = cabys?.startsWith('2202');
+      const taxAmount = taxAmountsData[tax.taxTypeCode]?.find((ta: any) => ta.id === tax.specialFields?.taxAmountId);
+      const detailQuantity = form.watch('quantity') || 1;
+      
+      if (isNonAlcoholicBeverage) {
+        const altAmount = (taxAmount?.amount || 0) / (tax.specialFields?.volumeConsumption || 1);
+        return detailQuantity * (tax.specialFields?.quantity || 0) * altAmount;
+      } else {
+        return (tax.specialFields?.quantity || 0) * (tax.specialFields?.volumeConsumption || 0) * (taxAmount?.amount || 0);
+      }
+    }
+    
+    // Others (02, 12, 99)
+    return baseAmount * (tax.rate || 0) / 100;
+  };
   
   // Auto-expand and load amounts when taxes exist
   useEffect(() => {
     if (otherTaxes.length > 0 && taxTypes.length > 0) {
       setIsExpanded(true);
-      // Auto-expand individual tax cards and load amounts
       const newShowState: { [key: number]: boolean } = {};
-      otherTaxes.forEach((tax, index) => {
+      otherTaxes.forEach((tax: Tax, index: number) => {
         newShowState[index] = true;
-        const taxType = taxTypes.find(t => t.id === tax.taxTypeId);
-        const taxConfig = getTaxConfig(taxType?.code || '');
-        if (taxConfig?.requiresSpecialFields) {
-          loadTaxAmounts(tax.taxTypeId);
+        const taxType = taxTypes.find(t => t.code === tax.taxTypeCode);
+        if (taxType?.code) {
+          const taxConfig = getTaxConfig(taxType.code);
+          if (taxConfig?.requiresSpecialFields) {
+            loadTaxAmounts(tax.taxTypeCode);
+          }
         }
       });
       setShowSpecialFields(newShowState);
     }
   }, [otherTaxes.length, taxTypes.length]);
 
+  if (!hasFiscalInfo) return null;
+
   const addOtherTax = () => {
     if (!selectedTaxType) return;
-    const taxTypeId = selectedTaxType.id;
+    const taxTypeCode = selectedTaxType.code;
     const defaultRate = 0;
     const newIndex = otherTaxes.length;
-    onOtherTaxesChange([...otherTaxes, {taxTypeId, rate: defaultRate}]);
+    handleOtherTaxesChange([...otherTaxes, {taxTypeCode, rate: defaultRate}]);
     setShowSpecialFields({
       ...showSpecialFields,
       [newIndex]: true
     });
-    // Load tax amounts for taxes that need them
-    const taxConfig = getTaxConfig(selectedTaxType?.code);
+    const taxConfig = getTaxConfig(selectedTaxType.code);
     if (taxConfig?.requiresSpecialFields) {
-      loadTaxAmounts(taxTypeId);
+      loadTaxAmounts(taxTypeCode);
     }
     setSelectedTaxType(null);
     setIsExpanded(true);
   };
 
   const removeOtherTax = (index: number) => {
-    onOtherTaxesChange(otherTaxes.filter((_, i) => i !== index));
+    handleOtherTaxesChange(otherTaxes.filter((_: Tax, i: number) => i !== index));
   };
 
   const updateOtherTax = (index: number, field: string, value: any) => {
@@ -128,15 +209,15 @@ export function OtherTaxSection({
     } else {
       newTaxes[index] = { ...newTaxes[index], [field]: value };
     }
-    onOtherTaxesChange(newTaxes);
+    handleOtherTaxesChange(newTaxes);
   };
 
   const getAvailableTaxTypes = () => {
     return taxTypes.filter(t => {
-      const taxConfig = getTaxConfig(t.code);
-      
-      // Exclude IVA types
-      if (taxConfig?.iva) return false;
+      // Exclude IVA types (01, 07, 08)
+      if ([TAX_TYPES.IVA, TAX_TYPES.IVACE, TAX_TYPES.IVARBU].includes(t.code as any)) {
+        return false;
+      }
       
       // ISEBEC only available for specific CABYS codes
       if (t.code === TAX_TYPES.ISEBEC) {
@@ -144,12 +225,33 @@ export function OtherTaxSection({
         if (!isValidProduct) return false;
       }
       
-      // OTHERS type can be repeated
+      // OTHERS type (99) can be repeated
       if (t.code === TAX_TYPES.OTHERS) return true;
       
       // Other types can't be repeated
-      return !otherTaxes.some(tax => tax.taxTypeId === t.id);
+      return !otherTaxes.some((tax: Tax) => tax.taxTypeCode === t.code);
     });
+  };
+
+  const getRequiredSpecialFields = (taxTypeCode: string) => {
+    switch (taxTypeCode) {
+      case TAX_TYPES.IUC: // 03
+        return { quantity: true, percentage: false, volumeConsumption: false, taxAmountId: true };
+      case TAX_TYPES.ISEBA: // 04
+        return { quantity: true, percentage: true, volumeConsumption: false, taxAmountId: true };
+      case TAX_TYPES.ISEBEC: // 05
+        const isValidProduct = cabys?.startsWith('2202') || cabys?.startsWith('3401');
+        if (isValidProduct) {
+          return { quantity: true, percentage: false, volumeConsumption: true, taxAmountId: true };
+        }
+        return { quantity: false, percentage: false, volumeConsumption: false, taxAmountId: false };
+      case TAX_TYPES.IPT: // 06
+        return { quantity: true, percentage: false, volumeConsumption: false, taxAmountId: true };
+      case TAX_TYPES.ISEC: // 12
+        return { quantity: false, percentage: false, volumeConsumption: false, taxAmountId: false };
+      default:
+        return { quantity: false, percentage: false, volumeConsumption: false, taxAmountId: false };
+    }
   };
 
   return (
@@ -162,16 +264,20 @@ export function OtherTaxSection({
               {t('taxes.specificTaxes')}
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Select value={selectedTaxType?.id || ""} onValueChange={(value) => {
-                const taxType = taxTypes.find(t => t.id === value);
-                setSelectedTaxType(taxType || null);
-              }} disabled={disabled}>
+              <Select 
+                value={selectedTaxType?.code || ""} 
+                onValueChange={(value) => {
+                  const taxType = taxTypes.find(t => t.code === value);
+                  setSelectedTaxType(taxType || null);
+                }} 
+                disabled={disabled}
+              >
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder={t('taxes.addTax')} />
                 </SelectTrigger>
                 <SelectContent>
                   {getAvailableTaxTypes().map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
+                    <SelectItem key={type.code} value={type.code}>
                       {type.name}
                     </SelectItem>
                   ))}
@@ -198,11 +304,11 @@ export function OtherTaxSection({
       }`}>
         <CardContent>
           <div className="space-y-4">
-            {otherTaxes.map((tax, index) => {
-              const taxType = taxTypes.find(t => t.id === tax.taxTypeId);
-              const taxConfig = getTaxConfig(taxType?.code || '');
+            {otherTaxes.map((tax: Tax, index: number) => {
+              const taxType = taxTypes.find(t => t.code === tax.taxTypeCode);
+              const taxConfig = taxType?.code ? getTaxConfig(taxType.code) : undefined;
               const hasSpecialFields = taxConfig?.requiresSpecialFields;
-              const requiredFields = getRequiredSpecialFields(taxType?.code || '', cabys);
+              const requiredFields = getRequiredSpecialFields(taxType?.code || '');
               
               return (
                 <Card key={index}>
@@ -220,8 +326,8 @@ export function OtherTaxSection({
                               ...showSpecialFields,
                               [index]: newShowState
                             });
-                            if (newShowState && hasSpecialFields && !taxAmounts[tax.taxTypeId]) {
-                              loadTaxAmounts(tax.taxTypeId);
+                            if (newShowState && hasSpecialFields && !taxAmountsData[tax.taxTypeCode]) {
+                              loadTaxAmounts(tax.taxTypeCode);
                             }
                           }}
                         >
@@ -252,28 +358,21 @@ export function OtherTaxSection({
                               <Input 
                                 value={`₡${calculateTaxAmount(tax).toFixed(2)}`} 
                                 disabled 
-                                className="bg-muted pr-10"
+                                className="bg-gray-100 dark:bg-gray-800 pr-10"
                               />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                                onClick={() => removeOtherTax(index)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                              <ClearButton onClick={() => removeOtherTax(index)} />
                             </div>
                           </div>
                         </div>
                       )}
                       {hasSpecialFields && (() => {
+                        // Count all fields including taxAmountId
                         const allFields = [
                           requiredFields.taxAmountId && 'taxAmountId',
                           requiredFields.quantity && 'quantity', 
                           requiredFields.percentage && 'percentage',
                           requiredFields.volumeConsumption && 'volumeConsumption',
-                          'calculatedAmount'
+                          'calculatedAmount' // Always present
                         ].filter(Boolean);
                         
                         const fieldCount = allFields.length;
@@ -289,15 +388,15 @@ export function OtherTaxSection({
                               <div className="space-y-2">
                                 <Label>{t('taxes.taxAmount')}</Label>
                                 <Select
-                                  value={tax.specialFields?.taxAmountId || ""}
-                                  onValueChange={(value) => updateOtherTax(index, 'specialFields.taxAmountId', value)}
+                                  value={(tax.specialFields?.taxAmountId)?.toString() || ""}
+                                  onValueChange={(value) => updateOtherTax(index, 'specialFields.taxAmountId', Number(value))}
                                 >
                                   <SelectTrigger>
-                                    <SelectValue placeholder={t('taxes.selectAmount')} />
+                                    <SelectValue placeholder={t('taxes.amount')} />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {(taxAmounts[tax.taxTypeId] || []).map((amount) => (
-                                      <SelectItem key={amount.id} value={amount.id}>
+                                    {(taxAmountsData[tax.taxTypeCode] || []).map((amount) => (
+                                      <SelectItem key={amount.id} value={amount.id.toString()}>
                                         {amount.name}
                                       </SelectItem>
                                     ))}
@@ -314,7 +413,7 @@ export function OtherTaxSection({
                                   value={taxType?.code === TAX_TYPES.IUC ? (form?.watch('quantity') || 1) : (tax.specialFields?.quantity || "")}
                                   onChange={taxType?.code === TAX_TYPES.IUC ? undefined : (e) => updateOtherTax(index, 'specialFields.quantity', Number(e.target.value))}
                                   readOnly={taxType?.code === TAX_TYPES.IUC}
-                                  className={taxType?.code === TAX_TYPES.IUC ? "bg-muted" : ""}
+                                  className={taxType?.code === TAX_TYPES.IUC ? "bg-gray-100 dark:bg-gray-800" : ""}
                                 />
                               </div>
                             )}
@@ -346,19 +445,12 @@ export function OtherTaxSection({
                               <Label>{t('taxes.calculatedAmount')}</Label>
                               <div className="relative">
                                 <Input 
-                                  value={`₡${calculateTaxAmount(isProduct && taxType?.code === TAX_TYPES.IUC ? {...tax, specialFields: {...tax.specialFields, quantity: 1}} : tax).toFixed(2)}`} 
+                                  key={`${tax.taxTypeCode}-${tax.specialFields?.quantity || 0}-${tax.specialFields?.percentage || 0}-${tax.specialFields?.volumeConsumption || 0}-${tax.specialFields?.taxAmountId || 0}`}
+                                  value={`₡${calculateTaxAmount(taxType?.code === TAX_TYPES.IUC ? {...tax, specialFields: {...tax.specialFields, quantity: 1}} : tax).toFixed(2)}`} 
                                   disabled 
-                                  className="bg-muted pr-10"
+                                  className="bg-gray-100 dark:bg-gray-800 pr-10"
                                 />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                                  onClick={() => removeOtherTax(index)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                                <ClearButton onClick={() => removeOtherTax(index)} />
                               </div>
                             </div>
                           </div>

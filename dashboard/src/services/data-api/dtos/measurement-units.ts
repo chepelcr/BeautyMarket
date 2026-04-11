@@ -8,9 +8,9 @@ export interface GetMeasurementUnitParams {
 }
 
 export interface GetAllMeasurementUnitsParams {
-  iso_code: string;
-  document_version_id: number;
   status?: string;
+  unitTypeId?: number;
+  documentVersionId?: number;
 }
 
 /**

@@ -6,6 +6,7 @@ import { Phone, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { COUNTRY_CODES } from "@/constants/customerTypes";
 
 interface ContactSectionProps {
   form: any;
@@ -57,13 +58,13 @@ export function ContactSection({ form, countries, fieldErrors, disabled = false 
                 control={form.control}
                 name="phone.countryCode"
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || "188"}>
+                  <Select onValueChange={field.onChange} value={field.value || COUNTRY_CODES.COSTA_RICA}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {countries?.map((country: any) => (
-                        <SelectItem key={country.isoCode} value={country.isoCode}>
+                        <SelectItem key={country.iso_code} value={country.iso_code}>
                           {country.name}
                         </SelectItem>
                       ))}

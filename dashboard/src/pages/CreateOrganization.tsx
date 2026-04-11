@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
 import {
   Form,
   FormControl,
@@ -20,7 +20,7 @@ import { ProgressSteps } from '@/components/ui/progress-steps';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
-import { Loader2, Check, X, Building2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Loader2, Check, X, Building2, ArrowRight, Sparkles } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { buildPublicApiUrl, buildUserApiUrl } from '@/lib/apiUtils';
 import { TemplatePreview } from '@/components/admin/templates/TemplatePreview';
@@ -97,7 +97,7 @@ export default function CreateOrganization() {
     checkSlugAvailable,
     checkSubdomainAvailable
   } = useOrganization();
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
 
   const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
@@ -458,11 +458,6 @@ export default function CreateOrganization() {
   const goBackToStep1 = () => {
     setCurrentStep('info');
     setCompletedSteps([]);
-  };
-
-  const goBackToStep2 = () => {
-    setCurrentStep('contact');
-    setCompletedSteps(['info']);
   };
 
   if (authLoading || loadingExistingOrg) {

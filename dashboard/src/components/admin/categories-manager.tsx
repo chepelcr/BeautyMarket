@@ -1,17 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { Category } from "@/models";
 import CategoryForm from "./category-form";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { listCategories, deleteCategory } from "@/services/categoriesApi";
+import { useCategories } from "@/hooks/useCategories";
+import { deleteCategory } from "@/services/categoriesApi";
 
 export default function CategoriesManager() {
   const { t } = useLanguage();
@@ -24,14 +25,8 @@ export default function CategoriesManager() {
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch categories using the Orders API
-  const { data: categoriesResponse, isLoading } = useQuery({
-    queryKey: ['categories', defaultOrg?.id],
-    queryFn: () => listCategories(defaultOrg!.id, 1, 100), // Fetch all categories
-    enabled: !!defaultOrg?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
+  // Fetch categories using the shared hook
+  const { data: categoriesResponse, isLoading } = useCategories(defaultOrg?.id);
   const categories = categoriesResponse?.data || [];
 
   const deleteMutation = useMutation({

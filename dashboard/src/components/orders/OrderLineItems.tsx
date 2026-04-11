@@ -15,19 +15,10 @@ interface OrderLineItemsProps {
   order: Order;
 }
 
-interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  image?: string;
-}
-
 export function OrderLineItems({ order }: OrderLineItemsProps) {
   const { t } = useLanguage();
 
   const items = order.lines || [];
-  const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
 
   return (
     <Card>

@@ -1,4 +1,4 @@
-import { getTaxConfig } from "@/types/taxTypeConfig";
+
 
 interface TaxCalculationParams {
   tax: any;
@@ -31,7 +31,7 @@ interface LineAmountsResult {
 
 export class TaxCalculationService {
   static getLineAmounts(params: LineAmountsParams): LineAmountsResult {
-    const { subtotal, baseAmount: initialBaseAmount, taxes, taxTypes, discounts = [], detailQuantity, cabys, taxAmounts = {} } = params;
+    const { subtotal, baseAmount: initialBaseAmount, taxes, taxTypes, detailQuantity, cabys, taxAmounts = {} } = params;
     
     let totalAmountLine = subtotal;
     let netTax = 0;
@@ -39,7 +39,7 @@ export class TaxCalculationService {
     let ivaTaxTotal = 0;
     let otherTaxTotal = 0;
     
-    const hasIvaCE = taxes.some(tax => {
+    const hasIva = taxes.some(tax => {
       const taxType = taxTypes.find(tt => tt.taxId === tax.taxTypeId);
       return taxType?.code === '07';
     });

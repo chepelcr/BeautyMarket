@@ -14,6 +14,7 @@ interface PackagingSectionProps {
 
 export function PackagingSection({ form, disabled = false }: PackagingSectionProps) {
   const [isExpanded, setIsExpanded] = useState(!disabled);
+  const hasPackageInfo = form.watch("hasPackageInfo");
   const isPackaged = form.watch("isPackaged");
 
   useEffect(() => {
@@ -24,10 +25,15 @@ export function PackagingSection({ form, disabled = false }: PackagingSectionPro
     }
   }, [isPackaged, form]);
 
-  if (!isPackaged) return null;
+  if (!hasPackageInfo) return null;
 
   return (
-    <Card>
+    <div className="transition-all duration-300 ease-in-out overflow-hidden"
+         style={{
+           maxHeight: hasPackageInfo ? '500px' : '0',
+           opacity: hasPackageInfo ? 1 : 0
+         }}>
+      <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -102,5 +108,6 @@ export function PackagingSection({ form, disabled = false }: PackagingSectionPro
         </CardContent>
       </div>
     </Card>
+    </div>
   );
 }
