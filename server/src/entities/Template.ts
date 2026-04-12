@@ -9,6 +9,7 @@ export const templates = pgTable("templates", {
   category: varchar("category", { length: 50 }).notNull(),
   thumbnailUrl: text("thumbnail_url"),
   previewUrl: text("preview_url"),
+  repositoryUrl: text("repository_url"), // GitHub repository URL for infrastructure deployment
   isActive: boolean("is_active").default(true).notNull(),
   sortOrder: integer("sort_order").default(0).notNull(),
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),

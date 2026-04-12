@@ -70,7 +70,9 @@ export class ExpressAppConfig {
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
       exposedHeaders: ['X-Page-Number', 'X-Page-Size', 'X-Total-Elements', 'X-Total-Pages'],
-      maxAge: 600
+      maxAge: 600,
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     }));
 
     // Request logging middleware

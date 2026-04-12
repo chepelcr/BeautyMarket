@@ -38,16 +38,42 @@ export class OrganizationController {
 
   /**
    * @swagger
-   * /api/organizations:
+   * /api/users/{userId}/organizations:
    *   get:
-   *     summary: Get all organizations
+   *     summary: Get all organizations for a specific user
    *     tags: [Organizations]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *     responses:
    *       200:
-   *         description: List of organizations
+   *         description: List of user's organizations
    */
   async getAll(req: Request, res: Response) {
     try {
+      // Check if this is a user-scoped request (has userId in params)
+      const { userId } = req.params;
+      
+      if (userId) {
+        // Get organizations for specific user via memberships
+        const memberships = await this.memberRepo.getUserMemberships(userId);
+        const orgIds = memberships.map(m => m.organizationId);
+        
+        if (orgIds.length === 0) {
+          return res.json([]);
+        }
+        
+        const organizations = await Promise.all(
+          orgIds.map(id => this.organizationService.getById(id))
+        );
+        
+        return res.json(organizations.filter(org => org !== null));
+      }
+      
+      // Otherwise return all organizations (admin endpoint)
       const organizations = await this.organizationService.getAll();
       res.json(organizations);
     } catch (error) {
@@ -58,11 +84,16 @@ export class OrganizationController {
 
   /**
    * @swagger
-   * /api/organizations/{id}:
+   * /api/users/{userId}/organizations/{id}:
    *   get:
    *     summary: Get organization by ID
    *     tags: [Organizations]
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: id
    *         required: true
@@ -214,11 +245,18 @@ export class OrganizationController {
 
   /**
    * @swagger
-   * /api/organizations:
+   * /api/users/{userId}/organizations:
    *   post:
    *     summary: Create a new organization (Step 1 of onboarding)
    *     tags: [Organizations]
    *     description: Creates organization draft with basic info. Sets onboardingStep = 1.
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The authenticated user's ID (owner of the new organization)
    *     requestBody:
    *       required: true
    *       content:
@@ -228,15 +266,12 @@ export class OrganizationController {
    *             required:
    *               - name
    *               - slug
-   *               - ownerId
    *             properties:
    *               name:
    *                 type: string
    *               slug:
    *                 type: string
    *               subdomain:
-   *                 type: string
-   *               ownerId:
    *                 type: string
    *     responses:
    *       201:
@@ -402,12 +437,17 @@ export class OrganizationController {
 
   /**
    * @swagger
-   * /api/organizations/{id}/onboarding/step2:
+   * /api/users/{userId}/organizations/{id}/onboarding/step2:
    *   post:
    *     summary: Complete onboarding step 2 (contact information)
    *     tags: [Organizations]
    *     description: Updates contact settings and advances onboardingStep to 2
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: id
    *         required: true
@@ -463,12 +503,17 @@ export class OrganizationController {
 
   /**
    * @swagger
-   * /api/organizations/{id}/onboarding/step3:
+   * /api/users/{userId}/organizations/{id}/onboarding/step3:
    *   post:
    *     summary: Complete onboarding step 3 (apply template and finalize)
    *     tags: [Organizations]
    *     description: Applies selected template to organization and sets onboardingStep = 3
    *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
    *       - in: path
    *         name: id
    *         required: true

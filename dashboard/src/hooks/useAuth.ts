@@ -239,7 +239,12 @@ export function useAuth() {
         throw new Error('Failed to complete verification');
       }
 
-      return response.json();
+      const userProfile = await response.json();
+      
+      // Update the user profile in the query cache
+      queryClient.setQueryData(['user-profile'], userProfile);
+      
+      return userProfile;
     },
   });
 

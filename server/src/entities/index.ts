@@ -39,7 +39,6 @@ export { templateProducts, type TemplateProduct } from "./TemplateProduct";
 export { sessions } from "./Session";
 export { users, type User, type UpsertUser } from "./User";
 export { categoriesTable, type Category, validCategories, type ValidCategory } from "./Category";
-export { provinces, cantons, districts, type Province, type Canton, type District } from "./Location";
 export { homePageContent, type HomePageContent } from "./HomePageContent";
 export { deploymentHistory, type DeploymentHistory, type InsertDeploymentHistory } from "./Deployment";
 export { preDeployments, type PreDeployment } from "./PreDeployment";

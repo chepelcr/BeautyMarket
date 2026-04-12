@@ -7,6 +7,7 @@ export interface OrganizationRegisteredData {
   slug: string;
   domain?: string;     // Organization.customDomain — present only when set
   subdomain?: string;  // Organization.subdomain — present only when set
+  templateId?: string; // Organization.templateId — template to deploy (defaults to 'jmarkets-demo')
 }
 
 export class OrganizationRegisteredEvent extends EventBase<OrganizationRegisteredData> {

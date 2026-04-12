@@ -1045,15 +1045,25 @@
         }
       }
     },
-    "/api/organizations": {
+    "/api/users/{userId}/organizations": {
       "get": {
-        "summary": "Get all organizations",
+        "summary": "Get all organizations for a specific user",
         "tags": [
           "Organizations"
         ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of organizations"
+            "description": "List of user's organizations"
           }
         }
       },
@@ -1063,6 +1073,17 @@
           "Organizations"
         ],
         "description": "Creates organization draft with basic info. Sets onboardingStep = 1.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The authenticated user's ID (owner of the new organization)"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1071,8 +1092,7 @@
                 "type": "object",
                 "required": [
                   "name",
-                  "slug",
-                  "ownerId"
+                  "slug"
                 ],
                 "properties": {
                   "name": {
@@ -1082,9 +1102,6 @@
                     "type": "string"
                   },
                   "subdomain": {
-                    "type": "string"
-                  },
-                  "ownerId": {
                     "type": "string"
                   }
                 }
@@ -1102,13 +1119,21 @@
         }
       }
     },
-    "/api/organizations/{id}": {
+    "/api/users/{userId}/organizations/{id}": {
       "get": {
         "summary": "Get organization by ID",
         "tags": [
           "Organizations"
         ],
         "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "in": "path",
             "name": "id",
@@ -1121,78 +1146,6 @@
         "responses": {
           "200": {
             "description": "Organization data"
-          },
-          "404": {
-            "description": "Organization not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update an organization",
-        "tags": [
-          "Organizations"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "slug": {
-                    "type": "string"
-                  },
-                  "subdomain": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Organization updated"
-          },
-          "404": {
-            "description": "Organization not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete an organization",
-        "tags": [
-          "Organizations"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Organization deleted"
-          },
-          "400": {
-            "description": "Cannot delete organization"
           },
           "404": {
             "description": "Organization not found"
@@ -1298,6 +1251,80 @@
         }
       }
     },
+    "/api/organizations/{id}": {
+      "put": {
+        "summary": "Update an organization",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "subdomain": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Organization updated"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an organization",
+        "tags": [
+          "Organizations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization deleted"
+          },
+          "400": {
+            "description": "Cannot delete organization"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
     "/api/organizations/{id}/settings": {
       "put": {
         "summary": "Update organization settings",
@@ -1334,7 +1361,7 @@
         }
       }
     },
-    "/api/organizations/{id}/onboarding/step2": {
+    "/api/users/{userId}/organizations/{id}/onboarding/step2": {
       "post": {
         "summary": "Complete onboarding step 2 (contact information)",
         "tags": [
@@ -1342,6 +1369,14 @@
         ],
         "description": "Updates contact settings and advances onboardingStep to 2",
         "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "in": "path",
             "name": "id",
@@ -1394,7 +1429,7 @@
         }
       }
     },
-    "/api/organizations/{id}/onboarding/step3": {
+    "/api/users/{userId}/organizations/{id}/onboarding/step3": {
       "post": {
         "summary": "Complete onboarding step 3 (apply template and finalize)",
         "tags": [
@@ -1402,6 +1437,14 @@
         ],
         "description": "Applies selected template to organization and sets onboardingStep = 3",
         "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "in": "path",
             "name": "id",
