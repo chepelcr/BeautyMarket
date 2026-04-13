@@ -24,6 +24,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'demo',
     thumbnailUrl: '/templates/jmarkets-demo.jpg',
     previewUrl: `https://jmarkets-demo-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-jmarkets-demo',
     isActive: true,
     sortOrder: 1,
   },
@@ -34,6 +35,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'beauty',
     thumbnailUrl: '/templates/beauty-essentials.jpg',
     previewUrl: `https://beauty-essentials-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-beauty-essentials',
     isActive: true,
     sortOrder: 2,
   },
@@ -44,6 +46,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'technology',
     thumbnailUrl: '/templates/tech-gadgets.jpg',
     previewUrl: `https://tech-gadgets-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-tech-gadgets',
     isActive: true,
     sortOrder: 3,
   },
@@ -54,6 +57,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'fashion',
     thumbnailUrl: '/templates/vintage-fashion.jpg',
     previewUrl: `https://vintage-fashion-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-vintage-fashion',
     isActive: true,
     sortOrder: 4,
   },
@@ -64,6 +68,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'crafts',
     thumbnailUrl: '/templates/artisan-crafts.jpg',
     previewUrl: `https://artisan-crafts-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-artisan-crafts',
     isActive: true,
     sortOrder: 5,
   },
@@ -74,6 +79,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'food',
     thumbnailUrl: '/templates/gourmet-foods.jpg',
     previewUrl: `https://gourmet-foods-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-gourmet-foods',
     isActive: true,
     sortOrder: 6,
   },
@@ -84,6 +90,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'fitness',
     thumbnailUrl: '/templates/fitness-hub.jpg',
     previewUrl: `https://fitness-hub-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-fitness-hub',
     isActive: true,
     sortOrder: 7,
   },
@@ -94,6 +101,7 @@ const defaultTemplates: InsertTemplate[] = [
     category: 'pets',
     thumbnailUrl: '/templates/pet-care.jpg',
     previewUrl: `https://pet-care-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-pet-care',
     isActive: true,
     sortOrder: 8,
   },
@@ -856,13 +864,22 @@ export async function seedTemplates(db: PostgresJsDatabase<any>): Promise<void> 
       console.log(`Template '${template.name}' already exists`);
       templateId = existing[0].id;
       
-      // Update previewUrl if it changed
+      // Update fields if they changed
+      const updates: any = {};
       if (existing[0].previewUrl !== template.previewUrl) {
+        updates.previewUrl = template.previewUrl;
+      }
+      if (existing[0].repositoryUrl !== template.repositoryUrl) {
+        updates.repositoryUrl = template.repositoryUrl;
+      }
+      
+      if (Object.keys(updates).length > 0) {
         await db
           .update(templates)
-          .set({ previewUrl: template.previewUrl })
+          .set(updates)
           .where(eq(templates.id, templateId));
-        console.log(`  ✓ Updated preview URL`);
+        if (updates.previewUrl) console.log(`  ✓ Updated preview URL`);
+        if (updates.repositoryUrl) console.log(`  ✓ Updated repository URL`);
       }
     } else {
       const [insertedTemplate] = await db.insert(templates).values(template).returning();

@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Settings, Palette, Mail, CreditCard, Truck } from "lucide-react";
+import { Settings, Palette, Mail, CreditCard, Truck, Globe } from "lucide-react";
 
 const settingsCards = [
   {
@@ -9,6 +9,12 @@ const settingsCards = [
     descriptionKey: "settings.general.subtitle",
     href: "/admin/settings/general",
     icon: Settings,
+  },
+  {
+    titleKey: "sidebar.settings.domain",
+    descriptionKey: "settings.domain.subtitle",
+    href: "/admin/settings/domain",
+    icon: Globe,
   },
   {
     titleKey: "sidebar.settings.theme",

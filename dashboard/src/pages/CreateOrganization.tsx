@@ -6,7 +6,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProgressSteps } from '@/components/ui/progress-steps';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Loader2, Check, X, Building2, ArrowRight, Sparkles } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { buildPublicApiUrl, buildUserApiUrl } from '@/lib/apiUtils';
+import { TemplatePreview } from '@/components/admin/templates/TemplatePreview';
+import { TemplateCard } from '@/components/admin/templates/TemplateCard';
+import { Template as ComponentTemplate } from '@/components/admin/templates/types';
 import {
   Form,
   FormControl,
@@ -15,17 +37,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProgressSteps } from '@/components/ui/progress-steps';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { useOrganization } from '@/hooks/useOrganization';
-import { Loader2, Check, X, Building2, ArrowRight, Sparkles } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { buildPublicApiUrl, buildUserApiUrl } from '@/lib/apiUtils';
-import { TemplatePreview } from '@/components/admin/templates/TemplatePreview';
-import { TemplateCard } from '@/components/admin/templates/TemplateCard';
-import { Template as ComponentTemplate } from '@/components/admin/templates/types';
 
 // Step 1: Organization Info Schema
 const step1Schema = z.object({
@@ -76,6 +87,8 @@ export default function CreateOrganization() {
   const [createdOrgId, setCreatedOrgId] = useState<string | null>(null); // Track created org ID
   const [step1Data, setStep1Data] = useState<Step1Form | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null); // Stores template.id
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [templateToConfirm, setTemplateToConfirm] = useState<ComponentTemplate | null>(null);
   const [templates, setTemplates] = useState<ComponentTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loadingExistingOrg, setLoadingExistingOrg] = useState(false);
@@ -90,6 +103,7 @@ export default function CreateOrganization() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const {
     createOrganization,
     completeOnboardingStep2,
@@ -98,6 +112,84 @@ export default function CreateOrganization() {
     checkSubdomainAvailable
   } = useOrganization();
   const [, navigate] = useLocation();
+
+  // Handler for template selection - shows confirmation dialog
+  const handleTemplateSelect = (templateId: string | null) => {
+    if (templateId === null) {
+      // "Start from scratch" option - apply immediately without confirmation
+      applyTemplate(null);
+    } else {
+      // Show confirmation dialog for template selection
+      const template = templates.find(t => t.id === templateId);
+      setTemplateToConfirm(template || null);
+      setConfirmDialogOpen(true);
+    }
+  };
+
+  // Handler for confirming template selection
+  const handleConfirmTemplate = () => {
+    if (templateToConfirm) {
+      applyTemplate(templateToConfirm.id);
+    }
+    setConfirmDialogOpen(false);
+    setTemplateToConfirm(null);
+  };
+
+  // Apply template and complete onboarding
+  const applyTemplate = async (templateId: string | null) => {
+    if (!user?.id || !createdOrgId || !step1Data) {
+      toast({
+        title: t('common.error'),
+        description: 'Missing required data',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // If no template selected, skip to redirect
+    if (!templateId) {
+      toast({
+        title: t('organizations.create.success'),
+        description: `${step1Data.name} ${t('organizations.create.successDescription')}`,
+      });
+
+      sessionStorage.removeItem('resumeOrgId');
+      sessionStorage.setItem('selectedOrgId', createdOrgId);
+      navigate('/admin');
+      return;
+    }
+
+    try {
+      const organization = await completeOnboardingStep3.mutateAsync({
+        organizationId: createdOrgId,
+        userId: user.id,
+        templateId,
+        includeCategories: true,
+      });
+
+      setCompletedSteps(['info', 'contact', 'template']);
+
+      const templateName = templates.find(t => t.id === templateId)?.displayName || '';
+      toast({
+        title: t('organizations.create.success'),
+        description: `${step1Data.name} ${t('organizations.create.successDescription')} - ${templateName}`,
+      });
+
+      sessionStorage.removeItem('resumeOrgId');
+      sessionStorage.setItem('selectedOrgId', organization.id);
+      queryClient.setQueryData(['user-organizations', user.id], [organization]);
+      queryClient.setQueryData(['default-organization', user.id], organization);
+
+      navigate('/admin');
+    } catch (error: any) {
+      console.error('Error applying template:', error);
+      toast({
+        title: t('common.error'),
+        description: error.message || 'Could not apply template',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
@@ -392,69 +484,6 @@ export default function CreateOrganization() {
     }
   };
 
-  const handleFinalSubmit = async () => {
-    if (!user?.id || !createdOrgId || !step1Data) {
-      toast({
-        title: 'Error',
-        description: 'Missing required data',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // If no template selected, skip to redirect
-    if (!selectedTemplate) {
-      toast({
-        title: 'Organization created',
-        description: `${step1Data.name} has been created successfully`,
-      });
-
-      // Clear the resume orgId from sessionStorage
-      sessionStorage.removeItem('resumeOrgId');
-
-      // Select the org (same pattern as SelectOrganization)
-      sessionStorage.setItem('selectedOrgId', createdOrgId);
-
-      navigate('/admin');
-      return;
-    }
-
-    try {
-      // Apply template and complete setup (onboardingStep = 3)
-      const organization = await completeOnboardingStep3.mutateAsync({
-        organizationId: createdOrgId,
-        userId: user.id,
-        templateId: selectedTemplate,
-        includeCategories: true,
-      });
-
-      setCompletedSteps(['info', 'contact', 'template']);
-
-      toast({
-        title: 'Organization ready!',
-        description: `${step1Data.name} is now ready to use with ${templates.find(t => t.id === selectedTemplate)?.displayName || 'selected template'}`,
-      });
-
-      // Clear the resume orgId from sessionStorage
-      sessionStorage.removeItem('resumeOrgId');
-
-      // Select the org immediately (same pattern as SelectOrganization)
-      // and pre-populate the React Query cache to avoid a loading state in admin
-      sessionStorage.setItem('selectedOrgId', organization.id);
-      queryClient.setQueryData(['user-organizations', user.id], [organization]);
-      queryClient.setQueryData(['default-organization', user.id], organization);
-
-      navigate('/admin');
-    } catch (error: any) {
-      console.error('Error applying template:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Could not apply template',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const goBackToStep1 = () => {
     setCurrentStep('info');
     setCompletedSteps([]);
@@ -689,9 +718,9 @@ export default function CreateOrganization() {
           {currentStep === 'template' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Elige tu Plantilla</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('template.card.chooseTemplate')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Selecciona un diseño para tu tienda (puedes cambiarlo después)
+                  {t('template.card.chooseTemplateDescription')}
                 </p>
               </div>
 
@@ -704,8 +733,9 @@ export default function CreateOrganization() {
                   {/* Option to skip template selection */}
                   <button
                     type="button"
-                    onClick={() => setSelectedTemplate(null)}
-                    className={`p-6 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                    onClick={() => handleTemplateSelect(null)}
+                    disabled={completeOnboardingStep3.isPending}
+                    className={`p-6 border-2 rounded-lg text-left transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
                       selectedTemplate === null
                         ? 'border-primary bg-primary/5'
                         : 'border-gray-200 dark:border-gray-700'
@@ -716,44 +746,36 @@ export default function CreateOrganization() {
                         <Sparkles className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold mb-1">Empezar desde cero</h4>
+                        <h4 className="font-semibold mb-1">{t('template.card.startFromScratch')}</h4>
                         <p className="text-sm text-muted-foreground">
-                          Crea tu tienda sin plantilla predefinida
+                          {t('template.card.startFromScratchDescription')}
                         </p>
                       </div>
-                      {selectedTemplate === null && (
-                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      {completeOnboardingStep3.isPending && selectedTemplate === null && (
+                        <Loader2 className="h-5 w-5 animate-spin text-primary flex-shrink-0" />
                       )}
                     </div>
                   </button>
 
                   {/* Template cards with TemplateCard component */}
                   {templates.map((template) => (
-                    <TemplateCard
-                      key={template.id}
-                      template={template}
-                      onSelect={(templateId) => setSelectedTemplate(templateId)}
-                      onPreview={handlePreviewTemplate}
-                      isSelected={selectedTemplate === template.id}
-                    />
+                    <div key={template.id} className="relative">
+                      <TemplateCard
+                        template={template}
+                        onSelect={handleTemplateSelect}
+                        onPreview={handlePreviewTemplate}
+                        isSelected={selectedTemplate === template.id}
+                        disabled={completeOnboardingStep3.isPending}
+                      />
+                      {completeOnboardingStep3.isPending && selectedTemplate === template.id && (
+                        <div className="absolute inset-0 bg-background/50 flex items-center justify-center rounded-lg">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
-
-              <Button
-                onClick={handleFinalSubmit}
-                className="w-full"
-                disabled={completeOnboardingStep3.isPending}
-              >
-                {completeOnboardingStep3.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Finalizando...
-                  </>
-                ) : (
-                  'Finalizar'
-                )}
-              </Button>
             </div>
           )}
         </CardContent>
@@ -766,6 +788,24 @@ export default function CreateOrganization() {
         onOpenChange={setIsPreviewOpen}
         onSelectTemplate={handleSelectFromPreview}
       />
+
+      {/* Template Selection Confirmation Dialog */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('template.card.confirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('template.card.confirmMessage')} <strong>{templateToConfirm?.displayName}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('template.card.confirmNo')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmTemplate}>
+              {t('template.card.confirmYes')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       </div>
     </div>
   );

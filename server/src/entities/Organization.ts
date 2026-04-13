@@ -9,6 +9,7 @@ export const organizations = pgTable("organizations", {
   subdomain: varchar("subdomain", { length: 100 }).unique(),
   customDomain: varchar("custom_domain", { length: 255 }).unique(),
   domainVerified: boolean("domain_verified").default(false),
+  verificationToken: varchar("verification_token", { length: 64 }),
 
   // Settings (JSON for theme, logo, colors, payment config, shipping config)
   // NOTE: This will be deprecated and removed after migration to normalized tables

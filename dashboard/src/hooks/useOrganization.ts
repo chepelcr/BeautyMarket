@@ -150,9 +150,7 @@ export function useOrganization() {
       }
       return response.json() as Promise<Organization>;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
-    },
+    // Don't invalidate during onboarding - wait until completion
   });
 
   // Complete onboarding step 3 (apply template)
@@ -170,6 +168,7 @@ export function useOrganization() {
       }
       return response.json() as Promise<Organization>;
     },
+    // Invalidate only after final step completes
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
     },

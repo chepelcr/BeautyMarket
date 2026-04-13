@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { PageLoader } from '@/components/ui/page-loader';
 import {
@@ -11,6 +12,8 @@ import {
   Settings,
   Users,
   LayoutGrid,
+  QrCode,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
@@ -22,7 +25,9 @@ import {
   StatusCard,
   RecentActivityCard,
   QuickActionsGrid,
+  QRCodeDialog,
 } from '@/components/dashboard';
+import { constructSiteUrl } from '@/utils/siteUrl';
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -31,6 +36,21 @@ export default function Dashboard() {
   const { data: organizations } = useUserOrganizations(user?.id);
   const organization = organizations?.[0];
   const { t } = useLanguage();
+
+  // QR dialog state
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+
+  // Extract domain configuration from organization
+  const customDomain = organization?.customDomain;
+  const domainVerified = organization?.domainVerified;
+  const subdomain = organization?.subdomain;
+
+  // Construct site URL
+  const siteUrl = constructSiteUrl({
+    customDomain,
+    domainVerified,
+    subdomain,
+  });
 
   const { stats, recentProducts, recentDeployments, latestDeployment, isLoading } =
     useDashboardStats(user?.id, organization?.id);
@@ -118,6 +138,22 @@ export default function Dashboard() {
       description: t('dashboard.quickActions.viewDeploymentsDesc'),
       icon: Rocket,
       onClick: () => setLocation('/admin/deployments'),
+    },
+    {
+      id: 'qr-code',
+      label: t('dashboard.quickActions.qrCode'),
+      description: t('dashboard.quickActions.qrCodeDesc'),
+      icon: QrCode,
+      onClick: () => setQrDialogOpen(true),
+      disabled: !siteUrl,
+    },
+    {
+      id: 'open-site',
+      label: t('dashboard.quickActions.openSite'),
+      description: t('dashboard.quickActions.openSiteDesc'),
+      icon: ExternalLink,
+      onClick: () => siteUrl && window.open(siteUrl, '_blank', 'noopener,noreferrer'),
+      disabled: !siteUrl,
     },
     {
       id: 'settings',
@@ -267,6 +303,14 @@ export default function Dashboard() {
         <h3 className="text-lg font-semibold mb-4">{t('dashboard.quickActions.title')}</h3>
         <QuickActionsGrid actions={quickActions} columns={3} />
       </div>
+
+      {/* QR Code Dialog */}
+      <QRCodeDialog
+        open={qrDialogOpen}
+        onOpenChange={setQrDialogOpen}
+        siteUrl={siteUrl || ''}
+        subdomain={subdomain || ''}
+      />
     </div>
   );
 }
