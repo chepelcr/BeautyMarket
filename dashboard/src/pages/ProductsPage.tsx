@@ -114,6 +114,7 @@ export default function ProductsPage() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isProductFormSubmitting, setIsProductFormSubmitting] = useState(false);
+  const [productFormSubmit, setProductFormSubmit] = useState<(() => void) | null>(null);
 
   // Excel upload dialog
   const [showExcelUpload, setShowExcelUpload] = useState(false);
@@ -136,6 +137,7 @@ export default function ProductsPage() {
   const handleCloseForm = () => {
     setShowProductForm(false);
     setEditingProduct(null);
+    setProductFormSubmit(null);
   };
 
   const handleExcelUploadSuccess = () => {
@@ -418,6 +420,7 @@ export default function ProductsPage() {
               categoriesLoading={categoriesLoading}
               onSuccess={handleCloseForm}
               onSubmittingChange={setIsProductFormSubmitting}
+              onFormReady={(submitFn) => setProductFormSubmit(() => submitFn)}
             />
           </div>
           <DialogFooter className="flex justify-end space-x-4 pt-4">
@@ -425,13 +428,11 @@ export default function ProductsPage() {
               {t('common.cancel')}
             </Button>
             <Button 
-              type="submit" 
+              type="button" 
               disabled={isProductFormSubmitting}
               onClick={() => {
-                const form = document.querySelector('form');
-                if (form) {
-                  const event = new Event('submit', { bubbles: true, cancelable: true });
-                  form.dispatchEvent(event);
+                if (productFormSubmit) {
+                  productFormSubmit();
                 }
               }}
             >

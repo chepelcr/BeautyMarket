@@ -36,6 +36,7 @@ interface ProductFormProps {
   categoriesLoading?: boolean;
   onSuccess: () => void;
   onSubmittingChange?: (isSubmitting: boolean) => void;
+  onFormReady?: (submitFn: () => void) => void;
 }
 
 export default function ProductForm({ 
@@ -43,7 +44,8 @@ export default function ProductForm({
   categories, 
   categoriesLoading = false,
   onSuccess, 
-  onSubmittingChange 
+  onSubmittingChange,
+  onFormReady
 }: ProductFormProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -249,6 +251,13 @@ export default function ProductForm({
       setHasCabysSelected(false);
     }
   }, [cabysValue, isInsertMode]);
+  
+  // Expose submit function to parent
+  useEffect(() => {
+    if (onFormReady) {
+      onFormReady(() => form.handleSubmit(onSubmit)());
+    }
+  }, [onFormReady]);
   
   return (
     <Form {...form}>

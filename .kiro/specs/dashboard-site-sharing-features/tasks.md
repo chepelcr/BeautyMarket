@@ -122,7 +122,7 @@ Key features:
   - Add Spanish translations for all new keys
   - _Requirements: 5.3, 5.4_
 
-- [~] 7. Checkpoint - Verify core site sharing functionality
+- [ ] 7. Checkpoint - Verify core site sharing functionality
   - Ensure all tests pass, ask the user if questions arise.
   - Manually test QR code generation in browser
   - Verify actions appear in QuickActionsGrid
@@ -130,7 +130,7 @@ Key features:
   - Test disabled states when no valid domain configuration exists
 
 - [ ] 8. Implement backend domain validation utility
-  - [~] 8.1 Create domain validation function
+  - [ ] 8.1 Create domain validation function
     - Create `server/src/utils/domainValidation.ts`
     - Implement `validateDomain()` function with regex validation
     - Export function for use in controllers
@@ -142,7 +142,7 @@ Key features:
     - Generate random strings (valid and invalid domains), verify validation function returns correct boolean
 
 - [ ] 9. Implement backend API endpoints for domain management
-  - [~] 9.1 Add PUT /api/organizations/:id/domain endpoint
+  - [ ] 9.1 Add PUT /api/organizations/:id/domain endpoint
     - Add endpoint to OrganizationController
     - Validate domain format using validation utility
     - Generate verification token using crypto.randomBytes(32).toString('hex')
@@ -150,7 +150,7 @@ Key features:
     - Return organization and verificationToken in response
     - _Requirements: 7.1, 7.4, 7.5, 7.6, 8.1, 8.2_
   
-  - [~] 9.2 Add POST /api/organizations/:id/domain/verify endpoint
+  - [ ] 9.2 Add POST /api/organizations/:id/domain/verify endpoint
     - Add endpoint to OrganizationController
     - Retrieve organization and verify customDomain and verificationToken exist
     - Perform DNS TXT lookup for `_j-markets-verification.{customDomain}` using dns.promises.resolveTxt()
@@ -160,7 +160,7 @@ Key features:
     - Handle DNS errors (ENOTFOUND, ENODATA, timeout) with appropriate error messages
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 13.1, 13.2, 13.3, 13.4_
   
-  - [~] 9.3 Add DELETE /api/organizations/:id/domain endpoint
+  - [ ] 9.3 Add DELETE /api/organizations/:id/domain endpoint
     - Add endpoint to OrganizationController
     - Update organization to set customDomain=null, domainVerified=false, verificationToken=null
     - Return updated organization in response
@@ -182,13 +182,13 @@ Key features:
     - Generate random custom domain, save and get token, retrieve organization multiple times, verify token remains constant
 
 - [ ] 10. Create Domain Settings page
-  - [~] 10.1 Create page file and basic structure
+  - [ ] 10.1 Create page file and basic structure
     - Create `dashboard/src/pages/settings/DomainSettings.tsx`
     - Set up state for customDomain, verificationToken, domainVerified, isVerifying, showRemoveConfirm
     - Fetch organization data and populate state on mount
     - _Requirements: 7.1, 11.1_
   
-  - [~] 10.2 Implement custom domain input and validation
+  - [ ] 10.2 Implement custom domain input and validation
     - Add input field for custom domain with validation
     - Implement client-side domain format validation
     - Display validation error messages for invalid formats
@@ -196,7 +196,7 @@ Key features:
     - Handle API response and update state with verificationToken
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
   
-  - [~] 10.3 Implement DNS verification instructions panel
+  - [ ] 10.3 Implement DNS verification instructions panel
     - Display DNS TXT record name: `_j-markets-verification.{customDomain}`
     - Display DNS TXT record value: verificationToken
     - Show expected DNS record format: `_j-markets-verification.{customDomain} TXT {verificationToken}`
@@ -205,7 +205,7 @@ Key features:
     - Show panel only when domainVerified is false
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
   
-  - [~] 10.4 Implement domain verification button and status display
+  - [ ] 10.4 Implement domain verification button and status display
     - Add "Verify Domain" button that calls POST /api/organizations/:id/domain/verify
     - Display verification status badge (verified/not verified) based on domainVerified
     - Show success message when verification succeeds
@@ -214,7 +214,7 @@ Key features:
     - Display loading state during verification
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 11.1, 11.2, 11.3, 11.4, 11.5_
   
-  - [~] 10.5 Implement domain removal functionality
+  - [ ] 10.5 Implement domain removal functionality
     - Add "Remove Domain" button that shows confirmation dialog
     - Implement confirmation dialog with clear warning message
     - Call DELETE /api/organizations/:id/domain on confirmation
@@ -256,13 +256,13 @@ Key features:
     - **Validates: Requirements 12.4**
     - Generate organizations with both domains, construct URL, remove custom domain, verify URL reverts to subdomain
 
-- [~] 11. Add Domain Settings page to navigation
+- [ ] 11. Add Domain Settings page to navigation
   - Add route for Domain Settings page in router configuration
   - Add navigation link in settings menu
   - Ensure proper authentication and authorization
   - _Requirements: 7.1_
 
-- [~] 12. Checkpoint - Verify domain management functionality
+- [ ] 12. Checkpoint - Verify domain management functionality
   - Ensure all tests pass, ask the user if questions arise.
   - Manually test custom domain addition and validation
   - Test DNS verification with real DNS records (if possible)
@@ -301,7 +301,7 @@ Key features:
     - Test custom domain already in use error
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
 
-- [~] 15. Final checkpoint and validation
+- [ ] 15. Final checkpoint and validation
   - Ensure all tests pass, ask the user if questions arise.
   - Verify QR codes scan correctly on mobile devices
   - Test responsive layout on mobile and desktop

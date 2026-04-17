@@ -89,11 +89,40 @@ export default function App() {
     return {};
   };
 
+  // Only provide document version context when user is authenticated and has an organization
+  const shouldProvideDocumentVersion = isAuthenticated && defaultOrg;
+
   return (
     <>
       <TransitionOverlay />
       <ThemeProvider>
-        <DocumentVersionProvider isoCode={isoCode}>
+        {shouldProvideDocumentVersion ? (
+          <DocumentVersionProvider isoCode={isoCode}>
+            <PageTransition location={location}>
+              {(displayLocation, transitionStage, isLayoutSwitch) => (
+                <>
+                  {isAuthPage ? (
+                    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/10 to-primary/20 dark:from-background dark:to-background relative">
+                      <div className={`relative ${isLayoutSwitch ? transitionStage : ''}`}>
+                        <AuthNavbar {...getNavbarProps()} />
+                      </div>
+                      <main className={`flex-grow ${transitionStage}`}>
+                        <Router displayLocation={displayLocation} />
+                      </main>
+                    </div>
+                  ) : (
+                    <AdminLayout>
+                      <div className={transitionStage}>
+                        <Router displayLocation={displayLocation} />
+                      </div>
+                    </AdminLayout>
+                  )}
+                </>
+              )}
+            </PageTransition>
+            <Toaster />
+          </DocumentVersionProvider>
+        ) : (
           <PageTransition location={location}>
             {(displayLocation, transitionStage, isLayoutSwitch) => (
               <>
@@ -116,8 +145,8 @@ export default function App() {
               </>
             )}
           </PageTransition>
-          <Toaster />
-        </DocumentVersionProvider>
+        )}
+        <Toaster />
       </ThemeProvider>
     </>
   );
