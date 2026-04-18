@@ -268,7 +268,53 @@ Resources:
           GroupName: !Ref DeployDashboardLogGroup
           Status: ENABLED
 
-  # ── Phase 6: Deploy all 8 template storefronts ───────────────────────────────
+  # ── Phase 6: Deploy pollos-sales POS app (independent) ───────────────────────
+
+  DeployPollosSalesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-pollos-sales"
+      RetentionInDays: 14
+
+  DeployPollosSalesProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jmarkets-${Environment}-frontend-pollos-sales"
+      Description: Build pollos-sales POS app and deploy to S3+CloudFront
+      ServiceRole:
+        Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref Environment
+          - Name: REGION
+            Type: PLAINTEXT
+            Value: !Ref AWS::Region
+          - Name: FRONTEND_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref FrontendDomainParam
+          - Name: ROOT_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref RootDomainParam
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-frontend-pollos-sales.yml
+      TimeoutInMinutes: 30
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Ref DeployPollosSalesLogGroup
+          Status: ENABLED
+
+  # ── Phase 7: Deploy all 8 template storefronts ───────────────────────────────
 
   DeployTemplatesLogGroup:
     Type: AWS::Logs::LogGroup
@@ -450,6 +496,27 @@ Resources:
                 - Name: SourceCode
               OutputArtifacts:
                 - Name: DashboardOutput
+              RunOrder: 1
+
+        - Name: DeployPollosSales
+          Actions:
+            - Name: DeployPollosSales
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref DeployPollosSalesProject
+                EnvironmentVariables: !Sub |
+                  [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
+                   {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
+                   {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
+                   {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"}]
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: PollosSalesOutput
               RunOrder: 1
 
         - Name: DeployTemplates
