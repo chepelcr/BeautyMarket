@@ -4,8 +4,11 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { api, orgPath } from "@/lib/api";
 import { fmt, fmtCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import SessionConfig from "./SessionConfig";
+import ProductsPage from "./ProductsPage";
+import AnalyticsPage from "./AnalyticsPage";
 
-type Tab = "realtime" | "closings" | "history";
+type Tab = "realtime" | "closings" | "history" | "products" | "analytics" | "session";
 
 interface StandData {
   id: string;
@@ -136,6 +139,9 @@ export default function DashboardPage() {
     { id: "realtime", label: "📊 Tiempo Real" },
     { id: "closings", label: "🔒 Cierres" },
     { id: "history", label: "📁 Historial" },
+    { id: "products", label: "🛒 Productos" },
+    { id: "analytics", label: "📈 Reportería" },
+    { id: "session", label: "⚙️ Sesión" },
   ];
 
   return (
@@ -347,6 +353,19 @@ export default function DashboardPage() {
         {tab === "history" && (
           <div className="text-center text-muted font-barlow py-12">
             Historial de sesiones — próximamente
+          </div>
+        )}
+
+        {/* Products tab */}
+        {tab === "products" && <ProductsPage />}
+
+        {/* Analytics tab */}
+        {tab === "analytics" && <AnalyticsPage />}
+
+        {/* Session config tab */}
+        {tab === "session" && (
+          <div className="bg-surface border border-surface-border rounded-2xl overflow-hidden" style={{ minHeight: 500 }}>
+            <SessionConfig onDone={() => setTab("realtime")} />
           </div>
         )}
       </div>

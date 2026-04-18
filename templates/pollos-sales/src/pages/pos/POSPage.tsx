@@ -10,10 +10,12 @@ import { db } from "@/lib/db";
 import POSLayout from "@/components/layout/POSLayout";
 import ProductGrid from "@/components/pos/ProductGrid";
 import CartBar from "@/components/pos/CartBar";
+import ClosingFlow from "@/components/pos/ClosingFlow";
 import PaymentScreen from "./PaymentScreen";
 import SuccessScreen from "./SuccessScreen";
+import InventoryOpening from "./InventoryOpening";
 
-type Screen = "pos" | "payment" | "success";
+type Screen = "inventory" | "pos" | "payment" | "success" | "closing";
 
 interface SaleResult {
   total: number;
@@ -27,13 +29,17 @@ export default function POSPage() {
   const { data: assignment, isLoading: assignmentLoading, error: assignmentError } = useAssignment();
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const { items, add, remove, clear, total, count } = useCart();
-  const decrement = useInventory((s) => s.decrement);
+  const { decrement } = useInventory();
 
-  const [screen, setScreen] = useState<Screen>("pos");
+  const [screen, setScreen] = useState<Screen>("inventory");
   const [category, setCategory] = useState("Todos");
   const [lastSale, setLastSale] = useState<SaleResult | null>(null);
 
+  const activeProducts = products.filter((p) => p.isActive);
   const cartItems = Object.values(items);
+
+  // Compute expected totals from IndexedDB sales for closing
+  const [sessionTotals] = useState({ cash: 0, sinpe: 0, card: 0 });
 
   const handleConfirmPayment = async (
     paymentMethod: "Efectivo" | "SINPE" | "Tarjeta",
@@ -60,7 +66,6 @@ export default function POSPage() {
 
     const syncUrl = orgPath(user!.userId, org!.id, "/sales");
 
-    // Write to IndexedDB first
     await db.sales.add({
       localId,
       assignmentId: assignment!.id,
@@ -77,15 +82,12 @@ export default function POSPage() {
       payload,
     });
 
-    // Decrement local inventory
     cartItems.forEach(({ product, qty }) => decrement(product.id, qty));
 
-    // Attempt sync
     try {
       await api.post(syncUrl, payload);
       await db.sales.where({ localId }).modify({ synced: true });
     } catch {
-      // Will sync via service worker background sync
       if ("serviceWorker" in navigator && "SyncManager" in window) {
         const reg = await navigator.serviceWorker.ready;
         await (reg as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register("sync-sales");
@@ -130,10 +132,18 @@ export default function POSPage() {
       context={assignment.context}
       sessionName={assignment.sessionName}
     >
+      {screen === "inventory" && (
+        <InventoryOpening
+          products={activeProducts}
+          assignmentId={assignment.id}
+          onDone={() => setScreen("pos")}
+        />
+      )}
+
       {screen === "pos" && (
         <>
           <ProductGrid
-            products={products.filter((p) => p.isActive)}
+            products={activeProducts}
             cart={Object.fromEntries(
               Object.entries(items).map(([id, { qty }]) => [id, qty])
             )}
@@ -149,6 +159,15 @@ export default function POSPage() {
             onRemove={remove}
             onCheckout={() => cartItems.length > 0 && setScreen("payment")}
           />
+          {/* Closing button */}
+          <div className="px-3 pb-2 bg-surface shrink-0">
+            <button
+              onClick={() => setScreen("closing")}
+              className="w-full py-2 text-muted text-xs font-barlow border border-surface-border rounded-lg hover:border-destructive hover:text-destructive transition-colors"
+            >
+              🔒 Cerrar turno
+            </button>
+          </div>
         </>
       )}
 
@@ -166,6 +185,16 @@ export default function POSPage() {
           paymentMethod={lastSale.paymentMethod}
           change={lastSale.change}
           onNewSale={() => setScreen("pos")}
+        />
+      )}
+
+      {screen === "closing" && (
+        <ClosingFlow
+          assignmentId={assignment.id}
+          expectedCash={sessionTotals.cash}
+          expectedSinpe={sessionTotals.sinpe}
+          expectedCard={sessionTotals.card}
+          onClose={() => setScreen("pos")}
         />
       )}
     </POSLayout>
