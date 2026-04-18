@@ -29,10 +29,6 @@ export default function SelectOrganization() {
   }, [orgs]);
 
   const handleSelect = (org: OrgOption) => {
-    if (org.templateName !== "pollos-sales") {
-      alert("Esta organización no tiene el template Pollos Sales.");
-      return;
-    }
     selectOrg(org);
     // Redirect based on role
     const role = user?.role;

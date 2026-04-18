@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Pollos Porteños Sales — SSM Parameters.
+  Path prefix: /jcampos/{env}/pollos-sales
+  Shares Cognito pool with jmarkets (same user base).
+
+Parameters:
+
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+
+  SinpeNumber:
+    Type: String
+    Description: SINPE Móvil destination number (e.g. 8888-8888)
+    Default: "8888-8888"
+
+  FrontendDomain:
+    Type: String
+    Description: Base domain for all frontend apps (e.g. j-markets.jcampos.dev)
+
+Resources:
+
+  # /jcampos/{env}/pollos-sales/aws/region
+  AwsRegion:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/jcampos/${Environment}/pollos-sales/aws/region"
+      Type: String
+      Value: !Ref AWS::Region
+
+  # /jcampos/{env}/pollos-sales/cognito/user-pool-id  (shared with jmarkets)
+  CognitoUserPoolId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/jcampos/${Environment}/pollos-sales/cognito/user-pool-id"
+      Type: String
+      Value:
+        Fn::ImportValue: "jmarkets-cognito-UserPoolId"
+
+  # /jcampos/{env}/pollos-sales/cognito/client-id  (shared with jmarkets)
+  CognitoClientId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/jcampos/${Environment}/pollos-sales/cognito/client-id"
+      Type: String
+      Value:
+        Fn::ImportValue: "jmarkets-cognito-UserPoolClientId"
+
+  # /jcampos/{env}/pollos-sales/api/url  (same backend)
+  ApiUrl:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/jcampos/${Environment}/pollos-sales/api/url"
+      Type: String
+      Value: !Sub "https://markets-api.${FrontendDomain}"
+
+  # /jcampos/{env}/pollos-sales/sinpe/number
+  SinpeNumberParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/jcampos/${Environment}/pollos-sales/sinpe/number"
+      Type: String
+      Value: !Ref SinpeNumber
+
+Outputs:
+  SsmBasePath:
+    Value: !Sub "/jcampos/${Environment}/pollos-sales"
+    Export:
+      Name: !Sub "jcampos-${Environment}-pollos-sales-ssm-base-path"

@@ -29,28 +29,29 @@
 - [x] src/components/layout/POSLayout.tsx
 - [x] src/components/pos/ProductGrid.tsx
 - [x] src/components/pos/CartBar.tsx
+- [x] src/components/pos/ClosingFlow.tsx
 - [x] src/pages/pos/POSPage.tsx
 - [x] src/pages/pos/PaymentScreen.tsx
 - [x] src/pages/pos/SuccessScreen.tsx
-- [ ] src/components/pos/ClosingFlow.tsx — 4-step closing stepper
-- [ ] src/pages/pos/InventoryOpening.tsx
+- [x] src/pages/pos/InventoryOpening.tsx
 
-## Phase 5: Manager Dashboard (partial) ✅
-- [x] src/pages/dashboard/DashboardPage.tsx — real-time + closings tabs (inline)
-- [ ] src/pages/dashboard/SessionConfig.tsx — 4-step wizard
-- [ ] src/pages/dashboard/HistoryTab.tsx — full history view
-- [ ] src/pages/dashboard/ProductsPage.tsx — inline price editing
-- [ ] src/pages/dashboard/AnalyticsPage.tsx — 4 tabs
+## Phase 5: Manager Dashboard ✅
+- [x] src/pages/dashboard/DashboardPage.tsx — real-time + closings + all tabs
+- [x] src/pages/dashboard/SessionConfig.tsx
+- [x] src/pages/dashboard/ProductsPage.tsx
+- [x] src/pages/dashboard/AnalyticsPage.tsx
 
 ## Phase 6: PWA ✅
 - [x] public/manifest.json
 - [x] public/sw.js — background sync
 - [x] SW registered in main.tsx
 
-## Remaining Work
-- ClosingFlow (4-step stepper for cashier end-of-session)
-- InventoryOpening (stock count before session)
-- SessionConfig wizard (manager creates sessions)
-- ProductsPage (inline price editing)
-- AnalyticsPage (product/session/vendor/context tabs)
-- HistoryTab (past sessions)
+## Phase 7: Pipeline ✅
+- [x] buildspec-frontend-pollos-sales.yml
+- [x] scripts/pipeline-frontend-pollos-sales.sh
+- [x] cloudformation/codepipeline.yml — DeployPollosSales stage
+
+## Remaining
+- [ ] HistoryTab — past sessions list with PDF export
+- [ ] PWA icons (icon-192.png, icon-512.png) in public/
+- [ ] VITE_SINPE_NUMBER wired from org settings (currently hardcoded fallback)
