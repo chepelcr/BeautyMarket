@@ -40,7 +40,21 @@ function ProtectedRoute({
 }
 
 export default function App() {
-  const { user, org } = useAuthContext();
+  const { user, org, isLoading } = useAuthContext();
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-5xl animate-bounce">🍗</div>
+          <div className="text-primary font-barlow text-xl font-bold animate-pulse">
+            Cargando...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Switch>

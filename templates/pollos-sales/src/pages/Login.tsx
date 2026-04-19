@@ -1,24 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 export default function Login() {
-  const { login, isLoading } = useAuthContext();
+  const { user, org, login, isLoading } = useAuthContext();
   const [, navigate] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && !isLoading) {
+      if (org) {
+        // User has org selected, go to appropriate page based on role
+        const destination = user.role === "cajero" ? "/pos" : "/dashboard";
+        navigate(destination);
+      } else {
+        // User logged in but no org selected
+        navigate("/organizations/select");
+      }
+    }
+  }, [user, org, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
       await login(email, password);
-      navigate("/organizations/select");
+      // Navigation will be handled by the useEffect above after login completes
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     }
   };
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-5xl animate-bounce">🍗</div>
+          <div className="text-primary font-barlow text-xl font-bold animate-pulse">
+            Cargando...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
