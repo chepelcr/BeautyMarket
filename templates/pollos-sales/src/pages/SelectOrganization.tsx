@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -13,6 +13,7 @@ interface OrgOption {
 export default function SelectOrganization() {
   const { user, selectOrg } = useAuthContext();
   const [, navigate] = useLocation();
+  const hasAutoSelected = useRef(false);
 
   const { data: orgs = [], isLoading, error } = useQuery({
     queryKey: ["user-orgs", user?.userId],
@@ -21,9 +22,10 @@ export default function SelectOrganization() {
       api.get<OrgOption[]>(userPath(user!.userId, "/organizations")),
   });
 
-  // Auto-select if only one org
+  // Auto-select if only one org (only once)
   useEffect(() => {
-    if (orgs.length === 1) {
+    if (orgs.length === 1 && !hasAutoSelected.current) {
+      hasAutoSelected.current = true;
       handleSelect(orgs[0]);
     }
   }, [orgs]);
