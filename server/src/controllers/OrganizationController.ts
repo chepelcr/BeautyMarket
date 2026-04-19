@@ -59,7 +59,7 @@ export class OrganizationController {
       
       if (userId) {
         // Get organizations for specific user via memberships
-        const memberships = await this.memberRepo.getUserMemberships(userId);
+        const memberships = await this.memberRepo.findByUserId(userId);
         const orgIds = memberships.map(m => m.organizationId);
         
         if (orgIds.length === 0) {
