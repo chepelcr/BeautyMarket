@@ -22,20 +22,24 @@ export default function SelectOrganization() {
       api.get<OrgOption[]>(userPath(user!.userId, "/organizations")),
   });
 
-  // Auto-select if only one org (only once)
-  useEffect(() => {
-    if (orgs.length === 1 && !hasAutoSelected.current) {
-      hasAutoSelected.current = true;
-      handleSelect(orgs[0]);
-    }
-  }, [orgs]);
-
   const handleSelect = (org: OrgOption) => {
     selectOrg(org);
     // Redirect based on role
     const role = user?.role;
     navigate(role === "cajero" ? "/pos" : "/dashboard");
   };
+
+  // Auto-select if only one org (only once)
+  useEffect(() => {
+    if (orgs.length === 1 && !hasAutoSelected.current) {
+      hasAutoSelected.current = true;
+      const org = orgs[0];
+      // Store in sessionStorage and navigate directly (like dashboard does)
+      sessionStorage.setItem("selectedOrg", JSON.stringify(org));
+      const role = user?.role;
+      navigate(role === "cajero" ? "/pos" : "/dashboard");
+    }
+  }, [orgs, user?.role, navigate]);
 
   if (isLoading) {
     return (
