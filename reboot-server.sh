@@ -6,12 +6,6 @@ YELLOW='\033[1;33m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-# Check if --pollos flag is passed
-RUN_POLLOS=false
-if [[ "$1" == "--pollos" ]]; then
-  RUN_POLLOS=true
-fi
-
 echo -e "${GREEN}🔄 Rebooting JMarkets server...${NC}"
 
 # Kill existing server processes by name
@@ -36,22 +30,15 @@ echo "Cleaning Vite caches..."
 rm -rf dashboard/node_modules/.vite dashboard/.vite dashboard/dist
 rm -rf landing-client/node_modules/.vite landing-client/.vite landing-client/dist
 rm -rf client/node_modules/.vite client/.vite client/dist
-if [ "$RUN_POLLOS" = true ]; then
-  rm -rf templates/pollos-sales/node_modules/.vite templates/pollos-sales/.vite templates/pollos-sales/dist
-fi
+rm -rf templates/pollos-sales/node_modules/.vite templates/pollos-sales/.vite templates/pollos-sales/dist
 echo "Caches cleared"
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Start all services in background
-if [ "$RUN_POLLOS" = true ]; then
-  echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard, pollos-sales)...${NC}"
-  nohup npm run dev:all:pollos > logs/server.log 2>&1 &
-else
-  echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard)...${NC}"
-  nohup npm run dev:all > logs/server.log 2>&1 &
-fi
+# Start all services in background (including pollos-sales)
+echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard, pollos-sales)...${NC}"
+nohup npm run dev:all:pollos > logs/server.log 2>&1 &
 DEV_ALL_PID=$!
 
 # Wait a moment to check if process started successfully
@@ -67,11 +54,7 @@ if ps -p $DEV_ALL_PID > /dev/null; then
     echo "  • API Server: http://localhost:5000"
     echo "  • Landing: http://localhost:3001"
     echo "  • Dashboard: http://localhost:3002"
-    if [ "$RUN_POLLOS" = true ]; then
-      echo -e "  • ${MAGENTA}Pollos Sales: http://localhost:9000${NC}"
-    else
-      echo "  • Store Port: http://localhost:9000 (available)"
-    fi
+    echo -e "  • ${MAGENTA}Pollos Sales: http://localhost:9000${NC}"
     echo ""
     echo -e "${YELLOW}Logs:${NC}"
     echo "  • All services: tail -f logs/server.log"
@@ -79,9 +62,6 @@ if ps -p $DEV_ALL_PID > /dev/null; then
     echo -e "${YELLOW}Commands:${NC}"
     echo "  • Stop all: ./stop-server.sh"
     echo "  • Restart: ./reboot-server.sh"
-    if [ "$RUN_POLLOS" = false ]; then
-      echo "  • Run with Pollos: ./reboot-server.sh --pollos"
-    fi
 else
     echo "❌ Services failed to start. Check logs/server.log for details."
     exit 1
