@@ -114,7 +114,24 @@ export default function DashboardPage() {
   const { user, org, logout } = useAuthContext();
   const [tab, setTab] = useState<Tab>("realtime");
 
-  const { data, isLoading, refetch } = useQuery({
+  // Debug: Check if org is loaded
+  if (!org) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <div className="text-destructive font-barlow font-bold text-xl">
+            No hay organización seleccionada
+          </div>
+          <div className="text-muted text-sm mt-2">
+            Redirigiendo...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["dashboard", org?.id],
     enabled: !!user && !!org,
     refetchInterval: 30_000,
@@ -191,6 +208,26 @@ export default function DashboardPage() {
         {isLoading && (
           <div className="flex items-center justify-center h-40">
             <div className="text-muted font-barlow animate-pulse">Cargando datos...</div>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex items-center justify-center h-40">
+            <div className="text-center">
+              <div className="text-4xl mb-4">❌</div>
+              <div className="text-destructive font-barlow font-bold text-lg">
+                Error al cargar datos
+              </div>
+              <div className="text-muted text-sm mt-2">
+                {error instanceof Error ? error.message : 'Error desconocido'}
+              </div>
+              <button
+                onClick={() => refetch()}
+                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-barlow font-bold"
+              >
+                Reintentar
+              </button>
+            </div>
           </div>
         )}
 
