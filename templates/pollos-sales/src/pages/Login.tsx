@@ -12,16 +12,10 @@ export default function Login() {
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !isLoading) {
-      if (org) {
-        // User has org selected, go to appropriate page based on role
-        const destination = user.role === "cajero" ? "/pos" : "/dashboard";
-        navigate(destination);
-      } else {
-        // User logged in but no org selected
-        navigate("/organizations/select");
-      }
+      // Always redirect to org select page, it will handle the rest
+      navigate("/organizations/select");
     }
-  }, [user, org, isLoading, navigate]);
+  }, [user, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

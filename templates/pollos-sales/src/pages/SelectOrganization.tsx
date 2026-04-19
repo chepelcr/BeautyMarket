@@ -11,7 +11,7 @@ interface OrgOption {
 }
 
 export default function SelectOrganization() {
-  const { user, selectOrg } = useAuthContext();
+  const { user, org } = useAuthContext();
   const [, navigate] = useLocation();
   const hasAutoSelected = useRef(false);
 
@@ -22,8 +22,17 @@ export default function SelectOrganization() {
       api.get<OrgOption[]>(userPath(user!.userId, "/organizations")),
   });
 
+  // If org is already selected, redirect immediately
+  useEffect(() => {
+    if (org && user && !hasAutoSelected.current) {
+      hasAutoSelected.current = true;
+      const role = user.role;
+      navigate(role === "cajero" ? "/pos" : "/dashboard");
+    }
+  }, [org, user, navigate]);
+
   const handleSelect = (org: OrgOption) => {
-    selectOrg(org);
+    sessionStorage.setItem("selectedOrg", JSON.stringify(org));
     // Redirect based on role
     const role = user?.role;
     navigate(role === "cajero" ? "/pos" : "/dashboard");
@@ -31,15 +40,15 @@ export default function SelectOrganization() {
 
   // Auto-select if only one org (only once)
   useEffect(() => {
-    if (orgs.length === 1 && !hasAutoSelected.current) {
+    if (orgs.length === 1 && !hasAutoSelected.current && !org) {
       hasAutoSelected.current = true;
-      const org = orgs[0];
+      const selectedOrg = orgs[0];
       // Store in sessionStorage and navigate directly (like dashboard does)
-      sessionStorage.setItem("selectedOrg", JSON.stringify(org));
+      sessionStorage.setItem("selectedOrg", JSON.stringify(selectedOrg));
       const role = user?.role;
       navigate(role === "cajero" ? "/pos" : "/dashboard");
     }
-  }, [orgs, user?.role, navigate]);
+  }, [orgs, user?.role, navigate, org]);
 
   if (isLoading) {
     return (
