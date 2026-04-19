@@ -20,8 +20,8 @@ taskkill //F //IM node.exe 2>/dev/null || true
 taskkill //F //IM tsx.exe 2>/dev/null || true
 
 # Force kill processes on specific ports
-echo "Stopping processes on ports 3001, 3002, 5000, 5180, 9000..."
-for port in 3001 3002 5000 5180 9000; do
+echo "Stopping processes on ports 3001, 3002, 5000, 9000..."
+for port in 3001 3002 5000 9000; do
   pid=$(netstat -ano | grep ":$port" | grep LISTENING | awk '{print $5}' | head -1)
   if [ ! -z "$pid" ]; then
     taskkill //F //PID $pid 2>/dev/null || true
@@ -68,9 +68,10 @@ if ps -p $DEV_ALL_PID > /dev/null; then
     echo "  • Landing: http://localhost:3001"
     echo "  • Dashboard: http://localhost:3002"
     if [ "$RUN_POLLOS" = true ]; then
-      echo -e "  • ${MAGENTA}Pollos Sales: http://localhost:5180${NC}"
+      echo -e "  • ${MAGENTA}Pollos Sales: http://localhost:9000${NC}"
+    else
+      echo "  • Store Port: http://localhost:9000 (available)"
     fi
-    echo "  • Store Port: http://localhost:9000"
     echo ""
     echo -e "${YELLOW}Logs:${NC}"
     echo "  • All services: tail -f logs/server.log"

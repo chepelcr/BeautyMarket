@@ -31,10 +31,13 @@ This will start only server, landing, and dashboard (no pollos-sales).
 ## URLs
 
 When running with `--pollos` flag:
-- **Pollos Sales**: http://localhost:5180
+- **Pollos Sales**: http://localhost:9000
 - API Server: http://localhost:5000
 - Landing: http://localhost:3001
 - Dashboard: http://localhost:3002
+
+When running without `--pollos`:
+- Port 9000 is available for other templates/stores
 
 ## Logs
 
@@ -57,7 +60,9 @@ tail -f logs/server.log
 
 ## Port Configuration
 
-Pollos Sales uses port **5180** (configured in `templates/pollos-sales/vite.config.ts`)
+Pollos Sales uses port **9000** (configured in `templates/pollos-sales/vite.config.ts`)
+
+This replaces the generic "Store Port" when running with the `--pollos` flag.
 
 ## Features
 
