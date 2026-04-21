@@ -158,7 +158,7 @@ export default function DashboardPage() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     queryFn: async () => {
       console.log('[Dashboard] Fetching dashboard data for org:', org!.id);
-      const result = await api.get<DashboardData>(crossAppOrgPath(org!.id, "/dashboard"));
+      const result = await crossAppApi.get<DashboardData>(crossAppOrgPath(org!.id, "/dashboard"));
       console.log('[Dashboard] Data received:', result);
       return result;
     },
@@ -170,19 +170,19 @@ export default function DashboardPage() {
     retry: 2,
     retryDelay: 1000,
     queryFn: () =>
-      api.get<Closing[]>(crossAppOrgPath(org!.id, "/closings?status=pending")),
+      crossAppApi.get<Closing[]>(crossAppOrgPath(org!.id, "/closings?status=pending")),
   });
 
   const { data: sessions = [], isLoading: sessionsLoading, refetch: refetchSessions } = useQuery({
     queryKey: ["sessions", org?.id],
     enabled: !!user && !!org && tab === "session",
     queryFn: () =>
-      api.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
+      crossAppApi.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
   });
 
   const deactivateSession = useMutation({
     mutationFn: (sessionId: string) =>
-      api.patch(crossAppOrgPath(org!.id, `/sessions/${sessionId}`), { is_active: false }),
+      crossAppApi.patch(crossAppOrgPath(org!.id, `/sessions/${sessionId}`), { is_active: false }),
     onSuccess: () => {
       qcDashboard.invalidateQueries({ queryKey: ["sessions", org?.id] });
       refetchSessions();
@@ -240,7 +240,7 @@ export default function DashboardPage() {
 
   const handleApproveClosing = async (closingId: string) => {
     try {
-      await api.patch(crossAppOrgPath(org!.id, `/closings/${closingId}`), {
+      await crossAppApi.patch(crossAppOrgPath(org!.id, `/closings/${closingId}`), {
         status: "approved",
       });
       refetchClosings();
@@ -252,7 +252,7 @@ export default function DashboardPage() {
 
   const handleRejectClosing = async (closingId: string, notes: string) => {
     try {
-      await api.patch(crossAppOrgPath(org!.id, `/closings/${closingId}`), {
+      await crossAppApi.patch(crossAppOrgPath(org!.id, `/closings/${closingId}`), {
         status: "rejected",
         notes: notes || undefined,
       });

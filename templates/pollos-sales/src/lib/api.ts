@@ -20,8 +20,8 @@ async function request<T>(
     Authorization: `Bearer ${token}`,
   };
   
-  // Extract user ID from token and add as header
-  if (token) {
+  // Only add x-user-id header for cross-app-be API (not for markets API)
+  if (baseUrl === CROSS_APP_API_BASE && token) {
     try {
       const [, payloadB64] = token.split('.');
       const { sub } = JSON.parse(atob(payloadB64));
@@ -64,6 +64,13 @@ export const crossAppApi = {
   delete: <T>(path: string) => request<T>("DELETE", path, CROSS_APP_API_BASE),
 };
 
+export const ordersApi = {
+  get: <T>(path: string) => request<T>("GET", path, undefined, CROSS_APP_API_BASE),
+  post: <T>(path: string, body: unknown) => request<T>("POST", path, body, CROSS_APP_API_BASE),
+  patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body, CROSS_APP_API_BASE),
+  delete: <T>(path: string) => request<T>("DELETE", path, CROSS_APP_API_BASE),
+};
+
 /** Build org-scoped API path (markets API) */
 export function orgPath(userId: string, orgId: string, endpoint: string) {
   return `/api/users/${userId}/organization/${orgId}${endpoint}`;
@@ -76,6 +83,12 @@ export function userPath(userId: string, endpoint: string) {
 
 /** Build org-scoped API path for cross-app-be (sessions, assignments, branches, etc.) */
 export function crossAppOrgPath(orgId: string, endpoint: string) {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `/api/organizations/${orgId}${cleanEndpoint}`;
+}
+
+/** Build org-scoped API path for orders/products API */
+export function ordersOrgPath(orgId: string, endpoint: string) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `/api/organizations/${orgId}${cleanEndpoint}`;
 }

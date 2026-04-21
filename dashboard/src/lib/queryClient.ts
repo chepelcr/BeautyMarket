@@ -1,6 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { fetchAuthSession } from 'aws-amplify/auth';
 
+const ORDERS_API_BASE_URL = import.meta.env.VITE_ORDERS_API_URL || 'https://orders-api.jcampos.dev';
+
 async function throwIfResNotOk(res: Response) {
     if (!res.ok) {
         const text = (await res.text()) || res.statusText;
@@ -26,8 +28,12 @@ export async function apiRequest(
         if (idToken) {
             headers.Authorization = `Bearer ${idToken}`;
         }
+        
+        // Only add x-user-id header for orders API (cross-app-be), not for markets API
         const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
-        if (userId) headers['x-user-id'] = userId;
+        if (userId && url.includes(ORDERS_API_BASE_URL)) {
+            headers['x-user-id'] = userId;
+        }
     } catch (error) {
         // No auth session available, continue without token
         console.warn('No auth session available for API request');
