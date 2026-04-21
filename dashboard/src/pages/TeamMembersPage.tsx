@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, Users, AlertCircle, Trash2, Shield } from 'lucide-react';
+import { UserPlus, Users, AlertCircle, Trash2, Shield, Mail, RefreshCw, Clock, X } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -11,6 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -55,7 +65,14 @@ interface MemberToRemove {
 
 export default function TeamMembersPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { useDefaultOrganization } = useOrganization();
+  const {
+    useDefaultOrganization,
+    useOrganizationInvitations,
+    useSystemRoles,
+    inviteMember,
+    cancelInvitation,
+    resendInvitation,
+  } = useOrganization();
   const { data: organization, isLoading: orgLoading } = useDefaultOrganization(user?.id);
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -74,6 +91,17 @@ export default function TeamMembersPage() {
   // State for filters and dialogs
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [memberToRemove, setMemberToRemove] = useState<MemberToRemove | null>(null);
+
+  // Invite dialog state
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRoleId, setInviteRoleId] = useState('');
+
+  // Invitations and roles queries
+  const { data: invitations = [], isLoading: invitationsLoading } = useOrganizationInvitations(user?.id, organizationId);
+  const { data: roles = [] } = useSystemRoles(user?.id, organizationId);
+
+  const pendingInvitations = invitations.filter(i => i.status === 'pending');
 
   // Fetch members
   const {
@@ -153,11 +181,40 @@ export default function TeamMembersPage() {
   };
 
   const handleInviteMember = () => {
-    // Navigate to invitation flow
-    toast({
-      title: t('members.inviteComingSoon.title'),
-      description: t('members.inviteComingSoon.description'),
-    });
+    setInviteEmail('');
+    setInviteRoleId(roles[0]?.id ?? '');
+    setInviteOpen(true);
+  };
+
+  const handleSendInvite = async () => {
+    if (!user?.id || !organizationId || !inviteEmail || !inviteRoleId) return;
+    try {
+      await inviteMember.mutateAsync({ userId: user.id, orgId: organizationId, email: inviteEmail, roleId: inviteRoleId });
+      toast({ title: t('members.toast.invited.title'), description: inviteEmail });
+      setInviteOpen(false);
+    } catch (err: any) {
+      toast({ title: t('members.toast.inviteFailed.title'), description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    if (!user?.id || !organizationId) return;
+    try {
+      await cancelInvitation.mutateAsync({ userId: user.id, orgId: organizationId, invitationId });
+      toast({ title: t('members.toast.inviteCancelled.title') });
+    } catch (err: any) {
+      toast({ title: t('members.toast.inviteFailed.title'), description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleResendInvitation = async (invitationId: string) => {
+    if (!user?.id || !organizationId) return;
+    try {
+      await resendInvitation.mutateAsync({ userId: user.id, orgId: organizationId, invitationId });
+      toast({ title: t('members.toast.inviteResent.title') });
+    } catch (err: any) {
+      toast({ title: t('members.toast.inviteFailed.title'), description: err.message, variant: 'destructive' });
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -339,6 +396,133 @@ export default function TeamMembersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pending Invitations */}
+      {(pendingInvitations.length > 0 || invitationsLoading) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              {t('members.pendingInvitations')}
+            </CardTitle>
+            <CardDescription>{t('members.pendingInvitationsDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {invitationsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('members.email')}</TableHead>
+                      <TableHead>{t('members.role')}</TableHead>
+                      <TableHead className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {t('members.expires')}
+                      </TableHead>
+                      <TableHead className="text-right">{t('members.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingInvitations.map((inv) => (
+                      <TableRow key={inv.id}>
+                        <TableCell className="font-medium">{inv.email}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {inv.role?.displayName ?? inv.roleId}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(inv.expiresAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleResendInvitation(inv.id)}
+                            disabled={resendInvitation.isPending}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            {t('members.resend')}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCancelInvitation(inv.id)}
+                            disabled={cancelInvitation.isPending}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            {t('common.cancel')}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Invite Member Dialog */}
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              {t('members.invite')}
+            </DialogTitle>
+            <DialogDescription>{t('members.inviteDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="invite-email">{t('members.email')}</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                placeholder="email@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendInvite()}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invite-role">{t('members.role')}</Label>
+              <Select value={inviteRoleId} onValueChange={setInviteRoleId}>
+                <SelectTrigger id="invite-role">
+                  <SelectValue placeholder={t('members.selectRole')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              onClick={handleSendInvite}
+              disabled={!inviteEmail || !inviteRoleId || inviteMember.isPending}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              {inviteMember.isPending ? t('members.sending') : t('members.sendInvite')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Remove Member Confirmation Dialog */}
       <AlertDialog

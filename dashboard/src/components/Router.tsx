@@ -36,6 +36,8 @@ const ContactSettingsPage = lazy(() => import("@/pages/settings/ContactSettingsP
 const PaymentSettingsPage = lazy(() => import("@/pages/settings/PaymentSettingsPage"));
 const ShippingSettingsPage = lazy(() => import("@/pages/settings/ShippingSettingsPage"));
 const TeamMembersPage = lazy(() => import("@/pages/TeamMembersPage"));
+const BranchesPage = lazy(() => import("@/pages/BranchesPage"));
+const TerminalsPage = lazy(() => import("@/pages/TerminalsPage"));
 
 interface RouterProps {
   displayLocation: string;
@@ -82,6 +84,8 @@ export function Router({ displayLocation }: RouterProps) {
         <Route path="/admin/settings/payment" component={PaymentSettingsPage} />
         <Route path="/admin/settings/shipping" component={ShippingSettingsPage} />
         <Route path="/admin/members" component={TeamMembersPage} />
+        <Route path="/admin/branches" component={BranchesPage} />
+        <Route path="/admin/terminals" component={TerminalsPage} />
         <Route path="/admin/profile" component={Profile} />
         <Route path="/admin/deployments" component={DeploymentHistory} />
 

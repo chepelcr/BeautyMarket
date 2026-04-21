@@ -1,52 +1,52 @@
 export interface Client {
-  clientId: string;
-  companyId: string;
-  clientName?: string;
-  clientGln?: string;
+  client_id: string;
+  company_id: string;
+  client_name?: string;
+  client_gln?: string;
   identification?: {
     type: number;
     code: string;
     number: string;
   };
-  businessName?: string;
+  business_name?: string;
   nationality?: string;
   email?: string;
   phone?: {
-    countryCode: string;
-    areaCode: string;
+    country_code: string;
+    area_code: string;
     number: string;
     description: string;
   };
   residence?: {
-    stateId: number;
-    countyId: number;
-    districtId: number;
+    state_id: number;
+    county_id: number;
+    district_id: number;
     address: string;
   };
   status?: number;
 }
 
 export interface CreateClientData {
-  clientName?: string;
-  clientGln?: string;
+  client_name?: string;
+  client_gln?: string;
   identification?: {
     type: number;
     code: string;
     number: string;
   };
-  businessName?: string;
+  business_name?: string;
   nationality?: string;
   email?: string;
   phone?: {
-    countryCode: string;
-    areaCode: string;
+    country_code: string;
+    area_code: string;
     number: string;
     description: string;
   };
   residence?: {
-    stateId: number;
-    countyId: number;
-    districtId: number;
+    state_id: number;
+    county_id: number;
+    district_id: number;
     address: string;
   };
 }

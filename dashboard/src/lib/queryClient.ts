@@ -26,6 +26,8 @@ export async function apiRequest(
         if (idToken) {
             headers.Authorization = `Bearer ${idToken}`;
         }
+        const userId = session.tokens?.idToken?.payload?.sub as string | undefined;
+        if (userId) headers['x-user-id'] = userId;
     } catch (error) {
         // No auth session available, continue without token
         console.warn('No auth session available for API request');

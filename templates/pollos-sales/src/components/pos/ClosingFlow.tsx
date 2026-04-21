@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { cn, fmt } from "@/lib/utils";
-import { api, orgPath } from "@/lib/api";
+import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 interface ClosingFlowProps {
   assignmentId: string;
+  sessionId: string;
   expectedCash: number;
   expectedSinpe: number;
   expectedCard: number;
@@ -15,6 +16,7 @@ const STEPS = ["Resumen", "Declarar", "Diferencias", "Confirmar"];
 
 export default function ClosingFlow({
   assignmentId,
+  sessionId,
   expectedCash,
   expectedSinpe,
   expectedCard,
@@ -41,12 +43,14 @@ export default function ClosingFlow({
     if (!canSubmit || loading) return;
     setLoading(true);
     try {
-      await api.post(orgPath(user!.userId, org!.id, "/closings"), {
-        assignmentId,
-        declaredCash: declCash,
-        declaredSinpe: declSinpe,
-        declaredCard: declCard,
-        notes,
+      await api.post(crossAppOrgPath(org!.id, "/closings"), {
+        session_id: sessionId,
+        assignment_id: assignmentId,
+        declared_cash: declCash,
+        declared_sinpe: declSinpe,
+        declared_card: declCard,
+        declared_total: declCash + declSinpe + declCard,
+        notes: notes || undefined,
       });
       setDone(true);
     } finally {

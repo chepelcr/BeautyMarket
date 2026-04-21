@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, orgPath } from "@/lib/api";
+import { ordersApi, ordersOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganization";
 import { fmt } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
@@ -9,7 +10,9 @@ import type { Product } from "@/hooks/useProducts";
 type Category = "Todos" | "Comida" | "Bebida";
 
 export default function ProductsPage() {
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
   const qc = useQueryClient();
   const [category, setCategory] = useState<Category>("Todos");
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
@@ -17,15 +20,32 @@ export default function ProductsPage() {
   const [showNew, setShowNew] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", emoji: "🍔", price: "", category: "Comida" });
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: productsResponse, isLoading, error } = useQuery({
     queryKey: ["products", org?.id],
     enabled: !!user && !!org,
-    queryFn: () => api.get<Product[]>(orgPath(user!.userId, org!.id, "/products")),
+    queryFn: async () => {
+      try {
+        const result = await ordersApi.get<{ data: Product[]; pagination?: any }>(
+          ordersOrgPath(org!.id, "/products")
+        );
+        console.log('[ProductsPage] Products API response:', result);
+        // Handle both formats: direct array or { data: [], pagination: {} }
+        if (Array.isArray(result)) {
+          return { data: result, pagination: null };
+        }
+        return result;
+      } catch (err) {
+        console.error('[ProductsPage] Error loading products:', err);
+        return { data: [], pagination: null };
+      }
+    },
   });
+
+  const products = productsResponse?.data || [];
 
   const updatePrice = useMutation({
     mutationFn: ({ id, price }: { id: number; price: number }) =>
-      api.patch(orgPath(user!.userId, org!.id, `/products/${id}`), { price }),
+      ordersApi.patch(ordersOrgPath(org!.id, `/products/${id}`), { price }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products", org?.id] });
       setEditingPrice(null);
@@ -33,14 +53,14 @@ export default function ProductsPage() {
   });
 
   const toggleActive = useMutation({
-    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) =>
-      api.patch(orgPath(user!.userId, org!.id, `/products/${id}`), { isActive }),
+    mutationFn: ({ id, status }: { id: number; status: number }) =>
+      ordersApi.patch(ordersOrgPath(org!.id, `/products/${id}`), { status }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products", org?.id] }),
   });
 
   const createProduct = useMutation({
     mutationFn: () =>
-      api.post(orgPath(user!.userId, org!.id, "/products"), {
+      ordersApi.post(ordersOrgPath(org!.id, "/products"), {
         name: newProduct.name,
         emoji: newProduct.emoji,
         price: Number(newProduct.price),
@@ -53,7 +73,9 @@ export default function ProductsPage() {
     },
   });
 
-  const filtered = category === "Todos" ? products : products.filter((p) => p.category === category);
+  const filtered = Array.isArray(products) 
+    ? (category === "Todos" ? products : products.filter((p) => p.category?.name === category))
+    : [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -134,11 +156,13 @@ export default function ProductsPage() {
                 <tr key={p.id} className="border-b border-surface-border last:border-0 hover:bg-surface-high transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">{p.emoji}</span>
+                      {p.image_url && <img src={p.image_url} alt={p.name} className="w-8 h-8 rounded object-cover" />}
                       <span className="font-barlow font-bold text-foreground">{p.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-muted text-sm font-barlow">{p.category}</td>
+                  <td className="px-4 py-3 text-muted text-sm font-barlow">
+                    {p.category?.name || 'Sin categoría'}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     {editingPrice === p.id ? (
                       <div className="flex items-center justify-end gap-2">
@@ -164,15 +188,15 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => toggleActive.mutate({ id: p.id, isActive: !p.isActive })}
+                      onClick={() => toggleActive.mutate({ id: p.id, status: p.status === 1 ? 0 : 1 })}
                       className={cn(
                         "w-10 h-6 rounded-full transition-colors relative",
-                        p.isActive ? "bg-success" : "bg-surface-border"
+                        p.status === 1 ? "bg-success" : "bg-surface-border"
                       )}
                     >
                       <span className={cn(
                         "absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform",
-                        p.isActive ? "translate-x-4" : "translate-x-0.5"
+                        p.status === 1 ? "translate-x-4" : "translate-x-0.5"
                       )} />
                     </button>
                   </td>

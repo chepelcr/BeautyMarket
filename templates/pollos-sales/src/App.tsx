@@ -12,10 +12,13 @@ function ProtectedRoute({
   component: React.ComponentType;
   roles?: string[];
 }) {
-  const { user, org, isLoading } = useAuthContext();
+  const { user, isLoading } = useAuthContext();
   const [location] = useLocation();
 
+  console.log('[ProtectedRoute] Checking access:', { location, hasUser: !!user, userRole: user?.role, allowedRoles: roles, isLoading });
+
   if (isLoading) {
+    console.log('[ProtectedRoute] Still loading auth...');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted font-barlow text-lg animate-pulse">Cargando...</div>
@@ -24,23 +27,39 @@ function ProtectedRoute({
   }
 
   if (!user) {
+    console.log('[ProtectedRoute] No user, redirecting to login');
     sessionStorage.setItem("redirectAfterLogin", location);
     return <Redirect to="/login" />;
   }
 
-  if (!org && location !== "/organizations/select") {
-    return <Redirect to="/organizations/select" />;
-  }
-
   if (roles && user.role && !roles.includes(user.role)) {
-    return <Redirect to={user.role === "cajero" ? "/pos" : "/dashboard"} />;
+    console.log('[ProtectedRoute] User role not allowed, redirecting');
+    // Prevent infinite redirect loops - if already on target, show error instead
+    const targetPath = user.role === "cajero" ? "/pos" : "/dashboard";
+    if (location === targetPath) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-4xl mb-4">🚫</div>
+            <div className="text-destructive font-barlow font-bold text-xl">
+              No tenés permisos para acceder a esta página
+            </div>
+            <div className="text-muted text-sm mt-2">
+              Tu rol: {user.role}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return <Redirect to={targetPath} />;
   }
 
+  console.log('[ProtectedRoute] Access granted, rendering component');
   return <Component />;
 }
 
 export default function App() {
-  const { user, org, isLoading } = useAuthContext();
+  const { user, isLoading } = useAuthContext();
 
   // Show loading screen while checking authentication
   if (isLoading) {
@@ -73,16 +92,15 @@ export default function App() {
       />
       <Route
         path="/dashboard"
-        component={() => (
-          <ProtectedRoute component={DashboardPage} roles={["gerente", "supervisor"]} />
-        )}
+        component={() => {
+          console.log('[App] Dashboard route matched');
+          return <ProtectedRoute component={DashboardPage} roles={["gerente", "supervisor", "customer"]} />;
+        }}
       />
       {/* Root redirect */}
       <Route path="/">
-        {user && org ? (
+        {user ? (
           <Redirect to={user.role === "cajero" ? "/pos" : "/dashboard"} />
-        ) : user ? (
-          <Redirect to="/organizations/select" />
         ) : (
           <Redirect to="/login" />
         )}

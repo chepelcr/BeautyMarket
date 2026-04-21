@@ -1,25 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, orgPath } from "../lib/api";
+import { ordersApi, ordersOrgPath } from "../lib/api";
 import { useAuthContext } from "../contexts/AuthContext";
+import { useOrganization } from "./useOrganization";
 
 export interface Product {
-  id: number;
+  id: string;
   name: string;
-  emoji: string;
+  description: string;
   price: number;
-  category: "Comida" | "Bebida";
-  isActive: boolean;
-  stock: number;
+  category_id: string;
+  category?: {
+    category_id: string;
+    name: string;
+  };
+  image_url: string | null;
+  status: number; // 0 = inactive, 1 = active
+  sku?: string | null;
+  stock_quantity?: number;
+  created_on?: Date;
+  updated_on?: Date;
 }
 
 export function useProducts() {
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
 
   return useQuery({
     queryKey: ["products", org?.id],
     enabled: !!user && !!org,
     staleTime: 1000 * 60 * 10,
     queryFn: () =>
-      api.get<Product[]>(orgPath(user!.userId, org!.id, "/products")),
+      ordersApi.get<Product[]>(ordersOrgPath(org!.id, "/products")),
   });
 }

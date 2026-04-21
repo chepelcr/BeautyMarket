@@ -1,56 +1,36 @@
-import { useEffect, useRef } from "react";
-import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { api, userPath } from "@/lib/api";
-
-interface OrgOption {
-  id: string;
-  name: string;
-  templateName: string;
-}
+import { useOrganization } from "@/hooks/useOrganization";
+import { useLocation } from "wouter";
 
 export default function SelectOrganization() {
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useUserOrganizations } = useOrganization();
+  const { data: orgs = [], isLoading, error } = useUserOrganizations(user?.userId);
   const [, navigate] = useLocation();
-  const hasAutoSelected = useRef(false);
 
-  const { data: orgs = [], isLoading, error } = useQuery({
-    queryKey: ["user-orgs", user?.userId],
-    enabled: !!user,
-    queryFn: () =>
-      api.get<OrgOption[]>(userPath(user!.userId, "/organizations")),
-  });
-
-  // If org is already selected, redirect immediately
+  // Auto-select if only one org - must be in useEffect to avoid render-phase navigation
   useEffect(() => {
-    if (org && user && !hasAutoSelected.current) {
-      hasAutoSelected.current = true;
-      const role = user.role;
-      navigate(role === "cajero" ? "/pos" : "/dashboard");
+    if (!isLoading && orgs.length === 1 && !sessionStorage.getItem('selectedOrgId')) {
+      console.log('[SelectOrganization] Auto-selecting single org:', orgs[0]);
+      sessionStorage.setItem("selectedOrgId", orgs[0].id);
+      const role = user?.role;
+      const targetPath = role === "cajero" ? "/pos" : "/dashboard";
+      console.log('[SelectOrganization] Navigating to:', targetPath, 'User role:', role);
+      navigate(targetPath);
     }
-  }, [org, user, navigate]);
+  }, [isLoading, orgs, user?.role, navigate]);
 
-  const handleSelect = (org: OrgOption) => {
-    sessionStorage.setItem("selectedOrg", JSON.stringify(org));
+  const handleSelect = (org: { id: string; name: string; templateName?: string }) => {
+    console.log('[SelectOrganization] User selected org:', org);
+    sessionStorage.setItem("selectedOrgId", org.id);
     // Redirect based on role
     const role = user?.role;
     navigate(role === "cajero" ? "/pos" : "/dashboard");
   };
 
-  // Auto-select if only one org (only once)
-  useEffect(() => {
-    if (orgs.length === 1 && !hasAutoSelected.current && !org) {
-      hasAutoSelected.current = true;
-      const selectedOrg = orgs[0];
-      // Store in sessionStorage and navigate directly (like dashboard does)
-      sessionStorage.setItem("selectedOrg", JSON.stringify(selectedOrg));
-      const role = user?.role;
-      navigate(role === "cajero" ? "/pos" : "/dashboard");
-    }
-  }, [orgs, user?.role, navigate, org]);
-
   if (isLoading) {
+    console.log('[SelectOrganization] Loading organizations...');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted font-barlow text-lg animate-pulse">Cargando organizaciones...</div>
@@ -59,6 +39,7 @@ export default function SelectOrganization() {
   }
 
   if (error || orgs.length === 0) {
+    console.error('[SelectOrganization] Error or no orgs:', { error, orgsCount: orgs.length });
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6">
         <div className="text-4xl">⚠️</div>
@@ -71,6 +52,8 @@ export default function SelectOrganization() {
       </div>
     );
   }
+
+  console.log('[SelectOrganization] Showing org selection, count:', orgs.length);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">

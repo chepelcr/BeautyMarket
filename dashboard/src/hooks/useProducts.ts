@@ -52,7 +52,7 @@ function buildProductSearchString(params: {
 
   // Category filter (exact match by ID)
   if (params.categoryId) {
-    filters.push(`categoryId:${params.categoryId}`);
+    filters.push(`category_id:${params.categoryId}`);
   }
 
   // Status filter (isActive)
@@ -75,13 +75,13 @@ function buildProductSearchString(params: {
   // Sale price filters
   if (params.salePriceMin !== undefined && params.salePriceMax !== undefined) {
     // Between range
-    filters.push(`salePrice:${params.salePriceMin}~${params.salePriceMax}`);
+    filters.push(`sale_price:${params.salePriceMin}~${params.salePriceMax}`);
   } else if (params.salePriceMin !== undefined) {
     // Greater than
-    filters.push(`salePrice>${params.salePriceMin}`);
+    filters.push(`sale_price>${params.salePriceMin}`);
   } else if (params.salePriceMax !== undefined) {
     // Less than
-    filters.push(`salePrice<${params.salePriceMax}`);
+    filters.push(`sale_price<${params.salePriceMax}`);
   }
 
   // Sorting

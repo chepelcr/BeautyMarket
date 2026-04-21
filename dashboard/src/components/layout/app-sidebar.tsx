@@ -20,6 +20,8 @@ import {
   CalendarCheck,
   UserCircle,
   ChevronDown,
+  Store,
+  Monitor,
 } from "lucide-react";
 import {
   Sidebar,
@@ -96,6 +98,11 @@ const mainNavItems: MenuItem[] = [
     titleKey: "sidebar.content",
     href: "/admin/content",
     icon: FileText,
+  },
+  {
+    titleKey: "sidebar.branches",
+    href: "/admin/branches",
+    icon: Store,
   },
 ];
 

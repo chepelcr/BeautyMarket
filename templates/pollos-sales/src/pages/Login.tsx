@@ -3,15 +3,18 @@ import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 export default function Login() {
-  const { user, org, login, isLoading } = useAuthContext();
+  const { user, login, isLoading } = useAuthContext();
   const [, navigate] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  console.log('[Login] Component state:', { hasUser: !!user, isLoading });
+
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !isLoading) {
+      console.log('[Login] User authenticated, redirecting to org select');
       // Always redirect to org select page, it will handle the rest
       navigate("/organizations/select");
     }
@@ -20,11 +23,15 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    console.log('[Login] Attempting login...');
     try {
       await login(email, password);
+      console.log('[Login] Login successful');
       // Navigation will be handled by the useEffect above after login completes
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      const errorMsg = err instanceof Error ? err.message : "Error al iniciar sesión";
+      console.error('[Login] Login failed:', errorMsg);
+      setError(errorMsg);
     }
   };
 

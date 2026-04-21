@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export interface ProductCode {
-  codeTypeId: string;
+  code_type_id: string;
   number: string;
   description?: string;
 }
 
 export interface ProductDiscount {
-  discountType: string;
+  discount_type: string;
   percentage?: number;
   amount?: number;
   reason?: string;
@@ -17,180 +17,182 @@ export interface TaxSpecialFields {
   quantity?: number;
   percentage?: number;
   proportion?: number;
-  volumeConsumption?: number;
-  taxUnitAmount?: number;
-  taxAmountId?: number;
+  volume_consumption?: number;
+  tax_unit_amount?: number;
+  tax_amount_id?: number;
 }
 
 export interface ProductTax {
-  taxType: string;
-  taxTypeCode?: string; // Code-based field for tax type
-  taxRateCode?: string; // Code-based field for tax rate
-  taxFactorCode?: string; // Code-based field for tax factor
+  tax_type: string;
+  tax_type_code?: string; // Code-based field for tax type
+  tax_rate_code?: string; // Code-based field for tax rate
+  tax_factor_code?: string; // Code-based field for tax factor
   rate?: number;
   amount?: number;
-  taxRateId?: number;
-  taxFactorId?: number;
+  tax_rate_id?: number;
+  tax_factor_id?: number;
   factor?: number;
-  otherTaxType?: string;
-  specialFields?: TaxSpecialFields;
+  other_tax_type?: string;
+  special_fields?: TaxSpecialFields;
 }
 
 export interface Product {
   id: string;
-  productId?: string; // API returns productId, keeping id for backward compatibility
   name: string;
   description: string;
   price: number;
-  categoryId: string;
+  category_id: string;
   category?: {
-    categoryId: string;
+    category_id: string;
     name: string;
   };
-  imageUrl: string | null;
-  isActive: boolean;
+  image_url: string | null;
+  status: number;
   // Inventory tracking fields
   sku?: string | null;
-  stockQuantity?: number;
-  lowStockThreshold?: number;
-  trackInventory?: boolean;
-  hasFiscalInfo?: boolean;
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  track_inventory?: boolean;
+  has_fiscal_info?: boolean;
   // Product codes
-  internalCode?: string | null;
-  originalCode?: string | null;
-  clientArticleCode?: string | null;
+  internal_code?: string | null;
+  original_code?: string | null;
+  client_article_code?: string | null;
   code?: string | null;
-  unitsPerBox?: number | null;
+  units_per_box?: number | null;
   // Fiscal
   cabys?: string | null;
-  cabysDescription?: string | null;
-  productTypeId?: number;
-  unitId?: number;
-  commercialUnitMeasure?: string | null;
+  cabys_description?: string | null;
+  product_type_id?: number;
+  unit_id?: number;
+  commercial_unit_measure?: string | null;
   // Packaging
-  hasPackageInfo?: boolean;
-  isPackaged?: boolean;
+  has_package_info?: boolean;
+  is_packaged?: boolean;
   quantity?: number;
-  unitPrice?: number;
+  unit_price?: number;
   // Customs
-  customsPart?: string | null;
+  customs_part?: string | null;
   // Complex fields (stored as JSON)
   codes?: ProductCode[];
   discounts?: ProductDiscount[];
   taxes?: ProductTax[];
   // Calculated values
-  baseAmount?: number;
-  salePrice?: number;
-  createdAt: Date;
-  updatedAt: Date;
+  base_amount?: number;
+  sale_price?: number;
+  on_sale?: boolean;
+  original_price?: number;
+  is_service?: boolean;
+  created_on: Date;
+  updated_on: Date;
 }
 
 export interface InsertProduct {
   name: string;
   description: string;
   price: number;
-  categoryId: string;
-  imageUrl?: string | null;
-  isActive?: boolean;
+  category_id: string;
+  image_url?: string | null;
+  status?: number;
   // Inventory tracking fields
   sku?: string | null;
-  stockQuantity?: number;
-  lowStockThreshold?: number;
-  trackInventory?: boolean;
-  hasFiscalInfo?: boolean;
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  track_inventory?: boolean;
+  has_fiscal_info?: boolean;
   // Product codes
-  internalCode?: string | null;
-  originalCode?: string | null;
-  clientArticleCode?: string | null;
+  internal_code?: string | null;
+  original_code?: string | null;
+  client_article_code?: string | null;
   code?: string | null;
-  unitsPerBox?: number | null;
+  units_per_box?: number | null;
   // Fiscal
   cabys?: string | null;
-  cabysDescription?: string | null;
-  productTypeId?: number;
-  unitId?: number;
-  commercialUnitMeasure?: string | null;
+  cabys_description?: string | null;
+  product_type_id?: number;
+  unit_id?: number;
+  commercial_unit_measure?: string | null;
   // Packaging
-  hasPackageInfo?: boolean;
-  isPackaged?: boolean;
+  has_package_info?: boolean;
+  is_packaged?: boolean;
   quantity?: number;
-  unitPrice?: number;
+  unit_price?: number;
   // Customs
-  customsPart?: string | null;
+  customs_part?: string | null;
   // Complex fields
   codes?: ProductCode[];
   discounts?: ProductDiscount[];
   taxes?: ProductTax[];
   // Calculated values
-  baseAmount?: number;
-  salePrice?: number;
+  base_amount?: number;
+  sale_price?: number;
 }
 
 export const insertProductSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   price: z.number().min(0),
-  categoryId: z.string().min(1),
-  imageUrl: z.string().nullable().optional(),
-  isActive: z.boolean().optional(),
+  category_id: z.string().min(1),
+  image_url: z.string().nullable().optional(),
+  status: z.number().optional(),
   // Inventory tracking fields
   sku: z.string().nullable().optional(),
-  stockQuantity: z.number().min(0).optional(),
-  lowStockThreshold: z.number().min(0).optional(),
-  trackInventory: z.boolean().optional(),
-  hasFiscalInfo: z.boolean().optional(),
+  stock_quantity: z.number().min(0).optional(),
+  low_stock_threshold: z.number().min(0).optional(),
+  track_inventory: z.boolean().optional(),
+  has_fiscal_info: z.boolean().optional(),
   // Product codes
-  internalCode: z.string().nullable().optional(),
-  originalCode: z.string().nullable().optional(),
-  clientArticleCode: z.string().nullable().optional(),
+  internal_code: z.string().nullable().optional(),
+  original_code: z.string().nullable().optional(),
+  client_article_code: z.string().nullable().optional(),
   code: z.string().nullable().optional(),
-  unitsPerBox: z.number().min(0).nullable().optional(),
+  units_per_box: z.number().min(0).nullable().optional(),
   // Fiscal
   cabys: z.string().nullable().optional(),
-  cabysDescription: z.string().nullable().optional(),
-  productTypeId: z.number().optional(),
-  unitId: z.number().optional(),
-  commercialUnitMeasure: z.string().nullable().optional(),
+  cabys_description: z.string().nullable().optional(),
+  product_type_id: z.number().optional(),
+  unit_id: z.number().optional(),
+  commercial_unit_measure: z.string().nullable().optional(),
   // Packaging
-  hasPackageInfo: z.boolean().optional(),
-  isPackaged: z.boolean().optional(),
+  has_package_info: z.boolean().optional(),
+  is_packaged: z.boolean().optional(),
   quantity: z.number().min(1).optional(),
-  unitPrice: z.number().min(0).optional(),
+  unit_price: z.number().min(0).optional(),
   // Customs
-  customsPart: z.string().nullable().optional(),
+  customs_part: z.string().nullable().optional(),
   // Complex fields
   codes: z.array(z.object({
-    codeTypeId: z.number(),
+    code_type_id: z.number(),
     number: z.string(),
     description: z.string().optional(),
   })).optional(),
   discounts: z.array(z.object({
-    discountTypeId: z.number(),
+    discount_type_id: z.number(),
     percentage: z.number().optional(),
     amount: z.number().optional(),
     reason: z.string().optional(),
-    isAmount: z.boolean().optional(),
+    is_amount: z.boolean().optional(),
   })).optional(),
   taxes: z.array(z.object({
-    taxTypeId: z.number(),
+    tax_type_id: z.number(),
     code: z.string().optional(),
     rate: z.number().optional(),
     amount: z.number().optional(),
-    taxRateId: z.number().optional(),
-    taxFactorId: z.number().optional(),
+    tax_rate_id: z.number().optional(),
+    tax_factor_id: z.number().optional(),
     factor: z.number().optional(),
-    otherTaxType: z.string().optional(),
-    specialFields: z.object({
+    other_tax_type: z.string().optional(),
+    special_fields: z.object({
       quantity: z.number().optional(),
       percentage: z.number().optional(),
       proportion: z.number().optional(),
-      volumeConsumption: z.number().optional(),
-      taxUnitAmount: z.number().optional(),
-      taxAmountId: z.number().optional(),
+      volume_consumption: z.number().optional(),
+      tax_unit_amount: z.number().optional(),
+      tax_amount_id: z.number().optional(),
     }).optional(),
-    isAmount: z.boolean().optional(),
+    is_amount: z.boolean().optional(),
   })).optional(),
   // Calculated values
-  baseAmount: z.number().optional(),
-  salePrice: z.number().optional(),
+  base_amount: z.number().optional(),
+  sale_price: z.number().optional(),
 });

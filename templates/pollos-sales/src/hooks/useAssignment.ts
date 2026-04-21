@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api, orgPath } from "../lib/api";
 import { db } from "../lib/db";
 import { useAuthContext } from "../contexts/AuthContext";
+import { useOrganization } from "./useOrganization";
 
 interface Assignment {
   id: string;
@@ -13,7 +14,9 @@ interface Assignment {
 }
 
 export function useAssignment() {
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
 
   return useQuery({
     queryKey: ["assignment", user?.userId, org?.id],
@@ -21,7 +24,7 @@ export function useAssignment() {
     queryFn: async () => {
       try {
         const data = await api.get<Assignment>(
-          orgPath(user!.userId, org!.id, "/assignments/active")
+          crossAppOrgPath(org!.id, "/assignments/active")
         );
         // Cache in IndexedDB for offline access
         await db.assignments.where({ userId: user!.userId, orgId: org!.id }).delete();

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSync } from "@/hooks/useSync";
 import { useAssignment } from "@/hooks/useAssignment";
 import { useProducts } from "@/hooks/useProducts";
+import { useOrganization } from "@/hooks/useOrganization";
 import { useCart } from "@/store/cart";
 import { useInventory } from "@/store/inventory";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -25,7 +26,9 @@ interface SaleResult {
 
 export default function POSPage() {
   const syncStatus = useSync();
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
   const { data: assignment, isLoading: assignmentLoading, error: assignmentError } = useAssignment();
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const { items, add, remove, clear, total, count } = useCart();
@@ -99,7 +102,7 @@ export default function POSPage() {
     setScreen("success");
   };
 
-  if (assignmentLoading || productsLoading) {
+  if (orgLoading || assignmentLoading || productsLoading) {
     return (
       <POSLayout syncStatus={syncStatus}>
         <div className="flex-1 flex items-center justify-center">
@@ -109,7 +112,7 @@ export default function POSPage() {
     );
   }
 
-  if (assignmentError || !assignment) {
+  if (!org || assignmentError || !assignment) {
     return (
       <POSLayout syncStatus={syncStatus}>
         <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
@@ -191,6 +194,7 @@ export default function POSPage() {
       {screen === "closing" && (
         <ClosingFlow
           assignmentId={assignment.id}
+          sessionId={assignment.sessionId}
           expectedCash={sessionTotals.cash}
           expectedSinpe={sessionTotals.sinpe}
           expectedCard={sessionTotals.card}

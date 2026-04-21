@@ -1,53 +1,76 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { api, orgPath } from "@/lib/api";
+import { useOrganization } from "@/hooks/useOrganization";
+import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { fmt, fmtCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import SessionConfig from "./SessionConfig";
+import AssignmentsPage from "./AssignmentsPage";
 import ProductsPage from "./ProductsPage";
 import AnalyticsPage from "./AnalyticsPage";
+import ErrorDisplay from "@/components/ErrorDisplay";
+import { StandCardSkeleton, KPICardSkeleton, ProductRankingSkeleton, ClosingCardSkeleton } from "@/components/SkeletonLoader";
 
-type Tab = "realtime" | "closings" | "history" | "products" | "analytics" | "session";
+type Tab = "realtime" | "closings" | "assignments" | "history" | "products" | "analytics" | "session";
 
 interface StandData {
   id: string;
   name: string;
-  cashierName: string;
+  cashier_name: string;
   context: string;
-  totalRevenue: number;
-  salesCount: number;
+  total_revenue: number;
+  sales_count: number;
   cash: number;
   sinpe: number;
   card: number;
-  lastSyncAt: number; // timestamp
+  last_sync_at: number; // timestamp
 }
 
 interface DashboardData {
   stands: StandData[];
-  totalRevenue: number;
-  totalSales: number;
-  avgTicket: number;
-  productRanking: Array<{ name: string; emoji: string; units: number; revenue: number }>;
+  total_revenue: number;
+  total_sales: number;
+  avg_ticket: number;
+  product_ranking: Array<{ name: string; emoji: string; units: number; revenue: number }>;
 }
 
 interface Closing {
-  id: string;
-  standName: string;
-  cashierName: string;
-  expectedCash: number;
-  declaredCash: number;
-  expectedSinpe: number;
-  declaredSinpe: number;
-  expectedCard: number;
-  declaredCard: number;
-  notes: string;
+  closing_id: string;
+  cashier_id: string;
+  branch_id: string;
+  session_id: string;
+  assignment_id: string;
+  expected_cash: number;
+  expected_sinpe: number;
+  expected_card: number;
+  expected_total: number;
+  declared_cash: number;
+  declared_sinpe: number;
+  declared_card: number;
+  declared_total: number;
+  cash_difference: number;
+  sinpe_difference: number;
+  card_difference: number;
+  total_difference: number;
+  notes: string | null;
   status: "pending" | "approved" | "rejected";
+  created_at: string;
+}
+
+interface Session {
+  session_id: string;
+  name: string;
+  type: "match" | "shift";
+  context: string;
+  start_time: string;
+  is_active: boolean;
+  branch_id: string | null;
 }
 
 function StandCard({ stand }: { stand: StandData }) {
   const now = Date.now();
-  const diffMin = Math.floor((now - stand.lastSyncAt) / 60000);
+  const diffMin = Math.floor((now - stand.last_sync_at) / 60000);
   const status = diffMin > 15 ? "offline" : diffMin > 5 ? "slow" : "active";
   const statusMap = {
     active: { color: "text-success", label: "Activo" },
@@ -66,7 +89,7 @@ function StandCard({ stand }: { stand: StandData }) {
             {stand.name}
           </div>
           <div className="text-muted text-xs mt-0.5">
-            {stand.salesCount} ventas · {stand.cashierName}
+            {stand.sales_count} ventas · {stand.cashier_name}
           </div>
         </div>
         <div className="flex items-center gap-1.5 bg-surface-high px-2.5 py-1.5 rounded-lg border border-surface-border">
@@ -79,7 +102,7 @@ function StandCard({ stand }: { stand: StandData }) {
       </div>
 
       <div className="text-primary font-barlow font-extrabold text-3xl">
-        {fmtCompact(stand.totalRevenue)}
+        {fmtCompact(stand.total_revenue)}
       </div>
 
       <div className="flex gap-3 text-xs">
@@ -111,11 +134,86 @@ function KPICard({ label, value, sub }: { label: string; value: string; sub?: st
 }
 
 export default function DashboardPage() {
-  const { user, org, logout } = useAuthContext();
+  console.log('[DashboardPage] ===== COMPONENT MOUNTING =====');
+  
+  const { user, logout } = useAuthContext();
+  console.log('[DashboardPage] User from context:', user);
+  
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
+  console.log('[DashboardPage] Org query result:', { org, orgLoading });
+  
   const [tab, setTab] = useState<Tab>("realtime");
+  const [sessionView, setSessionView] = useState<"list" | "create">("list");
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectNotes, setRejectNotes] = useState("");
+  const qcDashboard = useQueryClient();
 
-  // Debug: Check if org is loaded
+  // ALL HOOKS MUST BE AT THE TOP - React Rules of Hooks
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: ["dashboard", org?.id],
+    enabled: !!user && !!org,
+    refetchInterval: 30_000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    queryFn: async () => {
+      console.log('[Dashboard] Fetching dashboard data for org:', org!.id);
+      const result = await api.get<DashboardData>(crossAppOrgPath(org!.id, "/dashboard"));
+      console.log('[Dashboard] Data received:', result);
+      return result;
+    },
+  });
+
+  const { data: closings = [], isLoading: closingsLoading, error: closingsError, refetch: refetchClosings } = useQuery({
+    queryKey: ["closings", org?.id],
+    enabled: !!user && !!org && tab === "closings",
+    retry: 2,
+    retryDelay: 1000,
+    queryFn: () =>
+      api.get<Closing[]>(crossAppOrgPath(org!.id, "/closings?status=pending")),
+  });
+
+  const { data: sessions = [], isLoading: sessionsLoading, refetch: refetchSessions } = useQuery({
+    queryKey: ["sessions", org?.id],
+    enabled: !!user && !!org && tab === "session",
+    queryFn: () =>
+      api.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
+  });
+
+  const deactivateSession = useMutation({
+    mutationFn: (sessionId: string) =>
+      api.patch(crossAppOrgPath(org!.id, `/sessions/${sessionId}`), { is_active: false }),
+    onSuccess: () => {
+      qcDashboard.invalidateQueries({ queryKey: ["sessions", org?.id] });
+      refetchSessions();
+    },
+  });
+
+  // Debug logging
+  console.log('[DashboardPage] Full state:', { 
+    hasUser: !!user, 
+    userId: user?.userId,
+    org, 
+    orgLoading, 
+    queryEnabled: !!user && !!org,
+    dashboardData: data,
+    dashboardLoading: isLoading,
+    dashboardError: error
+  });
+
+  // Loading state
+  if (orgLoading) {
+    console.log('[DashboardPage] Rendering loading state');
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted font-barlow text-lg animate-pulse">Cargando organización...</div>
+      </div>
+    );
+  }
+
+  // No org selected
   if (!org) {
+    console.warn('[DashboardPage] No organization found - rendering error state');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -124,37 +222,53 @@ export default function DashboardPage() {
             No hay organización seleccionada
           </div>
           <div className="text-muted text-sm mt-2">
-            Redirigiendo...
+            Por favor selecciona una organización
           </div>
+          <button
+            onClick={() => window.location.href = '/organizations/select'}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-barlow font-bold"
+          >
+            Seleccionar Organización
+          </button>
         </div>
       </div>
     );
   }
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["dashboard", org?.id],
-    enabled: !!user && !!org,
-    refetchInterval: 30_000,
-    queryFn: () =>
-      api.get<DashboardData>(orgPath(user!.userId, org!.id, "/dashboard")),
-  });
-
-  const { data: closings = [] } = useQuery({
-    queryKey: ["closings", org?.id],
-    enabled: !!user && !!org && tab === "closings",
-    queryFn: () =>
-      api.get<Closing[]>(orgPath(user!.userId, org!.id, "/closings?status=pending")),
-  });
+  console.log('[DashboardPage] Organization loaded:', org.id, 'Dashboard query should be running...');
+  console.log('[DashboardPage] About to render main dashboard UI');
 
   const handleApproveClosing = async (closingId: string) => {
-    await api.patch(orgPath(user!.userId, org!.id, `/closings/${closingId}`), {
-      status: "approved",
-    });
+    try {
+      await api.patch(crossAppOrgPath(org!.id, `/closings/${closingId}`), {
+        status: "approved",
+      });
+      refetchClosings();
+    } catch (error) {
+      console.error('[DashboardPage] Error approving closing:', error);
+      alert('Error al aprobar el cierre. Por favor intenta nuevamente.');
+    }
+  };
+
+  const handleRejectClosing = async (closingId: string, notes: string) => {
+    try {
+      await api.patch(crossAppOrgPath(org!.id, `/closings/${closingId}`), {
+        status: "rejected",
+        notes: notes || undefined,
+      });
+      setRejectingId(null);
+      setRejectNotes("");
+      refetchClosings();
+    } catch (error) {
+      console.error('[DashboardPage] Error rejecting closing:', error);
+      alert('Error al rechazar el cierre. Por favor intenta nuevamente.');
+    }
   };
 
   const TABS: Array<{ id: Tab; label: string }> = [
     { id: "realtime", label: "📊 Tiempo Real" },
     { id: "closings", label: "🔒 Cierres" },
+    { id: "assignments", label: "👤 Asignaciones" },
     { id: "history", label: "📁 Historial" },
     { id: "products", label: "🛒 Productos" },
     { id: "analytics", label: "📈 Reportería" },
@@ -169,7 +283,7 @@ export default function DashboardPage() {
           🍗 POLLOS PORTEÑOS — GERENCIA
         </span>
         <div className="flex items-center gap-4">
-          <span className="text-muted text-sm">{org?.name}</span>
+          <span className="text-muted text-sm">{org.name}</span>
           <button
             onClick={logout}
             className="text-muted text-sm hover:text-foreground transition-colors"
@@ -197,129 +311,162 @@ export default function DashboardPage() {
         ))}
         <button
           onClick={() => refetch()}
-          className="ml-auto px-3 py-2 bg-surface-high border border-surface-border rounded-lg text-muted text-sm hover:text-foreground transition-colors"
+          disabled={isRefetching}
+          className={cn(
+            "ml-auto px-3 py-2 bg-surface-high border border-surface-border rounded-lg text-sm transition-colors",
+            isRefetching 
+              ? "text-primary animate-pulse cursor-not-allowed" 
+              : "text-muted hover:text-foreground hover:border-primary/50"
+          )}
         >
-          ↻ Actualizar
+          <span className={cn(isRefetching && "inline-block animate-spin")}>
+            {isRefetching ? "⟳" : "↻"}
+          </span>
+          {" "}
+          {isRefetching ? "Actualizando..." : "Actualizar"}
         </button>
       </div>
 
       {/* Content */}
       <div className="flex-1 p-6 overflow-y-auto">
-        {isLoading && (
-          <div className="flex items-center justify-center h-40">
-            <div className="text-muted font-barlow animate-pulse">Cargando datos...</div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-center justify-center h-40">
-            <div className="text-center">
-              <div className="text-4xl mb-4">❌</div>
-              <div className="text-destructive font-barlow font-bold text-lg">
-                Error al cargar datos
-              </div>
-              <div className="text-muted text-sm mt-2">
-                {error instanceof Error ? error.message : 'Error desconocido'}
-              </div>
-              <button
-                onClick={() => refetch()}
-                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg font-barlow font-bold"
-              >
-                Reintentar
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Real-time tab */}
-        {tab === "realtime" && data && (
-          <div className="flex flex-col gap-6">
-            {/* Global KPIs */}
-            <div className="grid grid-cols-3 gap-4">
-              <KPICard
-                label="INGRESOS TOTALES"
-                value={fmtCompact(data.totalRevenue)}
+        {tab === "realtime" && (
+          <>
+            {error && (
+              <ErrorDisplay 
+                error={error} 
+                onRetry={() => refetch()} 
+                className="h-40"
               />
-              <KPICard
-                label="VENTAS TOTALES"
-                value={String(data.totalSales)}
-              />
-              <KPICard
-                label="TICKET PROMEDIO"
-                value={fmt(data.avgTicket)}
-              />
-            </div>
+            )}
 
-            {/* Stand cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {data.stands.map((stand) => (
-                <StandCard key={stand.id} stand={stand} />
-              ))}
-            </div>
+            {!error && (
+              <div className="flex flex-col gap-6">
+                {/* Global KPIs */}
+                <div className="grid grid-cols-3 gap-4">
+                  {isLoading ? (
+                    <>
+                      <KPICardSkeleton />
+                      <KPICardSkeleton />
+                      <KPICardSkeleton />
+                    </>
+                  ) : data ? (
+                    <>
+                      <KPICard
+                        label="INGRESOS TOTALES"
+                        value={fmtCompact(data.total_revenue)}
+                      />
+                      <KPICard
+                        label="VENTAS TOTALES"
+                        value={String(data.total_sales)}
+                      />
+                      <KPICard
+                        label="TICKET PROMEDIO"
+                        value={fmt(data.avg_ticket)}
+                      />
+                    </>
+                  ) : null}
+                </div>
 
-            {/* Product ranking */}
-            <div className="bg-surface border border-surface-border rounded-2xl p-6">
-              <h2 className="font-barlow font-extrabold text-lg text-foreground mb-4 tracking-wide">
-                🏆 RANKING DE PRODUCTOS
-              </h2>
-              <div className="flex flex-col gap-2">
-                {data.productRanking.map((p, i) => {
-                  const maxUnits = data.productRanking[0]?.units ?? 1;
-                  return (
-                    <div key={p.name} className="flex items-center gap-3">
-                      <span className="text-muted font-mono text-xs w-5 text-right">
-                        {i + 1}
-                      </span>
-                      <span className="text-xl">{p.emoji}</span>
-                      <div className="flex-1">
-                        <div className="flex justify-between mb-1">
-                          <span className="font-barlow font-bold text-sm text-foreground">
-                            {p.name}
-                          </span>
-                          <span className="text-muted text-xs">
-                            {p.units} uds · {fmtCompact(p.revenue)}
-                          </span>
-                        </div>
-                        <div className="h-1.5 bg-surface-high rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full"
-                            style={{ width: `${(p.units / maxUnits) * 100}%` }}
-                          />
-                        </div>
-                      </div>
+                {/* Stand cards */}
+                {isLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <StandCardSkeleton />
+                    <StandCardSkeleton />
+                    <StandCardSkeleton />
+                  </div>
+                ) : data && data.stands.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {data.stands.map((stand) => (
+                      <StandCard key={stand.id} stand={stand} />
+                    ))}
+                  </div>
+                ) : !isLoading && data && data.stands.length === 0 ? (
+                  <div className="text-center text-muted font-barlow py-12">
+                    No hay puestos activos en este momento
+                  </div>
+                ) : null}
+
+                {/* Product ranking */}
+                {isLoading ? (
+                  <ProductRankingSkeleton />
+                ) : data && data.product_ranking.length > 0 ? (
+                  <div className="bg-surface border border-surface-border rounded-2xl p-6">
+                    <h2 className="font-barlow font-extrabold text-lg text-foreground mb-4 tracking-wide">
+                      🏆 RANKING DE PRODUCTOS
+                    </h2>
+                    <div className="flex flex-col gap-2">
+                      {data.product_ranking.map((p, i) => {
+                        const maxUnits = data.product_ranking[0]?.units ?? 1;
+                        return (
+                          <div key={p.name} className="flex items-center gap-3">
+                            <span className="text-muted font-mono text-xs w-5 text-right">
+                              {i + 1}
+                            </span>
+                            <span className="text-xl">{p.emoji}</span>
+                            <div className="flex-1">
+                              <div className="flex justify-between mb-1">
+                                <span className="font-barlow font-bold text-sm text-foreground">
+                                  {p.name}
+                                </span>
+                                <span className="text-muted text-xs">
+                                  {p.units} uds · {fmtCompact(p.revenue)}
+                                </span>
+                              </div>
+                              <div className="h-1.5 bg-surface-high rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-primary rounded-full"
+                                  style={{ width: `${(p.units / maxUnits) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ) : null}
               </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
 
         {/* Closings tab */}
         {tab === "closings" && (
           <div className="flex flex-col gap-4">
-            {closings.length === 0 && (
+            {closingsError && (
+              <ErrorDisplay 
+                error={closingsError} 
+                onRetry={() => refetchClosings()} 
+                className="h-40"
+              />
+            )}
+            {closingsLoading && (
+              <>
+                <ClosingCardSkeleton />
+                <ClosingCardSkeleton />
+              </>
+            )}
+            {!closingsLoading && !closingsError && closings.length === 0 && (
               <div className="text-center text-muted font-barlow py-12">
                 No hay cierres pendientes
               </div>
             )}
-            {closings.map((c) => {
-              const diffCash = c.declaredCash - c.expectedCash;
-              const diffSinpe = c.declaredSinpe - c.expectedSinpe;
-              const diffCard = c.declaredCard - c.expectedCard;
-              const hasDiff = diffCash !== 0 || diffSinpe !== 0 || diffCard !== 0;
+            {!closingsLoading && !closingsError && closings.map((c) => {
+              const hasDiff = c.total_difference !== 0;
+              const isRejecting = rejectingId === c.closing_id;
 
               return (
                 <div
-                  key={c.id}
+                  key={c.closing_id}
                   className="bg-surface border border-surface-border rounded-2xl p-6"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <div className="font-barlow font-extrabold text-lg text-foreground">
-                        {c.standName}
+                        Cierre #{c.closing_id.slice(0, 8)}
                       </div>
-                      <div className="text-muted text-xs">{c.cashierName}</div>
+                      <div className="text-muted text-xs">Cajero: {c.cashier_id}</div>
                     </div>
                     {hasDiff && (
                       <span className="bg-warning/20 text-warning text-xs font-bold px-2 py-1 rounded">
@@ -330,9 +477,9 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     {[
-                      { label: "Efectivo", exp: c.expectedCash, decl: c.declaredCash, diff: diffCash },
-                      { label: "SINPE", exp: c.expectedSinpe, decl: c.declaredSinpe, diff: diffSinpe },
-                      { label: "Tarjeta", exp: c.expectedCard, decl: c.declaredCard, diff: diffCard },
+                      { label: "Efectivo", exp: c.expected_cash, decl: c.declared_cash, diff: c.cash_difference },
+                      { label: "SINPE", exp: c.expected_sinpe, decl: c.declared_sinpe, diff: c.sinpe_difference },
+                      { label: "Tarjeta", exp: c.expected_card, decl: c.declared_card, diff: c.card_difference },
                     ].map(({ label, exp, decl, diff }) => (
                       <div key={label} className="bg-surface-high rounded-xl p-3">
                         <div className="text-muted text-xs mb-2">{label}</div>
@@ -355,36 +502,78 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
+                  {/* Total row */}
+                  <div className="flex justify-between items-center bg-surface-high rounded-xl px-4 py-2 mb-4 text-sm">
+                    <span className="text-muted font-barlow">Total declarado</span>
+                    <span className="font-barlow font-extrabold text-foreground">{fmt(c.declared_total)}</span>
+                    <span className={cn("font-barlow font-bold text-xs",
+                      c.total_difference === 0 ? "text-success" : c.total_difference > 0 ? "text-blue-400" : "text-destructive"
+                    )}>
+                      {c.total_difference >= 0 ? "+" : ""}{fmt(c.total_difference)}
+                    </span>
+                  </div>
+
                   {c.notes && (
                     <div className="bg-warning/10 border border-warning/20 rounded-lg px-3 py-2 text-warning text-xs mb-4">
                       📝 {c.notes}
                     </div>
                   )}
 
+                  {/* Rejection notes input */}
+                  {isRejecting && (
+                    <div className="mb-4 flex flex-col gap-2">
+                      <label className="text-xs text-warning tracking-widest font-barlow">MOTIVO DE RECHAZO (opcional)</label>
+                      <textarea
+                        value={rejectNotes}
+                        onChange={(e) => setRejectNotes(e.target.value)}
+                        placeholder="Explicá el motivo..."
+                        rows={2}
+                        className="px-3 py-2 bg-surface-high border border-warning/40 rounded-lg text-foreground font-barlow text-sm outline-none focus:border-warning resize-none"
+                      />
+                    </div>
+                  )}
+
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => handleApproveClosing(c.id)}
-                      className="flex-1 py-2.5 bg-success/20 border border-success/40 text-success font-barlow font-bold rounded-lg hover:bg-success/30 transition-colors"
-                    >
-                      ✓ Aprobar
-                    </button>
-                    <button
-                      onClick={() =>
-                        api.patch(
-                          orgPath(user!.userId, org!.id, `/closings/${c.id}`),
-                          { status: "rejected" }
-                        )
-                      }
-                      className="flex-1 py-2.5 bg-destructive/20 border border-destructive/40 text-destructive font-barlow font-bold rounded-lg hover:bg-destructive/30 transition-colors"
-                    >
-                      ✗ Rechazar
-                    </button>
+                    {!isRejecting ? (
+                      <>
+                        <button
+                          onClick={() => handleApproveClosing(c.closing_id)}
+                          className="flex-1 py-2.5 bg-success/20 border border-success/40 text-success font-barlow font-bold rounded-lg hover:bg-success/30 transition-colors"
+                        >
+                          ✓ Aprobar
+                        </button>
+                        <button
+                          onClick={() => { setRejectingId(c.closing_id); setRejectNotes(""); }}
+                          className="flex-1 py-2.5 bg-destructive/20 border border-destructive/40 text-destructive font-barlow font-bold rounded-lg hover:bg-destructive/30 transition-colors"
+                        >
+                          ✗ Rechazar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setRejectingId(null)}
+                          className="flex-1 py-2.5 bg-surface-high border border-surface-border text-muted font-barlow font-bold rounded-lg"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleRejectClosing(c.closing_id, rejectNotes)}
+                          className="flex-1 py-2.5 bg-destructive/20 border border-destructive/40 text-destructive font-barlow font-bold rounded-lg hover:bg-destructive/30 transition-colors"
+                        >
+                          ✗ Confirmar rechazo
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
         )}
+
+        {/* Assignments tab */}
+        {tab === "assignments" && <AssignmentsPage />}
 
         {/* History tab */}
         {tab === "history" && (
@@ -399,10 +588,68 @@ export default function DashboardPage() {
         {/* Analytics tab */}
         {tab === "analytics" && <AnalyticsPage />}
 
-        {/* Session config tab */}
+        {/* Session tab */}
         {tab === "session" && (
-          <div className="bg-surface border border-surface-border rounded-2xl overflow-hidden" style={{ minHeight: 500 }}>
-            <SessionConfig onDone={() => setTab("realtime")} />
+          <div className="flex flex-col gap-4">
+            {/* Toggle bar */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSessionView("list")}
+                className={cn(
+                  "px-4 py-2 rounded-lg font-barlow font-bold text-sm transition-colors",
+                  sessionView === "list" ? "bg-primary text-white" : "bg-surface-high text-muted border border-surface-border"
+                )}
+              >
+                📋 Sesiones activas
+              </button>
+              <button
+                onClick={() => setSessionView("create")}
+                className={cn(
+                  "px-4 py-2 rounded-lg font-barlow font-bold text-sm transition-colors",
+                  sessionView === "create" ? "bg-primary text-white" : "bg-surface-high text-muted border border-surface-border"
+                )}
+              >
+                ＋ Nueva sesión
+              </button>
+            </div>
+
+            {/* Session list */}
+            {sessionView === "list" && (
+              <div className="flex flex-col gap-3">
+                {sessionsLoading && (
+                  <div className="text-center text-muted font-barlow py-8 animate-pulse">Cargando sesiones...</div>
+                )}
+                {!sessionsLoading && sessions.length === 0 && (
+                  <div className="text-center text-muted font-barlow py-12">
+                    No hay sesiones activas. Crea una nueva.
+                  </div>
+                )}
+                {sessions.map((s) => (
+                  <div key={s.session_id} className="bg-surface border border-surface-border rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                      <div className="font-barlow font-bold text-foreground">{s.name}</div>
+                      <div className="text-muted text-xs mt-0.5">
+                        {s.type === "match" ? "⚽ Partido" : "🍽 Turno"} · {s.context} · {new Date(s.start_time).toLocaleString("es-CR")}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deactivateSession.mutate(s.session_id)}
+                      disabled={deactivateSession.isPending}
+                      className="ml-4 px-3 py-1.5 bg-destructive/20 border border-destructive/30 text-destructive font-barlow font-bold text-xs rounded-lg hover:bg-destructive/30 transition-colors disabled:opacity-50"
+                    >
+                      🔒 Cerrar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Session creation form */}
+            {sessionView === "create" && (
+              <div className="bg-surface border border-surface-border rounded-2xl overflow-hidden" style={{ minHeight: 500 }}>
+                <SessionConfig onDone={() => { setSessionView("list"); }} />
+              </div>
+            )}
           </div>
         )}
       </div>

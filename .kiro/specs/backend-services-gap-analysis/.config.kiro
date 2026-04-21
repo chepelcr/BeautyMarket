@@ -1,0 +1,9 @@
+{
+  "specType": "feature",
+  "workflowType": "design-first",
+  "featureName": "backend-services-gap-analysis",
+  "designArtifacts": {
+    "highLevel": true,
+    "lowLevel": true
+  }
+}

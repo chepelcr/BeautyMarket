@@ -27,9 +27,9 @@ export function buildOrgApiUrl(
 
 /**
  * Build a URL for orders service organization-scoped endpoints
- * Used for products, categories, orders, clients, confirmations
+ * Used for products, categories, orders, clients, confirmations, branches, terminals, sessions, etc.
  * @param organizationId - The organization ID
- * @param endpoint - The endpoint path (e.g., '/products', '/categories', '/orders')
+ * @param endpoint - The endpoint path (e.g., '/products', '/categories', '/orders', '/branches', '/terminals')
  * @returns Full Orders API URL
  */
 export function buildOrdersApiUrl(
