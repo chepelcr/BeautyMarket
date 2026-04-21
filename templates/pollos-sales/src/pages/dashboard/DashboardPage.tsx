@@ -164,21 +164,25 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: closings = [], isLoading: closingsLoading, error: closingsError, refetch: refetchClosings } = useQuery({
+  const { data: closingsData, isLoading: closingsLoading, error: closingsError, refetch: refetchClosings } = useQuery({
     queryKey: ["closings", org?.id],
     enabled: !!user && !!org && tab === "closings",
     retry: 2,
     retryDelay: 1000,
     queryFn: () =>
-      crossAppApi.get<Closing[]>(crossAppOrgPath(org!.id, "/closings?status=pending")),
+      crossAppApi.get<{ data: Closing[]; pagination: any }>(crossAppOrgPath(org!.id, "/closings?status=pending")),
   });
+  
+  const closings = closingsData?.data || [];
 
-  const { data: sessions = [], isLoading: sessionsLoading, refetch: refetchSessions } = useQuery({
+  const { data: sessionsData, isLoading: sessionsLoading, refetch: refetchSessions } = useQuery({
     queryKey: ["sessions", org?.id],
     enabled: !!user && !!org && tab === "session",
     queryFn: () =>
-      crossAppApi.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
+      crossAppApi.get<{ data: Session[]; pagination: any }>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
   });
+  
+  const sessions = sessionsData?.data || [];
 
   const deactivateSession = useMutation({
     mutationFn: (sessionId: string) =>

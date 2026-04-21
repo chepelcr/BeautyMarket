@@ -122,11 +122,12 @@ export default function BranchesPage() {
     : null;
 
   /* ── Branches queries ── */
-  const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useQuery<Branch[]>({
+  const { data: branchesData, isLoading: branchesLoading, error: branchesError } = useQuery<{ data: Branch[]; pagination: any }>({
     queryKey: [branchesUrl],
     enabled: !!branchesUrl,
   });
 
+  const branches = branchesData?.data || [];
   const selectedBranch = branches.find(b => b.branch_id === selectedBranchId) ?? null;
 
   // Auto-select first branch
@@ -141,10 +142,12 @@ export default function BranchesPage() {
     ? buildOrdersApiUrl(organizationId!, `/branches/${selectedBranchId}/terminals`)
     : null;
 
-  const { data: terminals = [], isLoading: terminalsLoading } = useQuery<Terminal[]>({
+  const { data: terminalsData, isLoading: terminalsLoading } = useQuery<{ data: Terminal[]; pagination: any }>({
     queryKey: [terminalsUrl],
     enabled: !!terminalsUrl,
   });
+
+  const terminals = terminalsData?.data || [];
 
   /* ── Branch mutations ── */
   const createBranch = useMutation({
