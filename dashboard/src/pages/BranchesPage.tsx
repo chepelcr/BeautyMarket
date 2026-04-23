@@ -30,6 +30,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { buildOrdersApiUrl } from '@/lib/apiUtils';
 import { apiRequest } from '@/lib/queryClient';
+import { BranchLocationSection } from '@/components/branches/BranchLocationSection';
 
 /* ─────────────── Types ─────────────── */
 
@@ -39,6 +40,10 @@ interface Branch {
   code: string;
   type: 'stand' | 'restaurant';
   status: number;
+  state_id: number | null;
+  county_id: number | null;
+  district_id: number | null;
+  neighborhood: string | null;
   address: string | null;
   phone: string | null;
   created_at: string;
@@ -58,14 +63,15 @@ interface Terminal {
 
 interface BranchFormData {
   name: string; code: string; type: 'stand' | 'restaurant';
-  address: string; phone: string;
+  state_id: number | null; county_id: number | null; district_id: number | null;
+  neighborhood: string; address: string; phone: string;
 }
 
 interface TerminalFormData {
   name: string; code: string; device_id: string;
 }
 
-const defaultBranch: BranchFormData = { name: '', code: '', type: 'stand', address: '', phone: '' };
+const defaultBranch: BranchFormData = { name: '', code: '', type: 'stand', state_id: null, county_id: null, district_id: null, neighborhood: '', address: '', phone: '' };
 const defaultTerminal: TerminalFormData = { name: '', code: '', device_id: '' };
 
 /* ─────────────── Helpers ─────────────── */
@@ -154,7 +160,12 @@ export default function BranchesPage() {
     mutationFn: async (data: BranchFormData) => {
       const res = await apiRequest('POST', branchesUrl!, {
         name: data.name, code: data.code, type: data.type,
-        address: data.address || undefined, phone: data.phone || undefined,
+        state_id: data.state_id || undefined,
+        county_id: data.county_id || undefined,
+        district_id: data.district_id || undefined,
+        neighborhood: data.neighborhood || undefined,
+        address: data.address || undefined, 
+        phone: data.phone || undefined,
       });
       return res.json() as Promise<Branch>;
     },
@@ -236,7 +247,17 @@ export default function BranchesPage() {
   /* ── Handlers ── */
   const openEditBranch = (b: Branch) => {
     setEditingBranch(b);
-    setBranchForm({ name: b.name, code: b.code, type: b.type, address: b.address ?? '', phone: b.phone ?? '' });
+    setBranchForm({ 
+      name: b.name, 
+      code: b.code, 
+      type: b.type, 
+      state_id: b.state_id, 
+      county_id: b.county_id, 
+      district_id: b.district_id, 
+      neighborhood: b.neighborhood ?? '', 
+      address: b.address ?? '', 
+      phone: b.phone ?? '' 
+    });
   };
 
   const openEditTerminal = (t: Terminal) => {
@@ -329,7 +350,12 @@ export default function BranchesPage() {
 
         {/* ── Right: Detail panel ── */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {!selectedBranch ? (
+          {branches.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
+              <Store className="h-12 w-12 opacity-20" />
+              <p className="text-sm">Creá tu primera sucursal para comenzar</p>
+            </div>
+          ) : !selectedBranch ? (
             <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
               <Store className="h-12 w-12 opacity-20" />
               <p className="text-sm">Seleccioná una sucursal para ver sus detalles</p>
@@ -413,10 +439,18 @@ export default function BranchesPage() {
                           label="Estado"
                           value={selectedBranch.status === 1 ? 'Activa' : 'Inactiva'}
                         />
+                        {selectedBranch.neighborhood && (
+                          <InfoField
+                            icon={<MapPin className="h-4 w-4" />}
+                            label="Barrio"
+                            value={selectedBranch.neighborhood}
+                            className="col-span-2"
+                          />
+                        )}
                         {selectedBranch.address && (
                           <InfoField
                             icon={<MapPin className="h-4 w-4" />}
-                            label="Dirección"
+                            label="Otras señas"
                             value={selectedBranch.address}
                             className="col-span-2"
                           />
@@ -770,10 +804,9 @@ function BranchForm({ formData, onChange }: { formData: BranchFormData; onChange
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="b-address">Dirección</Label>
-        <Input id="b-address" value={formData.address} onChange={e => onChange({ ...formData, address: e.target.value })} placeholder="Sector norte, fila 3" />
-      </div>
+      
+      <BranchLocationSection formData={formData} onChange={onChange} />
+      
       <div className="space-y-1.5">
         <Label htmlFor="b-phone">Teléfono</Label>
         <Input id="b-phone" value={formData.phone} onChange={e => onChange({ ...formData, phone: e.target.value })} placeholder="8888-0000" />
