@@ -4,6 +4,21 @@ import { apiRequest } from '@/lib/queryClient';
 import type { Product } from '@/models';
 import type { ProductFilters } from '@/store/product-list-store';
 
+const ORDERS_API_URL = import.meta.env.VITE_ORDERS_API_URL;
+
+async function patchProductStatus(orgId: string, productId: string, status: number) {
+  const response = await fetch(
+    `${ORDERS_API_URL}/api/organizations/${orgId}/products/${productId}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }
+  );
+  if (!response.ok) throw new Error(`Failed to update product status: ${response.statusText}`);
+  return response.json();
+}
+
 export interface ProductsQueryParams {
   userId: string;
   orgId: string;
@@ -127,43 +142,30 @@ export function useProducts(params: ProductsQueryParams) {
     enabled: !!params.userId && !!params.orgId,
   });
 
-  // Mutation for bulk activate
+  // Mutation for bulk activate (status: 1)
   const activateMutation = useMutation({
     mutationFn: async (productIds: string[]) => {
-      const promises = productIds.map(id =>
-        apiRequest('PUT', buildOrgApiUrl(params.userId, params.orgId, `/products/${id}`), {
-          isActive: true,
-        })
-      );
-      await Promise.all(promises);
+      await Promise.all(productIds.map(id => patchProductStatus(params.orgId, id, 1)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 
-  // Mutation for bulk deactivate
+  // Mutation for bulk deactivate (status: 2)
   const deactivateMutation = useMutation({
     mutationFn: async (productIds: string[]) => {
-      const promises = productIds.map(id =>
-        apiRequest('PUT', buildOrgApiUrl(params.userId, params.orgId, `/products/${id}`), {
-          isActive: false,
-        })
-      );
-      await Promise.all(promises);
+      await Promise.all(productIds.map(id => patchProductStatus(params.orgId, id, 2)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 
-  // Mutation for bulk delete
+  // Mutation for bulk delete (status: 3)
   const deleteMutation = useMutation({
     mutationFn: async (productIds: string[]) => {
-      const promises = productIds.map(id =>
-        apiRequest('DELETE', buildOrgApiUrl(params.userId, params.orgId, `/products/${id}`))
-      );
-      await Promise.all(promises);
+      await Promise.all(productIds.map(id => patchProductStatus(params.orgId, id, 3)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

@@ -36,16 +36,9 @@ export function BulkActions({
   isLoading = false,
 }: BulkActionsProps) {
   const { t } = useLanguage();
+  const [showActivateDialog, setShowActivateDialog] = useState(false);
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  const handleDelete = () => {
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    onDelete();
-    setShowDeleteDialog(false);
-  };
 
   if (selectedCount === 0) {
     return null;
@@ -64,17 +57,17 @@ export function BulkActions({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onActivate} disabled={isLoading}>
+            <DropdownMenuItem onClick={() => setShowActivateDialog(true)} disabled={isLoading}>
               <CheckCircle2 className="mr-2 h-4 w-4" />
               {t('products.bulk.activate')}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onDeactivate} disabled={isLoading}>
+            <DropdownMenuItem onClick={() => setShowDeactivateDialog(true)} disabled={isLoading}>
               <XCircle className="mr-2 h-4 w-4" />
               {t('products.bulk.deactivate')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={handleDelete}
+              onClick={() => setShowDeleteDialog(true)}
               disabled={isLoading}
               className="text-destructive focus:text-destructive"
             >
@@ -85,6 +78,58 @@ export function BulkActions({
         </DropdownMenu>
       </div>
 
+      {/* Activate confirmation */}
+      <AlertDialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('products.bulk.activateConfirmTitle').replace('{count}', selectedCount.toString())}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('products.bulk.activateConfirmDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onActivate();
+                setShowActivateDialog(false);
+              }}
+            >
+              {t('products.bulk.activate')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Deactivate confirmation */}
+      <AlertDialog open={showDeactivateDialog} onOpenChange={setShowDeactivateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('products.bulk.deactivateConfirmTitle').replace('{count}', selectedCount.toString())}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('products.bulk.deactivateConfirmDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDeactivate();
+                setShowDeactivateDialog(false);
+              }}
+              className="bg-yellow-600 text-white hover:bg-yellow-700"
+            >
+              {t('products.bulk.deactivate')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -98,7 +143,10 @@ export function BulkActions({
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDelete}
+              onClick={() => {
+                onDelete();
+                setShowDeleteDialog(false);
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t('common.delete')}
