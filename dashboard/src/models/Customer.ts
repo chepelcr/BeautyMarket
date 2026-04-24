@@ -1,3 +1,5 @@
+import type { PaginationResponse } from "./Pagination";
+
 export interface Client {
   client_id: string;
   company_id: string;
@@ -108,53 +110,48 @@ export interface CustomerFormData {
 }
 
 export interface StoreResponse {
-  storeId: string;
-  companyId: string;
-  clientId: string;
-  storeCode: string;
-  storeName?: string;
-  slotId?: string;
+  store_id: string;
+  company_id: string;
+  client_id: string;
+  store_code: string;
+  store_name?: string;
+  slot_id?: string;
   chain?: string;
   gln?: string;
   status?: number;
 }
 
 export interface StoreRequestDTO {
-  storeCode: string;
-  storeName?: string;
-  slotId?: string;
+  store_code: string;
+  store_name?: string;
+  slot_id?: string;
   chain?: string;
 }
 
 export interface DepartmentResponse {
-  departmentId: string;
-  companyId: string;
-  clientId: string;
-  departmentCode: string;
+  department_id: string;
+  company_id: string;
+  client_id: string;
+  department_code: string;
   name?: string;
-  supplierCode?: string;
+  supplier_code?: string;
 }
 
 export interface CreateDepartmentDTO {
-  departmentCode: string;
+  department_code: string;
   name?: string;
-  supplierCode?: string;
+  supplier_code?: string;
 }
 
 export interface UpdateDepartmentDTO {
-  departmentCode?: string;
+  department_code?: string;
   name?: string;
-  supplierCode?: string;
+  supplier_code?: string;
 }
 
 export interface ClientsResponse {
   data: Client[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalElements: number;
-    totalPages: number;
-  };
+  pagination: PaginationResponse;
 }
 
 // Legacy Customer interface for backward compatibility

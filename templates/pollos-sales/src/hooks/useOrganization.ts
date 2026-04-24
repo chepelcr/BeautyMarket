@@ -1,21 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { api, userPath } from '@/lib/api';
+import type { Organization } from '../types';
 
-export interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  subdomain?: string;
-  ownerId: string;
-  onboardingStep?: number;
-  description?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  createdAt: string;
-  updatedAt: string;
-  templateName?: string;
-}
+export type { Organization } from '../types';
 
 export function useOrganization() {
   // Get user's organizations (same endpoint as dashboard)

@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { cn, fmt } from "@/lib/utils";
-import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
+import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useProducts } from "@/hooks/useProducts";
+import { useInventory } from "@/store/inventory";
+import type { Product } from "@/types";
+import { Icon, Card, Badge, Button } from "@/components/ui";
+
+const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
+const fmtTime = (d: number) => new Date(d).toLocaleTimeString("es-CR", { hour: "2-digit", minute: "2-digit" });
 
 interface ClosingFlowProps {
   assignmentId: string;
@@ -12,44 +19,71 @@ interface ClosingFlowProps {
   onClose: () => void;
 }
 
-const STEPS = ["Resumen", "Declarar", "Diferencias", "Confirmar"];
+const DENOMS = [
+  { key: "b20000", label: "Billete 20.000", value: 20000 },
+  { key: "b10000", label: "Billete 10.000", value: 10000 },
+  { key: "b5000", label: "Billete 5.000", value: 5000 },
+  { key: "b2000", label: "Billete 2.000", value: 2000 },
+  { key: "b1000", label: "Billete 1.000", value: 1000 },
+  { key: "c500", label: "Moneda 500", value: 500 },
+  { key: "c100", label: "Moneda 100", value: 100 },
+] as const;
+
+type DenomKey = typeof DENOMS[number]["key"];
 
 export default function ClosingFlow({
   assignmentId,
   sessionId,
   expectedCash,
-  expectedSinpe,
-  expectedCard,
   onClose,
 }: ClosingFlowProps) {
-  const { user, org } = useAuthContext();
-  const [step, setStep] = useState(0);
-  const [declared, setDeclared] = useState({ cash: "", sinpe: "", card: "" });
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
+  const { data: rawProducts } = useProducts();
+  const products: Product[] = Array.isArray(rawProducts)
+    ? rawProducts
+    : (rawProducts as any)?.data ?? [];
+  const inventory = useInventory();
+
+  const [step, setStep] = useState(1);
+  const [finalCounts, setFinalCounts] = useState<Record<string, string>>({});
+  const [cashCount, setCashCount] = useState<Record<DenomKey, string>>({
+    b20000: "", b10000: "", b5000: "", b2000: "", b1000: "", c500: "", c100: "",
+  });
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  const declCash = Number(declared.cash) || 0;
-  const declSinpe = Number(declared.sinpe) || 0;
-  const declCard = Number(declared.card) || 0;
-  const diffCash = declCash - expectedCash;
-  const diffSinpe = declSinpe - expectedSinpe;
-  const diffCard = declCard - expectedCard;
-  const hasDiff = diffCash !== 0 || diffSinpe !== 0 || diffCard !== 0;
+  const activeProducts = products.filter((p) => p.status === 1);
+  const filledCount = Object.values(finalCounts).filter((v) => v !== "").length;
 
-  const canSubmit = !hasDiff || notes.trim().length > 0;
+  const cashTotal = DENOMS.reduce(
+    (s, d) => s + (Number(cashCount[d.key]) || 0) * d.value,
+    0,
+  );
+  const cashDiff = cashTotal - expectedCash;
+
+  // inventory.stock[id] = remaining quantity (opening - sold), keyed by numeric id
+  const getExpected = (p: Product) => inventory.getStock(parseInt(p.id, 10)) ?? 0;
+
+  const faltantes = activeProducts.filter((p) => {
+    const actual = Number(finalCounts[p.id]) || 0;
+    const exp = getExpected(p);
+    return finalCounts[p.id] !== "" && actual < exp;
+  });
 
   const handleSubmit = async () => {
-    if (!canSubmit || loading) return;
+    if (loading) return;
     setLoading(true);
     try {
-      await api.post(crossAppOrgPath(org!.id, "/closings"), {
+      await crossAppApi.post(crossAppOrgPath(org!.id, "/closings"), {
         session_id: sessionId,
         assignment_id: assignmentId,
-        declared_cash: declCash,
-        declared_sinpe: declSinpe,
-        declared_card: declCard,
-        declared_total: declCash + declSinpe + declCard,
+        declared_cash: cashTotal,
+        declared_sinpe: 0,
+        declared_card: 0,
+        declared_total: cashTotal,
         notes: notes || undefined,
       });
       setDone(true);
@@ -60,228 +94,560 @@ export default function ClosingFlow({
 
   if (done) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
-        <div className="w-20 h-20 rounded-full bg-success/10 border-2 border-success flex items-center justify-center text-4xl">
-          ✓
-        </div>
-        <div className="text-success font-barlow font-extrabold text-2xl tracking-wide text-center">
-          CIERRE ENVIADO
-        </div>
-        <div className="text-muted text-sm text-center">
-          El gerente revisará y aprobará tu cierre.
-        </div>
-        <button
-          onClick={onClose}
-          className="w-full py-4 bg-primary text-white rounded-xl font-barlow font-extrabold text-xl"
+      <div
+        style={{
+          maxWidth: 440,
+          margin: "0 auto",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 32,
+          textAlign: "center",
+          background: "hsl(var(--background))",
+          gap: 20,
+        }}
+      >
+        <div
+          className="icon-pill icon-pill-lg"
+          style={{
+            width: 72,
+            height: 72,
+            background: "hsl(var(--success) / 0.15)",
+            color: "hsl(var(--success))",
+          }}
         >
-          CERRAR
-        </button>
+          <Icon name="checkCircle" size={32} />
+        </div>
+        <h2 className="t-h2">Cierre enviado</h2>
+        <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+          El gerente revisará y aprobará tu cierre.
+        </p>
+        <Button variant="primary" size="xl" onClick={onClose} style={{ width: "100%" }}>
+          Cerrar
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Stepper */}
-      <div className="flex items-center px-4 py-3 bg-surface border-b border-surface-border shrink-0">
-        {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center flex-1 last:flex-none">
-            <div
-              className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-barlow font-bold shrink-0",
-                i < step
-                  ? "bg-success text-white"
-                  : i === step
-                  ? "bg-primary text-white"
-                  : "bg-surface-high text-muted"
-              )}
-            >
-              {i < step ? "✓" : i + 1}
-            </div>
-            <span
-              className={cn(
-                "ml-1.5 text-xs font-barlow font-bold hidden sm:block",
-                i === step ? "text-foreground" : "text-muted"
-              )}
-            >
-              {s}
-            </span>
-            {i < STEPS.length - 1 && (
-              <div
-                className={cn(
-                  "flex-1 h-px mx-2",
-                  i < step ? "bg-success" : "bg-surface-border"
-                )}
-              />
-            )}
+    <div
+      style={{
+        maxWidth: 440,
+        margin: "0 auto",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: "hsl(var(--background))",
+      }}
+    >
+      {/* Nav bar */}
+      <div
+        className="nav-bar"
+        style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}
+      >
+        <button
+          className="btn btn-ghost btn-sm btn-icon"
+          onClick={onClose}
+          aria-label="Volver"
+        >
+          <Icon name="arrowLeft" size={18} />
+        </button>
+        <div style={{ flex: 1 }}>
+          <div className="t-label" style={{ fontSize: 10 }}>
+            Cierre de turno
           </div>
-        ))}
+          <div style={{ fontSize: 14, fontWeight: 700 }}>Paso {step} de 3</div>
+        </div>
+        <Badge variant="warning">
+          <Icon name="lock" size={10} /> Cerrando
+        </Badge>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-        {/* Step 0: Summary */}
-        {step === 0 && (
-          <>
-            <div className="font-barlow font-extrabold text-xl text-foreground">
-              Resumen esperado
+      {/* Progress bar */}
+      <div style={{ padding: "14px 16px 0" }}>
+        <div style={{ display: "flex", gap: 4 }}>
+          {[1, 2, 3].map((n) => (
+            <div
+              key={n}
+              style={{
+                flex: 1,
+                height: 4,
+                borderRadius: 2,
+                background:
+                  n <= step ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                transition: "background .3s",
+              }}
+            />
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+          {["Inventario", "Efectivo", "Resumen"].map((label, i) => (
+            <div
+              key={label}
+              className="t-xs"
+              style={{
+                color:
+                  i + 1 >= step
+                    ? "hsl(var(--foreground))"
+                    : "hsl(var(--muted-foreground))",
+                fontWeight: i + 1 === step ? 700 : 500,
+              }}
+            >
+              {label}
             </div>
-            {[
-              { label: "Efectivo", val: expectedCash },
-              { label: "SINPE", val: expectedSinpe },
-              { label: "Tarjeta", val: expectedCard },
-            ].map(({ label, val }) => (
-              <div
-                key={label}
-                className="flex justify-between items-center bg-surface border border-surface-border rounded-xl px-4 py-3"
-              >
-                <span className="text-muted font-barlow">{label}</span>
-                <span className="text-primary font-barlow font-extrabold text-xl">
-                  {fmt(val)}
-                </span>
-              </div>
-            ))}
-          </>
-        )}
+          ))}
+        </div>
+      </div>
 
-        {/* Step 1: Declare */}
+      {/* Content */}
+      <div style={{ flex: 1, padding: "14px 16px 100px", overflowY: "auto" }}>
+        {/* Step 1: Inventory count */}
         {step === 1 && (
           <>
-            <div className="font-barlow font-extrabold text-xl text-foreground">
-              Ingresá los montos contados
-            </div>
-            {(
-              [
-                { key: "cash", label: "Efectivo" },
-                { key: "sinpe", label: "SINPE" },
-                { key: "card", label: "Tarjeta" },
-              ] as const
-            ).map(({ key, label }) => (
-              <div key={key} className="flex flex-col gap-1.5">
-                <label className="text-xs text-muted tracking-widest font-barlow">
-                  {label.toUpperCase()}
-                </label>
-                <input
-                  type="number"
-                  placeholder="₡0"
-                  value={declared[key]}
-                  onChange={(e) =>
-                    setDeclared((d) => ({ ...d, [key]: e.target.value }))
-                  }
-                  className="px-4 py-3 bg-surface-high border border-surface-border rounded-xl text-foreground font-barlow font-bold text-2xl outline-none focus:border-primary"
+            <Card
+              style={{
+                padding: 14,
+                marginBottom: 14,
+                background: "hsl(var(--info) / 0.08)",
+                borderColor: "hsl(var(--info) / 0.3)",
+              }}
+            >
+              <div style={{ display: "flex", gap: 10 }}>
+                <Icon
+                  name="info"
+                  size={18}
+                  style={{ color: "hsl(var(--info))", flexShrink: 0, marginTop: 1 }}
                 />
+                <div>
+                  <div
+                    style={{ fontSize: 13, fontWeight: 700, marginBottom: 2, color: "hsl(var(--info))" }}
+                  >
+                    Contá lo que te queda
+                  </div>
+                  <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    El sistema compara con lo esperado (inventario inicial − vendido).
+                  </div>
+                </div>
               </div>
-            ))}
+            </Card>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {activeProducts.map((p) => {
+                const val = finalCounts[p.id] ?? "";
+                const actual = Number(val) || 0;
+                const exp = getExpected(p);
+                const diff = actual - exp;
+                const hasValue = val !== "" && val !== null;
+                const isMatch = hasValue && diff === 0;
+                const isMissing = hasValue && diff < 0;
+                return (
+                  <Card
+                    key={p.id}
+                    style={{
+                      padding: 12,
+                      borderColor: isMatch
+                        ? "hsl(var(--success) / 0.4)"
+                        : isMissing
+                        ? "hsl(var(--destructive) / 0.4)"
+                        : "hsl(var(--border))",
+                      transition: "border-color .2s",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 10,
+                          background: "hsl(var(--muted))",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 22,
+                        }}
+                      >
+                        {p.emoji}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
+                        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                          Restante esperado:{" "}
+                          <strong className="t-num" style={{ color: "hsl(var(--foreground))" }}>
+                            {exp}
+                          </strong>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <input
+                          className="t-num"
+                          type="number"
+                          value={val}
+                          onChange={(e) =>
+                            setFinalCounts((c) => ({ ...c, [p.id]: e.target.value }))
+                          }
+                          style={{
+                            width: 60,
+                            textAlign: "center",
+                            fontSize: 18,
+                            fontWeight: 800,
+                            background: "hsl(var(--muted))",
+                            border: "none",
+                            outline: "none",
+                            borderRadius: 8,
+                            padding: "8px 0",
+                            fontFamily: "var(--font-display)",
+                          }}
+                          placeholder="0"
+                        />
+                        {hasValue && (
+                          <div
+                            className="t-xs t-num"
+                            style={{
+                              color:
+                                diff === 0
+                                  ? "hsl(var(--success))"
+                                  : diff > 0
+                                  ? "hsl(var(--warning))"
+                                  : "hsl(var(--destructive))",
+                              fontWeight: 700,
+                              marginTop: 2,
+                            }}
+                          >
+                            {diff > 0 ? "+" : ""}
+                            {diff}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           </>
         )}
 
-        {/* Step 2: Differences */}
+        {/* Step 2: Cash breakdown */}
         {step === 2 && (
           <>
-            <div className="font-barlow font-extrabold text-xl text-foreground">
-              Diferencias
-            </div>
-            {[
-              { label: "Efectivo", exp: expectedCash, decl: declCash, diff: diffCash },
-              { label: "SINPE", exp: expectedSinpe, decl: declSinpe, diff: diffSinpe },
-              { label: "Tarjeta", exp: expectedCard, decl: declCard, diff: diffCard },
-            ].map(({ label, exp, decl, diff }) => (
+            <Card style={{ padding: 16, marginBottom: 14 }}>
+              <div className="t-label" style={{ marginBottom: 6 }}>
+                Total esperado en caja
+              </div>
+              <div className="t-stat-xl" style={{ fontSize: 36 }}>
+                {fmt(expectedCash)}
+              </div>
               <div
-                key={label}
-                className="bg-surface border border-surface-border rounded-xl p-4 flex flex-col gap-2"
+                className="t-xs"
+                style={{ color: "hsl(var(--muted-foreground))", marginTop: 4 }}
               >
-                <div className="font-barlow font-bold text-foreground">{label}</div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted">Esperado</span>
-                  <span className="text-foreground">{fmt(exp)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted">Declarado</span>
-                  <span className="text-foreground">{fmt(decl)}</span>
-                </div>
-                <div className="flex justify-between text-sm font-bold">
-                  <span className="text-muted">Diferencia</span>
-                  <span
-                    className={
-                      diff === 0
-                        ? "text-success"
-                        : diff > 0
-                        ? "text-blue-400"
-                        : "text-destructive"
-                    }
+                Fondo inicial + ventas en efectivo
+              </div>
+            </Card>
+
+            <div className="t-label" style={{ marginBottom: 10 }}>
+              Desglose de efectivo
+            </div>
+            <Card style={{ padding: 12 }}>
+              {DENOMS.map((denom, i) => {
+                const qty = Number(cashCount[denom.key]) || 0;
+                return (
+                  <div
+                    key={denom.key}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 0",
+                      borderBottom:
+                        i < DENOMS.length - 1 ? "1px solid hsl(var(--border))" : "none",
+                    }}
                   >
-                    {diff >= 0 ? "+" : ""}
-                    {fmt(diff)}
-                  </span>
-                </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{denom.label}</div>
+                      <div className="t-xs t-num" style={{ color: "hsl(var(--muted-foreground))" }}>
+                        × {fmt(denom.value)}
+                      </div>
+                    </div>
+                    <input
+                      className="pp-input t-num"
+                      type="number"
+                      value={cashCount[denom.key]}
+                      onChange={(e) =>
+                        setCashCount((c) => ({ ...c, [denom.key]: e.target.value }))
+                      }
+                      style={{
+                        width: 70,
+                        textAlign: "center",
+                        fontWeight: 700,
+                        fontFamily: "var(--font-display)",
+                      }}
+                      placeholder="0"
+                    />
+                    <div
+                      className="t-num"
+                      style={{
+                        width: 86,
+                        textAlign: "right",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "hsl(var(--muted-foreground))",
+                      }}
+                    >
+                      {qty * denom.value > 0 ? fmt(qty * denom.value) : "—"}
+                    </div>
+                  </div>
+                );
+              })}
+            </Card>
+
+            <Card
+              style={{
+                padding: 14,
+                marginTop: 14,
+                background:
+                  cashDiff === 0
+                    ? "hsl(var(--success) / 0.08)"
+                    : Math.abs(cashDiff) < 1000
+                    ? "hsl(var(--warning) / 0.08)"
+                    : "hsl(var(--destructive) / 0.08)",
+                borderColor:
+                  cashDiff === 0
+                    ? "hsl(var(--success) / 0.3)"
+                    : Math.abs(cashDiff) < 1000
+                    ? "hsl(var(--warning) / 0.3)"
+                    : "hsl(var(--destructive) / 0.3)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  marginBottom: 6,
+                }}
+              >
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>Contado</span>
+                <span className="t-num" style={{ fontWeight: 700 }}>
+                  {fmt(cashTotal)}
+                </span>
               </div>
-            ))}
-            {hasDiff && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-warning tracking-widest font-barlow">
-                  JUSTIFICACIÓN (requerida)
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Explicá la diferencia..."
-                  rows={3}
-                  className="px-4 py-3 bg-surface-high border border-warning/40 rounded-xl text-foreground font-barlow text-sm outline-none focus:border-warning resize-none"
-                />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  marginBottom: 10,
+                }}
+              >
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>Esperado</span>
+                <span className="t-num" style={{ fontWeight: 700 }}>
+                  {fmt(expectedCash)}
+                </span>
               </div>
-            )}
+              <div className="separator" style={{ marginBottom: 10 }} />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span className="t-label">
+                  {cashDiff > 0 ? "Sobrante" : cashDiff < 0 ? "Faltante" : "Diferencia"}
+                </span>
+                <span
+                  className="t-stat"
+                  style={{
+                    fontSize: 24,
+                    color:
+                      cashDiff === 0
+                        ? "hsl(var(--success))"
+                        : Math.abs(cashDiff) < 1000
+                        ? "hsl(var(--warning))"
+                        : "hsl(var(--destructive))",
+                  }}
+                >
+                  {cashDiff >= 0 ? "+" : "−"}
+                  {fmt(Math.abs(cashDiff))}
+                </span>
+              </div>
+            </Card>
           </>
         )}
 
-        {/* Step 3: Confirm */}
+        {/* Step 3: Summary */}
         {step === 3 && (
           <>
-            <div className="font-barlow font-extrabold text-xl text-foreground">
-              Confirmar cierre
-            </div>
-            <div className="bg-surface border border-surface-border rounded-xl p-4 text-sm text-muted">
-              Al confirmar, tu cierre será enviado al gerente para revisión. Esta
-              acción no se puede deshacer.
-            </div>
-            {hasDiff && notes && (
-              <div className="bg-warning/10 border border-warning/30 rounded-xl px-4 py-3 text-warning text-sm">
-                📝 {notes}
+            <Card
+              style={{
+                padding: 18,
+                marginBottom: 14,
+                background:
+                  "linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.02))",
+                borderColor: "hsl(var(--primary) / 0.3)",
+              }}
+            >
+              <div className="t-label" style={{ color: "hsl(var(--primary))", marginBottom: 6 }}>
+                Turno · Puesto
               </div>
-            )}
+              <div className="t-h3" style={{ marginBottom: 4 }}>
+                Resumen final
+              </div>
+              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                {user?.name ?? "Cajero"} · 19:00 → {fmtTime(Date.now())}
+              </div>
+            </Card>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 10,
+                marginBottom: 14,
+              }}
+            >
+              <Card style={{ padding: 14 }}>
+                <div className="t-label">Ventas</div>
+                <div className="t-stat" style={{ fontSize: 22, color: "hsl(var(--success))" }}>
+                  —
+                </div>
+                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  Órdenes del turno
+                </div>
+              </Card>
+              <Card style={{ padding: 14 }}>
+                <div className="t-label">Efectivo</div>
+                <div className="t-stat" style={{ fontSize: 22 }}>
+                  {fmt(cashTotal)}
+                </div>
+                <div
+                  className="t-xs t-num"
+                  style={{
+                    color:
+                      cashDiff >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))",
+                  }}
+                >
+                  {cashDiff >= 0 ? "+" : "−"}
+                  {fmt(Math.abs(cashDiff))}
+                </div>
+              </Card>
+            </div>
+
+            <Card style={{ padding: 16, marginBottom: 14 }}>
+              <div className="t-label" style={{ marginBottom: 10 }}>
+                Faltantes de producto
+              </div>
+              {faltantes.length === 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 0",
+                  }}
+                >
+                  <Icon name="checkCircle" size={18} style={{ color: "hsl(var(--success))" }} />
+                  <span className="t-sm" style={{ fontWeight: 600 }}>
+                    Todo cuadra perfectamente
+                  </span>
+                </div>
+              ) : (
+                faltantes.map((p) => {
+                  const exp = getExpected(p);
+                  const actual = Number(finalCounts[p.id]) || 0;
+                  return (
+                    <div
+                      key={p.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 0",
+                        borderBottom: "1px solid hsl(var(--border))",
+                      }}
+                    >
+                      <span style={{ fontSize: 18 }}>{p.emoji}</span>
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{p.name}</span>
+                      <Badge variant="destructive">−{exp - actual}</Badge>
+                    </div>
+                  );
+                })
+              )}
+            </Card>
+
+            <Card style={{ padding: 14 }}>
+              <div className="t-label" style={{ marginBottom: 8 }}>
+                Observaciones (opcional)
+              </div>
+              <textarea
+                className="pp-input"
+                placeholder="Notas para el gerente…"
+                style={{ minHeight: 70 }}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </Card>
           </>
         )}
       </div>
 
-      {/* Navigation */}
-      <div className="flex gap-3 p-4 bg-surface border-t border-surface-border shrink-0">
-        {step > 0 && (
-          <button
-            onClick={() => setStep((s) => s - 1)}
-            className="flex-1 py-3 bg-surface-high border border-surface-border rounded-xl font-barlow font-bold text-muted"
-          >
-            ← Atrás
-          </button>
-        )}
-        {step < STEPS.length - 1 ? (
-          <button
-            onClick={() => setStep((s) => s + 1)}
-            className="flex-1 py-3 bg-primary text-white rounded-xl font-barlow font-extrabold text-lg"
-          >
-            Siguiente →
-          </button>
-        ) : (
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit || loading}
-            className={cn(
-              "flex-1 py-3 rounded-xl font-barlow font-extrabold text-lg",
-              canSubmit && !loading
-                ? "bg-success text-white"
-                : "bg-surface-high text-muted cursor-not-allowed"
-            )}
-          >
-            {loading ? "Enviando..." : "✓ CONFIRMAR CIERRE"}
-          </button>
-        )}
+      {/* Footer */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 40,
+          background: "hsl(var(--background) / 0.9)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderTop: "1px solid hsl(var(--border))",
+          padding: "12px 16px 20px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 440,
+            margin: "0 auto",
+            display: "flex",
+            gap: 8,
+          }}
+        >
+          {step > 1 && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setStep((s) => s - 1)}
+              style={{ flex: 0.8 }}
+            >
+              <Icon name="arrowLeft" size={16} /> Atrás
+            </Button>
+          )}
+          {step < 3 ? (
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => setStep((s) => s + 1)}
+              disabled={step === 1 && filledCount < activeProducts.length}
+              style={{ flex: 1 }}
+            >
+              Continuar <Icon name="arrowRight" size={16} />
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleSubmit}
+              disabled={loading}
+              style={{ flex: 1 }}
+            >
+              <Icon name="check" size={16} />{" "}
+              {loading ? "Enviando…" : "Cerrar turno"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

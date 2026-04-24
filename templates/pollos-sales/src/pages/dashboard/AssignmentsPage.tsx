@@ -39,7 +39,9 @@ interface Member {
 type Role = "cashier" | "supervisor";
 
 export default function AssignmentsPage() {
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
 

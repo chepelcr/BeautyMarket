@@ -1,17 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, orgPath } from "../lib/api";
+import { crossAppApi, crossAppOrgPath } from "../lib/api";
 import { db } from "../lib/db";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useOrganization } from "./useOrganization";
+import type { Assignment } from "../types";
 
-interface Assignment {
-  id: string;
-  standId: string;
-  standName: string;
-  context: "gradas" | "mesa" | "caja";
-  sessionId: string;
-  sessionName: string;
-}
+export type { Assignment } from "../types";
 
 export function useAssignment() {
   const { user } = useAuthContext();
@@ -23,20 +17,20 @@ export function useAssignment() {
     enabled: !!user && !!org,
     queryFn: async () => {
       try {
-        const data = await api.get<Assignment>(
+        const data = await crossAppApi.get<Assignment>(
           crossAppOrgPath(org!.id, "/assignments/active")
         );
         // Cache in IndexedDB for offline access
         await db.assignments.where({ userId: user!.userId, orgId: org!.id }).delete();
         await db.assignments.add({
-          assignmentId: data.id,
+          assignmentId: data.assignment_id,
           orgId: org!.id,
           userId: user!.userId,
-          standId: data.standId,
-          standName: data.standName,
-          context: data.context,
-          sessionId: data.sessionId,
-          sessionName: data.sessionName,
+          standId: data.branch_id,
+          standName: "", // Will be populated from branch data
+          context: "caja",
+          sessionId: data.session_id,
+          sessionName: "", // Will be populated from session data
           fetchedAt: Date.now(),
         });
         return data;
@@ -47,12 +41,15 @@ export function useAssignment() {
           .first();
         if (cached) {
           return {
-            id: cached.assignmentId,
-            standId: cached.standId,
-            standName: cached.standName,
-            context: cached.context,
-            sessionId: cached.sessionId,
-            sessionName: cached.sessionName,
+            assignment_id: cached.assignmentId,
+            organization_id: org!.id,
+            session_id: cached.sessionId,
+            user_id: user!.userId,
+            branch_id: cached.standId,
+            role: "cashier",
+            start_time: new Date(cached.fetchedAt).toISOString(),
+            status: 1,
+            created_by: user!.userId,
           } as Assignment;
         }
         throw new Error("No hay asignación activa");

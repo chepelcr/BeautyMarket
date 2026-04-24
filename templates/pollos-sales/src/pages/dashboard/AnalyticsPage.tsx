@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, orgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganization";
 import { fmt, fmtCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,9 @@ const TABS: { id: AnalyticsTab; label: string }[] = [
 ];
 
 export default function AnalyticsPage() {
-  const { user, org } = useAuthContext();
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
   const [tab, setTab] = useState<AnalyticsTab>("products");
   const [period, setPeriod] = useState<Period>("week");
 

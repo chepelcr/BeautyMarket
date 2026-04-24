@@ -10,7 +10,7 @@ interface CartBarProps {
   total: number;
   count: number;
   onAdd: (product: Product) => void;
-  onRemove: (productId: number) => void;
+  onRemove: (productId: string) => void;
   onCheckout: () => void;
 }
 

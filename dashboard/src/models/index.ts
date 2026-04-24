@@ -1,5 +1,8 @@
 // Re-export all models
 
+// Pagination
+export type { PaginationResponse, PaginatedResponse } from "./Pagination";
+
 // Organization and Multi-tenancy
 export type {
   Organization,

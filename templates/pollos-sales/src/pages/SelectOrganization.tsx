@@ -75,7 +75,7 @@ export default function SelectOrganization() {
               <div className="font-barlow font-bold text-lg text-foreground group-hover:text-primary transition-colors">
                 {org.name}
               </div>
-              <div className="text-muted text-xs mt-0.5">{org.templateName}</div>
+              <div className="text-muted text-xs mt-0.5">{org.template_name}</div>
             </button>
           ))}
         </div>

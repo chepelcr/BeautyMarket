@@ -19,13 +19,14 @@ export const useCart = create<CartStore>((set, get) => ({
   items: {},
 
   add: (product) => {
-    if (product.stock === 0) return;
+    if ((product.stock_quantity ?? 0) === 0) return;
+    const pid = parseInt(product.id, 10);
     set((state) => ({
       items: {
         ...state.items,
-        [product.id]: {
+        [pid]: {
           product,
-          qty: (state.items[product.id]?.qty ?? 0) + 1,
+          qty: (state.items[pid]?.qty ?? 0) + 1,
         },
       },
     }));

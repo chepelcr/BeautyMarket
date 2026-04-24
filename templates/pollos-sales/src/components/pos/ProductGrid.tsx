@@ -22,7 +22,7 @@ export default function ProductGrid({
   const getStock = useInventory((s) => s.getStock);
 
   const filtered =
-    category === "Todos" ? products : products.filter((p) => p.category === category);
+    category === "Todos" ? products : products.filter((p) => (p as any).category_id === category);
 
   return (
     <>
@@ -47,9 +47,10 @@ export default function ProductGrid({
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2.5 content-start">
         {filtered.map((p) => {
-          const inCart = cart[p.id] ?? 0;
-          const localStock = getStock(p.id);
-          const stock = localStock !== undefined ? localStock : p.stock;
+          const pid = parseInt(p.id, 10);
+          const inCart = cart[pid] ?? 0;
+          const localStock = getStock(pid);
+          const stock = localStock !== undefined ? localStock : (p.stock_quantity ?? 0);
           const isOut = stock === 0;
           const isLow = stock > 0 && stock <= 3;
 
