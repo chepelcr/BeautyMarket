@@ -86,6 +86,12 @@ export const useProductListStore = create<ProductListState>()(
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
       }),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState as Partial<ProductListState>),
+        // Always initialize selection as empty Set — Sets are not JSON-serializable
+        selectedProductIds: new Set<string>(),
+      }),
     }
   )
 );

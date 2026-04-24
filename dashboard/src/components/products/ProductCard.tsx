@@ -36,10 +36,15 @@ export function ProductCard({
   return (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
       {/* Selection checkbox */}
-      <div className="absolute top-3 left-3 z-10">
+      <div
+        className="absolute top-3 left-3 z-10"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Checkbox
           checked={isSelected}
-          onCheckedChange={onToggleSelection}
+          onCheckedChange={(checked) => {
+            if (checked !== 'indeterminate') onToggleSelection();
+          }}
           className="bg-background border-2"
           aria-label={`Select ${product.name}`}
         />

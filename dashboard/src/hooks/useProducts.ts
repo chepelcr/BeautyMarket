@@ -185,14 +185,41 @@ export function useProducts(params: ProductsQueryParams) {
     },
   });
 
-  // Mutation for bulk delete
+  // Mutation for bulk activate (status: 1)
+  const activateMutation = useMutation({
+    mutationFn: async (productIds: string[]) => {
+      await Promise.all(productIds.map(id => {
+        const url = buildOrdersApiUrl(params.orgId, `/products/${id}`);
+        return apiRequest('PATCH', url, { status: 1 });
+      }));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-products'] });
+    },
+  });
+
+  // Mutation for bulk deactivate (status: 2)
+  const deactivateMutation = useMutation({
+    mutationFn: async (productIds: string[]) => {
+      await Promise.all(productIds.map(id => {
+        const url = buildOrdersApiUrl(params.orgId, `/products/${id}`);
+        return apiRequest('PATCH', url, { status: 2 });
+      }));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-products'] });
+    },
+  });
+
+  // Mutation for bulk delete (status: 3)
   const deleteMutation = useMutation({
     mutationFn: async (productIds: string[]) => {
-      const promises = productIds.map(id => {
+      await Promise.all(productIds.map(id => {
         const url = buildOrdersApiUrl(params.orgId, `/products/${id}`);
-        return apiRequest('DELETE', url);
-      });
-      await Promise.all(promises);
+        return apiRequest('PATCH', url, { status: 3 });
+      }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -213,9 +240,14 @@ export function useProducts(params: ProductsQueryParams) {
     createProduct: createMutation.mutateAsync,
     updateProduct: updateMutation.mutateAsync,
     updateProductStatus: updateStatusMutation.mutateAsync,
+    // Bulk status operations
+    activateProducts: activateMutation.mutateAsync,
+    deactivateProducts: deactivateMutation.mutateAsync,
     deleteProducts: deleteMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
+    isActivating: activateMutation.isPending,
+    isDeactivating: deactivateMutation.isPending,
     isDeleting: deleteMutation.isPending,
   };
 }
