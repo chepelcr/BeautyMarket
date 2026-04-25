@@ -33,7 +33,7 @@ export default function ProductsPage() {
     },
   });
 
-  const products: Product[] = (productsResponse as any)?.data ?? (Array.isArray(productsResponse) ? productsResponse : []);
+  const products: Product[] = (productsResponse as any)?.data ?? [];
 
   const updatePrice = useMutation({
     mutationFn: ({ id, price }: { id: string; price: number }) =>
@@ -62,7 +62,7 @@ export default function ProductsPage() {
   const toggleSelect = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const toggleAll = () =>
-    setSelected((s) => (s.length === filtered.length ? [] : filtered.map((p) => p.id)));
+    setSelected((s) => (s.length === filtered.length ? [] : filtered.map((p) => p.product_id)));
 
   const lowStock = (p: Product) =>
     (p.stock_quantity ?? 0) > 0 && (p.stock_quantity ?? 0) <= 5;
@@ -205,7 +205,7 @@ export default function ProductsPage() {
             >
               {filtered.map((p) => (
                 <Card
-                  key={p.id}
+                  key={p.product_id}
                   hoverable
                   style={{
                     padding: 0,
@@ -227,8 +227,8 @@ export default function ProductsPage() {
                     <div style={{ position: "absolute", top: 8, left: 8 }}>
                       <input
                         type="checkbox"
-                        checked={selected.includes(p.id)}
-                        onChange={() => toggleSelect(p.id)}
+                        checked={selected.includes(p.product_id)}
+                        onChange={() => toggleSelect(p.product_id)}
                         style={{
                           width: 18,
                           height: 18,
@@ -288,7 +288,7 @@ export default function ProductsPage() {
                         marginTop: 10,
                       }}
                     >
-                      {editingPrice === p.id ? (
+                      {editingPrice === p.product_id ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <input
                             type="number"
@@ -301,7 +301,7 @@ export default function ProductsPage() {
                           <button
                             className="btn btn-success btn-xs"
                             onClick={() =>
-                              updatePrice.mutate({ id: p.id, price: Number(priceInput) })
+                              updatePrice.mutate({ id: p.product_id, price: Number(priceInput) })
                             }
                           >
                             <Icon name="check" size={12} />
@@ -326,7 +326,7 @@ export default function ProductsPage() {
                             fontWeight: 800,
                           }}
                           onClick={() => {
-                            setEditingPrice(p.id);
+                            setEditingPrice(p.product_id);
                             setPriceInput(String(p.price));
                           }}
                         >
@@ -339,7 +339,7 @@ export default function ProductsPage() {
                         icon={p.status === 1 ? "eye" : "eyeOff"}
                         onClick={() =>
                           toggleActive.mutate({
-                            id: p.id,
+                            id: p.product_id,
                             status: p.status === 1 ? 0 : 1,
                           })
                         }
@@ -386,7 +386,7 @@ export default function ProductsPage() {
                   <tbody>
                     {filtered.map((p, i) => (
                       <tr
-                        key={p.id}
+                        key={p.product_id}
                         style={{
                           borderBottom:
                             i < filtered.length - 1
@@ -397,8 +397,8 @@ export default function ProductsPage() {
                         <td className="pp-td">
                           <input
                             type="checkbox"
-                            checked={selected.includes(p.id)}
-                            onChange={() => toggleSelect(p.id)}
+                            checked={selected.includes(p.product_id)}
+                            onChange={() => toggleSelect(p.product_id)}
                             style={{ accentColor: "hsl(var(--primary))" }}
                           />
                         </td>
@@ -438,7 +438,7 @@ export default function ProductsPage() {
                           className="pp-td t-num"
                           style={{ textAlign: "right" }}
                         >
-                          {editingPrice === p.id ? (
+                          {editingPrice === p.product_id ? (
                             <div
                               style={{
                                 display: "flex",
@@ -459,7 +459,7 @@ export default function ProductsPage() {
                                 className="btn btn-success btn-xs"
                                 onClick={() =>
                                   updatePrice.mutate({
-                                    id: p.id,
+                                    id: p.product_id,
                                     price: Number(priceInput),
                                   })
                                 }
@@ -485,7 +485,7 @@ export default function ProductsPage() {
                                 fontSize: 13,
                               }}
                               onClick={() => {
-                                setEditingPrice(p.id);
+                                setEditingPrice(p.product_id);
                                 setPriceInput(String(p.price));
                               }}
                             >
@@ -517,7 +517,7 @@ export default function ProductsPage() {
                               icon={p.status === 1 ? "eyeOff" : "eye"}
                               onClick={() =>
                                 toggleActive.mutate({
-                                  id: p.id,
+                                  id: p.product_id,
                                   status: p.status === 1 ? 0 : 1,
                                 })
                               }

@@ -35,7 +35,7 @@ class OfflineDataService {
 
   async getProductsByCategory(categoryId: string): Promise<Product[]> {
     const products = await this.getProducts();
-    return products.filter(product => product.categoryId === categoryId);
+    return products.filter(product => product.category_id === categoryId);
   }
 }
 

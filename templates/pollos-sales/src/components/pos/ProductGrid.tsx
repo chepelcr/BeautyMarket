@@ -47,7 +47,7 @@ export default function ProductGrid({
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2.5 content-start">
         {filtered.map((p) => {
-          const pid = parseInt(p.id, 10);
+          const pid = parseInt(p.product_id, 10);
           const inCart = cart[pid] ?? 0;
           const localStock = getStock(pid);
           const stock = localStock !== undefined ? localStock : (p.stock_quantity ?? 0);
@@ -56,7 +56,7 @@ export default function ProductGrid({
 
           return (
             <button
-              key={p.id}
+              key={p.product_id}
               onClick={() => onAdd(p)}
               disabled={isOut}
               className={cn(

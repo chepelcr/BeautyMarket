@@ -56,7 +56,7 @@ export default function POSPage() {
     : (rawProducts as any)?.data ?? [];
   const activeProducts = productsList.filter((p: any) => p.status === 1);
   const cartItems: CartItem[] = Object.values(items).map(({ product, qty }: any) => ({
-    id: product.id,
+    id: product.product_id,
     name: product.name,
     price: product.price,
     emoji: product.emoji ?? "🍗",
@@ -321,7 +321,7 @@ export default function POSPage() {
             const lowStock = (p.stock_quantity ?? 0) > 0 && (p.stock_quantity ?? 0) <= 5;
             return (
               <button
-                key={p.id}
+                key={p.product_id}
                 onClick={() => add(p)}
                 className="card card-hover"
                 style={{

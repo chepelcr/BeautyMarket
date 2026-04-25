@@ -41,6 +41,7 @@ export type {
 // Branches & Terminals
 export type {
   Branch,
+  BranchLocation,
   BranchType,
   BranchStatus,
   Terminal,

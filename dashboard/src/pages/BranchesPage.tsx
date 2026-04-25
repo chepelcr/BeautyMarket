@@ -34,17 +34,21 @@ import { BranchLocationSection } from '@/components/branches/BranchLocationSecti
 
 /* ─────────────── Types ─────────────── */
 
+interface BranchLocation {
+  state_id: number | null;
+  county_id: number | null;
+  district_id: number | null;
+  neighborhood: string | null;
+  address: string | null;
+}
+
 interface Branch {
   branch_id: string;
   name: string;
   code: string;
   type: 'stand' | 'restaurant';
   status: number;
-  state_id: number | null;
-  county_id: number | null;
-  district_id: number | null;
-  neighborhood: string | null;
-  address: string | null;
+  location: BranchLocation | null;
   phone: string | null;
   created_at: string;
   terminals?: Terminal[];
@@ -159,13 +163,19 @@ export default function BranchesPage() {
   const createBranch = useMutation({
     mutationFn: async (data: BranchFormData) => {
       const res = await apiRequest('POST', branchesUrl!, {
-        name: data.name, code: data.code, type: data.type,
-        state_id: data.state_id || undefined,
-        county_id: data.county_id || undefined,
-        district_id: data.district_id || undefined,
-        neighborhood: data.neighborhood || undefined,
-        address: data.address || undefined, 
+        name: data.name,
+        code: data.code,
+        type: data.type,
         phone: data.phone || undefined,
+        location: (data.state_id || data.county_id || data.district_id || data.neighborhood || data.address)
+          ? {
+              state_id: data.state_id || undefined,
+              county_id: data.county_id || undefined,
+              district_id: data.district_id || undefined,
+              neighborhood: data.neighborhood || undefined,
+              address: data.address || undefined,
+            }
+          : undefined,
       });
       return res.json() as Promise<Branch>;
     },
@@ -181,7 +191,26 @@ export default function BranchesPage() {
 
   const updateBranch = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<BranchFormData> & { status?: number } }) => {
-      const res = await apiRequest('PATCH', `${branchesUrl}/${id}`, data);
+      const payload: Record<string, unknown> = {};
+      if (data.name !== undefined) payload.name = data.name;
+      if (data.code !== undefined) payload.code = data.code;
+      if (data.type !== undefined) payload.type = data.type;
+      if (data.phone !== undefined) payload.phone = data.phone || undefined;
+      if (data.status !== undefined) payload.status = data.status;
+      if (
+        data.state_id !== undefined || data.county_id !== undefined ||
+        data.district_id !== undefined || data.neighborhood !== undefined ||
+        data.address !== undefined
+      ) {
+        payload.location = {
+          state_id: data.state_id || undefined,
+          county_id: data.county_id || undefined,
+          district_id: data.district_id || undefined,
+          neighborhood: data.neighborhood || undefined,
+          address: data.address || undefined,
+        };
+      }
+      const res = await apiRequest('PATCH', `${branchesUrl}/${id}`, payload);
       return res.json();
     },
     onSuccess: () => {
@@ -247,16 +276,16 @@ export default function BranchesPage() {
   /* ── Handlers ── */
   const openEditBranch = (b: Branch) => {
     setEditingBranch(b);
-    setBranchForm({ 
-      name: b.name, 
-      code: b.code, 
-      type: b.type, 
-      state_id: b.state_id, 
-      county_id: b.county_id, 
-      district_id: b.district_id, 
-      neighborhood: b.neighborhood ?? '', 
-      address: b.address ?? '', 
-      phone: b.phone ?? '' 
+    setBranchForm({
+      name: b.name,
+      code: b.code,
+      type: b.type,
+      state_id: b.location?.state_id ?? null,
+      county_id: b.location?.county_id ?? null,
+      district_id: b.location?.district_id ?? null,
+      neighborhood: b.location?.neighborhood ?? '',
+      address: b.location?.address ?? '',
+      phone: b.phone ?? '',
     });
   };
 
@@ -439,19 +468,19 @@ export default function BranchesPage() {
                           label="Estado"
                           value={selectedBranch.status === 1 ? 'Activa' : 'Inactiva'}
                         />
-                        {selectedBranch.neighborhood && (
+                        {selectedBranch.location?.neighborhood && (
                           <InfoField
                             icon={<MapPin className="h-4 w-4" />}
                             label="Barrio"
-                            value={selectedBranch.neighborhood}
+                            value={selectedBranch.location.neighborhood}
                             className="col-span-2"
                           />
                         )}
-                        {selectedBranch.address && (
+                        {selectedBranch.location?.address && (
                           <InfoField
                             icon={<MapPin className="h-4 w-4" />}
                             label="Otras señas"
-                            value={selectedBranch.address}
+                            value={selectedBranch.location.address}
                             className="col-span-2"
                           />
                         )}

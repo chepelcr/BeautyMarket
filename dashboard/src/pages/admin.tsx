@@ -295,15 +295,15 @@ export default function Admin() {
 
                                     {/* Existing Products */}
                                     {products?.map((product) => (
-                                        <Card key={product.id}
+                                        <Card key={product.product_id}
                                               className="bg-card border border-border hover:shadow-lg transition-shadow">
                                             <CardHeader className="pb-3">
                                                 <div
                                                     className="aspect-square rounded-lg overflow-hidden bg-muted mb-3">
-                                                    {product.imageUrl ? (
+                                                    {product.image_url ? (
                                                         <img
                                                             className="w-full h-full object-cover"
-                                                            src={product.imageUrl}
+                                                            src={product.image_url}
                                                             alt={product.name}
                                                         />
                                                     ) : (
@@ -318,11 +318,11 @@ export default function Admin() {
                                                         {product.name}
                                                     </CardTitle>
                                                     <div className="flex items-center justify-between">
-                                                        <Badge className={getCategoryColor(product.categoryId)}>
-                                                            {getCategoryLabel(product.categoryId)}
+                                                        <Badge className={getCategoryColor(product.category_id)}>
+                                                            {getCategoryLabel(product.category_id)}
                                                         </Badge>
-                                                        <Badge variant={product.isActive ? "default" : "secondary"}>
-                                                            {product.isActive ? "Activo" : "Inactivo"}
+                                                        <Badge variant={product.status === 1 ? "default" : "secondary"}>
+                                                            {product.status === 1 ? "Activo" : "Inactivo"}
                                                         </Badge>
                                                     </div>
                                                 </div>

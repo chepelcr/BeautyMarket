@@ -4,6 +4,7 @@ import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { cn } from "@/lib/utils";
+import type { BranchListResponse } from "@/types";
 
 interface Assignment {
   assignment_id: string;
@@ -27,7 +28,7 @@ interface Branch {
   branch_id: string;
   name: string;
   code: string;
-  is_active: boolean;
+  status: number;
 }
 
 interface Member {
@@ -66,12 +67,13 @@ export default function AssignmentsPage() {
       crossAppApi.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
   });
 
-  const { data: branches = [] } = useQuery({
+  const { data: branchesResponse } = useQuery({
     queryKey: ["branches", org?.id],
     enabled: !!user && !!org && showForm,
     queryFn: () =>
-      crossAppApi.get<Branch[]>(crossAppOrgPath(org!.id, "/branches?is_active=true")),
+      crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, "/branches?search=status:1")),
   });
+  const branches: Branch[] = branchesResponse?.data ?? [];
 
   const { data: members = [] } = useQuery({
     queryKey: ["org-users", org?.id],

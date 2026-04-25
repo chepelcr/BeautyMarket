@@ -6,6 +6,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import type { Product } from "@/hooks/useProducts";
 import { ordersApi, ordersOrgPath } from "@/lib/api";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
+import type { BranchListResponse } from "@/types";
 
 interface Branch {
   branch_id: string;
@@ -56,12 +57,13 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
 
   const [error, setError] = useState<string | null>(null);
 
-  const { data: branches = [] } = useQuery({
+  const { data: branchesResponse } = useQuery({
     queryKey: ["branches", org?.id],
     enabled: !!user && !!org,
     queryFn: () =>
-      crossAppApi.get<Branch[]>(crossAppOrgPath(org!.id, "/branches?is_active=true")),
+      crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, "/branches?search=status:1")),
   });
+  const branches: Branch[] = branchesResponse?.data ?? [];
 
   const { data: members = [] } = useQuery({
     queryKey: ["org-users", org?.id],
@@ -664,12 +666,12 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                   .filter((p) => p.status === 1)
                   .map((p) => {
                     const total = selectedBranches.reduce(
-                      (s, b) => s + (inventory[b.branch_id]?.[p.id] ?? 0),
+                      (s, b) => s + (inventory[b.branch_id]?.[p.product_id] ?? 0),
                       0
                     );
                     return (
                       <tr
-                        key={p.id}
+                        key={p.product_id}
                         style={{ borderBottom: "1px solid hsl(var(--border))" }}
                       >
                         <td style={tdStyle}>
@@ -713,13 +715,13 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                                 fontFamily: "var(--font-display)",
                                 display: "block",
                               }}
-                              value={inventory[b.branch_id]?.[p.id] ?? 0}
+                              value={inventory[b.branch_id]?.[p.product_id] ?? 0}
                               onChange={(e) =>
                                 setInventory((inv) => ({
                                   ...inv,
                                   [b.branch_id]: {
                                     ...inv[b.branch_id],
-                                    [p.id]: Number(e.target.value),
+                                    [p.product_id]: Number(e.target.value),
                                   },
                                 }))
                               }

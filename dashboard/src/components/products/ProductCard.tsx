@@ -25,13 +25,13 @@ export function ProductCard({
 }: ProductCardProps) {
   const { t } = useLanguage();
   // Use embedded category from product if available, otherwise lookup from categories array
-  const category = product.category || categories.find((c) => c.categoryId === product.categoryId);
+  const category = product.category || categories.find((c) => c.category_id === product.category_id);
 
   // Inventory status helpers
-  const isOutOfStock = product.trackInventory && (product.stockQuantity ?? 0) === 0;
-  const isLowStock = product.trackInventory &&
+  const isOutOfStock = product.track_inventory && (product.stock_quantity ?? 0) === 0;
+  const isLowStock = product.track_inventory &&
                      !isOutOfStock &&
-                     (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 10);
+                     (product.stock_quantity ?? 0) <= (product.low_stock_threshold ?? 10);
 
   return (
     <Card className="group relative overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
@@ -48,9 +48,9 @@ export function ProductCard({
       <CardHeader className="pb-3 pt-10">
         {/* Product image */}
         <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-3">
-          {product.imageUrl ? (
+          {product.image_url ? (
             <img
-              src={product.imageUrl}
+              src={product.image_url}
               alt={product.name}
               loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -73,8 +73,8 @@ export function ProductCard({
                 {category.name}
               </Badge>
             )}
-            <Badge variant={product.isActive ? 'default' : 'outline'} className="text-xs">
-              {product.isActive ? t('products.filters.active') : t('products.filters.inactive')}
+            <Badge variant={product.status === 1 ? 'default' : 'outline'} className="text-xs">
+              {product.status === 1 ? t('products.filters.active') : t('products.filters.inactive')}
             </Badge>
             {/* Stock status badges */}
             {isOutOfStock && (
@@ -107,7 +107,7 @@ export function ProductCard({
         </div>
 
         {/* Stock information */}
-        {product.trackInventory && (
+        {product.track_inventory && (
           <div className="text-sm text-muted-foreground">
             {product.sku && (
               <div className="mb-1">
@@ -117,7 +117,7 @@ export function ProductCard({
             <div>
               <span className="font-medium">{t('products.inventory.stock')}:</span>{' '}
               <span className={isOutOfStock ? 'text-destructive font-semibold' : isLowStock ? 'text-yellow-600 dark:text-yellow-400 font-semibold' : ''}>
-                {product.stockQuantity ?? 0} {t('products.inventory.units')}
+                {product.stock_quantity ?? 0} {t('products.inventory.units')}
               </span>
             </div>
           </div>

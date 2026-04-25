@@ -29,12 +29,12 @@ export default function CartBar({
         <div className="max-h-[120px] overflow-y-auto mb-2.5 space-y-1.5">
           {items.map(({ product, qty }) => (
             <div
-              key={product.id}
+              key={product.product_id}
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => onRemove(product.id)}
+                  onClick={() => onRemove(product.product_id)}
                   className="w-6 h-6 bg-surface-high border border-surface-border rounded text-muted text-sm leading-none"
                 >
                   −

@@ -20,7 +20,7 @@ export const useCart = create<CartStore>((set, get) => ({
 
   add: (product) => {
     if ((product.stock_quantity ?? 0) === 0) return;
-    const pid = parseInt(product.id, 10);
+    const pid = parseInt(product.product_id, 10);
     set((state) => ({
       items: {
         ...state.items,

@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { dataApiClient } from "@/services/data-api";
+import type { StateResponse, CountyResponse, DistrictResponse } from "@/services/data-api/dtos/locations";
 
 const COSTA_RICA_CODE = '188';
 
@@ -61,9 +62,9 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
     onChange({ ...formData, district_id: districtId });
   };
 
-  const states = statesData?.data || [];
-  const counties = countiesData?.data || [];
-  const districts = districtsData?.data || [];
+  const states: StateResponse[] = statesData?.data || [];
+  const counties: CountyResponse[] = countiesData?.data || [];
+  const districts: DistrictResponse[] = districtsData?.data || [];
 
   return (
     <div className="space-y-4">
@@ -107,9 +108,9 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="0">Seleccionar provincia</SelectItem>
-                {states.sort((a, b) => a.stateId - b.stateId).map((state) => (
-                  <SelectItem key={state.stateId} value={state.stateId.toString()}>
-                    {state.stateName}
+                {states.sort((a, b) => a.state_id - b.state_id).map((state) => (
+                  <SelectItem key={state.state_id} value={state.state_id.toString()}>
+                    {state.state_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -152,8 +153,8 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
               <SelectContent>
                 <SelectItem value="0">Seleccionar cantón</SelectItem>
                 {counties.map((county) => (
-                  <SelectItem key={county.countyId} value={county.countyId.toString()}>
-                    {county.countyName}
+                  <SelectItem key={county.county_id} value={county.county_id.toString()}>
+                    {county.county_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -196,8 +197,8 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
               <SelectContent>
                 <SelectItem value="0">Seleccionar distrito</SelectItem>
                 {districts.map((district) => (
-                  <SelectItem key={district.districtId} value={district.districtId.toString()}>
-                    {district.districtName}
+                  <SelectItem key={district.district_id} value={district.district_id.toString()}>
+                    {district.district_name}
                   </SelectItem>
                 ))}
               </SelectContent>

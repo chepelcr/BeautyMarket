@@ -110,7 +110,7 @@ export function useDashboardStats(userId: string | undefined, orgId: string | un
     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
     .map((p: any) => ({
-      id: p.id,
+      id: p.product_id,
       name: p.name,
       price: p.price,
       categoryId: p.categoryId,

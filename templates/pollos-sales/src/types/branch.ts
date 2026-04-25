@@ -5,6 +5,14 @@
 export type BranchType = "stand" | "restaurant";
 export type BranchStatus = 1 | 2 | 3; // 1=Active, 2=Inactive, 3=Deleted
 
+export interface BranchLocation {
+  state_id?: number | null;
+  county_id?: number | null;
+  district_id?: number | null;
+  neighborhood?: string | null;
+  address?: string | null;
+}
+
 export interface Branch {
   branch_id: string;
   organization_id: string;
@@ -12,11 +20,7 @@ export interface Branch {
   code: string;
   type: BranchType;
   status: BranchStatus;
-  state_id?: number;
-  county_id?: number;
-  district_id?: number;
-  neighborhood?: string;
-  address?: string;
+  location?: BranchLocation | null;
   phone?: string;
   created_at?: string;
   updated_at?: string;
@@ -42,11 +46,7 @@ export interface CreateBranchRequest {
   name: string;
   code: string;
   type: BranchType;
-  state_id?: number;
-  county_id?: number;
-  district_id?: number;
-  neighborhood?: string;
-  address?: string;
+  location?: BranchLocation;
   phone?: string;
 }
 

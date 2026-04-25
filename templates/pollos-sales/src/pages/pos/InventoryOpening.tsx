@@ -39,12 +39,12 @@ export default function InventoryOpening({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const activeProducts = products.filter((p) => p.status === 1);
-  const filledCount = activeProducts.filter((p) => counts[p.id] !== "" && counts[p.id] !== undefined).length;
+  const filledCount = activeProducts.filter((p) => counts[p.product_id] !== "" && counts[p.product_id] !== undefined).length;
   const totalProducts = activeProducts.length;
   const progress = totalProducts > 0 ? (filledCount / totalProducts) * 100 : 0;
   const allDone = filledCount === totalProducts && totalProducts > 0 && cash !== "";
   const totalValue = activeProducts.reduce(
-    (s, p) => s + (Number(counts[p.id]) || 0) * p.price,
+    (s, p) => s + (Number(counts[p.product_id]) || 0) * p.price,
     0,
   );
 
@@ -55,8 +55,8 @@ export default function InventoryOpening({
   const mutation = useMutation({
     mutationFn: async () => {
       const items = activeProducts.map((p) => ({
-        productId: p.id,
-        quantity: Number(counts[p.id]) || 0,
+        productId: p.product_id,
+        quantity: Number(counts[p.product_id]) || 0,
       }));
 
       for (const item of items) {
@@ -212,11 +212,11 @@ export default function InventoryOpening({
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {activeProducts.map((p) => {
-            const val = counts[p.id];
+            const val = counts[p.product_id];
             const filled = val !== "" && val !== null;
             return (
               <Card
-                key={p.id}
+                key={p.product_id}
                 style={{
                   padding: 12,
                   borderColor: filled
@@ -259,7 +259,7 @@ export default function InventoryOpening({
                   >
                     <button
                       className="btn btn-ghost btn-sm btn-icon"
-                      onClick={() => adjustCount(p.id, -1)}
+                      onClick={() => adjustCount(p.product_id, -1)}
                       aria-label="Restar"
                     >
                       <Icon name="minus" size={14} />
@@ -269,7 +269,7 @@ export default function InventoryOpening({
                       type="number"
                       value={val}
                       onChange={(e) =>
-                        setCounts((c) => ({ ...c, [p.id]: e.target.value }))
+                        setCounts((c) => ({ ...c, [p.product_id]: e.target.value }))
                       }
                       style={{
                         width: 48,
@@ -285,7 +285,7 @@ export default function InventoryOpening({
                     />
                     <button
                       className="btn btn-ghost btn-sm btn-icon"
-                      onClick={() => adjustCount(p.id, 1)}
+                      onClick={() => adjustCount(p.product_id, 1)}
                       aria-label="Sumar"
                     >
                       <Icon name="plus" size={14} />

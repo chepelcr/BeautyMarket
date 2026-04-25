@@ -65,12 +65,12 @@ export default function ClosingFlow({
   const cashDiff = cashTotal - expectedCash;
 
   // inventory.stock[id] = remaining quantity (opening - sold), keyed by numeric id
-  const getExpected = (p: Product) => inventory.getStock(parseInt(p.id, 10)) ?? 0;
+  const getExpected = (p: Product) => inventory.getStock(parseInt(p.product_id, 10)) ?? 0;
 
   const faltantes = activeProducts.filter((p) => {
-    const actual = Number(finalCounts[p.id]) || 0;
+    const actual = Number(finalCounts[p.product_id]) || 0;
     const exp = getExpected(p);
-    return finalCounts[p.id] !== "" && actual < exp;
+    return finalCounts[p.product_id] !== "" && actual < exp;
   });
 
   const handleSubmit = async () => {
@@ -234,7 +234,7 @@ export default function ClosingFlow({
             </Card>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {activeProducts.map((p) => {
-                const val = finalCounts[p.id] ?? "";
+                const val = finalCounts[p.product_id] ?? "";
                 const actual = Number(val) || 0;
                 const exp = getExpected(p);
                 const diff = actual - exp;
@@ -243,7 +243,7 @@ export default function ClosingFlow({
                 const isMissing = hasValue && diff < 0;
                 return (
                   <Card
-                    key={p.id}
+                    key={p.product_id}
                     style={{
                       padding: 12,
                       borderColor: isMatch
@@ -284,7 +284,7 @@ export default function ClosingFlow({
                           type="number"
                           value={val}
                           onChange={(e) =>
-                            setFinalCounts((c) => ({ ...c, [p.id]: e.target.value }))
+                            setFinalCounts((c) => ({ ...c, [p.product_id]: e.target.value }))
                           }
                           style={{
                             width: 60,
@@ -555,10 +555,10 @@ export default function ClosingFlow({
               ) : (
                 faltantes.map((p) => {
                   const exp = getExpected(p);
-                  const actual = Number(finalCounts[p.id]) || 0;
+                  const actual = Number(finalCounts[p.product_id]) || 0;
                   return (
                     <div
-                      key={p.id}
+                      key={p.product_id}
                       style={{
                         display: "flex",
                         alignItems: "center",

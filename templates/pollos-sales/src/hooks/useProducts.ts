@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ordersApi, ordersOrgPath } from "../lib/api";
 import { useAuthContext } from "../contexts/AuthContext";
 import { useOrganization } from "./useOrganization";
-import type { ProductListResponse } from "../types";
+import type { Product, ProductListResponse } from "../types";
 
 export type { Product } from "../types";
 

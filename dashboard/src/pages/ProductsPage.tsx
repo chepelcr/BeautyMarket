@@ -156,7 +156,7 @@ export default function ProductsPage() {
     try {
       await apiRequest(
         'DELETE',
-        buildOrgApiUrl(user.id, organizationId, `/products/${productToDelete.id}`)
+        buildOrgApiUrl(user.id, organizationId, `/products/${productToDelete.product_id}`)
       );
       toast({
         title: t('products.toast.deleted.title'),
@@ -238,7 +238,7 @@ export default function ProductsPage() {
     if (selectedProductIds.size === products.length) {
       clearSelection();
     } else {
-      selectAll(products.map((p) => p.productId || p.id));
+      selectAll(products.map((p) => p.product_id));
     }
   };
 
@@ -382,11 +382,11 @@ export default function ProductsPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product) => (
               <ProductCard
-                key={product.productId || product.id}
+                key={product.product_id}
                 product={product}
                 categories={categories}
-                isSelected={isSelected(product.productId || product.id)}
-                onToggleSelection={() => toggleSelection(product.productId || product.id)}
+                isSelected={isSelected(product.product_id)}
+                onToggleSelection={() => toggleSelection(product.product_id)}
                 onEdit={() => handleEditProduct(product)}
                 onDelete={() => handleDeleteProduct(product)}
               />
