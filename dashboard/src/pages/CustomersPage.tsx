@@ -113,7 +113,7 @@ export default function CustomersPage() {
 
   const handleSortChange = (value: string) => {
     const [newSortBy, newSortOrder] = value.split('-') as [
-      'clientName' | 'clientGln' | 'createdAt' | 'updatedAt',
+      'client_name' | 'client_gln' | 'created_at' | 'updated_at',
       'asc' | 'desc'
     ];
     setSorting(newSortBy, newSortOrder);
@@ -170,10 +170,10 @@ export default function CustomersPage() {
             <SelectContent>
               <SelectItem value="createdAt-desc">{t('customers.sort.newestFirst')}</SelectItem>
               <SelectItem value="createdAt-asc">{t('customers.sort.oldestFirst')}</SelectItem>
-              <SelectItem value="clientName-asc">{t('customers.sort.nameAsc')}</SelectItem>
-              <SelectItem value="clientName-desc">{t('customers.sort.nameDesc')}</SelectItem>
-              <SelectItem value="clientGln-asc">{t('customers.sort.glnAsc')}</SelectItem>
-              <SelectItem value="clientGln-desc">{t('customers.sort.glnDesc')}</SelectItem>
+              <SelectItem value="client_name-asc">{t('customers.sort.nameAsc')}</SelectItem>
+              <SelectItem value="client_name-desc">{t('customers.sort.nameDesc')}</SelectItem>
+              <SelectItem value="client_gln-asc">{t('customers.sort.glnAsc')}</SelectItem>
+              <SelectItem value="client_gln-desc">{t('customers.sort.glnDesc')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -201,7 +201,7 @@ export default function CustomersPage() {
         <>
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {clients.map((client) => (
-              <ClientCard key={client.clientId} client={client} />
+              <ClientCard key={client.client_id} client={client} />
             ))}
           </div>
           <Pagination

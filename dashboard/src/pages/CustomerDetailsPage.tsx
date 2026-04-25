@@ -65,10 +65,10 @@ export default function CustomerDetailsPage() {
 
   // Fetch customer's orders
   const { data: ordersResponse, isLoading: ordersLoading } = useQuery({
-    queryKey: ['customer-orders', customerId, customer?.clientGln],
-    enabled: !!organizationId && !!customerId && !!customer?.clientGln,
+    queryKey: ['customer-orders', customerId, customer?.client_gln],
+    enabled: !!organizationId && !!customerId && !!customer?.client_gln,
     queryFn: async () => {
-      const searchParam = `clientGln:${customer?.clientGln}`;
+      const searchParam = `clientGln:${customer?.client_gln}`;
       const url = buildOrdersApiUrl(organizationId, `/orders?search=${encodeURIComponent(searchParam)}`);
       const { apiRequest } = await import('@/lib/queryClient');
       const response = await apiRequest('GET', url);

@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { useEffect, useMemo } from "react";
 import { Form } from "@/components/ui/form";
 
-import { useOrdersApi } from "@/hooks/useOrdersApi";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useAllIdentifications, useAllCustomerTypes, useAllCountries, useStates, useCounties, useDistricts, useNeighborhoods } from "@/hooks/useDataApi";
@@ -48,7 +47,7 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({ onSubmit, initialData, form: externalForm, isEditing = false, customerStatus, onValidityChange }: CustomerFormProps) {
-  const [hasBusinessNameFromApi, setHasBusinessNameFromApi] = useState(!!initialData?.businessName);
+  const [hasBusinessNameFromApi, setHasBusinessNameFromApi] = useState(!!initialData?.business_name);
   const { user } = useAuth();
   const { useDefaultOrganization } = useOrganization();
   const { data: defaultOrg } = useDefaultOrganization(user?.id);
@@ -82,34 +81,35 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
       },
       nationality: COUNTRY_CODES.COSTA_RICA,
       email: "",
-      businessName: "",
-      clientName: "",
-      clientGln: "",
+      business_name: "",
+      client_name: "",
+      client_gln: "",
       residence: {
-        stateId: 0,
-        countyId: 0,
-        districtId: 0,
+        state_id: 0,
+        county_id: 0,
+        district_id: 0,
+        neighborhood_id: 0,
         address: ""
       },
       phone: {
-        countryCode: COUNTRY_CODES.COSTA_RICA,
-        areaCode: COUNTRY_CODES.COSTA_RICA,
+        country_code: COUNTRY_CODES.COSTA_RICA,
+        area_code: COUNTRY_CODES.COSTA_RICA,
         number: "",
         description: "PERSONAL"
       },
-      customerType: CUSTOMER_TYPES.PERSONA,
+      customer_type: CUSTOMER_TYPES.PERSONA,
       ...initialData,
     },
   });
   
-  const watchedBusinessName = form.watch("businessName");
+  const watchedBusinessName = form.watch("business_name");
   const watchedNationality = form.watch("nationality");
-  const watchedCustomerType = form.watch("customerType");
+  const watchedCustomerType = form.watch("customer_type");
   const watchedIdNumber = form.watch("identification.number");
   const watchedEmail = form.watch("email");
-  const watchedStateId = form.watch("residence.stateId");
-  const watchedCountyId = form.watch("residence.countyId");
-  const watchedDistrictId = form.watch("residence.districtId");
+  const watchedStateId = form.watch("residence.state_id");
+  const watchedCountyId = form.watch("residence.county_id");
+  const watchedDistrictId = form.watch("residence.district_id");
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValidEmail = watchedEmail && emailRegex.test(watchedEmail);
@@ -141,7 +141,7 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
     if (watchedNationality && countries) {
       const selectedCountry = countries.find((c: any) => c.iso_code === watchedNationality);
       if (selectedCountry) {
-        form.setValue("phone.countryCode", selectedCountry.iso_code);
+        form.setValue("phone.country_code", selectedCountry.iso_code);
       }
     }
   }, [watchedNationality, countries, form]);
@@ -149,31 +149,33 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
   // Cascading location selector state management - clear child fields when parent changes
   useEffect(() => {
     // When nationality changes, clear all location fields
-    form.setValue("residence.stateId", 0);
-    form.setValue("residence.countyId", 0);
-    form.setValue("residence.districtId", 0);
+    form.setValue("residence.state_id", 0);
+    form.setValue("residence.county_id", 0);
+    form.setValue("residence.district_id", 0);
+    form.setValue("residence.neighborhood_id", 0);
   }, [watchedNationality, form]);
-  
+
   useEffect(() => {
     // When state changes, clear county and district
     if (watchedStateId) {
-      form.setValue("residence.countyId", 0);
-      form.setValue("residence.districtId", 0);
+      form.setValue("residence.county_id", 0);
+      form.setValue("residence.district_id", 0);
+      form.setValue("residence.neighborhood_id", 0);
     }
   }, [watchedStateId, form]);
-  
+
   useEffect(() => {
     // When county changes, clear district
     if (watchedCountyId) {
-      form.setValue("residence.districtId", 0);
-      form.setValue("residence.neighborhoodId", 0);
+      form.setValue("residence.district_id", 0);
+      form.setValue("residence.neighborhood_id", 0);
     }
   }, [watchedCountyId, form]);
-  
+
   useEffect(() => {
     // When district changes, clear neighborhood
     if (watchedDistrictId) {
-      form.setValue("residence.neighborhoodId", 0);
+      form.setValue("residence.neighborhood_id", 0);
     }
   }, [watchedDistrictId, form]);
   
@@ -204,15 +206,15 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
   
   // Reset dependent fields when parent changes (for LocationSection handlers)
   const handleStateChange = (value: string) => {
-    form.setValue("residence.stateId", parseInt(value));
+    form.setValue("residence.state_id", parseInt(value));
   };
-  
+
   const handleCountyChange = (value: string) => {
-    form.setValue("residence.countyId", parseInt(value));
+    form.setValue("residence.county_id", parseInt(value));
   };
-  
+
   const handleDistrictChange = (value: string) => {
-    form.setValue("residence.districtId", parseInt(value));
+    form.setValue("residence.district_id", parseInt(value));
   };
   
   // Reset form when initialData changes
@@ -227,50 +229,50 @@ export function CustomerForm({ onSubmit, initialData, form: externalForm, isEdit
         },
         nationality: initialData.nationality || COUNTRY_CODES.COSTA_RICA,
         email: initialData.email || "",
-        businessName: initialData.businessName || "",
-        clientName: initialData.clientName || "",
-        clientGln: initialData.clientGln || "",
+        business_name: initialData.business_name || "",
+        client_name: initialData.client_name || "",
+        client_gln: initialData.client_gln || "",
         residence: {
-          stateId: 0,
-          countyId: 0,
-          districtId: 0,
-          neighborhoodId: 0,
+          state_id: 0,
+          county_id: 0,
+          district_id: 0,
+          neighborhood_id: 0,
           address: initialData.residence?.address || ""
         },
         phone: {
-          countryCode: initialData.phone?.countryCode || COUNTRY_CODES.COSTA_RICA,
+          country_code: initialData.phone?.country_code || COUNTRY_CODES.COSTA_RICA,
           number: initialData.phone?.number || ""
         },
-        customerType: initialData.customerType || CUSTOMER_TYPES.PERSONA
+        customer_type: initialData.customer_type || CUSTOMER_TYPES.PERSONA
       });
     }
   }, [initialData, form]);
 
   // Set state when states are loaded
   useEffect(() => {
-    if (initialData?.residence?.stateId && states && states.find((s: any) => s.state_id === initialData.residence?.stateId)) {
-      form.setValue("residence.stateId", initialData.residence.stateId);
+    if (initialData?.residence?.state_id && states && states.find((s: any) => s.state_id === initialData.residence?.state_id)) {
+      form.setValue("residence.state_id", initialData.residence.state_id);
     }
   }, [initialData, states, form]);
 
   // Set county when counties are loaded
   useEffect(() => {
-    if (initialData?.residence?.countyId && counties && counties.find((c: any) => c.county_id === initialData.residence?.countyId)) {
-      form.setValue("residence.countyId", initialData.residence.countyId);
+    if (initialData?.residence?.county_id && counties && counties.find((c: any) => c.county_id === initialData.residence?.county_id)) {
+      form.setValue("residence.county_id", initialData.residence.county_id);
     }
   }, [initialData, counties, form]);
 
   // Set district when districts are loaded
   useEffect(() => {
-    if (initialData?.residence?.districtId && districts && districts.find((d: any) => d.district_id === initialData.residence?.districtId)) {
-      form.setValue("residence.districtId", initialData.residence.districtId);
+    if (initialData?.residence?.district_id && districts && districts.find((d: any) => d.district_id === initialData.residence?.district_id)) {
+      form.setValue("residence.district_id", initialData.residence.district_id);
     }
   }, [initialData, districts, form]);
 
   // Set neighborhood when neighborhoods are loaded
   useEffect(() => {
-    if (initialData?.residence?.districtId && neighborhoods && neighborhoods.find((n: any) => n.neighborhood_id === initialData.residence?.districtId)) {
-      form.setValue("residence.districtId", initialData.residence.districtId);
+    if (initialData?.residence?.neighborhood_id && neighborhoods && neighborhoods.find((n: any) => n.neighborhood_id === initialData.residence?.neighborhood_id)) {
+      form.setValue("residence.neighborhood_id", initialData.residence.neighborhood_id);
     }
   }, [initialData, neighborhoods, form]);
 

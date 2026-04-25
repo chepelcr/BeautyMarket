@@ -19,13 +19,13 @@ export function DepartmentCard({ department, onEdit, onDelete }: DepartmentCardP
       <CardContent className="pt-4 pb-3 px-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <span className="font-mono text-sm font-semibold">{department.departmentCode}</span>
+            <span className="font-mono text-sm font-semibold">{department.department_code}</span>
             {department.name && (
               <p className="text-sm text-foreground mt-0.5 truncate">{department.name}</p>
             )}
-            {department.supplierCode && (
+            {department.supplier_code && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {t('departments.fields.supplierCode')}: {department.supplierCode}
+                {t('departments.fields.supplierCode')}: {department.supplier_code}
               </p>
             )}
           </div>
@@ -43,7 +43,7 @@ export function DepartmentCard({ department, onEdit, onDelete }: DepartmentCardP
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive"
-                onClick={() => onDelete(department.departmentId)}
+                onClick={() => onDelete(department.department_id)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 {t('customers.actions.delete')}

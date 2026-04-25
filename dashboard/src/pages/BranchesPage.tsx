@@ -31,16 +31,9 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { buildOrdersApiUrl } from '@/lib/apiUtils';
 import { apiRequest } from '@/lib/queryClient';
 import { BranchLocationSection } from '@/components/branches/BranchLocationSection';
+import type { LocationData } from '@/models';
 
 /* ─────────────── Types ─────────────── */
-
-interface BranchLocation {
-  state_id: number | null;
-  county_id: number | null;
-  district_id: number | null;
-  neighborhood: string | null;
-  address: string | null;
-}
 
 interface Branch {
   branch_id: string;
@@ -48,7 +41,7 @@ interface Branch {
   code: string;
   type: 'stand' | 'restaurant';
   status: number;
-  location: BranchLocation | null;
+  location: LocationData | null;
   phone: string | null;
   created_at: string;
   terminals?: Terminal[];
@@ -68,14 +61,14 @@ interface Terminal {
 interface BranchFormData {
   name: string; code: string; type: 'stand' | 'restaurant';
   state_id: number | null; county_id: number | null; district_id: number | null;
-  neighborhood: string; address: string; phone: string;
+  neighborhood_id: number | null; address: string; phone: string;
 }
 
 interface TerminalFormData {
   name: string; code: string; device_id: string;
 }
 
-const defaultBranch: BranchFormData = { name: '', code: '', type: 'stand', state_id: null, county_id: null, district_id: null, neighborhood: '', address: '', phone: '' };
+const defaultBranch: BranchFormData = { name: '', code: '', type: 'stand', state_id: null, county_id: null, district_id: null, neighborhood_id: null, address: '', phone: '' };
 const defaultTerminal: TerminalFormData = { name: '', code: '', device_id: '' };
 
 /* ─────────────── Helpers ─────────────── */
@@ -167,12 +160,12 @@ export default function BranchesPage() {
         code: data.code,
         type: data.type,
         phone: data.phone || undefined,
-        location: (data.state_id || data.county_id || data.district_id || data.neighborhood || data.address)
+        location: (data.state_id || data.county_id || data.district_id || data.neighborhood_id || data.address)
           ? {
               state_id: data.state_id || undefined,
               county_id: data.county_id || undefined,
               district_id: data.district_id || undefined,
-              neighborhood: data.neighborhood || undefined,
+              neighborhood_id: data.neighborhood_id || undefined,
               address: data.address || undefined,
             }
           : undefined,
@@ -199,14 +192,14 @@ export default function BranchesPage() {
       if (data.status !== undefined) payload.status = data.status;
       if (
         data.state_id !== undefined || data.county_id !== undefined ||
-        data.district_id !== undefined || data.neighborhood !== undefined ||
+        data.district_id !== undefined || data.neighborhood_id !== undefined ||
         data.address !== undefined
       ) {
         payload.location = {
           state_id: data.state_id || undefined,
           county_id: data.county_id || undefined,
           district_id: data.district_id || undefined,
-          neighborhood: data.neighborhood || undefined,
+          neighborhood_id: data.neighborhood_id || undefined,
           address: data.address || undefined,
         };
       }
@@ -283,7 +276,7 @@ export default function BranchesPage() {
       state_id: b.location?.state_id ?? null,
       county_id: b.location?.county_id ?? null,
       district_id: b.location?.district_id ?? null,
-      neighborhood: b.location?.neighborhood ?? '',
+      neighborhood_id: b.location?.neighborhood_id ?? null,
       address: b.location?.address ?? '',
       phone: b.phone ?? '',
     });
@@ -468,11 +461,11 @@ export default function BranchesPage() {
                           label="Estado"
                           value={selectedBranch.status === 1 ? 'Activa' : 'Inactiva'}
                         />
-                        {selectedBranch.location?.neighborhood && (
+                        {selectedBranch.location?.neighborhood_id != null && (
                           <InfoField
                             icon={<MapPin className="h-4 w-4" />}
-                            label="Barrio"
-                            value={selectedBranch.location.neighborhood}
+                            label="Barrio ID"
+                            value={String(selectedBranch.location.neighborhood_id)}
                             className="col-span-2"
                           />
                         )}

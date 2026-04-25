@@ -38,6 +38,9 @@ export type {
   AssignmentListResponse,
 } from "./assignment";
 
+// Location
+export type { LocationData } from "./location";
+
 // Branches & Terminals
 export type {
   Branch,

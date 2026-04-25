@@ -71,9 +71,8 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
   const { toast } = useToast();
   const { t } = useLanguage();
   const watchedNationality = form.watch("nationality");
-  const watchedCustomerType = form.watch("customerType");
+  const watchedCustomerType = form.watch("customer_type");
   const watchedIdCode = form.watch("identification.code");
-  const watchedIdType = form.watch("identification.type");
   const isCostaRica = watchedNationality === COUNTRY_CODES.COSTA_RICA;
   
   // Allow editing critical fields if customer status is 0 (pending)
@@ -123,7 +122,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
           form.setValue("identification.type", newType.id);
           form.setValue("identification.code", newType.code);
           form.setValue("identification.number", "");
-          form.setValue("businessName", "");
+          form.setValue("business_name", "");
           setIdComplete(false);
         }
       }
@@ -145,7 +144,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
       try {
         const taxpayer = await dataApiClient.getTaxpayerInfo({ iso_code: watchedNationality, identification: cleanId });
         if (taxpayer?.name) {
-          form.setValue('businessName', taxpayer.name);
+          form.setValue('business_name', taxpayer.name);
           onBusinessNameFromApi?.(true);
         } else {
           onBusinessNameFromApi?.(false);
@@ -163,7 +162,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
   
   const handleClearId = () => {
     form.setValue('identification.number', '');
-    form.setValue('businessName', '');
+    form.setValue('business_name', '');
     setIdComplete(false);
   };
   
@@ -193,7 +192,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
         <div>
           <FormField
             control={form.control}
-            name="customerType"
+            name="customer_type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('customers.customerType')}</FormLabel>
@@ -379,7 +378,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
           <div className="md:col-span-2">
             <FormField
               control={form.control}
-              name="businessName"
+              name="business_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.fullName')}</FormLabel>
@@ -399,7 +398,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
 
           <FormField
             control={form.control}
-            name="clientName"
+            name="client_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('customers.tradeName')}</FormLabel>
@@ -414,7 +413,7 @@ export function PersonalDataSection({ form, customerTypes, countries, identifica
 
         <FormField
           control={form.control}
-          name="clientGln"
+          name="client_gln"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('customers.clientGln')}</FormLabel>

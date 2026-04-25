@@ -23,6 +23,7 @@ export interface Client {
     state_id: number;
     county_id: number;
     district_id: number;
+    neighborhood_id?: number | null;
     address: string;
   };
   status?: number;
@@ -49,6 +50,7 @@ export interface CreateClientData {
     state_id: number;
     county_id: number;
     district_id: number;
+    neighborhood_id?: number | null;
     address: string;
   };
 }
@@ -84,29 +86,30 @@ export interface CreateCustomerData {
 export interface UpdateCustomerData extends Partial<CreateCustomerData> {}
 
 export interface CustomerFormData {
-  clientName?: string;
-  clientGln?: string;
+  client_name?: string;
+  client_gln?: string;
   identification: {
     type: number;
     code: string;
     number: string;
   };
-  businessName?: string;
+  business_name?: string;
   nationality?: string;
   email?: string;
   phone?: {
-    countryCode: string;
-    areaCode?: string;
+    country_code: string;
+    area_code?: string;
     number: string;
     description?: string;
   };
   residence?: {
-    stateId: number;
-    countyId: number;
-    districtId: number;
+    state_id: number;
+    county_id: number;
+    district_id: number;
+    neighborhood_id?: number | null;
     address: string;
   };
-  customerType?: number;
+  customer_type?: number;
 }
 
 export interface StoreResponse {

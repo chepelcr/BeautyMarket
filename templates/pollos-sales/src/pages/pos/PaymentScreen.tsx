@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { Icon, Card, Button, Input } from "@/components/ui";
 
 type PaymentMethod = "Efectivo" | "SINPE" | "Tarjeta";
 
@@ -9,7 +9,13 @@ interface PaymentScreenProps {
   onConfirm: (method: PaymentMethod, received?: number) => Promise<void>;
 }
 
-const METHODS: PaymentMethod[] = ["Efectivo", "SINPE", "Tarjeta"];
+const METHODS: { id: PaymentMethod; icon: string }[] = [
+  { id: "Efectivo", icon: "cash" },
+  { id: "SINPE", icon: "smartphone" },
+  { id: "Tarjeta", icon: "card" },
+];
+
+const fmt = (n: number) => "₡" + n.toLocaleString("es-CR");
 
 export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScreenProps) {
   const [method, setMethod] = useState<PaymentMethod>("Efectivo");
@@ -18,8 +24,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
 
   const receivedNum = Number(received);
   const change = receivedNum - total;
-  const canConfirm =
-    method !== "Efectivo" || (received !== "" && receivedNum >= total);
+  const canConfirm = method !== "Efectivo" || (received !== "" && receivedNum >= total);
 
   const handleConfirm = async () => {
     if (!canConfirm || loading) return;
@@ -32,127 +37,217 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
   };
 
   return (
-    <div className="flex-1 flex flex-col p-4 gap-4 overflow-y-auto">
-      {/* Back + title */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="w-9 h-9 bg-surface-high border border-surface-border rounded-lg text-muted text-base"
-        >
-          ←
-        </button>
-        <span className="font-barlow font-extrabold text-2xl text-foreground">COBRO</span>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, gap: 14, overflowY: "auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <Button variant="ghost" size="sm" icon="arrowLeft" onClick={onBack} />
+        <h2 className="t-h2" style={{ margin: 0 }}>Cobro</h2>
       </div>
 
-      {/* Total */}
-      <div className="bg-surface border border-surface-border rounded-xl p-5 text-center">
-        <div className="text-[11px] text-muted tracking-widest font-barlow mb-1">
+      {/* Total card */}
+      <Card style={{ padding: "20px 24px", textAlign: "center" }}>
+        <div className="t-label" style={{ marginBottom: 8, letterSpacing: "0.08em" }}>
           TOTAL A COBRAR
         </div>
-        <div className="text-primary font-barlow font-extrabold text-5xl">
-          ₡{total.toLocaleString("es-CR")}
+        <div
+          className="t-stat-xl"
+          style={{ fontSize: 48, color: "hsl(var(--primary))" }}
+        >
+          {fmt(total)}
         </div>
-      </div>
+      </Card>
 
       {/* Method selector */}
-      <div className="flex gap-2">
-        {METHODS.map((m) => (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+        {METHODS.map(({ id, icon }) => (
           <button
-            key={m}
-            onClick={() => setMethod(m)}
-            className={cn(
-              "flex-1 py-2.5 rounded-lg border font-barlow font-bold text-sm transition-colors",
-              method === m
-                ? "bg-primary border-primary text-white"
-                : "bg-surface-high border-surface-border text-muted"
-            )}
+            key={id}
+            type="button"
+            onClick={() => setMethod(id)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+              padding: "14px 8px",
+              borderRadius: 12,
+              border: `2px solid ${method === id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+              background: method === id ? "hsl(var(--primary) / 0.08)" : "transparent",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
           >
-            {m}
+            <div
+              className="icon-pill"
+              style={{
+                width: 36,
+                height: 36,
+                background: method === id ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
+                color: method === id ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+              }}
+            >
+              <Icon name={icon} size={16} />
+            </div>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                color: method === id ? "hsl(var(--primary))" : "hsl(var(--foreground))",
+              }}
+            >
+              {id}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* Method-specific UI */}
+      {/* Efectivo */}
       {method === "Efectivo" && (
-        <div className="flex flex-col gap-3">
-          <label className="text-xs text-muted tracking-widest font-barlow">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <label className="t-label" style={{ letterSpacing: "0.06em" }}>
             MONTO RECIBIDO
           </label>
-          <input
+          <Input
             type="number"
             placeholder="₡0"
             value={received}
             onChange={(e) => setReceived(e.target.value)}
-            className={cn(
-              "w-full px-4 py-3.5 bg-surface-high border rounded-xl text-foreground font-barlow font-extrabold text-4xl outline-none transition-colors",
-              received && receivedNum >= total
-                ? "border-success"
-                : "border-surface-border focus:border-primary"
-            )}
+            inputSize="lg"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 800,
+              fontSize: 32,
+              textAlign: "center",
+              borderColor:
+                received
+                  ? receivedNum >= total
+                    ? "hsl(var(--success))"
+                    : "hsl(var(--destructive))"
+                  : undefined,
+            }}
           />
+
+          {/* Quick amount chips */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {[1000, 2000, 5000, 10000, 20000].map((amt) => (
+              <button
+                key={amt}
+                type="button"
+                onClick={() => setReceived(String(amt))}
+                className="btn btn-outline btn-xs"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                ₡{amt.toLocaleString("es-CR")}
+              </button>
+            ))}
+          </div>
+
+          {/* Change card */}
           {received && receivedNum >= total && (
-            <div className="bg-success/10 border border-success/30 rounded-xl px-4 py-3 flex justify-between items-center">
-              <span className="text-success font-barlow font-bold text-base">
-                💵 DEVOLVER
+            <Card
+              style={{
+                padding: "14px 18px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "hsl(var(--success) / 0.08)",
+                border: "1px solid hsl(var(--success) / 0.3)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Icon name="cash" size={16} style={{ color: "hsl(var(--success))" } as any} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: "hsl(var(--success))" }}>
+                  Devolver
+                </span>
+              </div>
+              <span
+                className="t-stat"
+                style={{ fontSize: 22, color: "hsl(var(--success))" }}
+              >
+                {fmt(change)}
               </span>
-              <span className="text-success font-barlow font-extrabold text-2xl">
-                ₡{change.toLocaleString("es-CR")}
+            </Card>
+          )}
+
+          {received && receivedNum < total && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                color: "hsl(var(--destructive))",
+              }}
+            >
+              <Icon name="alertTri" size={14} />
+              <span className="t-sm" style={{ fontWeight: 600 }}>
+                Faltan {fmt(total - receivedNum)}
               </span>
             </div>
           )}
-          {received && receivedNum < total && (
-            <p className="text-destructive text-sm font-barlow">
-              ⚠ Faltan ₡{(total - receivedNum).toLocaleString("es-CR")}
-            </p>
-          )}
         </div>
       )}
 
+      {/* SINPE */}
       {method === "SINPE" && (
-        <div className="bg-surface border border-surface-border rounded-xl p-5 text-center">
-          <div className="text-[11px] text-muted mb-2 font-barlow tracking-widest">
+        <Card style={{ padding: "24px", textAlign: "center" }}>
+          <div className="t-label" style={{ marginBottom: 10, letterSpacing: "0.06em" }}>
             SINPE MÓVIL — NÚMERO DESTINO
           </div>
-          <div className="text-primary font-mono font-extrabold text-4xl tracking-widest mb-3">
+          <div
+            className="t-num"
+            style={{
+              fontSize: 36,
+              fontWeight: 800,
+              color: "hsl(var(--primary))",
+              letterSpacing: "0.08em",
+              marginBottom: 12,
+            }}
+          >
             {import.meta.env.VITE_SINPE_NUMBER || "8888-8888"}
           </div>
-          <div className="text-muted text-sm">
+          <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
             Pedile al cliente que transfiera{" "}
-            <span className="text-primary font-bold">
-              ₡{total.toLocaleString("es-CR")}
-            </span>
-          </div>
-        </div>
+            <strong style={{ color: "hsl(var(--primary))" }}>{fmt(total)}</strong>
+          </p>
+        </Card>
       )}
 
+      {/* Tarjeta */}
       {method === "Tarjeta" && (
-        <div className="bg-surface border border-surface-border rounded-xl p-5 text-center">
-          <div className="text-5xl mb-3">💳</div>
-          <div className="text-foreground font-barlow font-bold text-lg">
+        <Card style={{ padding: "32px 24px", textAlign: "center" }}>
+          <div
+            className="icon-pill"
+            style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 16px",
+              background: "hsl(var(--primary) / 0.1)",
+              color: "hsl(var(--primary))",
+            }}
+          >
+            <Icon name="card" size={28} />
+          </div>
+          <div style={{ fontSize: 17, fontWeight: 700, fontFamily: "var(--font-display)", marginBottom: 6 }}>
             Pasá la tarjeta por el datafono
           </div>
-          <div className="text-muted text-sm mt-2">
-            Monto:{" "}
-            <span className="text-primary font-bold">
-              ₡{total.toLocaleString("es-CR")}
-            </span>
-          </div>
-        </div>
+          <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+            Monto: <strong style={{ color: "hsl(var(--primary))" }}>{fmt(total)}</strong>
+          </p>
+        </Card>
       )}
 
-      {/* Confirm */}
-      <button
+      {/* Confirm button */}
+      <Button
+        variant="primary"
+        size="xl"
         onClick={handleConfirm}
         disabled={!canConfirm || loading}
-        className={cn(
-          "w-full py-4 rounded-xl font-barlow font-extrabold text-xl tracking-wide transition-colors mt-auto",
-          canConfirm && !loading
-            ? "bg-primary text-white active:bg-primary-dark"
-            : "bg-surface-high text-muted cursor-not-allowed"
-        )}
+        icon={loading ? undefined : "checkCircle"}
+        style={{ width: "100%", marginTop: "auto" }}
       >
-        {loading ? "Registrando..." : `✓ CONFIRMAR ${method.toUpperCase()}`}
-      </button>
+        {loading ? "Registrando…" : `Confirmar ${method}`}
+      </Button>
     </div>
   );
 }

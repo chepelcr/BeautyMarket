@@ -5,6 +5,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SessionConfig from "./SessionConfig";
+import PuestosPage from "./PuestosPage";
 import ProductsPage from "./ProductsPage";
 import ReportePage from "./ReportePage";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
@@ -17,7 +18,7 @@ const fmtAgo = (ts: number) => {
   return "hace " + Math.floor(diff / 3600) + " h";
 };
 
-type Page = "dashboard" | "config" | "productos" | "reporte";
+type Page = "dashboard" | "config" | "puestos" | "productos" | "reporte";
 
 interface StandData {
   id: string;
@@ -685,6 +686,7 @@ export default function DashboardPage() {
         />
       )}
       {page === "config" && <SessionConfig />}
+      {page === "puestos" && <PuestosPage />}
       {page === "productos" && <ProductsPage />}
       {page === "reporte" && <ReportePage />}
     </DashboardShell>

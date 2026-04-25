@@ -15,18 +15,18 @@ export function DepartmentForm({ onSubmit, initialData, formId = 'department-for
   const { t } = useLanguage();
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateDepartmentDTO>({
     defaultValues: {
-      departmentCode: '',
+      department_code: '',
       name: '',
-      supplierCode: '',
+      supplier_code: '',
     },
   });
 
   useEffect(() => {
     if (initialData) {
       reset({
-        departmentCode: initialData.departmentCode || '',
+        department_code: initialData.department_code || '',
         name: initialData.name || '',
-        supplierCode: initialData.supplierCode || '',
+        supplier_code: initialData.supplier_code || '',
       });
     }
   }, [initialData, reset]);
@@ -34,14 +34,14 @@ export function DepartmentForm({ onSubmit, initialData, formId = 'department-for
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1">
-        <Label htmlFor="departmentCode">{t('departments.fields.departmentCode')} *</Label>
+        <Label htmlFor="department_code">{t('departments.fields.departmentCode')} *</Label>
         <Input
-          id="departmentCode"
-          {...register('departmentCode', { required: t('departments.validation.departmentCodeRequired') })}
+          id="department_code"
+          {...register('department_code', { required: t('departments.validation.departmentCodeRequired') })}
           placeholder={t('departments.fields.departmentCodePlaceholder')}
         />
-        {errors.departmentCode && (
-          <p className="text-sm text-destructive">{errors.departmentCode.message}</p>
+        {errors.department_code && (
+          <p className="text-sm text-destructive">{errors.department_code.message}</p>
         )}
       </div>
 
@@ -55,10 +55,10 @@ export function DepartmentForm({ onSubmit, initialData, formId = 'department-for
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="supplierCode">{t('departments.fields.supplierCode')}</Label>
+        <Label htmlFor="supplier_code">{t('departments.fields.supplierCode')}</Label>
         <Input
-          id="supplierCode"
-          {...register('supplierCode')}
+          id="supplier_code"
+          {...register('supplier_code')}
           placeholder={t('departments.fields.supplierCodePlaceholder')}
         />
       </div>

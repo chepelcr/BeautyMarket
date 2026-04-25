@@ -2,16 +2,14 @@
  * Branch and Terminal DTOs for Pollos Sales
  */
 
+import type { LocationData } from "./location";
+
+export type { LocationData };
+
 export type BranchType = "stand" | "restaurant";
 export type BranchStatus = 1 | 2 | 3; // 1=Active, 2=Inactive, 3=Deleted
 
-export interface BranchLocation {
-  state_id?: number | null;
-  county_id?: number | null;
-  district_id?: number | null;
-  neighborhood?: string | null;
-  address?: string | null;
-}
+export type BranchLocation = LocationData;
 
 export interface Branch {
   branch_id: string;

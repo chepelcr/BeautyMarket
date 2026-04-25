@@ -1,3 +1,4 @@
+import { Icon, Button } from "@/components/ui";
 import type { Product } from "@/hooks/useProducts";
 
 interface CartItem {
@@ -14,43 +15,53 @@ interface CartBarProps {
   onCheckout: () => void;
 }
 
-export default function CartBar({
-  items,
-  total,
-  count,
-  onAdd,
-  onRemove,
-  onCheckout,
-}: CartBarProps) {
+export default function CartBar({ items, total, count, onAdd, onRemove, onCheckout }: CartBarProps) {
   return (
-    <div className="bg-surface border-t border-surface-border px-3 py-2.5 shrink-0">
-      {/* Cart items */}
+    <div
+      style={{
+        background: "hsl(var(--card))",
+        borderTop: "1px solid hsl(var(--border))",
+        padding: "10px 12px",
+        flexShrink: 0,
+      }}
+    >
+      {/* Item list */}
       {items.length > 0 && (
-        <div className="max-h-[120px] overflow-y-auto mb-2.5 space-y-1.5">
+        <div style={{ maxHeight: 120, overflowY: "auto", marginBottom: 10, display: "flex", flexDirection: "column", gap: 6 }}>
           {items.map(({ product, qty }) => (
             <div
               key={product.product_id}
-              className="flex items-center justify-between"
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
             >
-              <div className="flex items-center gap-1.5">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {/* − */}
                 <button
                   onClick={() => onRemove(product.product_id)}
-                  className="w-6 h-6 bg-surface-high border border-surface-border rounded text-muted text-sm leading-none"
+                  className="btn btn-outline btn-xs btn-icon"
+                  type="button"
                 >
-                  −
+                  <Icon name="minus" size={12} />
                 </button>
-                <span className="text-muted text-xs w-4 text-center">{qty}</span>
+                <span className="t-xs" style={{ width: 16, textAlign: "center", fontFamily: "var(--font-mono)", fontWeight: 700 }}>
+                  {qty}
+                </span>
+                {/* + */}
                 <button
                   onClick={() => onAdd(product)}
-                  className="w-6 h-6 bg-primary/20 border border-primary/40 rounded text-primary text-sm leading-none"
+                  className="btn btn-xs btn-icon"
+                  style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.3)" }}
+                  type="button"
                 >
-                  +
+                  <Icon name="plus" size={12} />
                 </button>
-                <span className="text-foreground text-sm font-barlow">
+                <span className="t-sm" style={{ fontWeight: 500 }}>
                   {product.emoji} {product.name}
                 </span>
               </div>
-              <span className="text-primary font-barlow font-bold text-sm">
+              <span
+                className="t-num"
+                style={{ fontSize: 13, fontWeight: 700, color: "hsl(var(--primary))" }}
+              >
                 ₡{(product.price * qty).toLocaleString("es-CR")}
               </span>
             </div>
@@ -59,20 +70,25 @@ export default function CartBar({
       )}
 
       {/* Checkout button */}
-      <button
+      <Button
+        variant="primary"
+        size="xl"
         onClick={onCheckout}
         disabled={items.length === 0}
-        className="w-full py-3.5 rounded-xl font-barlow font-extrabold text-xl tracking-wide flex items-center justify-between px-4 transition-colors disabled:bg-surface-high disabled:text-muted-foreground bg-primary text-white active:bg-primary-dark"
+        style={{ width: "100%", display: "flex", justifyContent: "space-between" }}
       >
-        <span>
+        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Icon name="cart" size={18} />
           {items.length > 0
-            ? `🛒 ${count} ítem${count !== 1 ? "s" : ""}`
+            ? `${count} ítem${count !== 1 ? "s" : ""}`
             : "Seleccioná productos"}
         </span>
         {items.length > 0 && (
-          <span>₡{total.toLocaleString("es-CR")}</span>
+          <span className="t-num" style={{ fontSize: 18, fontWeight: 800 }}>
+            ₡{total.toLocaleString("es-CR")}
+          </span>
         )}
-      </button>
+      </Button>
     </div>
   );
 }

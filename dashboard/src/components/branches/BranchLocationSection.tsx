@@ -4,67 +4,78 @@ import { MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { dataApiClient } from "@/services/data-api";
-import type { StateResponse, CountyResponse, DistrictResponse } from "@/services/data-api/dtos/locations";
+import type { StateResponse, CountyResponse, DistrictResponse, NeighborhoodResponse } from "@/services/data-api/dtos/locations";
+import type { LocationData } from "@/models";
 
 const COSTA_RICA_CODE = '188';
 
 interface BranchLocationSectionProps {
-  formData: {
-    state_id: number | null;
-    county_id: number | null;
-    district_id: number | null;
-    neighborhood: string;
-    address: string;
-  };
+  formData: LocationData & { address: string };
   onChange: (data: any) => void;
 }
 
 export function BranchLocationSection({ formData, onChange }: BranchLocationSectionProps) {
-  // Fetch states
   const { data: statesData, isLoading: statesLoading, error: statesError, refetch: refetchStates } = useQuery({
     queryKey: ['states', COSTA_RICA_CODE],
     queryFn: () => dataApiClient.getStates({ iso_code: COSTA_RICA_CODE }),
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch counties when state is selected
   const { data: countiesData, isLoading: countiesLoading, error: countiesError, refetch: refetchCounties } = useQuery({
     queryKey: ['counties', COSTA_RICA_CODE, formData.state_id],
-    queryFn: () => dataApiClient.getCounties({ 
-      iso_code: COSTA_RICA_CODE, 
-      state_id: formData.state_id! 
-    }),
+    queryFn: () => dataApiClient.getCounties({ iso_code: COSTA_RICA_CODE, state_id: formData.state_id! }),
     enabled: !!formData.state_id && formData.state_id > 0,
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch districts when county is selected
   const { data: districtsData, isLoading: districtsLoading, error: districtsError, refetch: refetchDistricts } = useQuery({
     queryKey: ['districts', COSTA_RICA_CODE, formData.state_id, formData.county_id],
-    queryFn: () => dataApiClient.getDistricts({ 
-      iso_code: COSTA_RICA_CODE, 
+    queryFn: () => dataApiClient.getDistricts({
+      iso_code: COSTA_RICA_CODE,
       state_id: formData.state_id!,
-      county_id: formData.county_id!
+      county_id: formData.county_id!,
     }),
     enabled: !!formData.state_id && formData.state_id > 0 && !!formData.county_id && formData.county_id > 0,
+    staleTime: 10 * 60 * 1000,
   });
+
+  const { data: neighborhoodsData, isLoading: neighborhoodsLoading, error: neighborhoodsError, refetch: refetchNeighborhoods } = useQuery({
+    queryKey: ['neighborhoods', COSTA_RICA_CODE, formData.state_id, formData.county_id, formData.district_id],
+    queryFn: () => dataApiClient.getNeighborhoods({
+      iso_code: COSTA_RICA_CODE,
+      state_id: formData.state_id!,
+      county_id: formData.county_id!,
+      district_id: formData.district_id!,
+    }),
+    enabled: !!formData.state_id && formData.state_id > 0 && !!formData.county_id && formData.county_id > 0 && !!formData.district_id && formData.district_id > 0,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const states: StateResponse[] = statesData || [];
+  const counties: CountyResponse[] = countiesData || [];
+  const districts: DistrictResponse[] = districtsData || [];
+  const neighborhoods: NeighborhoodResponse[] = neighborhoodsData || [];
 
   const handleStateChange = (value: string) => {
     const stateId = parseInt(value);
-    onChange({ ...formData, state_id: stateId, county_id: null, district_id: null });
+    onChange({ ...formData, state_id: stateId, county_id: null, district_id: null, neighborhood_id: null });
   };
 
   const handleCountyChange = (value: string) => {
     const countyId = parseInt(value);
-    onChange({ ...formData, county_id: countyId, district_id: null });
+    onChange({ ...formData, county_id: countyId, district_id: null, neighborhood_id: null });
   };
 
   const handleDistrictChange = (value: string) => {
     const districtId = parseInt(value);
-    onChange({ ...formData, district_id: districtId });
+    onChange({ ...formData, district_id: districtId, neighborhood_id: null });
   };
 
-  const states: StateResponse[] = statesData?.data || [];
-  const counties: CountyResponse[] = countiesData?.data || [];
-  const districts: DistrictResponse[] = districtsData?.data || [];
+  const handleNeighborhoodChange = (value: string) => {
+    onChange({ ...formData, neighborhood_id: parseInt(value) });
+  };
+
+  const districtSelected = !!formData.district_id && formData.district_id > 0;
 
   return (
     <div className="space-y-4">
@@ -72,34 +83,22 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
         <MapPin className="h-4 w-4" />
         <span>Ubicación</span>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* State */}
         <div className="space-y-1.5">
           <Label>Provincia</Label>
           {statesError ? (
             <div className="space-y-2">
-              <Select disabled>
-                <SelectTrigger className="bg-muted">
-                  <SelectValue placeholder="Error" />
-                </SelectTrigger>
-              </Select>
+              <Select disabled><SelectTrigger className="bg-muted"><SelectValue placeholder="Error" /></SelectTrigger></Select>
               <div className="text-sm text-destructive flex items-center gap-2">
                 Error al cargar
-                <Button 
-                  type="button"
-                  variant="link" 
-                  size="sm" 
-                  onClick={() => refetchStates()}
-                  className="h-auto p-0"
-                >
-                  Reintentar
-                </Button>
+                <Button type="button" variant="link" size="sm" onClick={() => refetchStates()} className="h-auto p-0">Reintentar</Button>
               </div>
             </div>
           ) : (
-            <Select 
-              onValueChange={handleStateChange} 
+            <Select
+              onValueChange={handleStateChange}
               value={formData.state_id != null ? formData.state_id.toString() : "0"}
               disabled={statesLoading}
             >
@@ -123,31 +122,19 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
           <Label>Cantón</Label>
           {countiesError ? (
             <div className="space-y-2">
-              <Select disabled>
-                <SelectTrigger className="bg-muted">
-                  <SelectValue placeholder="Error" />
-                </SelectTrigger>
-              </Select>
+              <Select disabled><SelectTrigger className="bg-muted"><SelectValue placeholder="Error" /></SelectTrigger></Select>
               <div className="text-sm text-destructive flex items-center gap-2">
                 Error al cargar
-                <Button 
-                  type="button"
-                  variant="link" 
-                  size="sm" 
-                  onClick={() => refetchCounties()}
-                  className="h-auto p-0"
-                >
-                  Reintentar
-                </Button>
+                <Button type="button" variant="link" size="sm" onClick={() => refetchCounties()} className="h-auto p-0">Reintentar</Button>
               </div>
             </div>
           ) : (
-            <Select 
-              onValueChange={handleCountyChange} 
-              value={formData.county_id != null ? formData.county_id.toString() : "0"} 
+            <Select
+              onValueChange={handleCountyChange}
+              value={formData.county_id != null ? formData.county_id.toString() : "0"}
               disabled={!formData.state_id || formData.state_id === 0 || countiesLoading}
             >
-              <SelectTrigger className={(countiesLoading || !formData.state_id || formData.state_id === 0) ? "bg-muted" : ""}>
+              <SelectTrigger className={(!formData.state_id || formData.state_id === 0 || countiesLoading) ? "bg-muted" : ""}>
                 <SelectValue placeholder={countiesLoading ? "Cargando..." : "Seleccionar"} />
               </SelectTrigger>
               <SelectContent>
@@ -167,31 +154,19 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
           <Label>Distrito</Label>
           {districtsError ? (
             <div className="space-y-2">
-              <Select disabled>
-                <SelectTrigger className="bg-muted">
-                  <SelectValue placeholder="Error" />
-                </SelectTrigger>
-              </Select>
+              <Select disabled><SelectTrigger className="bg-muted"><SelectValue placeholder="Error" /></SelectTrigger></Select>
               <div className="text-sm text-destructive flex items-center gap-2">
                 Error al cargar
-                <Button 
-                  type="button"
-                  variant="link" 
-                  size="sm" 
-                  onClick={() => refetchDistricts()}
-                  className="h-auto p-0"
-                >
-                  Reintentar
-                </Button>
+                <Button type="button" variant="link" size="sm" onClick={() => refetchDistricts()} className="h-auto p-0">Reintentar</Button>
               </div>
             </div>
           ) : (
-            <Select 
-              onValueChange={handleDistrictChange} 
-              value={formData.district_id != null ? formData.district_id.toString() : "0"} 
+            <Select
+              onValueChange={handleDistrictChange}
+              value={formData.district_id != null ? formData.district_id.toString() : "0"}
               disabled={!formData.county_id || formData.county_id === 0 || districtsLoading}
             >
-              <SelectTrigger className={(districtsLoading || !formData.county_id || formData.county_id === 0) ? "bg-muted" : ""}>
+              <SelectTrigger className={(!formData.county_id || formData.county_id === 0 || districtsLoading) ? "bg-muted" : ""}>
                 <SelectValue placeholder={districtsLoading ? "Cargando..." : "Seleccionar"} />
               </SelectTrigger>
               <SelectContent>
@@ -206,20 +181,42 @@ export function BranchLocationSection({ formData, onChange }: BranchLocationSect
           )}
         </div>
 
-        {/* Neighborhood (text input, not dropdown) */}
+        {/* Neighborhood */}
         <div className="space-y-1.5">
-          <Label htmlFor="b-neighborhood">Barrio</Label>
-          <input
-            id="b-neighborhood"
-            type="text"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={formData.neighborhood}
-            onChange={e => onChange({ ...formData, neighborhood: e.target.value })}
-            placeholder="Barrio Escalante"
-          />
+          <Label>Barrio</Label>
+          {neighborhoodsError ? (
+            <div className="space-y-2">
+              <Select disabled><SelectTrigger className="bg-muted"><SelectValue placeholder="Error" /></SelectTrigger></Select>
+              <div className="text-sm text-destructive flex items-center gap-2">
+                Error al cargar
+                <Button type="button" variant="link" size="sm" onClick={() => refetchNeighborhoods()} className="h-auto p-0">Reintentar</Button>
+              </div>
+            </div>
+          ) : (
+            <Select
+              onValueChange={handleNeighborhoodChange}
+              value={formData.neighborhood_id != null ? formData.neighborhood_id.toString() : "0"}
+              disabled={!districtSelected || neighborhoodsLoading}
+            >
+              <SelectTrigger className={(!districtSelected || neighborhoodsLoading) ? "bg-muted" : ""}>
+                <SelectValue placeholder={
+                  !districtSelected ? "Seleccionar distrito primero" :
+                  neighborhoodsLoading ? "Cargando..." : "Seleccionar"
+                } />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Seleccionar barrio</SelectItem>
+                {neighborhoods.map((n) => (
+                  <SelectItem key={n.neighborhood_id} value={n.neighborhood_id.toString()}>
+                    {n.neighborhood_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
-      
+
       {/* Address */}
       <div className="space-y-1.5">
         <Label htmlFor="b-address">Otras señas</Label>

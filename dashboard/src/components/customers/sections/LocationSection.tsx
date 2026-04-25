@@ -76,10 +76,10 @@ export function LocationSection({
   
   // Reset location fields when nationality changes
   useEffect(() => {
-    form.setValue("residence.stateId", 0);
-    form.setValue("residence.countyId", 0);
-    form.setValue("residence.districtId", 0);
-    form.setValue("residence.neighborhoodId", 0);
+    form.setValue("residence.state_id", 0);
+    form.setValue("residence.county_id", 0);
+    form.setValue("residence.district_id", 0);
+    form.setValue("residence.neighborhood_id", 0);
   }, [watchedNationality, form]);
   
   return (
@@ -110,7 +110,7 @@ export function LocationSection({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="residence.stateId"
+              name="residence.state_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.province')}</FormLabel>
@@ -164,7 +164,7 @@ export function LocationSection({
 
             <FormField
               control={form.control}
-              name="residence.countyId"
+              name="residence.county_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.canton')}</FormLabel>
@@ -218,7 +218,7 @@ export function LocationSection({
 
             <FormField
               control={form.control}
-              name="residence.districtId"
+              name="residence.district_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.district')}</FormLabel>
@@ -272,7 +272,7 @@ export function LocationSection({
 
             <FormField
               control={form.control}
-              name="residence.neighborhoodId"
+              name="residence.neighborhood_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('customers.neighborhood')}</FormLabel>

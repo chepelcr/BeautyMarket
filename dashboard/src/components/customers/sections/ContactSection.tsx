@@ -56,7 +56,7 @@ export function ContactSection({ form, countries, fieldErrors, disabled = false 
             <div className="grid grid-cols-2 gap-2">
               <FormField
                 control={form.control}
-                name="phone.countryCode"
+                name="phone.country_code"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value || COUNTRY_CODES.COSTA_RICA}>
                     <SelectTrigger>

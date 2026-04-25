@@ -21,36 +21,26 @@ export function CustomerProfile({ customer, onEdit }: CustomerProfileProps) {
   };
 
   // Handle both Customer and Client types
-  const isClient = 'clientName' in customer;
-  
-  const fullName = isClient 
-    ? (customer as Client).businessName || (customer as Client).clientName || t('customers.noName')
-    : [customer.firstName, customer.lastName].filter(Boolean).join(' ') || t('customers.noName');
+  const isClient = 'client_name' in customer;
 
-  const email = isClient ? (customer as Client).email : customer.email;
-  
-  // Handle phone - can be string (Customer) or object (Client)
-  const phoneDisplay = isClient && (customer as Client).phone && typeof (customer as Client).phone === 'object'
-    ? (customer as Client).phone?.number
-    : typeof customer.phone === 'string' 
-    ? customer.phone 
-    : null;
+  const client = isClient ? (customer as Client) : null;
+  const legacy = isClient ? null : (customer as Customer);
 
-  const fullAddress = customer.address
-    ? [
-        customer.address.street,
-        customer.address.city,
-        customer.address.state,
-        customer.address.zipCode,
-        customer.address.country,
-      ]
-        .filter(Boolean)
-        .join(', ')
-    : isClient && (customer as Client).residence
-    ? (customer as Client).residence?.address
-    : null;
+  const fullName = client
+    ? client.business_name || client.client_name || t('customers.noName')
+    : [legacy?.firstName, legacy?.lastName].filter(Boolean).join(' ') || t('customers.noName');
 
-  const createdAt = 'createdAt' in customer ? customer.createdAt : null;
+  const email = client ? client.email : legacy?.email;
+
+  const phoneDisplay = client?.phone?.number
+    ?? (typeof legacy?.phone === 'string' ? legacy.phone : null);
+
+  const fullAddress = client?.residence?.address
+    ?? (legacy?.address
+      ? [legacy.address.street, legacy.address.city, legacy.address.state, legacy.address.zipCode, legacy.address.country].filter(Boolean).join(', ')
+      : null);
+
+  const createdAt = legacy?.createdAt ?? null;
 
   return (
     <Card>

@@ -6,10 +6,10 @@ export interface ClientSearchFilters {
 }
 
 const SORT_FIELD_MAP: Record<string, string> = {
-  clientName: 'clientName',
-  clientGln: 'clientGln',
-  createdAt: 'createdOn',
-  updatedAt: 'updatedOn',
+  client_name: 'client_name',
+  client_gln: 'client_gln',
+  created_at: 'created_on',
+  updated_at: 'updated_on',
 };
 
 export function buildClientSearchString(filters: ClientSearchFilters): string {
@@ -17,7 +17,7 @@ export function buildClientSearchString(filters: ClientSearchFilters): string {
 
   if (filters.textSearch) {
     const v = `*${filters.textSearch}*`;
-    parts.push(`clientName:${v}`);
+    parts.push(`client_name:${v}`);
   }
 
   if (filters.status) {

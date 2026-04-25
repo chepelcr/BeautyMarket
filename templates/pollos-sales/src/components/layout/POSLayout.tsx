@@ -1,12 +1,6 @@
-import { cn } from "@/lib/utils";
 import type { SyncStatus } from "@/hooks/useSync";
 import { useAuthContext } from "@/contexts/AuthContext";
-
-const syncConfig: Record<SyncStatus, { color: string; label: string; dot: string }> = {
-  online: { color: "text-success", label: "Online", dot: "●" },
-  offline: { color: "text-destructive", label: "Offline", dot: "●" },
-  syncing: { color: "text-warning", label: "Sincronizando...", dot: "◌" },
-};
+import { Logo, SyncPill, Button, Icon } from "@/components/ui";
 
 interface POSLayoutProps {
   children: React.ReactNode;
@@ -24,34 +18,48 @@ export default function POSLayout({
   sessionName,
 }: POSLayoutProps) {
   const { logout } = useAuthContext();
-  const sync = syncConfig[syncStatus];
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "hsl(var(--background))" }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-surface border-b border-surface-border shrink-0">
-        <span className="font-barlow font-extrabold text-lg text-primary tracking-wide">
-          🍗 POLLOS PORTEÑOS
-        </span>
-        <div className="flex items-center gap-3">
-          <div className={cn("flex items-center gap-1 text-xs font-mono", sync.color)}>
-            <span className="text-[9px]">{sync.dot}</span>
-            <span>{sync.label}</span>
-          </div>
-          <button
-            onClick={logout}
-            className="text-muted text-xs hover:text-foreground transition-colors"
-          >
+      <div
+        className="nav-bar"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 16px",
+          flexShrink: 0,
+        }}
+      >
+        <Logo />
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <SyncPill state={syncStatus} />
+          <Button variant="ghost" size="sm" icon="logOut" onClick={logout}>
             Salir
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Assignment badge */}
+      {/* Assignment context strip */}
       {standName && (
-        <div className="px-4 py-1.5 bg-primary/10 border-b border-primary/20 shrink-0">
-          <span className="text-[11px] text-primary font-barlow font-bold tracking-wide">
-            📍 {standName}
+        <div
+          style={{
+            padding: "8px 16px",
+            background: "hsl(var(--primary) / 0.08)",
+            borderBottom: "1px solid hsl(var(--primary) / 0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexShrink: 0,
+          }}
+        >
+          <Icon name="mapPin" size={13} style={{ color: "hsl(var(--primary))" } as any} />
+          <span
+            className="t-label"
+            style={{ color: "hsl(var(--primary))", fontSize: 12 }}
+          >
+            {standName}
             {context && ` · ${context.toUpperCase()}`}
             {sessionName && ` · ${sessionName}`}
           </span>
@@ -59,7 +67,9 @@ export default function POSLayout({
       )}
 
       {/* Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">{children}</div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {children}
+      </div>
     </div>
   );
 }

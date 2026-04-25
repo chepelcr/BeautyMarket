@@ -54,7 +54,7 @@ export type { User } from "./User";
 
 export type { HomePageContent, InsertHomePageContent } from "./HomePageContent";
 
-export type { Province, Canton, District } from "./Location";
+export type { LocationData } from "./Location";
 
 export type { DeploymentHistory, PreDeployment } from "./Deployment";
 

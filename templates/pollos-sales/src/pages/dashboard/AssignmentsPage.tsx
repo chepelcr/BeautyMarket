@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
-import { cn } from "@/lib/utils";
+import { Card, Badge, Button, Icon, Select, EmptyState } from "@/components/ui";
 import type { BranchListResponse } from "@/types";
 
 interface Assignment {
@@ -39,6 +39,11 @@ interface Member {
 
 type Role = "cashier" | "supervisor";
 
+const ROLE_LABEL: Record<Role, string> = {
+  cashier: "Cajero",
+  supervisor: "Supervisor",
+};
+
 export default function AssignmentsPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
@@ -46,7 +51,6 @@ export default function AssignmentsPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
 
-  // Form state
   const [sessionId, setSessionId] = useState("");
   const [userId, setUserId] = useState("");
   const [branchId, setBranchId] = useState("");
@@ -84,178 +88,225 @@ export default function AssignmentsPage() {
 
   const createMutation = useMutation({
     mutationFn: () => {
-      if (!sessionId || !userId || !branchId) throw new Error("Completá todos los campos requeridos");
-      const start_time = new Date().toISOString();
-      return api.post(crossAppOrgPath(org!.id, "/assignments"), {
+      if (!sessionId || !userId || !branchId)
+        throw new Error("Completá todos los campos requeridos");
+      return crossAppApi.post(crossAppOrgPath(org!.id, "/assignments"), {
         session_id: sessionId,
         user_id: userId,
         branch_id: branchId,
         role,
-        start_time,
+        start_time: new Date().toISOString(),
       });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["assignments", org?.id] });
       setShowForm(false);
-      setSessionId("");
-      setUserId("");
-      setBranchId("");
-      setRole("cashier");
+      setSessionId(""); setUserId(""); setBranchId(""); setRole("cashier");
       setFormError(null);
     },
-    onError: (err: Error) => {
-      setFormError(err.message || "Error al crear asignación");
-    },
+    onError: (err: Error) => setFormError(err.message || "Error al crear asignación"),
   });
 
   const deactivateMutation = useMutation({
     mutationFn: (assignmentId: string) =>
-      api.patch(crossAppOrgPath(org!.id, `/assignments/${assignmentId}`), {
-        is_active: false,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["assignments", org?.id] });
-    },
+      crossAppApi.patch(crossAppOrgPath(org!.id, `/assignments/${assignmentId}`), { is_active: false }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["assignments", org?.id] }),
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="font-barlow font-extrabold text-lg text-foreground">
-          Asignaciones activas
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h2 className="t-h2" style={{ margin: 0 }}>Asignaciones activas</h2>
+          {!isLoading && (
+            <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))", marginTop: 2 }}>
+              {assignments.length} asignación{assignments.length !== 1 ? "es" : ""} en curso
+            </p>
+          )}
         </div>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="px-4 py-2 bg-primary text-white rounded-lg font-barlow font-bold text-sm"
+        <Button
+          variant={showForm ? "outline" : "primary"}
+          size="sm"
+          icon={showForm ? "close" : "plus"}
+          onClick={() => { setShowForm((v) => !v); setFormError(null); }}
         >
-          {showForm ? "✕ Cancelar" : "＋ Nueva asignación"}
-        </button>
+          {showForm ? "Cancelar" : "Nueva asignación"}
+        </Button>
       </div>
 
       {/* Create form */}
       {showForm && (
-        <div className="bg-surface border border-surface-border rounded-xl p-4 flex flex-col gap-3">
-          <div className="font-barlow font-bold text-foreground">Nueva asignación</div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted tracking-widest font-barlow">SESIÓN</label>
-            <select
-              value={sessionId}
-              onChange={(e) => setSessionId(e.target.value)}
-              className="px-3 py-2 bg-surface-high border border-surface-border rounded-lg text-foreground font-barlow text-sm outline-none focus:border-primary"
+        <Card className="fade-up" style={{ padding: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div
+              className="icon-pill"
+              style={{ width: 32, height: 32, background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}
             >
-              <option value="">Seleccionar sesión...</option>
-              {sessions.map((s) => (
-                <option key={s.session_id} value={s.session_id}>
-                  {s.name} ({s.type === "match" ? "Partido" : "Turno"})
-                </option>
-              ))}
-            </select>
+              <Icon name="userPlus" size={14} />
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 700, fontFamily: "var(--font-display)" }}>
+              Nueva asignación
+            </span>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted tracking-widest font-barlow">VENDEDOR</label>
-            <select
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              className="px-3 py-2 bg-surface-high border border-surface-border rounded-lg text-foreground font-barlow text-sm outline-none focus:border-primary"
-            >
-              <option value="">Seleccionar miembro...</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-1 flex flex-col gap-1.5">
-              <label className="text-xs text-muted tracking-widest font-barlow">PUESTO</label>
-              <select
-                value={branchId}
-                onChange={(e) => setBranchId(e.target.value)}
-                className="px-3 py-2 bg-surface-high border border-surface-border rounded-lg text-foreground font-barlow text-sm outline-none focus:border-primary"
-              >
-                <option value="">Seleccionar puesto...</option>
-                {branches.map((b) => (
-                  <option key={b.branch_id} value={b.branch_id}>
-                    {b.name}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Session */}
+            <div>
+              <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+                Sesión
+              </label>
+              <Select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
+                <option value="">Seleccionar sesión…</option>
+                {sessions.map((s) => (
+                  <option key={s.session_id} value={s.session_id}>
+                    {s.name} ({s.type === "match" ? "Partido" : "Turno"})
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
-            <div className="flex-1 flex flex-col gap-1.5">
-              <label className="text-xs text-muted tracking-widest font-barlow">ROL</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-                className="px-3 py-2 bg-surface-high border border-surface-border rounded-lg text-foreground font-barlow text-sm outline-none focus:border-primary"
-              >
-                <option value="cashier">Cajero</option>
-                <option value="supervisor">Supervisor</option>
-              </select>
+
+            {/* Member */}
+            <div>
+              <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+                Vendedor
+              </label>
+              <Select value={userId} onChange={(e) => setUserId(e.target.value)}>
+                <option value="">Seleccionar miembro…</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </Select>
             </div>
+
+            {/* Branch + Role row */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+                  Puesto
+                </label>
+                <Select value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+                  <option value="">Seleccionar…</option>
+                  {branches.map((b) => (
+                    <option key={b.branch_id} value={b.branch_id}>{b.name}</option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+                  Rol
+                </label>
+                <Select value={role} onChange={(e) => setRole(e.target.value as Role)}>
+                  <option value="cashier">Cajero</option>
+                  <option value="supervisor">Supervisor</option>
+                </Select>
+              </div>
+            </div>
+
+            {formError && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "hsl(var(--destructive))" }}>
+                <Icon name="alertTri" size={14} />
+                <span className="t-sm">{formError}</span>
+              </div>
+            )}
+
+            <Button
+              variant="success"
+              size="md"
+              icon="checkCircle"
+              onClick={() => createMutation.mutate()}
+              disabled={createMutation.isPending || !sessionId || !userId || !branchId}
+              style={{ width: "100%" }}
+            >
+              {createMutation.isPending ? "Asignando…" : "Crear asignación"}
+            </Button>
           </div>
-
-          {formError && (
-            <div className="text-destructive text-sm font-barlow">{formError}</div>
-          )}
-
-          <button
-            onClick={() => createMutation.mutate()}
-            disabled={createMutation.isPending || !sessionId || !userId || !branchId}
-            className="py-3 bg-success text-white rounded-xl font-barlow font-extrabold text-base disabled:opacity-50"
-          >
-            {createMutation.isPending ? "Asignando..." : "✓ CREAR ASIGNACIÓN"}
-          </button>
-        </div>
+        </Card>
       )}
 
-      {/* Assignments list */}
+      {/* Loading */}
       {isLoading && (
-        <div className="text-center text-muted font-barlow py-8 animate-pulse">
-          Cargando asignaciones...
-        </div>
-      )}
-      {!isLoading && assignments.length === 0 && (
-        <div className="text-center text-muted font-barlow py-12">
-          No hay asignaciones activas.
-        </div>
-      )}
-      {assignments.map((a) => (
-        <div
-          key={a.assignment_id}
-          className="bg-surface border border-surface-border rounded-xl p-4 flex items-center justify-between"
-        >
-          <div>
-            <div className="font-barlow font-bold text-foreground">
-              {a.user_id}
-            </div>
-            <div className="text-muted text-xs mt-0.5">
-              <span
-                className={cn(
-                  "inline-block px-2 py-0.5 rounded text-[10px] font-bold mr-2",
-                  a.role === "supervisor"
-                    ? "bg-primary/20 text-primary"
-                    : "bg-surface-high text-muted"
-                )}
-              >
-                {a.role === "cashier" ? "Cajero" : "Supervisor"}
-              </span>
-              Puesto: {a.branch_id} · Inicio: {new Date(a.start_time).toLocaleTimeString("es-CR")}
-            </div>
+        <div style={{ textAlign: "center", padding: "40px 0", color: "hsl(var(--muted-foreground))" }}>
+          <div className="t-sm" style={{ animation: "pulse 1.5s ease-in-out infinite" }}>
+            Cargando asignaciones…
           </div>
-          <button
-            onClick={() => deactivateMutation.mutate(a.assignment_id)}
-            disabled={deactivateMutation.isPending}
-            className="ml-4 px-3 py-1.5 bg-destructive/20 border border-destructive/30 text-destructive font-barlow font-bold text-xs rounded-lg hover:bg-destructive/30 transition-colors disabled:opacity-50"
-          >
-            Finalizar
-          </button>
         </div>
-      ))}
+      )}
+
+      {/* Empty */}
+      {!isLoading && assignments.length === 0 && (
+        <EmptyState
+          icon="users"
+          title="Sin asignaciones activas"
+          description="Creá una asignación para enviar a un vendedor a un puesto."
+        />
+      )}
+
+      {/* Assignment cards */}
+      {assignments.map((a) => {
+        const startTime = new Date(a.start_time).toLocaleTimeString("es-CR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        return (
+          <Card
+            key={a.assignment_id}
+            className="fade-up"
+            style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              <div
+                className="icon-pill"
+                style={{
+                  width: 36,
+                  height: 36,
+                  background: a.role === "supervisor"
+                    ? "hsl(var(--primary) / 0.1)"
+                    : "hsl(var(--muted))",
+                  color: a.role === "supervisor"
+                    ? "hsl(var(--primary))"
+                    : "hsl(var(--muted-foreground))",
+                  flexShrink: 0,
+                }}
+              >
+                <Icon name={a.role === "supervisor" ? "star" : "user"} size={15} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {a.user_id}
+                  </span>
+                  <Badge variant={a.role === "supervisor" ? "primary-soft" : "secondary"}>
+                    {ROLE_LABEL[a.role]}
+                  </Badge>
+                </div>
+                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Icon name="store" size={11} />
+                  Puesto: {a.branch_id}
+                  <span style={{ opacity: 0.5 }}>·</span>
+                  <Icon name="clock" size={11} />
+                  Inicio: {startTime}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => deactivateMutation.mutate(a.assignment_id)}
+              disabled={deactivateMutation.isPending}
+              style={{ flexShrink: 0, color: "hsl(var(--destructive))", borderColor: "hsl(var(--destructive) / 0.4)" }}
+            >
+              Finalizar
+            </Button>
+          </Card>
+        );
+      })}
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      `}</style>
     </div>
   );
 }

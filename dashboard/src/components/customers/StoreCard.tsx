@@ -31,15 +31,15 @@ export function StoreCard({ store, onEdit, onStatusChange }: StoreCardProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-sm font-semibold">{store.storeCode}</span>
+              <span className="font-mono text-sm font-semibold">{store.store_code}</span>
               {getStatusBadge(store.status)}
             </div>
-            {store.storeName && (
-              <p className="text-sm text-foreground truncate">{store.storeName}</p>
+            {store.store_name && (
+              <p className="text-sm text-foreground truncate">{store.store_name}</p>
             )}
             <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5 text-xs text-muted-foreground">
               {store.chain && <span>Chain: {store.chain}</span>}
-              {store.slotId && <span>Slot: {store.slotId}</span>}
+              {store.slot_id && <span>Slot: {store.slot_id}</span>}
               {store.gln && <span>GLN: {store.gln}</span>}
             </div>
           </div>
@@ -57,20 +57,20 @@ export function StoreCard({ store, onEdit, onStatusChange }: StoreCardProps) {
                   {t('customers.edit')}
                 </DropdownMenuItem>
                 {store.status === 2 && (
-                  <DropdownMenuItem onClick={() => onStatusChange(store.storeId, 1)}>
+                  <DropdownMenuItem onClick={() => onStatusChange(store.store_id, 1)}>
                     <CheckCircle className="h-4 w-4 mr-2" />
                     {t('customers.actions.activate')}
                   </DropdownMenuItem>
                 )}
                 {store.status === 1 && (
-                  <DropdownMenuItem onClick={() => onStatusChange(store.storeId, 2)}>
+                  <DropdownMenuItem onClick={() => onStatusChange(store.store_id, 2)}>
                     <Ban className="h-4 w-4 mr-2" />
                     {t('customers.actions.deactivate')}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
                   className="text-destructive"
-                  onClick={() => onStatusChange(store.storeId, 3)}
+                  onClick={() => onStatusChange(store.store_id, 3)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   {t('customers.actions.delete')}

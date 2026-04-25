@@ -58,7 +58,7 @@ export function DepartmentsList({ orgId, clientId }: DepartmentsListProps) {
   const handleSubmit = async (data: CreateDepartmentDTO) => {
     try {
       if (editingDept) {
-        await updateDepartment.mutateAsync({ departmentId: editingDept.departmentId, data });
+        await updateDepartment.mutateAsync({ departmentId: editingDept.department_id, data });
         toast({ title: t('common.saved') });
       } else {
         await createDepartment.mutateAsync(data);
@@ -120,7 +120,7 @@ export function DepartmentsList({ orgId, clientId }: DepartmentsListProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {departments.map((dept) => (
             <DepartmentCard
-              key={dept.departmentId}
+              key={dept.department_id}
               department={dept}
               onEdit={handleEdit}
               onDelete={setDeletingId}

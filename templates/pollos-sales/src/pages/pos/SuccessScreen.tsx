@@ -1,3 +1,5 @@
+import { Icon, Card, Button } from "@/components/ui";
+
 type PaymentMethod = "Efectivo" | "SINPE" | "Tarjeta";
 
 interface SuccessScreenProps {
@@ -7,48 +9,115 @@ interface SuccessScreenProps {
   onNewSale: () => void;
 }
 
-export default function SuccessScreen({
-  total,
-  paymentMethod,
-  change,
-  onNewSale,
-}: SuccessScreenProps) {
+const fmt = (n: number) => "₡" + n.toLocaleString("es-CR");
+
+const METHOD_ICON: Record<PaymentMethod, string> = {
+  Efectivo: "cash",
+  SINPE: "smartphone",
+  Tarjeta: "card",
+};
+
+export default function SuccessScreen({ total, paymentMethod, change, onNewSale }: SuccessScreenProps) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
-      {/* Check circle */}
-      <div className="w-20 h-20 rounded-full bg-success/10 border-2 border-success flex items-center justify-center text-4xl">
-        ✓
+    <div
+      className="fade-up"
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 20,
+        padding: 32,
+      }}
+    >
+      {/* Success icon-pill */}
+      <div
+        className="icon-pill"
+        style={{
+          width: 72,
+          height: 72,
+          background: "hsl(var(--success) / 0.12)",
+          color: "hsl(var(--success))",
+          border: "2px solid hsl(var(--success) / 0.4)",
+        }}
+      >
+        <Icon name="checkCircle" size={32} />
       </div>
 
-      <div className="text-center">
-        <div className="text-success font-barlow font-extrabold text-3xl tracking-wide">
-          VENTA REGISTRADA
+      {/* Title */}
+      <div style={{ textAlign: "center" }}>
+        <div
+          className="t-h2"
+          style={{ color: "hsl(var(--success))", marginBottom: 6 }}
+        >
+          Venta registrada
         </div>
-        <div className="text-muted text-sm mt-1">
-          {paymentMethod} · ₡{total.toLocaleString("es-CR")}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            color: "hsl(var(--muted-foreground))",
+          }}
+        >
+          <Icon name={METHOD_ICON[paymentMethod]} size={14} />
+          <span className="t-sm">
+            {paymentMethod} · {fmt(total)}
+          </span>
         </div>
       </div>
 
-      {/* Change */}
+      {/* Change card */}
       {paymentMethod === "Efectivo" && change !== undefined && change >= 0 && (
-        <div className="bg-success/10 border border-success/30 rounded-xl px-6 py-4 text-center">
-          <div className="text-muted text-xs mb-1 font-barlow tracking-widest">
+        <Card
+          style={{
+            padding: "20px 28px",
+            textAlign: "center",
+            background: "hsl(var(--success) / 0.08)",
+            border: "1px solid hsl(var(--success) / 0.3)",
+            width: "100%",
+            maxWidth: 280,
+          }}
+        >
+          <div className="t-label" style={{ marginBottom: 8, letterSpacing: "0.06em" }}>
             DEVOLVER AL CLIENTE
           </div>
-          <div className="text-success font-barlow font-extrabold text-4xl">
-            ₡{change.toLocaleString("es-CR")}
+          <div
+            className="t-stat-xl"
+            style={{ fontSize: 40, color: "hsl(var(--success))" }}
+          >
+            {fmt(change)}
           </div>
-        </div>
+        </Card>
       )}
 
-      <div className="text-[11px] text-muted font-mono">🔄 sync pendiente</div>
-
-      <button
-        onClick={onNewSale}
-        className="w-full py-4 bg-primary text-white rounded-xl font-barlow font-extrabold text-xl tracking-wide active:bg-primary-dark"
+      {/* Sync note */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          color: "hsl(var(--muted-foreground))",
+        }}
       >
-        ← NUEVA VENTA
-      </button>
+        <Icon name="refresh" size={12} />
+        <span className="t-xs" style={{ fontFamily: "var(--font-mono)" }}>
+          sync pendiente
+        </span>
+      </div>
+
+      {/* New sale button */}
+      <Button
+        variant="primary"
+        size="xl"
+        icon="arrowLeft"
+        onClick={onNewSale}
+        style={{ width: "100%" }}
+      >
+        Nueva venta
+      </Button>
     </div>
   );
 }

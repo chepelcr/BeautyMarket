@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Icon, Logo, Badge, Button } from "@/components/ui";
 
-type NavId = "dashboard" | "config" | "productos" | "reporte";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -15,6 +15,7 @@ interface DashboardShellProps {
 const NAV_ITEMS: { id: NavId; icon: string; label: string }[] = [
   { id: "dashboard", icon: "chart", label: "Panel" },
   { id: "config", icon: "settings", label: "Sesiones" },
+  { id: "puestos", icon: "store", label: "Puestos" },
   { id: "productos", icon: "package", label: "Productos" },
   { id: "reporte", icon: "trending", label: "Reportes" },
 ];
