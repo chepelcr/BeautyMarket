@@ -34,9 +34,9 @@ export function Drawer({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.45)",
+          background: "rgba(0,0,0,0.25)",
           zIndex: 200,
-          backdropFilter: "blur(2px)",
+          backdropFilter: "blur(1px)",
         }}
         onClick={onClose}
       />

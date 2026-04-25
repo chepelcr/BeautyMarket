@@ -1,9 +1,11 @@
 import type { OrganizationInvitation } from "../entities";
 import type { OrganizationInvitationRepository, OrganizationInvitationWithDetails } from "../repositories/OrganizationInvitationRepository";
 import type { OrganizationMemberRepository } from "../repositories/OrganizationMemberRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
 import type { EmailService } from "./EmailService";
+import { generateInvitationEmailHtml } from "../templates/emails";
 
 export interface CreateInvitationData {
   organizationId: string;
@@ -30,7 +32,8 @@ export class InvitationService implements IInvitationService {
     private memberRepo: OrganizationMemberRepository,
     private userRepo: UserRepository,
     private rbacRepo: RBACRepository,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private orgRepo: OrganizationRepository
   ) {}
 
   async getById(id: string): Promise<OrganizationInvitation | null> {
@@ -177,11 +180,14 @@ export class InvitationService implements IInvitationService {
     const frontendUrl = process.env.FRONTEND_URL || "https://j-markets.jcampos.dev";
     const inviteUrl = `${frontendUrl}/join/${invitation.token}`;
 
-    // For now, log the invitation URL
-    // TODO: Implement proper invitation email template
-    console.log(`Invitation email for ${invitation.email}: ${inviteUrl}`);
+    const org = await this.orgRepo.findById(invitation.organizationId);
+    const orgName = org?.name ?? "JMarkets";
 
-    // You can implement proper email sending here using EmailService
-    // await this.emailService.sendInvitationEmail(invitation.email, inviteUrl, organizationName);
+    await this.emailService.sendEmail({
+      to: invitation.email,
+      subject: `Invitación para unirte a ${orgName}`,
+      htmlBody: generateInvitationEmailHtml(inviteUrl, orgName, 'es'),
+      textBody: `Has recibido una invitación para unirte a ${orgName}. Accedé al siguiente enlace para aceptarla: ${inviteUrl}\n\nEsta invitación expira en 7 días.`,
+    });
   }
 }

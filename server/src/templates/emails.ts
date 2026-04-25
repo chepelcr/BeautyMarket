@@ -96,14 +96,14 @@ export function generateVerificationEmailHtml(code: string, language: Language =
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fce7f3;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fce7f3; padding: 40px 20px;">
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #E8F5E9;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F5E9; padding: 40px 20px;">
         <tr>
           <td align="center">
             <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <tr>
                 <td style="padding: 40px 40px 20px 40px; text-align: center;">
-                  <h1 style="margin: 0; font-size: 28px; color: #e91e63; font-weight: bold;">🍓 JMarkets</h1>
+                  <h1 style="margin: 0; font-size: 28px; color: #2E7D32; font-weight: bold;">🌿 JMarkets</h1>
                 </td>
               </tr>
               <tr>
@@ -116,8 +116,8 @@ export function generateVerificationEmailHtml(code: string, language: Language =
               </tr>
               <tr>
                 <td style="padding: 0 40px 30px 40px; text-align: center;">
-                  <div style="background-color: #fce7f3; border-radius: 12px; padding: 24px; display: inline-block;">
-                    <span style="font-size: 36px; font-weight: bold; color: #e91e63; letter-spacing: 8px;">${code}</span>
+                  <div style="background-color: #E8F5E9; border-radius: 12px; padding: 24px; display: inline-block;">
+                    <span style="font-size: 36px; font-weight: bold; color: #2E7D32; letter-spacing: 8px;">${code}</span>
                   </div>
                 </td>
               </tr>
@@ -154,14 +154,14 @@ export function generatePasswordResetEmailHtml(code: string, language: Language 
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fce7f3;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fce7f3; padding: 40px 20px;">
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #E8F5E9;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F5E9; padding: 40px 20px;">
         <tr>
           <td align="center">
             <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <tr>
                 <td style="padding: 40px 40px 20px 40px; text-align: center;">
-                  <h1 style="margin: 0; font-size: 28px; color: #e91e63; font-weight: bold;">🍓 JMarkets</h1>
+                  <h1 style="margin: 0; font-size: 28px; color: #2E7D32; font-weight: bold;">🌿 JMarkets</h1>
                 </td>
               </tr>
               <tr>
@@ -174,8 +174,8 @@ export function generatePasswordResetEmailHtml(code: string, language: Language 
               </tr>
               <tr>
                 <td style="padding: 0 40px 30px 40px; text-align: center;">
-                  <div style="background-color: #fce7f3; border-radius: 12px; padding: 24px; display: inline-block;">
-                    <span style="font-size: 36px; font-weight: bold; color: #e91e63; letter-spacing: 8px;">${code}</span>
+                  <div style="background-color: #E8F5E9; border-radius: 12px; padding: 24px; display: inline-block;">
+                    <span style="font-size: 36px; font-weight: bold; color: #2E7D32; letter-spacing: 8px;">${code}</span>
                   </div>
                 </td>
               </tr>
@@ -219,14 +219,14 @@ export function generateAdminCreateUserEmailHtml(tempPassword: string, email: st
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fce7f3;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fce7f3; padding: 40px 20px;">
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #E8F5E9;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F5E9; padding: 40px 20px;">
         <tr>
           <td align="center">
             <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <tr>
                 <td style="padding: 40px 40px 20px 40px; text-align: center;">
-                  <h1 style="margin: 0; font-size: 28px; color: #e91e63; font-weight: bold;">🍓 JMarkets</h1>
+                  <h1 style="margin: 0; font-size: 28px; color: #2E7D32; font-weight: bold;">🌿 JMarkets</h1>
                 </td>
               </tr>
               <tr>
@@ -239,14 +239,14 @@ export function generateAdminCreateUserEmailHtml(tempPassword: string, email: st
               </tr>
               <tr>
                 <td style="padding: 0 40px 30px 40px; text-align: center;">
-                  <div style="background-color: #fce7f3; border-radius: 12px; padding: 24px;">
+                  <div style="background-color: #E8F5E9; border-radius: 12px; padding: 24px;">
                     <p style="margin: 0 0 12px 0; font-size: 14px; color: #666666;">
                       <strong>Email:</strong> ${email}
                     </p>
                     <p style="margin: 0; font-size: 14px; color: #666666;">
                       <strong>Contraseña temporal:</strong>
                     </p>
-                    <span style="font-size: 20px; font-weight: bold; color: #e91e63;">${tempPassword}</span>
+                    <span style="font-size: 20px; font-weight: bold; color: #2E7D32;">${tempPassword}</span>
                   </div>
                 </td>
               </tr>
@@ -282,14 +282,14 @@ export function generateWelcomeEmailHtml(userName: string, frontendUrl: string, 
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fce7f3;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fce7f3; padding: 40px 20px;">
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #E8F5E9;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F5E9; padding: 40px 20px;">
         <tr>
           <td align="center">
             <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
               <tr>
                 <td style="padding: 40px 40px 20px 40px; text-align: center;">
-                  <h1 style="margin: 0; font-size: 28px; color: #e91e63; font-weight: bold;">🍓 JMarkets</h1>
+                  <h1 style="margin: 0; font-size: 28px; color: #2E7D32; font-weight: bold;">🌿 JMarkets</h1>
                 </td>
               </tr>
               <tr>
@@ -302,8 +302,8 @@ export function generateWelcomeEmailHtml(userName: string, frontendUrl: string, 
               </tr>
               <tr>
                 <td style="padding: 0 40px 30px 40px;">
-                  <div style="background-color: #fce7f3; border-radius: 12px; padding: 24px;">
-                    <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #e91e63;">${t.whatYouCanDo}</h3>
+                  <div style="background-color: #E8F5E9; border-radius: 12px; padding: 24px;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 18px; color: #2E7D32;">${t.whatYouCanDo}</h3>
                     <ul style="margin: 0; padding-left: 20px; color: #666666;">
                       <li style="margin-bottom: 8px;">${t.feature1}</li>
                       <li style="margin-bottom: 8px;">${t.feature2}</li>
@@ -315,7 +315,7 @@ export function generateWelcomeEmailHtml(userName: string, frontendUrl: string, 
               </tr>
               <tr>
                 <td style="padding: 0 40px 40px 40px; text-align: center;">
-                  <a href="${frontendUrl}" style="display: inline-block; background-color: #e91e63; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                  <a href="${frontendUrl}" style="display: inline-block; background-color: #2E7D32; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">
                     ${t.buttonText}
                   </a>
                 </td>
@@ -331,6 +331,49 @@ export function generateWelcomeEmailHtml(userName: string, frontendUrl: string, 
                 </td>
               </tr>
             </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
+export function generateInvitationEmailHtml(inviteUrl: string, organizationName: string, language: Language = 'es'): string {
+  const isEs = language === 'es';
+  const title = isEs ? `Invitación a ${organizationName}` : `Invitation to ${organizationName}`;
+  const heading = isEs ? '¡Te invitaron a unirte!' : 'You have been invited!';
+  const message = isEs
+    ? `Has recibido una invitación para unirte a <strong>${organizationName}</strong> en JMarkets. Hacé clic en el botón para aceptarla.`
+    : `You have been invited to join <strong>${organizationName}</strong> on JMarkets. Click the button below to accept.`;
+  const buttonText = isEs ? 'Aceptar invitación' : 'Accept invitation';
+  const expiryNote = isEs ? 'Esta invitación expira en 7 días.' : 'This invitation expires in 7 days.';
+  const footer = isEs ? '© 2024 JMarkets. Todos los derechos reservados.' : '© 2024 JMarkets. All rights reserved.';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><title>${title}</title></head>
+    <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 20px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <tr>
+          <td style="background-color: #2E7D32; padding: 32px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">JMarkets</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 40px 32px;">
+            <h2 style="color: #1a1a1a; margin: 0 0 16px;">${heading}</h2>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5; margin: 0 0 32px;">${message}</p>
+            <div style="text-align: center; margin: 0 0 32px;">
+              <a href="${inviteUrl}" style="background-color: #2E7D32; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">${buttonText}</a>
+            </div>
+            <p style="color: #999999; font-size: 13px; margin: 0;">${expiryNote}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background-color: #f3f4f6; padding: 16px 32px; text-align: center;">
+            <p style="color: #999999; font-size: 12px; margin: 0;">${footer}</p>
           </td>
         </tr>
       </table>

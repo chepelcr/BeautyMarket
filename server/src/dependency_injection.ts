@@ -146,7 +146,8 @@ export const invitationService = new InvitationService(
   organizationMemberRepository,
   userRepository,
   rbacRepository,
-  emailService
+  emailService,
+  organizationRepository
 );
 export const rbacService = new RBACService(
   rbacRepository,
