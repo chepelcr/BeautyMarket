@@ -40,7 +40,7 @@ export class InvitationController {
    */
   async getOrganizationInvitations(req: Request, res: Response) {
     try {
-      const { organizationId } = req.params;
+      const organizationId = req.params.orgId;
       const invitations = await this.invitationService.getOrganizationInvitations(organizationId);
       res.json(invitations);
     } catch (error) {

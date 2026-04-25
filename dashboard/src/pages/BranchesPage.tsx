@@ -1,22 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Store, Plus, Pencil, Trash2, AlertCircle, Monitor,
-  MapPin, Phone, Tag, ChevronRight, Circle, Wifi, WifiOff, Search
+  Store, Plus, Monitor, MapPin, Phone, Wifi, WifiOff, ChevronDown, ChevronUp,
+  MoreVertical, Pencil, Trash2, CheckCircle, XCircle, AlertCircle,
 } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
+} from '@/components/ui/sheet';
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -28,6 +29,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useEffect } from 'react';
 import { buildOrdersApiUrl } from '@/lib/apiUtils';
 import { apiRequest } from '@/lib/queryClient';
 import { BranchLocationSection } from '@/components/branches/BranchLocationSection';
@@ -68,8 +70,15 @@ interface TerminalFormData {
   name: string; code: string; device_id: string;
 }
 
-const defaultBranch: BranchFormData = { name: '', code: '', type: 'stand', state_id: null, county_id: null, district_id: null, neighborhood_id: null, address: '', phone: '' };
+const defaultBranch: BranchFormData = {
+  name: '', code: '', type: 'stand',
+  state_id: null, county_id: null, district_id: null, neighborhood_id: null,
+  address: '', phone: '',
+};
 const defaultTerminal: TerminalFormData = { name: '', code: '', device_id: '' };
+
+const TYPE_LABEL: Record<'stand' | 'restaurant', string> = { stand: 'Stand', restaurant: 'Restaurante' };
+const STATUS_LABEL: Record<number, string> = { 1: 'Activo', 2: 'Inactivo', 3: 'Eliminado' };
 
 /* ─────────────── Helpers ─────────────── */
 
@@ -89,6 +98,223 @@ function isOnline(last_seen_at: string | null) {
   return Date.now() - new Date(last_seen_at).getTime() < 15 * 60 * 1000;
 }
 
+/* ─────────────── BranchCard ─────────────── */
+
+interface BranchCardProps {
+  branch: Branch;
+  terminalsUrl: string;
+  onEdit: (b: Branch) => void;
+  onActivate: (b: Branch) => void;
+  onDeactivate: (b: Branch) => void;
+  onDelete: (b: Branch) => void;
+  onAddTerminal: (b: Branch) => void;
+  onEditTerminal: (b: Branch, t: Terminal) => void;
+  onDeleteTerminal: (b: Branch, t: Terminal) => void;
+  onToggleTerminal: (b: Branch, t: Terminal) => void;
+}
+
+function BranchCard({
+  branch, terminalsUrl,
+  onEdit, onActivate, onDeactivate, onDelete,
+  onAddTerminal, onEditTerminal, onDeleteTerminal, onToggleTerminal,
+}: BranchCardProps) {
+  const [expanded, setExpanded] = useState(false);
+  const isActive = branch.status === 1;
+  const isStand = branch.type === 'stand';
+
+  const { data: terminalsData, isLoading: termLoading } = useQuery<{ data: Terminal[] }>({
+    queryKey: [terminalsUrl],
+    enabled: expanded,
+  });
+  const terminals = terminalsData?.data ?? [];
+
+  const typeColor = isStand ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400';
+  const typeBg = isStand ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20';
+  const borderColor = isActive ? (isStand ? 'border-l-orange-500' : 'border-l-blue-500') : 'border-l-border';
+
+  return (
+    <div
+      className={`rounded-xl border border-border bg-card shadow-sm border-l-4 ${borderColor} transition-opacity ${branch.status === 3 ? 'opacity-50' : ''}`}
+    >
+      {/* Header */}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${typeBg}`}>
+              <Store className={`h-4 w-4 ${typeColor}`} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded">
+                  {branch.code}
+                </code>
+                <Badge variant={isActive ? 'default' : branch.status === 2 ? 'secondary' : 'destructive'} className="text-[10px] h-4">
+                  {STATUS_LABEL[branch.status]}
+                </Badge>
+              </div>
+              <p className="font-bold text-sm mt-1 truncate font-display">{branch.name}</p>
+            </div>
+          </div>
+
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {branch.status !== 3 && (
+                <DropdownMenuItem onClick={() => onEdit(branch)}>
+                  <Pencil className="h-3.5 w-3.5 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+              )}
+              {branch.status === 2 && (
+                <DropdownMenuItem onClick={() => onActivate(branch)} className="text-green-600 focus:text-green-600">
+                  <CheckCircle className="h-3.5 w-3.5 mr-2" />
+                  Activar
+                </DropdownMenuItem>
+              )}
+              {branch.status === 1 && (
+                <DropdownMenuItem onClick={() => onDeactivate(branch)}>
+                  <XCircle className="h-3.5 w-3.5 mr-2" />
+                  Desactivar
+                </DropdownMenuItem>
+              )}
+              {branch.status !== 3 && <DropdownMenuSeparator />}
+              {branch.status !== 3 && (
+                <DropdownMenuItem
+                  onClick={() => onDelete(branch)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-2" />
+                  Eliminar
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-3 mt-2.5 flex-wrap">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <Store className="h-3 w-3" />
+            {TYPE_LABEL[branch.type]}
+          </span>
+          {branch.phone && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Phone className="h-3 w-3" />
+              {branch.phone}
+            </span>
+          )}
+          {branch.location?.address && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1 truncate max-w-[180px]">
+              <MapPin className="h-3 w-3 shrink-0" />
+              {branch.location.address}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-border" />
+
+      {/* Terminals accordion toggle */}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-muted/40 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs font-semibold">Terminales</span>
+          {branch.terminals?.length != null && (
+            <span className="bg-muted rounded-full px-2 py-0.5 text-[11px] font-bold">
+              {branch.terminals.length}
+            </span>
+          )}
+        </div>
+        {expanded
+          ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+          : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        }
+      </button>
+
+      {/* Terminals list */}
+      {expanded && (
+        <div className="border-t border-border/50 bg-muted/20">
+          {termLoading ? (
+            <div className="p-3 space-y-2">
+              {[1, 2].map((i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
+            </div>
+          ) : terminals.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-muted-foreground">Sin terminales registradas.</div>
+          ) : (
+            <div>
+              {terminals.map((t, i) => {
+                const online = isOnline(t.last_seen_at);
+                const last = timeSince(t.last_seen_at);
+                return (
+                  <div
+                    key={t.terminal_id}
+                    className={`flex items-center gap-3 px-4 py-2.5 group ${i < terminals.length - 1 ? 'border-b border-border/30' : ''}`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${t.status === 1 ? 'bg-green-500' : 'bg-muted-foreground/40'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold">{t.name}</span>
+                        <code className="text-[10px] font-mono bg-muted px-1 rounded">{t.code}</code>
+                      </div>
+                      {last && (
+                        <span className={`flex items-center gap-1 text-[10px] mt-0.5 ${online ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                          {online ? <Wifi className="h-2.5 w-2.5" /> : <WifiOff className="h-2.5 w-2.5" />}
+                          {last}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost" size="sm" className="h-6 w-6 p-0"
+                        onClick={() => onToggleTerminal(branch, t)}
+                      >
+                        <CheckCircle className={`h-3 w-3 ${t.status === 1 ? 'text-green-500' : 'text-muted-foreground'}`} />
+                      </Button>
+                      <Button
+                        variant="ghost" size="sm" className="h-6 w-6 p-0"
+                        onClick={() => onEditTerminal(branch, t)}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        onClick={() => onDeleteTerminal(branch, t)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {isActive && (
+            <div className="p-3">
+              <button
+                type="button"
+                onClick={() => onAddTerminal(branch)}
+                className="w-full border border-dashed border-border rounded-lg text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 py-2 flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Plus className="h-3 w-3" />
+                Agregar terminal
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─────────────── Main Page ─────────────── */
 
 export default function BranchesPage() {
@@ -105,78 +331,65 @@ export default function BranchesPage() {
     if (!authLoading && !isAuthenticated) navigate('/login');
   }, [isAuthenticated, authLoading, navigate]);
 
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  /* ── Filter state ── */
+  const [filter, setFilter] = useState<'all' | 'stand' | 'restaurant'>('all');
+  const [showOnlyActive, setShowOnlyActive] = useState(false);
   const [search, setSearch] = useState('');
 
-  // Branch dialogs
-  const [showBranchCreate, setShowBranchCreate] = useState(false);
+  /* ── Sheet state ── */
+  const [branchSheet, setBranchSheet] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [deletingBranch, setDeletingBranch] = useState<Branch | null>(null);
   const [branchForm, setBranchForm] = useState<BranchFormData>(defaultBranch);
 
-  // Terminal dialogs
-  const [showTerminalCreate, setShowTerminalCreate] = useState(false);
+  const [termSheet, setTermSheet] = useState(false);
+  const [termBranch, setTermBranch] = useState<Branch | null>(null);
   const [editingTerminal, setEditingTerminal] = useState<Terminal | null>(null);
-  const [deletingTerminal, setDeletingTerminal] = useState<Terminal | null>(null);
   const [terminalForm, setTerminalForm] = useState<TerminalFormData>(defaultTerminal);
+
+  /* ── Delete confirms ── */
+  const [deletingBranch, setDeletingBranch] = useState<Branch | null>(null);
+  const [deletingTerminal, setDeletingTerminal] = useState<{ branch: Branch; terminal: Terminal } | null>(null);
 
   const branchesUrl = organizationId && user?.id
     ? buildOrdersApiUrl(organizationId, '/branches')
     : null;
 
-  /* ── Branches queries ── */
-  const { data: branchesData, isLoading: branchesLoading, error: branchesError } = useQuery<{ data: Branch[]; pagination: any }>({
+  const termUrlFor = (branchId: string) =>
+    branchesUrl ? buildOrdersApiUrl(organizationId!, `/branches/${branchId}/terminals`) : null;
+
+  /* ── Branches query ── */
+  const { data: branchesData, isLoading: branchesLoading, error: branchesError } = useQuery<{ data: Branch[] }>({
     queryKey: [branchesUrl],
     enabled: !!branchesUrl,
   });
 
-  const branches = branchesData?.data || [];
-  const selectedBranch = branches.find(b => b.branch_id === selectedBranchId) ?? null;
-
-  // Auto-select first branch
-  useEffect(() => {
-    if (!selectedBranchId && branches.length > 0) {
-      setSelectedBranchId(branches[0].branch_id);
-    }
-  }, [branches, selectedBranchId]);
-
-  /* ── Terminals query (for selected branch) ── */
-  const terminalsUrl = branchesUrl && selectedBranchId
-    ? buildOrdersApiUrl(organizationId!, `/branches/${selectedBranchId}/terminals`)
-    : null;
-
-  const { data: terminalsData, isLoading: terminalsLoading } = useQuery<{ data: Terminal[]; pagination: any }>({
-    queryKey: [terminalsUrl],
-    enabled: !!terminalsUrl,
+  const allBranches = branchesData?.data ?? [];
+  const branches = allBranches.filter((b) => {
+    if (showOnlyActive && b.status !== 1) return false;
+    if (filter !== 'all' && b.type !== filter) return false;
+    if (search && !b.name.toLowerCase().includes(search.toLowerCase()) && !b.code.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
   });
 
-  const terminals = terminalsData?.data || [];
+  const totalCount = allBranches.length;
+  const activeCount = allBranches.filter((b) => b.status === 1).length;
 
   /* ── Branch mutations ── */
   const createBranch = useMutation({
     mutationFn: async (data: BranchFormData) => {
       const res = await apiRequest('POST', branchesUrl!, {
-        name: data.name,
-        code: data.code,
-        type: data.type,
+        name: data.name, code: data.code, type: data.type,
         phone: data.phone || undefined,
         location: (data.state_id || data.county_id || data.district_id || data.neighborhood_id || data.address)
-          ? {
-              state_id: data.state_id || undefined,
-              county_id: data.county_id || undefined,
-              district_id: data.district_id || undefined,
-              neighborhood_id: data.neighborhood_id || undefined,
-              address: data.address || undefined,
-            }
+          ? { state_id: data.state_id || undefined, county_id: data.county_id || undefined, district_id: data.district_id || undefined, neighborhood_id: data.neighborhood_id || undefined, address: data.address || undefined }
           : undefined,
       });
       return res.json() as Promise<Branch>;
     },
-    onSuccess: (created) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [branchesUrl] });
-      setShowBranchCreate(false);
+      setBranchSheet(false);
       setBranchForm(defaultBranch);
-      setSelectedBranchId(created.branch_id);
       toast({ title: 'Sucursal creada' });
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
@@ -190,16 +403,10 @@ export default function BranchesPage() {
       if (data.type !== undefined) payload.type = data.type;
       if (data.phone !== undefined) payload.phone = data.phone || undefined;
       if (data.status !== undefined) payload.status = data.status;
-      if (
-        data.state_id !== undefined || data.county_id !== undefined ||
-        data.district_id !== undefined || data.neighborhood_id !== undefined ||
-        data.address !== undefined
-      ) {
+      if (data.state_id !== undefined || data.county_id !== undefined || data.district_id !== undefined || data.neighborhood_id !== undefined || data.address !== undefined) {
         payload.location = {
-          state_id: data.state_id || undefined,
-          county_id: data.county_id || undefined,
-          district_id: data.district_id || undefined,
-          neighborhood_id: data.neighborhood_id || undefined,
+          state_id: data.state_id || undefined, county_id: data.county_id || undefined,
+          district_id: data.district_id || undefined, neighborhood_id: data.neighborhood_id || undefined,
           address: data.address || undefined,
         };
       }
@@ -209,6 +416,7 @@ export default function BranchesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [branchesUrl] });
       setEditingBranch(null);
+      setBranchSheet(false);
       toast({ title: 'Cambios guardados' });
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
@@ -219,7 +427,6 @@ export default function BranchesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [branchesUrl] });
       setDeletingBranch(null);
-      setSelectedBranchId(null);
       toast({ title: 'Sucursal eliminada' });
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
@@ -227,16 +434,15 @@ export default function BranchesPage() {
 
   /* ── Terminal mutations ── */
   const createTerminal = useMutation({
-    mutationFn: async (data: TerminalFormData) => {
-      const res = await apiRequest('POST', terminalsUrl!, {
-        name: data.name, code: data.code,
-        device_id: data.device_id || undefined,
-      });
+    mutationFn: async ({ branchId, data }: { branchId: string; data: TerminalFormData }) => {
+      const url = termUrlFor(branchId);
+      const res = await apiRequest('POST', url!, { name: data.name, code: data.code, device_id: data.device_id || undefined });
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [terminalsUrl] });
-      setShowTerminalCreate(false);
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: [termUrlFor(vars.branchId)] });
+      queryClient.invalidateQueries({ queryKey: [branchesUrl] });
+      setTermSheet(false);
       setTerminalForm(defaultTerminal);
       toast({ title: 'Terminal registrada' });
     },
@@ -244,22 +450,27 @@ export default function BranchesPage() {
   });
 
   const updateTerminal = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<TerminalFormData> & { status?: number } }) => {
-      const res = await apiRequest('PATCH', `${terminalsUrl}/${id}`, data);
+    mutationFn: async ({ branchId, terminalId, data }: { branchId: string; terminalId: string; data: Partial<TerminalFormData> & { status?: number } }) => {
+      const url = termUrlFor(branchId);
+      const res = await apiRequest('PATCH', `${url}/${terminalId}`, data);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [terminalsUrl] });
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: [termUrlFor(vars.branchId)] });
       setEditingTerminal(null);
+      setTermSheet(false);
       toast({ title: 'Terminal actualizada' });
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
   const deleteTerminal = useMutation({
-    mutationFn: (id: string) => apiRequest('DELETE', `${terminalsUrl}/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [terminalsUrl] });
+    mutationFn: async ({ branchId, terminalId }: { branchId: string; terminalId: string }) => {
+      const url = termUrlFor(branchId);
+      return apiRequest('DELETE', `${url}/${terminalId}`);
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: [termUrlFor(vars.branchId)] });
       setDeletingTerminal(null);
       toast({ title: 'Terminal eliminada' });
     },
@@ -270,336 +481,208 @@ export default function BranchesPage() {
   const openEditBranch = (b: Branch) => {
     setEditingBranch(b);
     setBranchForm({
-      name: b.name,
-      code: b.code,
-      type: b.type,
-      state_id: b.location?.state_id ?? null,
-      county_id: b.location?.county_id ?? null,
-      district_id: b.location?.district_id ?? null,
-      neighborhood_id: b.location?.neighborhood_id ?? null,
-      address: b.location?.address ?? '',
-      phone: b.phone ?? '',
+      name: b.name, code: b.code, type: b.type,
+      state_id: b.location?.state_id ?? null, county_id: b.location?.county_id ?? null,
+      district_id: b.location?.district_id ?? null, neighborhood_id: b.location?.neighborhood_id ?? null,
+      address: b.location?.address ?? '', phone: b.phone ?? '',
     });
+    setBranchSheet(true);
   };
 
-  const openEditTerminal = (t: Terminal) => {
+  const openAddTerminal = (b: Branch) => {
+    setTermBranch(b);
+    setEditingTerminal(null);
+    setTerminalForm(defaultTerminal);
+    setTermSheet(true);
+  };
+
+  const openEditTerminal = (b: Branch, t: Terminal) => {
+    setTermBranch(b);
     setEditingTerminal(t);
     setTerminalForm({ name: t.name, code: t.code, device_id: t.device_id ?? '' });
+    setTermSheet(true);
   };
-
-  const filteredBranches = branches.filter(b =>
-    b.name.toLowerCase().includes(search.toLowerCase()) ||
-    b.code.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const activeTerminals = terminals.filter(t => t.status === 1).length;
 
   if (authLoading || orgLoading) return <PageLoader />;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div>
       {/* Page header */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+      <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Sucursales & Terminales</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Gestioná puestos de venta y sus dispositivos registrados.
+            {totalCount === 0 ? 'Sin sucursales registradas.' : `${activeCount} activa${activeCount !== 1 ? 's' : ''} · ${totalCount} en total`}
           </p>
         </div>
-        <Button onClick={() => { setBranchForm(defaultBranch); setShowBranchCreate(true); }}>
+        <Button onClick={() => { setEditingBranch(null); setBranchForm(defaultBranch); setBranchSheet(true); }}>
           <Plus className="h-4 w-4 mr-2" />
           Nueva Sucursal
         </Button>
       </div>
 
       {branchesError && (
-        <Alert variant="destructive" className="mb-4 shrink-0">
+        <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>Error al cargar sucursales.</AlertDescription>
         </Alert>
       )}
 
-      {/* Two-panel layout */}
-      <div className="flex flex-1 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-
-        {/* ── Left: Branch list ── */}
-        <div className="w-72 shrink-0 border-r border-border flex flex-col overflow-hidden">
-          {/* Search */}
-          <div className="p-3 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Buscar sucursal..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-8 h-8 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Branch list */}
-          <div className="flex-1 overflow-y-auto">
-            {branchesLoading ? (
-              <div className="p-3 space-y-2">
-                {[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
-              </div>
-            ) : filteredBranches.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm gap-2">
-                <Store className="h-8 w-8 opacity-30" />
-                <span>Sin sucursales</span>
-              </div>
-            ) : (
-              <div className="p-2 space-y-1">
-                {filteredBranches.map(branch => (
-                  <BranchListItem
-                    key={branch.branch_id}
-                    branch={branch}
-                    isSelected={selectedBranchId === branch.branch_id}
-                    onClick={() => setSelectedBranchId(branch.branch_id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Footer count */}
-          <div className="p-3 border-t border-border bg-muted/30">
-            <p className="text-xs text-muted-foreground">
-              {branches.length} sucursal{branches.length !== 1 ? 'es' : ''} · {branches.filter(b => b.status === 1).length} activa{branches.filter(b => b.status === 1).length !== 1 ? 's' : ''}
-            </p>
-          </div>
+      {/* Filter bar */}
+      <div className="flex gap-2 mb-5 flex-wrap items-center">
+        <div className="relative flex-1 min-w-[200px] max-w-[320px]">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </span>
+          <Input
+            className="pl-8 h-8 text-sm"
+            placeholder="Buscar por nombre o código…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-
-        {/* ── Right: Detail panel ── */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          {branches.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
-              <Store className="h-12 w-12 opacity-20" />
-              <p className="text-sm">Creá tu primera sucursal para comenzar</p>
-            </div>
-          ) : !selectedBranch ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
-              <Store className="h-12 w-12 opacity-20" />
-              <p className="text-sm">Seleccioná una sucursal para ver sus detalles</p>
-            </div>
-          ) : (
-            <>
-              {/* Branch header */}
-              <div className="px-6 pt-5 pb-0 shrink-0 border-b border-border">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm ${
-                      selectedBranch.type === 'stand'
-                        ? 'bg-orange-500'
-                        : 'bg-blue-500'
-                    }`}>
-                      {selectedBranch.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold tracking-tight">{selectedBranch.name}</h2>
-                        <Badge variant={selectedBranch.status === 1 ? 'default' : 'secondary'} className="text-xs">
-                          {selectedBranch.status === 1 ? 'Activa' : 'Inactiva'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
-                        <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{selectedBranch.code}</span>
-                        <span>{selectedBranch.type === 'stand' ? 'Puesto' : 'Restaurante'}</span>
-                        <span>{activeTerminals} terminal{activeTerminals !== 1 ? 'es' : ''} activa{activeTerminals !== 1 ? 's' : ''}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditBranch(selectedBranch)}>
-                      <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost" size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setDeletingBranch(selectedBranch)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-
-                <Tabs defaultValue="terminals">
-                  <TabsList className="bg-transparent border-0 p-0 h-auto gap-1">
-                    <TabsTrigger
-                      value="info"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 text-sm"
-                    >
-                      Información
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="terminals"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-3 text-sm"
-                    >
-                      Terminales
-                      {terminals.length > 0 && (
-                        <span className="ml-1.5 bg-primary/15 text-primary text-xs font-bold px-1.5 py-0.5 rounded-full">
-                          {terminals.length}
-                        </span>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* ── Info tab ── */}
-                  <TabsContent value="info" className="flex-1 overflow-y-auto p-6 mt-0">
-                    <div className="max-w-lg space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <InfoField icon={<Tag className="h-4 w-4" />} label="Nombre" value={selectedBranch.name} />
-                        <InfoField icon={<Tag className="h-4 w-4" />} label="Código" value={selectedBranch.code} mono />
-                        <InfoField
-                          icon={<Store className="h-4 w-4" />}
-                          label="Tipo"
-                          value={selectedBranch.type === 'stand' ? 'Puesto de venta' : 'Restaurante'}
-                        />
-                        <InfoField
-                          icon={<Circle className="h-4 w-4" />}
-                          label="Estado"
-                          value={selectedBranch.status === 1 ? 'Activa' : 'Inactiva'}
-                        />
-                        {selectedBranch.location?.neighborhood_id != null && (
-                          <InfoField
-                            icon={<MapPin className="h-4 w-4" />}
-                            label="Barrio ID"
-                            value={String(selectedBranch.location.neighborhood_id)}
-                            className="col-span-2"
-                          />
-                        )}
-                        {selectedBranch.location?.address && (
-                          <InfoField
-                            icon={<MapPin className="h-4 w-4" />}
-                            label="Otras señas"
-                            value={selectedBranch.location.address}
-                            className="col-span-2"
-                          />
-                        )}
-                        {selectedBranch.phone && (
-                          <InfoField icon={<Phone className="h-4 w-4" />} label="Teléfono" value={selectedBranch.phone} />
-                        )}
-                      </div>
-
-                      <div className="pt-4 border-t border-border">
-                        <p className="text-xs text-muted-foreground">
-                          Creada el {new Date(selectedBranch.created_at).toLocaleDateString('es-CR', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </p>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  {/* ── Terminals tab ── */}
-                  <TabsContent value="terminals" className="overflow-y-auto mt-0">
-                    <div className="p-6 space-y-3">
-                      {/* Add terminal button */}
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-sm text-muted-foreground">
-                          {terminals.length === 0
-                            ? 'No hay terminales registradas en esta sucursal.'
-                            : `${terminals.length} terminal${terminals.length !== 1 ? 'es' : ''} registrada${terminals.length !== 1 ? 's' : ''}`}
-                        </p>
-                        <Button
-                          size="sm"
-                          onClick={() => { setTerminalForm(defaultTerminal); setShowTerminalCreate(true); }}
-                        >
-                          <Plus className="h-3.5 w-3.5 mr-1.5" />
-                          Agregar Terminal
-                        </Button>
-                      </div>
-
-                      {terminalsLoading ? (
-                        <div className="space-y-2">
-                          {[1,2].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
-                        </div>
-                      ) : terminals.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground gap-3">
-                          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                            <Monitor className="h-7 w-7 opacity-40" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">Sin terminales</p>
-                            <p className="text-xs mt-1 max-w-xs">
-                              Registrá la primera terminal para esta sucursal.
-                            </p>
-                          </div>
-                          <Button
-                            variant="outline" size="sm"
-                            onClick={() => { setTerminalForm(defaultTerminal); setShowTerminalCreate(true); }}
-                          >
-                            <Plus className="h-3.5 w-3.5 mr-1.5" />
-                            Registrar terminal
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {terminals.map(terminal => (
-                            <TerminalCard
-                              key={terminal.terminal_id}
-                              terminal={terminal}
-                              onEdit={() => openEditTerminal(terminal)}
-                              onDelete={() => setDeletingTerminal(terminal)}
-                              onToggle={() => updateTerminal.mutate({
-                                id: terminal.terminal_id,
-                                data: { status: terminal.status === 1 ? 0 : 1 }
-                              })}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </>
-          )}
+        <div className="flex gap-1.5">
+          {(['all', 'stand', 'restaurant'] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${filter === f ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent border-border hover:bg-muted/60'}`}
+            >
+              {f === 'all' ? 'Todos' : TYPE_LABEL[f]}
+            </button>
+          ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setShowOnlyActive((v) => !v)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${showOnlyActive ? 'bg-green-600 text-white border-green-600' : 'bg-transparent border-border hover:bg-muted/60'}`}
+        >
+          <CheckCircle className="h-3.5 w-3.5" />
+          Solo activos
+        </button>
       </div>
 
-      {/* ── Branch dialogs ── */}
-      <Dialog open={showBranchCreate} onOpenChange={setShowBranchCreate}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nueva Sucursal</DialogTitle>
-            <DialogDescription>Completá los datos del nuevo puesto de venta.</DialogDescription>
-          </DialogHeader>
-          <BranchForm formData={branchForm} onChange={setBranchForm} />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBranchCreate(false)}>Cancelar</Button>
-            <Button onClick={() => createBranch.mutate(branchForm)} disabled={createBranch.isPending || !branchForm.name || !branchForm.code}>
-              {createBranch.isPending ? 'Creando...' : 'Crear Sucursal'}
+      {/* Card grid */}
+      {branchesLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-36 w-full rounded-xl" />)}
+        </div>
+      ) : branches.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+            <Store className="h-8 w-8 opacity-30" />
+          </div>
+          <div className="text-center">
+            <p className="font-medium text-sm">
+              {search || filter !== 'all' || showOnlyActive ? 'Sin resultados' : 'Sin sucursales registradas'}
+            </p>
+            <p className="text-xs mt-1">
+              {search || filter !== 'all' || showOnlyActive ? 'Probá con otros filtros.' : 'Creá tu primera sucursal para comenzar.'}
+            </p>
+          </div>
+          {!search && filter === 'all' && !showOnlyActive && (
+            <Button size="sm" onClick={() => { setEditingBranch(null); setBranchForm(defaultBranch); setBranchSheet(true); }}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              Crear sucursal
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {branches.map((branch) => (
+            <BranchCard
+              key={branch.branch_id}
+              branch={branch}
+              terminalsUrl={termUrlFor(branch.branch_id)!}
+              onEdit={openEditBranch}
+              onActivate={(b) => updateBranch.mutate({ id: b.branch_id, data: { status: 1 } })}
+              onDeactivate={(b) => updateBranch.mutate({ id: b.branch_id, data: { status: 2 } })}
+              onDelete={setDeletingBranch}
+              onAddTerminal={openAddTerminal}
+              onEditTerminal={openEditTerminal}
+              onDeleteTerminal={(b, t) => setDeletingTerminal({ branch: b, terminal: t })}
+              onToggleTerminal={(b, t) => updateTerminal.mutate({
+                branchId: b.branch_id,
+                terminalId: t.terminal_id,
+                data: { status: t.status === 1 ? 2 : 1 },
+              })}
+            />
+          ))}
+        </div>
+      )}
 
-      <Dialog open={!!editingBranch} onOpenChange={open => !open && setEditingBranch(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Sucursal</DialogTitle>
-            <DialogDescription>Modificá los datos de la sucursal.</DialogDescription>
-          </DialogHeader>
-          <BranchForm formData={branchForm} onChange={setBranchForm} />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingBranch(null)}>Cancelar</Button>
+      {/* ── Branch sheet ── */}
+      <Sheet open={branchSheet} onOpenChange={(o) => { if (!o) { setBranchSheet(false); setEditingBranch(null); } }}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{editingBranch ? 'Editar sucursal' : 'Nueva sucursal'}</SheetTitle>
+            <SheetDescription>
+              {editingBranch ? `Código: ${editingBranch.code}` : 'Completá los datos del nuevo puesto de venta.'}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <BranchForm formData={branchForm} onChange={setBranchForm} />
+          </div>
+          <SheetFooter>
+            <Button variant="outline" onClick={() => setBranchSheet(false)}>Cancelar</Button>
             <Button
-              onClick={() => editingBranch && updateBranch.mutate({ id: editingBranch.branch_id, data: branchForm })}
-              disabled={updateBranch.isPending || !branchForm.name || !branchForm.code}
+              onClick={() => editingBranch
+                ? updateBranch.mutate({ id: editingBranch.branch_id, data: branchForm })
+                : createBranch.mutate(branchForm)
+              }
+              disabled={(editingBranch ? updateBranch : createBranch).isPending || !branchForm.name || !branchForm.code}
             >
-              {updateBranch.isPending ? 'Guardando...' : 'Guardar'}
+              {(editingBranch ? updateBranch : createBranch).isPending
+                ? 'Guardando…'
+                : editingBranch ? 'Guardar cambios' : 'Crear sucursal'
+              }
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      <AlertDialog open={!!deletingBranch} onOpenChange={open => !open && setDeletingBranch(null)}>
+      {/* ── Terminal sheet ── */}
+      <Sheet open={termSheet} onOpenChange={(o) => { if (!o) { setTermSheet(false); setEditingTerminal(null); setTermBranch(null); } }}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{editingTerminal ? 'Editar terminal' : 'Nueva terminal'}</SheetTitle>
+            <SheetDescription>
+              {termBranch?.name}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <TerminalForm formData={terminalForm} onChange={setTerminalForm} />
+          </div>
+          <SheetFooter>
+            <Button variant="outline" onClick={() => setTermSheet(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!termBranch) return;
+                if (editingTerminal) {
+                  updateTerminal.mutate({ branchId: termBranch.branch_id, terminalId: editingTerminal.terminal_id, data: terminalForm });
+                } else {
+                  createTerminal.mutate({ branchId: termBranch.branch_id, data: terminalForm });
+                }
+              }}
+              disabled={(editingTerminal ? updateTerminal : createTerminal).isPending || !terminalForm.name || !terminalForm.code}
+            >
+              {(editingTerminal ? updateTerminal : createTerminal).isPending
+                ? 'Guardando…'
+                : editingTerminal ? 'Guardar' : 'Registrar terminal'
+              }
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Delete branch confirm ── */}
+      <AlertDialog open={!!deletingBranch} onOpenChange={(o) => !o && setDeletingBranch(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar sucursal?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esto eliminará permanentemente <strong>{deletingBranch?.name}</strong> y no se puede deshacer.
-              La sucursal no puede tener terminales activas ni sesiones activas.
+              Esto eliminará permanentemente <strong>{deletingBranch?.name}</strong>. No se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -609,70 +692,32 @@ export default function BranchesPage() {
               onClick={() => deletingBranch && deleteBranch.mutate(deletingBranch.branch_id)}
               disabled={deleteBranch.isPending}
             >
-              {deleteBranch.isPending ? 'Eliminando...' : 'Eliminar'}
+              {deleteBranch.isPending ? 'Eliminando…' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Terminal dialogs ── */}
-      <Dialog open={showTerminalCreate} onOpenChange={setShowTerminalCreate}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Registrar Terminal</DialogTitle>
-            <DialogDescription>
-              Agregá una nueva terminal a <strong>{selectedBranch?.name}</strong>.
-            </DialogDescription>
-          </DialogHeader>
-          <TerminalForm formData={terminalForm} onChange={setTerminalForm} />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTerminalCreate(false)}>Cancelar</Button>
-            <Button
-              onClick={() => createTerminal.mutate(terminalForm)}
-              disabled={createTerminal.isPending || !terminalForm.name || !terminalForm.code}
-            >
-              {createTerminal.isPending ? 'Registrando...' : 'Registrar Terminal'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!editingTerminal} onOpenChange={open => !open && setEditingTerminal(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Terminal</DialogTitle>
-            <DialogDescription>Modificá los datos de la terminal.</DialogDescription>
-          </DialogHeader>
-          <TerminalForm formData={terminalForm} onChange={setTerminalForm} />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingTerminal(null)}>Cancelar</Button>
-            <Button
-              onClick={() => editingTerminal && updateTerminal.mutate({ id: editingTerminal.terminal_id, data: terminalForm })}
-              disabled={updateTerminal.isPending}
-            >
-              {updateTerminal.isPending ? 'Guardando...' : 'Guardar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={!!deletingTerminal} onOpenChange={open => !open && setDeletingTerminal(null)}>
+      {/* ── Delete terminal confirm ── */}
+      <AlertDialog open={!!deletingTerminal} onOpenChange={(o) => !o && setDeletingTerminal(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar terminal?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esto eliminará permanentemente la terminal <strong>{deletingTerminal?.name}</strong>.
-              No puede tener asignaciones activas.
+              Esto eliminará permanentemente la terminal <strong>{deletingTerminal?.terminal.name}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deletingTerminal && deleteTerminal.mutate(deletingTerminal.terminal_id)}
+              onClick={() => deletingTerminal && deleteTerminal.mutate({
+                branchId: deletingTerminal.branch.branch_id,
+                terminalId: deletingTerminal.terminal.terminal_id,
+              })}
               disabled={deleteTerminal.isPending}
             >
-              {deleteTerminal.isPending ? 'Eliminando...' : 'Eliminar'}
+              {deleteTerminal.isPending ? 'Eliminando…' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -681,127 +726,7 @@ export default function BranchesPage() {
   );
 }
 
-/* ─────────────── Sub-components ─────────────── */
-
-function BranchListItem({
-  branch, isSelected, onClick,
-}: { branch: Branch; isSelected: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        w-full text-left px-3 py-2.5 rounded-lg transition-all group
-        ${isSelected
-          ? 'bg-primary text-primary-foreground shadow-sm'
-          : 'hover:bg-muted/60 text-foreground'
-        }
-      `}
-    >
-      <div className="flex items-center gap-2.5">
-        <div className={`
-          w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0
-          ${isSelected
-            ? 'bg-white/20 text-white'
-            : branch.type === 'stand' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
-            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-          }
-        `}>
-          {branch.name.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium text-sm truncate">{branch.name}</span>
-            {branch.status !== 1 && (
-              <span className={`text-[10px] font-bold px-1 rounded ${isSelected ? 'bg-white/20' : 'bg-muted text-muted-foreground'}`}>
-                OFF
-              </span>
-            )}
-          </div>
-          <p className={`text-[11px] font-mono truncate mt-0.5 ${isSelected ? 'text-white/70' : 'text-muted-foreground'}`}>
-            {branch.code}
-          </p>
-        </div>
-        <ChevronRight className={`h-3.5 w-3.5 shrink-0 transition-transform ${isSelected ? 'text-white/70' : 'text-muted-foreground group-hover:translate-x-0.5'}`} />
-      </div>
-    </button>
-  );
-}
-
-function TerminalCard({
-  terminal, onEdit, onDelete, onToggle,
-}: { terminal: Terminal; onEdit: () => void; onDelete: () => void; onToggle: () => void }) {
-  const online = isOnline(terminal.last_seen_at);
-  const lastSeen = timeSince(terminal.last_seen_at);
-
-  return (
-    <div className="group flex items-center gap-4 px-4 py-3.5 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
-      {/* Status indicator */}
-      <div className={`
-        w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-        ${terminal.status === 1 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-muted'}
-      `}>
-        <Monitor className={`h-4.5 w-4.5 ${terminal.status === 1 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">{terminal.name}</span>
-          <code className="text-[11px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-            {terminal.code}
-          </code>
-          {terminal.status !== 1 && (
-            <Badge variant="secondary" className="text-[10px] h-4">Inactiva</Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-3 mt-0.5">
-          {terminal.device_id ? (
-            <span className="text-xs font-mono text-muted-foreground truncate max-w-[200px]">
-              {terminal.device_id}
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground/50 italic">Sin device_id</span>
-          )}
-          {lastSeen && (
-            <span className={`flex items-center gap-1 text-[11px] ${online ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-              {online ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              {lastSeen}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onToggle}>
-          <Circle className={`h-3.5 w-3.5 ${terminal.status === 1 ? 'text-green-500 fill-green-500' : 'text-muted-foreground'}`} />
-        </Button>
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onDelete}>
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function InfoField({
-  icon, label, value, mono, className,
-}: { icon: React.ReactNode; label: string; value: string; mono?: boolean; className?: string }) {
-  return (
-    <div className={`space-y-1 ${className ?? ''}`}>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        {icon}
-        <span className="uppercase tracking-wide font-medium text-[10px]">{label}</span>
-      </div>
-      <p className={`text-sm font-medium ${mono ? 'font-mono text-xs bg-muted px-2 py-1 rounded inline-block' : ''}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
+/* ─────────────── Form sub-components ─────────────── */
 
 function BranchForm({ formData, onChange }: { formData: BranchFormData; onChange: (d: BranchFormData) => void }) {
   return (
@@ -809,11 +734,11 @@ function BranchForm({ formData, onChange }: { formData: BranchFormData; onChange
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="b-name">Nombre <span className="text-destructive">*</span></Label>
-          <Input id="b-name" value={formData.name} onChange={e => onChange({ ...formData, name: e.target.value })} placeholder="Puesto Norte" />
+          <Input id="b-name" value={formData.name} onChange={(e) => onChange({ ...formData, name: e.target.value })} placeholder="Puesto Norte" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="b-code">Código <span className="text-destructive">*</span></Label>
-          <Input id="b-code" value={formData.code} onChange={e => onChange({ ...formData, code: e.target.value.toUpperCase() })} placeholder="P-NORTE" className="font-mono" />
+          <Input id="b-code" value={formData.code} onChange={(e) => onChange({ ...formData, code: e.target.value.toUpperCase() })} placeholder="P-NORTE" className="font-mono" />
         </div>
       </div>
       <div className="space-y-1.5">
@@ -821,18 +746,17 @@ function BranchForm({ formData, onChange }: { formData: BranchFormData; onChange
         <Select value={formData.type} onValueChange={(v: 'stand' | 'restaurant') => onChange({ ...formData, type: v })}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="stand">Puesto de venta</SelectItem>
+            <SelectItem value="stand">Stand de venta</SelectItem>
             <SelectItem value="restaurant">Restaurante</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      
-      <BranchLocationSection formData={formData} onChange={onChange} />
-      
       <div className="space-y-1.5">
         <Label htmlFor="b-phone">Teléfono</Label>
-        <Input id="b-phone" value={formData.phone} onChange={e => onChange({ ...formData, phone: e.target.value })} placeholder="8888-0000" />
+        <Input id="b-phone" value={formData.phone} onChange={(e) => onChange({ ...formData, phone: e.target.value })} placeholder="8888-0000" />
       </div>
+      <div className="h-px bg-border" />
+      <BranchLocationSection formData={formData} onChange={onChange} />
     </div>
   );
 }
@@ -843,11 +767,11 @@ function TerminalForm({ formData, onChange }: { formData: TerminalFormData; onCh
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="t-name">Nombre <span className="text-destructive">*</span></Label>
-          <Input id="t-name" value={formData.name} onChange={e => onChange({ ...formData, name: e.target.value })} placeholder="Caja 1" />
+          <Input id="t-name" value={formData.name} onChange={(e) => onChange({ ...formData, name: e.target.value })} placeholder="Caja 1" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="t-code">Código <span className="text-destructive">*</span></Label>
-          <Input id="t-code" value={formData.code} onChange={e => onChange({ ...formData, code: e.target.value.toUpperCase() })} placeholder="CJ-001" className="font-mono" />
+          <Input id="t-code" value={formData.code} onChange={(e) => onChange({ ...formData, code: e.target.value.toUpperCase() })} placeholder="CJ-001" className="font-mono" />
         </div>
       </div>
       <div className="space-y-1.5">
@@ -855,7 +779,7 @@ function TerminalForm({ formData, onChange }: { formData: TerminalFormData; onCh
         <Input
           id="t-device"
           value={formData.device_id}
-          onChange={e => onChange({ ...formData, device_id: e.target.value })}
+          onChange={(e) => onChange({ ...formData, device_id: e.target.value })}
           placeholder="uuid o identificador del dispositivo"
           className="font-mono text-sm"
         />

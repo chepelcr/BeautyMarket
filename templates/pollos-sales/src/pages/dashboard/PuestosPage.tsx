@@ -4,11 +4,12 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import {
-  Icon, Card, Badge, Button, Input, Drawer, Menu, EmptyState,
+  Icon, Card, Badge, Button, Input, Drawer, Menu, EmptyState, LocationSelect,
 } from "@/components/ui";
 import type {
   Branch, Terminal, BranchListResponse, TerminalListResponse,
   CreateBranchRequest, CreateTerminalRequest, BranchType, BranchStatus,
+  LocationData,
 } from "@/types";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -33,10 +34,31 @@ function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormProps) {
   const [code, setCode] = useState(editing?.code ?? "");
   const [type, setType] = useState<BranchType>(editing?.type ?? "stand");
   const [phone, setPhone] = useState(editing?.phone ?? "");
+  const [location, setLocation] = useState<LocationData>({
+    state_id: editing?.location?.state_id ?? null,
+    county_id: editing?.location?.county_id ?? null,
+    district_id: editing?.location?.district_id ?? null,
+    neighborhood_id: editing?.location?.neighborhood_id ?? null,
+    address: editing?.location?.address ?? "",
+  });
+
+  const hasLocation = location.state_id || location.address;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name: name.trim(), code: code.trim().toUpperCase(), type, phone: phone.trim() || undefined });
+    onSave({
+      name: name.trim(),
+      code: code.trim().toUpperCase(),
+      type,
+      phone: phone.trim() || undefined,
+      location: hasLocation ? {
+        state_id: location.state_id,
+        county_id: location.county_id,
+        district_id: location.district_id,
+        neighborhood_id: location.neighborhood_id,
+        address: location.address || undefined,
+      } : undefined,
+    });
   };
 
   return (
@@ -93,6 +115,10 @@ function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormProps) {
         <label className="t-label" htmlFor="b-phone" style={{ display: "block", marginBottom: 6 }}>Teléfono</label>
         <Input id="b-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="ej. 2222-3333" />
       </div>
+
+      <div style={{ height: 1, background: "hsl(var(--border))", margin: "4px 0" }} />
+
+      <LocationSelect value={location} onChange={setLocation} />
 
       {editing && (
         <Card style={{ padding: 14, background: "hsl(var(--muted) / 0.4)" }}>
