@@ -1,5 +1,5 @@
 import type { OrganizationInvitation } from "../entities";
-import type { OrganizationInvitationRepository, OrganizationInvitationWithDetails } from "../repositories/OrganizationInvitationRepository";
+import type { OrganizationInvitationRepository, OrganizationInvitationWithDetails, PendingInvitationWithOrg } from "../repositories/OrganizationInvitationRepository";
 import type { OrganizationMemberRepository } from "../repositories/OrganizationMemberRepository";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
@@ -20,6 +20,7 @@ export interface IInvitationService {
   getByToken(token: string): Promise<OrganizationInvitation | null>;
   getOrganizationInvitations(organizationId: string): Promise<OrganizationInvitationWithDetails[]>;
   getPendingByEmail(email: string): Promise<OrganizationInvitation[]>;
+  getPendingForUser(userId: string): Promise<PendingInvitationWithOrg[]>;
   create(data: CreateInvitationData): Promise<OrganizationInvitation>;
   accept(token: string, userId: string): Promise<boolean>;
   cancel(id: string): Promise<boolean>;
@@ -51,6 +52,12 @@ export class InvitationService implements IInvitationService {
 
   async getPendingByEmail(email: string): Promise<OrganizationInvitation[]> {
     return this.invitationRepo.findPendingByEmail(email);
+  }
+
+  async getPendingForUser(userId: string): Promise<PendingInvitationWithOrg[]> {
+    const user = await this.userRepo.getUser(userId);
+    if (!user) return [];
+    return this.invitationRepo.findPendingByEmailWithOrg(user.email);
   }
 
   async create(data: CreateInvitationData): Promise<OrganizationInvitation> {

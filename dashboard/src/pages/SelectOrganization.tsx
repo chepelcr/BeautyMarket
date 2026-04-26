@@ -1,13 +1,26 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization, Organization } from '@/hooks/useOrganization';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Loader2, Building2, ChevronRight, Plus, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { buildUserApiUrl } from '@/lib/apiUtils';
+import { apiRequest } from '@/lib/queryClient';
+import { Loader2, Building2, ChevronRight, Plus, AlertCircle, Mail, Check } from 'lucide-react';
+
+interface PendingInvitation {
+  id: string;
+  token: string;
+  organizationId: string;
+  organizationName: string;
+  organizationSlug: string;
+  email: string;
+  expiresAt: string;
+}
 
 export default function SelectOrganization() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -15,11 +28,43 @@ export default function SelectOrganization() {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
 
   // Fetch user's organizations
   const { data: organizations, isLoading: orgsLoading, error } = useUserOrganizations(user?.id);
+
+  // Fetch pending invitations for this user
+  const { data: pendingInvitations = [], isLoading: invitationsLoading } = useQuery<PendingInvitation[]>({
+    queryKey: ['my-pending-invitations', user?.id],
+    queryFn: async () => {
+      const res = await apiRequest('GET', buildUserApiUrl(user!.id, '/invitations/pending'));
+      if (!res.ok) throw new Error('Failed to fetch invitations');
+      return res.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: async (token: string) => {
+      const res = await apiRequest('POST', `/api/invitations/accept/${token}`, { userId: user!.id });
+      if (!res.ok) throw new Error('Failed to accept invitation');
+      return res.json();
+    },
+    onSuccess: (_, token) => {
+      const inv = pendingInvitations.find(i => i.token === token);
+      toast({ title: `Joined ${inv?.organizationName ?? 'organization'} successfully` });
+      queryClient.invalidateQueries({ queryKey: ['my-pending-invitations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['user-organizations', user?.id] });
+      if (inv) {
+        sessionStorage.setItem('selectedOrgId', inv.organizationId);
+        navigate('/admin');
+      }
+    },
+    onError: () => toast({ title: 'Failed to accept invitation', variant: 'destructive' }),
+  });
+
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -28,19 +73,17 @@ export default function SelectOrganization() {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
-  // If user has only one organization AND it's complete, redirect directly
+  // If user has only one organization AND it's complete AND no pending invitations, redirect directly
   useEffect(() => {
-    if (organizations && organizations.length === 1) {
+    if (!invitationsLoading && organizations && organizations.length === 1 && pendingInvitations.length === 0) {
       const org = organizations[0];
-      // Only auto-redirect if onboarding is complete (step 3)
       if (org.onboardingStep === 3) {
         sessionStorage.setItem('selectedOrgId', org.id);
         queryClient.invalidateQueries({ queryKey: ['user-organizations'] });
         navigate('/admin');
       }
-      // If incomplete, let user see the organization and choose to continue setup
     }
-  }, [organizations, navigate]);
+  }, [organizations, pendingInvitations, invitationsLoading, navigate]);
 
   const handleSelectOrganization = (org: Organization) => {
     // If organization setup is incomplete, redirect to create page to continue
@@ -66,7 +109,7 @@ export default function SelectOrganization() {
     return { label: t('organizations.select.status.complete'), variant: 'default' as const };
   };
 
-  if (authLoading || orgsLoading) {
+  if (authLoading || orgsLoading || invitationsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -94,27 +137,59 @@ export default function SelectOrganization() {
     );
   }
 
-  // No organizations - redirect to create
+  // No organizations - show create option + pending invitations if any
   if (!organizations || organizations.length === 0) {
     return (
       <div className="container max-w-md mx-auto py-10 px-4 min-h-screen flex items-center">
-        <Card className="w-full">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
-              <Building2 className="h-8 w-8 text-primary" />
-            </div>
-            <CardTitle className="text-xl">{t('organizations.select.noOrgsTitle')}</CardTitle>
-            <CardDescription>
-              {t('organizations.select.noOrgsDescription')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Button onClick={() => navigate('/organizations/new')} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('organizations.select.createOrganization')}
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="w-full space-y-4">
+          {pendingInvitations.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">Pending Invitations</CardTitle>
+                </div>
+                <CardDescription>You have been invited to join these organizations</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {pendingInvitations.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{inv.organizationName}</p>
+                      <p className="text-xs text-muted-foreground">{inv.organizationSlug}.{baseDomain}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => acceptMutation.mutate(inv.token)}
+                      disabled={acceptMutation.isPending}
+                    >
+                      <Check className="h-3 w-3" />
+                      Accept
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
+                <Building2 className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-xl">{t('organizations.select.noOrgsTitle')}</CardTitle>
+              <CardDescription>
+                {t('organizations.select.noOrgsDescription')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button onClick={() => navigate('/organizations/new')} className="gap-2">
+                <Plus className="h-4 w-4" />
+                {t('organizations.select.createOrganization')}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -132,6 +207,32 @@ export default function SelectOrganization() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {pendingInvitations.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                Pending Invitations
+              </div>
+              {pendingInvitations.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between p-3 border border-primary/20 bg-primary/5 rounded-lg">
+                  <div>
+                    <p className="font-semibold">{inv.organizationName}</p>
+                    <p className="text-xs text-muted-foreground">{inv.organizationSlug}.{baseDomain}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="gap-1"
+                    onClick={() => acceptMutation.mutate(inv.token)}
+                    disabled={acceptMutation.isPending}
+                  >
+                    <Check className="h-3 w-3" />
+                    Accept
+                  </Button>
+                </div>
+              ))}
+              <div className="border-t pt-2" />
+            </div>
+          )}
           {organizations.map((org) => {
             const status = getOnboardingStatus(org);
             const isIncomplete = !org.onboardingStep || org.onboardingStep < 3;

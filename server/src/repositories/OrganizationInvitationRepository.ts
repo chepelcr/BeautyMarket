@@ -4,6 +4,7 @@ import {
   organizationInvitations,
   type OrganizationInvitation,
   type InsertOrganizationInvitation,
+  organizations,
   users,
   roles
 } from "../entities";
@@ -22,11 +23,17 @@ export interface OrganizationInvitationWithDetails extends OrganizationInvitatio
   };
 }
 
+export interface PendingInvitationWithOrg extends OrganizationInvitation {
+  organizationName: string;
+  organizationSlug: string;
+}
+
 export interface IOrganizationInvitationRepository {
   findById(id: string): Promise<OrganizationInvitation | null>;
   findByToken(token: string): Promise<OrganizationInvitation | null>;
   findByOrganizationId(organizationId: string): Promise<OrganizationInvitationWithDetails[]>;
   findPendingByEmail(email: string): Promise<OrganizationInvitation[]>;
+  findPendingByEmailWithOrg(email: string): Promise<PendingInvitationWithOrg[]>;
   create(data: Omit<InsertOrganizationInvitation, 'token' | 'expiresAt'> & { invitedBy: string; organizationId: string }): Promise<OrganizationInvitation>;
   updateStatus(id: string, status: string): Promise<OrganizationInvitation | null>;
   delete(id: string): Promise<boolean>;
@@ -94,6 +101,32 @@ export class OrganizationInvitationRepository implements IOrganizationInvitation
           eq(organizationInvitations.status, "pending")
         )
       );
+  }
+
+  async findPendingByEmailWithOrg(email: string): Promise<PendingInvitationWithOrg[]> {
+    const result = await db
+      .select({
+        id: organizationInvitations.id,
+        organizationId: organizationInvitations.organizationId,
+        email: organizationInvitations.email,
+        roleId: organizationInvitations.roleId,
+        token: organizationInvitations.token,
+        invitedBy: organizationInvitations.invitedBy,
+        status: organizationInvitations.status,
+        expiresAt: organizationInvitations.expiresAt,
+        createdAt: organizationInvitations.createdAt,
+        organizationName: organizations.name,
+        organizationSlug: organizations.slug,
+      })
+      .from(organizationInvitations)
+      .innerJoin(organizations, eq(organizationInvitations.organizationId, organizations.id))
+      .where(
+        and(
+          eq(organizationInvitations.email, email),
+          eq(organizationInvitations.status, "pending")
+        )
+      );
+    return result;
   }
 
   async create(

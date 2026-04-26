@@ -84,6 +84,9 @@ export function setupRoutes(app: Express): void {
   // User's memberships
   userScopedRouter.use('/memberships', membershipController.getRouter());
 
+  // User's pending invitations (no orgId needed)
+  userScopedRouter.get('/invitations/pending', (req, res) => invitationController.getMyPendingInvitations(req, res));
+
   // Mount user-scoped router
   app.use('/api/users/:userId', userScopedRouter);
 

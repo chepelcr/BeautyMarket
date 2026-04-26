@@ -51,6 +51,64 @@ export class InvitationController {
 
   /**
    * @swagger
+   * /api/users/{userId}/invitations/pending:
+   *   get:
+   *     summary: Get pending invitations for the authenticated user
+   *     tags: [Invitations]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The authenticated user's ID
+   *     responses:
+   *       200:
+   *         description: List of pending invitations with organization details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: string
+   *                   organizationId:
+   *                     type: string
+   *                   organizationName:
+   *                     type: string
+   *                   organizationSlug:
+   *                     type: string
+   *                   email:
+   *                     type: string
+   *                   token:
+   *                     type: string
+   *                   status:
+   *                     type: string
+   *                     enum: [pending]
+   *                   expiresAt:
+   *                     type: string
+   *                     format: date-time
+   *                   createdAt:
+   *                     type: string
+   *                     format: date-time
+   *       500:
+   *         description: Failed to fetch pending invitations
+   */
+  async getMyPendingInvitations(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const invitations = await this.invitationService.getPendingForUser(userId);
+      res.json(invitations);
+    } catch (error) {
+      console.error('Error fetching pending invitations for user:', error);
+      res.status(500).json({ error: 'Failed to fetch pending invitations' });
+    }
+  }
+
+  /**
+   * @swagger
    * /api/users/{userId}/organization/{orgId}/invitations/pending/{email}:
    *   get:
    *     summary: Get pending invitations for an email
