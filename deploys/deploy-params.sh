@@ -11,6 +11,7 @@ set -e
 #   --s3-bucket        S3 bucket name for file uploads
 #   --from-email       SES verified sender address
 #   --frontend-url     Landing page / frontend URL
+#   --dashboard-url    Dashboard / admin URL
 #   --cloudfront-domain  CloudFront distribution domain
 #   --api-url          Backend API URL
 #   --orders-api-url   Orders service API URL
@@ -18,7 +19,7 @@ set -e
 #   --no-profile       Skip AWS named profile (use IAM role — for CodeBuild)
 #
 # Values default to the corresponding .env variables:
-#   AWS_S3_BUCKET_NAME, FROM_EMAIL, FRONTEND_URL, CLOUDFRONT_DOMAIN
+#   AWS_S3_BUCKET_NAME, FROM_EMAIL, FRONTEND_URL, DASHBOARD_URL, CLOUDFRONT_DOMAIN
 #   VITE_API_URL (from dashboard/.env), VITE_ORDERS_API_URL (from dashboard/.env)
 # CLI flags override those defaults.
 # ---------------------------------------------------------------------------
@@ -46,6 +47,7 @@ fi
 S3_BUCKET="${AWS_S3_BUCKET_NAME:-}"
 FROM_EMAIL_VAL="${FROM_EMAIL:-}"
 FRONTEND_URL_VAL="${FRONTEND_URL:-}"
+DASHBOARD_URL_VAL="${DASHBOARD_URL:-}"
 CLOUDFRONT_DOMAIN_VAL="${CLOUDFRONT_DOMAIN:-}"
 
 # API URLs default from dashboard/.env (VITE_ vars live there, not root .env)
@@ -63,6 +65,7 @@ while [[ $# -gt 0 ]]; do
     --s3-bucket)         S3_BUCKET="$2";           shift 2 ;;
     --from-email)        FROM_EMAIL_VAL="$2";       shift 2 ;;
     --frontend-url)      FRONTEND_URL_VAL="$2";     shift 2 ;;
+    --dashboard-url)     DASHBOARD_URL_VAL="$2";    shift 2 ;;
     --cloudfront-domain) CLOUDFRONT_DOMAIN_VAL="$2"; shift 2 ;;
     --api-url)           API_URL_VAL="$2";           shift 2 ;;
     --orders-api-url)    ORDERS_API_URL_VAL="$2";    shift 2 ;;
@@ -83,6 +86,10 @@ if [ -z "$FROM_EMAIL_VAL" ]; then
 fi
 if [ -z "$FRONTEND_URL_VAL" ]; then
   echo "ERROR: --frontend-url is required (or set FRONTEND_URL in .env)"
+  exit 1
+fi
+if [ -z "$DASHBOARD_URL_VAL" ]; then
+  echo "ERROR: --dashboard-url is required (or set DASHBOARD_URL in .env)"
   exit 1
 fi
 if [ -z "$CLOUDFRONT_DOMAIN_VAL" ]; then
@@ -116,6 +123,7 @@ echo " Region:           $REGION"
 echo " S3 Bucket:        $S3_BUCKET"
 echo " From Email:       $FROM_EMAIL_VAL"
 echo " Frontend URL:     $FRONTEND_URL_VAL"
+echo " Dashboard URL:    $DASHBOARD_URL_VAL"
 echo " CloudFront Domain: $CLOUDFRONT_DOMAIN_VAL"
 echo " API URL:          $API_URL_VAL"
 echo " Orders API URL:   $ORDERS_API_URL_VAL"
@@ -133,6 +141,7 @@ aws cloudformation deploy \
     "S3Bucket=${S3_BUCKET}" \
     "FromEmail=${FROM_EMAIL_VAL}" \
     "FrontendUrl=${FRONTEND_URL_VAL}" \
+    "DashboardUrl=${DASHBOARD_URL_VAL}" \
     "CloudfrontDomain=${CLOUDFRONT_DOMAIN_VAL}" \
     "ApiUrl=${API_URL_VAL}" \
     "OrdersApiUrl=${ORDERS_API_URL_VAL}" \
@@ -149,6 +158,7 @@ echo "   - /jcampos/${ENVIRONMENT}/jmarkets/aws/database  → jcampos/${ENVIRONM
 echo "   - /jcampos/${ENVIRONMENT}/jmarkets/cognito/user-pool-id   (from jmarkets-cognito stack)"
 echo "   - /jcampos/${ENVIRONMENT}/jmarkets/cognito/client-id      (from jmarkets-cognito stack)"
 echo "   - /jcampos/${ENVIRONMENT}/jmarkets/sns/organization-topic-arn  (from organization-publish-topic stack)"
+echo "   - /jcampos/${ENVIRONMENT}/jmarkets/dashboard/url          → ${DASHBOARD_URL_VAL}"
 echo "   - /jcampos/${ENVIRONMENT}/jmarkets/s3/bucket              → ${S3_BUCKET}"
 echo "   - /jcampos/${ENVIRONMENT}/jmarkets/email/from             → ${FROM_EMAIL_VAL}"
 echo "   - /jcampos/${ENVIRONMENT}/jmarkets/frontend/url           → ${FRONTEND_URL_VAL}"

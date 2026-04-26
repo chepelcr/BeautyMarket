@@ -191,6 +191,7 @@ const SSM_TO_ENV_MAP: Array<{ key: string; envVar: string }> = [
   { key: 's3.bucket',                  envVar: 'AWS_S3_BUCKET_NAME' },
   { key: 'email.from',                 envVar: 'FROM_EMAIL' },
   { key: 'frontend.url',               envVar: 'FRONTEND_URL' },
+  { key: 'dashboard.url',              envVar: 'DASHBOARD_URL' },
   { key: 'aws.region',                 envVar: 'AWS_REGION' },
 ];
 

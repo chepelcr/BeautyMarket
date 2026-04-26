@@ -29,6 +29,10 @@ Parameters:
     Type: String
     Description: Landing page / frontend URL (e.g. https://j-markets.jcampos.dev)
 
+  DashboardUrl:
+    Type: String
+    Description: Dashboard / admin URL (e.g. https://admin.j-markets.jcampos.dev)
+
   CloudfrontDomain:
     Type: String
     Description: CloudFront distribution domain for cache invalidation and asset URLs
@@ -130,6 +134,15 @@ Resources:
       Type: String
       Value: !Ref FrontendUrl
       Description: Landing page / frontend URL
+
+  # /jcampos/{env}/jmarkets/dashboard/url
+  DashboardUrlParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/jcampos/${Environment}/jmarkets/dashboard/url"
+      Type: String
+      Value: !Ref DashboardUrl
+      Description: Dashboard / admin URL
 
   # /jcampos/{env}/jmarkets/cloudfront/domain
   CloudfrontDomainParam:

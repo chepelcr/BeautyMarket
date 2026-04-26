@@ -6,6 +6,7 @@ import type { UserRepository } from "../repositories/UserRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
 import type { EmailService } from "./EmailService";
 import { generateInvitationEmailHtml } from "../templates/emails";
+import { appConfig } from "../config/appConfig";
 
 export interface CreateInvitationData {
   organizationId: string;
@@ -177,8 +178,8 @@ export class InvitationService implements IInvitationService {
   }
 
   private async sendInvitationEmail(invitation: OrganizationInvitation): Promise<void> {
-    const frontendUrl = process.env.FRONTEND_URL || "https://j-markets.jcampos.dev";
-    const inviteUrl = `${frontendUrl}/join/${invitation.token}`;
+    const dashboardUrl = await appConfig.getKey('dashboard.url', 'https://admin.j-markets.jcampos.dev') ?? 'https://admin.j-markets.jcampos.dev';
+    const inviteUrl = `${dashboardUrl}/join/${invitation.token}`;
 
     const org = await this.orgRepo.findById(invitation.organizationId);
     const orgName = org?.name ?? "JMarkets";
