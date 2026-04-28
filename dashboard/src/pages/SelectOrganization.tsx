@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOrganization, Organization } from '@/hooks/useOrganization';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { buildUserApiUrl } from '@/lib/apiUtils';
+import { buildUserApiUrl, buildPublicApiUrl } from '@/lib/apiUtils';
 import { apiRequest } from '@/lib/queryClient';
 import { Loader2, Building2, ChevronRight, Plus, AlertCircle, Mail, Check } from 'lucide-react';
 
@@ -48,8 +48,7 @@ export default function SelectOrganization() {
 
   const acceptMutation = useMutation({
     mutationFn: async (token: string) => {
-      const res = await apiRequest('POST', `/api/invitations/accept/${token}`, { userId: user!.id });
-      if (!res.ok) throw new Error('Failed to accept invitation');
+      const res = await apiRequest('POST', buildPublicApiUrl(`/invitations/accept/${token}`), { userId: user!.id });
       return res.json();
     },
     onSuccess: (_, token) => {
@@ -62,7 +61,7 @@ export default function SelectOrganization() {
         navigate('/admin');
       }
     },
-    onError: () => toast({ title: 'Failed to accept invitation', variant: 'destructive' }),
+    onError: (err: Error) => toast({ title: 'Failed to accept invitation', description: err.message, variant: 'destructive' }),
   });
 
 
