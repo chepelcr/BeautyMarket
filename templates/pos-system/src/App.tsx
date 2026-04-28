@@ -89,7 +89,7 @@ export default function App() {
         path="/dashboard"
         component={() => {
           console.log('[App] Dashboard route matched');
-          return <ProtectedRoute component={DashboardPage} roles={["gerente", "supervisor", "customer"]} />;
+          return <ProtectedRoute component={DashboardPage} roles={["gerente", "supervisor"]} />;
         }}
       />
       {/* Root redirect */}
