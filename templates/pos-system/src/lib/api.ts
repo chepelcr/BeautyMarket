@@ -82,7 +82,7 @@ export const ordersApi = {
 
 /** Build org-scoped API path (markets API) */
 export function orgPath(userId: string, orgId: string, endpoint: string) {
-  return `/api/users/${userId}/organization/${orgId}${endpoint}`;
+  return `/api/users/${userId}/memberships/organization/${orgId}${endpoint}`;
 }
 
 /** Build user-scoped API path (markets API) */
