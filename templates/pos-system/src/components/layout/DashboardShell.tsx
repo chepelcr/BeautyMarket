@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Icon, Logo, Badge, Button } from "@/components/ui";
@@ -48,13 +48,13 @@ function Sidebar({
     <aside
       className="sidebar"
       style={{
-        position: "sticky",
-        top: 0,
-        height: "100vh",
+        width: "100%",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         padding: 16,
-        flexShrink: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
       }}
     >
       {/* Logo */}
@@ -153,6 +153,23 @@ export default function DashboardShell({
   const { language, toggle: toggleLanguage } = useLanguageSwitch();
   const { t } = useLanguage();
 
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+    
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [drawerOpen]);
+
   const handleNav = (id: NavId) => {
     onNav?.(id);
   };
@@ -164,6 +181,10 @@ export default function DashboardShell({
         style={{
           width: 240,
           display: "none",
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          flexShrink: 0,
         }}
         className="dashboard-sidebar-full"
       >
@@ -173,21 +194,35 @@ export default function DashboardShell({
       {/* Mobile drawer overlay */}
       {drawerOpen && (
         <div
-          style={{ position: "fixed", inset: 0, zIndex: 100 }}
+          style={{ 
+            position: "fixed", 
+            inset: 0, 
+            zIndex: 100,
+            display: "flex",
+          }}
         >
           <div
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }}
+            style={{ 
+              position: "absolute", 
+              inset: 0, 
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(1px)",
+              animation: "fadeIn 0.2s ease-out",
+            }}
             onClick={() => setDrawerOpen(false)}
           />
           <div
-            className="fade-up"
             style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
+              position: "relative",
               width: 260,
+              height: "100dvh", // Dynamic viewport height for mobile (fallback to 100vh in older browsers)
               zIndex: 101,
+              background: "hsl(var(--card))",
+              boxShadow: "4px 0 24px rgba(0,0,0,0.12)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              animation: "slideInLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             <Sidebar
@@ -284,6 +319,22 @@ export default function DashboardShell({
         @media (max-width: 768px) {
           .dashboard-sidebar-full { display: none !important; }
           .dashboard-hamburger { display: flex !important; }
+        }
+        
+        @keyframes slideInLeft {
+          from { 
+            transform: translateX(-100%); 
+            opacity: 0; 
+          }
+          to { 
+            transform: translateX(0); 
+            opacity: 1; 
+          }
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </div>

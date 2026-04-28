@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Icon } from "./Icon";
 
 interface DrawerProps {
@@ -26,6 +26,23 @@ export function Drawer({
   footer,
   width = 440,
 }: DrawerProps) {
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (open) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+    
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (

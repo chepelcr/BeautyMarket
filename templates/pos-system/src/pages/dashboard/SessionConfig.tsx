@@ -37,6 +37,11 @@ type Role = "cashier" | "supervisor";
 interface AssignmentEntry {
   userId: string;
   role: Role;
+  terminalId?: string;
+}
+
+interface StationAssignments {
+  members: AssignmentEntry[];
 }
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
@@ -57,12 +62,15 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split("T")[0]);
   const [branchId, setBranchId] = useState("");
 
-  // Branch selection + assignments
+  // Branch selection + assignments (now supports multiple members per station)
   const [activeBranches, setActiveBranches] = useState<Set<string>>(new Set());
-  const [assignments, setAssignments] = useState<Record<string, AssignmentEntry>>({});
+  const [assignments, setAssignments] = useState<Record<string, StationAssignments>>({});
 
   // Inventory per puesto (branchId → productId → qty)
   const [inventory, setInventory] = useState<Record<string, Record<string, number>>>({});
+  
+  // Selected products for the session
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
 
   const [error, setError] = useState<string | null>(null);
 
@@ -92,7 +100,9 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
 
 
   const selectedBranches = branches.filter((b) => activeBranches.has(b.branch_id));
-  const assigned = selectedBranches.filter((b) => assignments[b.branch_id]?.userId).length;
+  const assigned = selectedBranches.filter((b) => 
+    assignments[b.branch_id]?.members?.length > 0
+  ).length;
 
   const canActivate = selectedBranches.length > 0 && assigned === selectedBranches.length && !!sessionDate;
 
@@ -111,22 +121,29 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
           type: sessionType === "partido" ? "match" : "shift",
           start_time,
           branch_id: branchId || undefined,
+          product_ids: selectedProducts.size > 0 ? Array.from(selectedProducts) : undefined,
         }
       );
 
-      await Promise.all(
-        selectedBranches
-          .filter((b) => assignments[b.branch_id]?.userId)
-          .map((b) =>
+      // Create assignments for all members in each station
+      const assignmentPromises = selectedBranches
+        .filter((b) => assignments[b.branch_id]?.members?.length > 0)
+        .flatMap((b) =>
+          assignments[b.branch_id].members.map((member) =>
             crossAppApi.post(crossAppOrgPath(org!.id, "/assignments"), {
               session_id: session.session_id,
-              user_id: assignments[b.branch_id].userId,
+              user_id: member.userId,
               branch_id: b.branch_id,
-              role: assignments[b.branch_id].role ?? "cashier",
+              terminal_id: member.terminalId,
+              role: member.role ?? "cashier",
               start_time,
             })
           )
-      );
+        );
+
+      await Promise.all(assignmentPromises);
+      
+      // TODO: Save selected products and inventory for the session
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard", org?.id] });
@@ -145,11 +162,50 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
       return next;
     });
 
-  const setAssign = (bid: string, field: keyof AssignmentEntry, value: string) =>
-    setAssignments((a) => ({
-      ...a,
-      [bid]: { role: a[bid]?.role ?? "cashier", ...a[bid], [field]: value } as AssignmentEntry,
+  const addMemberToStation = (branchId: string) => {
+    setAssignments((prev) => ({
+      ...prev,
+      [branchId]: {
+        members: [
+          ...(prev[branchId]?.members || []),
+          { userId: "", role: "cashier", terminalId: undefined },
+        ],
+      },
     }));
+  };
+
+  const removeMemberFromStation = (branchId: string, index: number) => {
+    setAssignments((prev) => ({
+      ...prev,
+      [branchId]: {
+        members: prev[branchId].members.filter((_, i) => i !== index),
+      },
+    }));
+  };
+
+  const updateMember = (
+    branchId: string,
+    index: number,
+    field: keyof AssignmentEntry,
+    value: string
+  ) => {
+    setAssignments((prev) => ({
+      ...prev,
+      [branchId]: {
+        members: prev[branchId].members.map((m, i) =>
+          i === index ? { ...m, [field]: value } : m
+        ),
+      },
+    }));
+  };
+
+  const toggleProduct = (productId: string) => {
+    setSelectedProducts((prev) => {
+      const next = new Set(prev);
+      next.has(productId) ? next.delete(productId) : next.add(productId);
+      return next;
+    });
+  };
 
   const dateLabel = sessionDate
     ? new Date(sessionDate).toLocaleDateString("es-CR", {
@@ -515,22 +571,8 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               </div>
               <div style={{ padding: "0 24px" }}>
                 {selectedBranches.map((branch, i) => {
-                  const assignedMember = members.find(
-                    (m) => m.userId === assignments[branch.branch_id]?.userId
-                  );
-                  const memberName = assignedMember
-                    ? [assignedMember.user.firstName, assignedMember.user.lastName]
-                        .filter(Boolean)
-                        .join(" ") || assignedMember.user.email
-                    : "";
-                  const initials = memberName
-                    ? memberName
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .slice(0, 2)
-                        .join("")
-                        .toUpperCase()
-                    : "";
+                  const stationMembers = assignments[branch.branch_id]?.members || [];
+                  const branchTerminals = branch.terminals || [];
 
                   return (
                     <div
@@ -541,99 +583,134 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                           i < selectedBranches.length - 1
                             ? "1px solid hsl(var(--border))"
                             : "none",
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1.4fr 1fr auto",
-                        gap: 20,
-                        alignItems: "center",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      {/* Station header */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                         <div className="icon-pill icon-pill-lg">
                           <Icon name="store" size={18} />
                         </div>
-                        <div>
+                        <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 14, fontWeight: 700 }}>{branch.name}</div>
                           <div
                             className="t-xs"
                             style={{ color: "hsl(var(--muted-foreground))" }}
                           >
-                            {branch.code}
+                            {branch.code} · {branchTerminals.length} {t("puestos.terminals")}
                           </div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          icon="plus"
+                          onClick={() => addMemberToStation(branch.branch_id)}
+                        >
+                          {t("session.addMember")}
+                        </Button>
                       </div>
 
-                      <div>
-                        <div
-                          className="t-label"
-                          style={{ fontSize: 10, marginBottom: 6 }}
-                        >
-                          {t("session.cashier")}
+                      {/* Members list */}
+                      {stationMembers.length === 0 ? (
+                        <div style={{ padding: "12px 16px", background: "hsl(var(--muted) / 0.3)", borderRadius: "var(--radius)", textAlign: "center" }}>
+                          <span className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                            {t("session.noMembers")}
+                          </span>
                         </div>
-                        {assignedMember ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: 999,
-                                background: "hsl(var(--primary))",
-                                color: "white",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                fontFamily: "var(--font-display)",
-                                flexShrink: 0,
-                              }}
-                            >
-                              {initials}
-                            </div>
-                            <span style={{ fontSize: 13, fontWeight: 600 }}>
-                              {memberName}
-                            </span>
-                          </div>
-                        ) : (
-                          <Badge variant="warning">{t("session.unassigned")}</Badge>
-                        )}
-                      </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {stationMembers.map((member, memberIndex) => {
+                            const assignedMember = members.find((m) => m.userId === member.userId);
+                            const memberName = assignedMember
+                              ? [assignedMember.user.firstName, assignedMember.user.lastName]
+                                  .filter(Boolean)
+                                  .join(" ") || assignedMember.user.email
+                              : "";
 
-                      <div>
-                        <label className="label" style={{ fontSize: 10 }}>
-                          {t("session.role")}
-                        </label>
-                        <select
-                          className="input input-sm"
-                          value={assignments[branch.branch_id]?.role ?? "cashier"}
-                          onChange={(e) =>
-                            setAssign(branch.branch_id, "role", e.target.value)
-                          }
-                        >
-                          <option value="cashier">{t("assignments.cashier")}</option>
-                          <option value="supervisor">{t("assignments.supervisor")}</option>
-                        </select>
-                      </div>
+                            return (
+                              <div
+                                key={memberIndex}
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1.5fr 1fr 1fr auto",
+                                  gap: 12,
+                                  alignItems: "center",
+                                  padding: "12px 16px",
+                                  background: "hsl(var(--muted) / 0.2)",
+                                  borderRadius: "var(--radius)",
+                                }}
+                              >
+                                {/* Member selector */}
+                                <div>
+                                  <label className="label" style={{ fontSize: 10 }}>
+                                    {t("session.member")}
+                                  </label>
+                                  <select
+                                    className="input input-sm"
+                                    value={member.userId}
+                                    onChange={(e) =>
+                                      updateMember(branch.branch_id, memberIndex, "userId", e.target.value)
+                                    }
+                                  >
+                                    <option value="">{t("session.select")}</option>
+                                    {members.map((m) => (
+                                      <option key={m.userId} value={m.userId}>
+                                        {[m.user.firstName, m.user.lastName].filter(Boolean).join(" ") || m.user.email}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
 
-                      <div>
-                        <label className="label" style={{ fontSize: 10 }}>
-                          &nbsp;
-                        </label>
-                        <select
-                          className="input input-sm"
-                          value={assignments[branch.branch_id]?.userId ?? ""}
-                          onChange={(e) =>
-                            setAssign(branch.branch_id, "userId", e.target.value)
-                          }
-                          style={{ minWidth: 160 }}
-                        >
-                          <option value="">{t("session.select")}</option>
-                          {members.map((m) => (
-                            <option key={m.userId} value={m.userId}>
-                              {[m.user.firstName, m.user.lastName].filter(Boolean).join(" ") || m.user.email}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                                {/* Terminal selector */}
+                                <div>
+                                  <label className="label" style={{ fontSize: 10 }}>
+                                    {t("session.terminal")}
+                                  </label>
+                                  <select
+                                    className="input input-sm"
+                                    value={member.terminalId || ""}
+                                    onChange={(e) =>
+                                      updateMember(branch.branch_id, memberIndex, "terminalId", e.target.value)
+                                    }
+                                  >
+                                    <option value="">{t("session.noTerminal")}</option>
+                                    {branchTerminals.map((t) => (
+                                      <option key={t.terminal_id} value={t.terminal_id}>
+                                        {t.name} ({t.code})
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                {/* Role selector */}
+                                <div>
+                                  <label className="label" style={{ fontSize: 10 }}>
+                                    {t("session.role")}
+                                  </label>
+                                  <select
+                                    className="input input-sm"
+                                    value={member.role}
+                                    onChange={(e) =>
+                                      updateMember(branch.branch_id, memberIndex, "role", e.target.value)
+                                    }
+                                  >
+                                    <option value="cashier">{t("assignments.cashier")}</option>
+                                    <option value="supervisor">{t("assignments.supervisor")}</option>
+                                  </select>
+                                </div>
+
+                                {/* Remove button */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  icon="trash"
+                                  onClick={() => removeMemberFromStation(branch.branch_id, memberIndex)}
+                                  style={{ color: "hsl(var(--destructive))" }}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -661,6 +738,19 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "hsl(var(--muted) / 0.4)" }}>
+                  <th style={{ ...thStyle, width: 40 }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.size === products.filter((p) => p.status === 1).length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedProducts(new Set(products.filter((p) => p.status === 1).map((p) => p.product_id)));
+                        } else {
+                          setSelectedProducts(new Set());
+                        }
+                      }}
+                    />
+                  </th>
                   <th style={thStyle}>Producto</th>
                   {selectedBranches.map((b) => (
                     <th key={b.branch_id} style={{ ...thStyle, textAlign: "center" }}>
@@ -683,11 +773,24 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                       (s, b) => s + (inventory[b.branch_id]?.[p.product_id] ?? 0),
                       0
                     );
+                    const isSelected = selectedProducts.has(p.product_id);
+                    const needsInventory = p.track_inventory !== false;
+
                     return (
                       <tr
                         key={p.product_id}
-                        style={{ borderBottom: "1px solid hsl(var(--border))" }}
+                        style={{ 
+                          borderBottom: "1px solid hsl(var(--border))",
+                          opacity: isSelected ? 1 : 0.5,
+                        }}
                       >
+                        <td style={{ ...tdStyle, textAlign: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleProduct(p.product_id)}
+                          />
+                        </td>
                         <td style={tdStyle}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <ProductImage imageUrl={p.image_url} name={p.name} size={32} />
@@ -698,35 +801,45 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                                 style={{ color: "hsl(var(--muted-foreground))" }}
                               >
                                 {fmt(p.price)}
+                                {!needsInventory && (
+                                  <Badge variant="secondary" style={{ marginLeft: 6, fontSize: 9 }}>
+                                    {t("session.noInventoryTracking")}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
                         </td>
                         {selectedBranches.map((b) => (
                           <td key={b.branch_id} style={{ ...tdStyle, textAlign: "center" }}>
-                            <input
-                              className="input input-sm t-num"
-                              type="number"
-                              min={0}
-                              style={{
-                                width: 70,
-                                margin: "0 auto",
-                                textAlign: "center",
-                                fontWeight: 700,
-                                fontFamily: "var(--font-display)",
-                                display: "block",
-                              }}
-                              value={inventory[b.branch_id]?.[p.product_id] ?? 0}
-                              onChange={(e) =>
-                                setInventory((inv) => ({
-                                  ...inv,
-                                  [b.branch_id]: {
-                                    ...inv[b.branch_id],
-                                    [p.product_id]: Number(e.target.value),
-                                  },
-                                }))
-                              }
-                            />
+                            {needsInventory ? (
+                              <input
+                                className="input input-sm t-num"
+                                type="number"
+                                min={0}
+                                disabled={!isSelected}
+                                style={{
+                                  width: 70,
+                                  margin: "0 auto",
+                                  textAlign: "center",
+                                  fontWeight: 700,
+                                  fontFamily: "var(--font-display)",
+                                  display: "block",
+                                }}
+                                value={inventory[b.branch_id]?.[p.product_id] ?? 0}
+                                onChange={(e) =>
+                                  setInventory((inv) => ({
+                                    ...inv,
+                                    [b.branch_id]: {
+                                      ...inv[b.branch_id],
+                                      [p.product_id]: Number(e.target.value),
+                                    },
+                                  }))
+                                }
+                              />
+                            ) : (
+                              <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>—</span>
+                            )}
                           </td>
                         ))}
                         {selectedBranches.length === 0 && (
@@ -743,7 +856,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                           }}
                           className="t-num"
                         >
-                          {total}
+                          {needsInventory ? total : "—"}
                         </td>
                       </tr>
                     );
@@ -751,7 +864,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                 {products.filter((p) => p.status === 1).length === 0 && (
                   <tr>
                     <td
-                      colSpan={selectedBranches.length + 2}
+                      colSpan={selectedBranches.length + 3}
                       style={{
                         ...tdStyle,
                         textAlign: "center",

@@ -18,6 +18,7 @@ export interface Product {
   status: number; // 1 = active, 2 = inactive, 3 = deleted
   sku?: string | null;
   stock_quantity?: number;
+  track_inventory?: boolean; // Whether this product requires inventory tracking
   created_on?: Date;
   updated_on?: Date;
 }

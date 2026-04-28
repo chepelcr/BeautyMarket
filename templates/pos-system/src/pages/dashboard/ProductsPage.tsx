@@ -4,7 +4,9 @@ import { ordersApi, ordersOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import type { Product, Category } from "@/types";
-import { Icon, Card, Badge, Button, EmptyState } from "@/components/ui";
+import {
+  Icon, Card, Badge, Button, EmptyState, Drawer,
+} from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { ImagePicker } from "@/components/ui/ImagePicker";
@@ -696,70 +698,70 @@ export default function ProductsPage() {
       )}
 
       {/* Create / Edit Drawer */}
-      {drawerProduct !== null && (
-        <>
+      <Drawer
+        open={drawerProduct !== null}
+        onClose={() => setDrawerProduct(null)}
+        title={drawerProduct === "new" ? t("products.newProduct") : t("products.editProduct")}
+        subtitle={drawerProduct !== "new" && drawerProduct ? drawerProduct.name : undefined}
+        icon="package"
+        width="min(420px, 100vw)"
+        footer={
           <div
             style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,0.4)",
-              zIndex: 200,
-            }}
-            onClick={() => setDrawerProduct(null)}
-          />
-          <div
-            className="slide-right"
-            style={{
-              position: "fixed",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              width: 420,
-              background: "hsl(var(--card))",
-              zIndex: 201,
+              padding: "16px 24px",
               display: "flex",
-              flexDirection: "column",
-              boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
+              gap: 8,
+              alignItems: "center",
             }}
           >
-            {/* Drawer header */}
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid hsl(var(--border))",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div style={{ fontSize: 16, fontWeight: 700 }}>
-                {drawerProduct === "new" ? t("products.newProduct") : t("products.editProduct")}
-              </div>
+            {drawerProduct !== "new" && (
               <Button
                 variant="ghost"
-                size="xs"
-                icon="close"
-                onClick={() => setDrawerProduct(null)}
-              />
-            </div>
-
-            {/* Drawer body */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: 24,
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-              }}
+                size="sm"
+                icon="trash"
+                onClick={() => {
+                  if (drawerProduct) {
+                    deleteProduct.mutate(drawerProduct.product_id);
+                  }
+                }}
+                style={{ color: "hsl(var(--destructive))" }}
+              >
+                {t("common.delete")}
+              </Button>
+            )}
+            <div style={{ flex: 1 }} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDrawerProduct(null)}
             >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSave}
+              disabled={saving || !form.name.trim() || !form.price}
+            >
+              {saving ? t("common.saving") : t("common.save")}
+            </Button>
+          </div>
+        }
+      >
+        <div
+          style={{
+            padding: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
               {/* Imagen */}
               <div>
                 <label className="pp-label">{t("products.image")}</label>
                 <ImagePicker
                   currentUrl={
-                    drawerProduct !== "new" ? (drawerProduct.image_url ?? undefined) : undefined
+                    drawerProduct !== "new" && drawerProduct !== null ? (drawerProduct.image_url ?? undefined) : undefined
                   }
                   onFileChange={setImageFile}
                   size={100}
@@ -902,52 +904,7 @@ export default function ProductsPage() {
                 </div>
               )}
             </div>
-
-            {/* Drawer footer */}
-            <div
-              style={{
-                padding: "16px 24px",
-                borderTop: "1px solid hsl(var(--border))",
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-              }}
-            >
-              {drawerProduct !== "new" && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon="trash"
-                  onClick={() => {
-                    if (drawerProduct) {
-                      deleteProduct.mutate(drawerProduct.product_id);
-                    }
-                  }}
-                  style={{ color: "hsl(var(--destructive))" }}
-                >
-                  {t("common.delete")}
-                </Button>
-              )}
-              <div style={{ flex: 1 }} />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDrawerProduct(null)}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleSave}
-                disabled={saving || !form.name.trim() || !form.price}
-              >
-                {saving ? t("common.saving") : t("common.save")}
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
+          </Drawer>
     </div>
   );
 }
