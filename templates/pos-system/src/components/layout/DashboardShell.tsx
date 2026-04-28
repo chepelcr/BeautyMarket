@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganization";
 import { Icon, Logo, Badge, Button } from "@/components/ui";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { useLanguageSwitch } from "@/hooks/useLanguageSwitch";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte";
 
@@ -12,14 +16,6 @@ interface DashboardShellProps {
   sessionLocation?: string;
 }
 
-const NAV_ITEMS: { id: NavId; icon: string; label: string }[] = [
-  { id: "dashboard", icon: "chart", label: "Panel" },
-  { id: "config", icon: "settings", label: "Sesiones" },
-  { id: "puestos", icon: "store", label: "Puestos" },
-  { id: "productos", icon: "package", label: "Productos" },
-  { id: "reporte", icon: "trending", label: "Reportes" },
-];
-
 function Sidebar({
   active,
   onNav,
@@ -30,9 +26,23 @@ function Sidebar({
   onClose?: () => void;
 }) {
   const { user, logout } = useAuthContext();
-  const initials = user?.name
-    ? user.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
+
+  const NAV_ITEMS: { id: NavId; icon: string; label: string }[] = [
+    { id: "dashboard", icon: "chart", label: t("shell.panel") },
+    { id: "config", icon: "settings", label: t("shell.sessions") },
+    { id: "puestos", icon: "store", label: t("shell.stations") },
+    { id: "productos", icon: "package", label: t("shell.products") },
+    { id: "reporte", icon: "trending", label: t("shell.reports") },
+  ];
+
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.name || "";
+  const initials = fullName
+    ? fullName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
     : "U";
+  const displayName = fullName || user?.email || "Usuario";
 
   return (
     <aside
@@ -58,7 +68,7 @@ function Sidebar({
           justifyContent: "space-between",
         }}
       >
-        <Logo />
+        <Logo orgName={org?.name} />
         {onClose && (
           <button
             className="btn btn-ghost btn-sm btn-icon"
@@ -72,7 +82,7 @@ function Sidebar({
 
       {/* Nav label */}
       <div className="t-label" style={{ padding: "8px 10px 6px" }}>
-        Navegación
+        {t("shell.navigation")}
       </div>
 
       {/* Nav items */}
@@ -117,7 +127,7 @@ function Sidebar({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {user?.name ?? "Usuario"}
+            {displayName}
           </div>
           <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
             {user?.role ?? ""}
@@ -125,7 +135,7 @@ function Sidebar({
         </div>
       </div>
       <button className="sidebar-item" onClick={logout}>
-        <Icon name="logOut" size={16} /> Salir
+        <Icon name="logOut" size={16} /> {t("shell.logout")}
       </button>
     </aside>
   );
@@ -139,6 +149,9 @@ export default function DashboardShell({
   sessionLocation,
 }: DashboardShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { dark, toggle: toggleDark } = useDarkMode();
+  const { language, toggle: toggleLanguage } = useLanguageSwitch();
+  const { t } = useLanguage();
 
   const handleNav = (id: NavId) => {
     onNav?.(id);
@@ -215,11 +228,11 @@ export default function DashboardShell({
                     className="status-dot status-dot-live"
                     style={{ width: 6, height: 6 }}
                   />
-                  En vivo
+                  {t("shell.liveLabel")}
                 </Badge>
                 <div>
                   <div className="t-label" style={{ fontSize: 10 }}>
-                    Sesión activa
+                    {t("shell.activeSession")}
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>
                     {sessionName}
@@ -230,9 +243,31 @@ export default function DashboardShell({
             )}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Language toggle */}
+            <button
+              className="btn btn-ghost btn-sm btn-icon"
+              onClick={toggleLanguage}
+              aria-label="Toggle language"
+            >
+              <img
+                src={language === "es" ? "https://flagcdn.com/w20/cr.png" : "https://flagcdn.com/w20/us.png"}
+                alt={language === "es" ? "Costa Rica" : "United States"}
+                style={{ width: 20, height: "auto", borderRadius: 2 }}
+              />
+            </button>
+
+            {/* Dark mode toggle */}
+            <button
+              className="btn btn-ghost btn-sm btn-icon"
+              onClick={toggleDark}
+              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              <Icon name={dark ? "sun" : "moon"} size={16} />
+            </button>
+
             <Button variant="outline" size="sm" icon="refresh">
-              Sincronizar
+              {t("shell.sync")}
             </Button>
           </div>
         </header>

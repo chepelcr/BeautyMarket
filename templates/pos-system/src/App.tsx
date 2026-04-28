@@ -1,5 +1,6 @@
 import { Route, Switch, Redirect, useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import Login from "@/pages/Login";
 import SelectOrganization from "@/pages/SelectOrganization";
 import POSPage from "@/pages/pos/POSPage";
@@ -14,27 +15,22 @@ function ProtectedRoute({
 }) {
   const { user, isLoading } = useAuthContext();
   const [location] = useLocation();
-
-  console.log('[ProtectedRoute] Checking access:', { location, hasUser: !!user, userRole: user?.role, allowedRoles: roles, isLoading });
+  const { t } = useLanguage();
 
   if (isLoading) {
-    console.log('[ProtectedRoute] Still loading auth...');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted font-barlow text-lg animate-pulse">Cargando...</div>
+        <div className="text-muted font-barlow text-lg animate-pulse">{t("common.loading")}</div>
       </div>
     );
   }
 
   if (!user) {
-    console.log('[ProtectedRoute] No user, redirecting to login');
     sessionStorage.setItem("redirectAfterLogin", location);
     return <Redirect to="/login" />;
   }
 
   if (roles && user.role && !roles.includes(user.role)) {
-    console.log('[ProtectedRoute] User role not allowed, redirecting');
-    // Prevent infinite redirect loops - if already on target, show error instead
     const targetPath = user.role === "cajero" ? "/pos" : "/dashboard";
     if (location === targetPath) {
       return (
@@ -42,10 +38,10 @@ function ProtectedRoute({
           <div className="text-center">
             <div className="text-4xl mb-4">🚫</div>
             <div className="text-destructive font-barlow font-bold text-xl">
-              No tenés permisos para acceder a esta página
+              {t("app.noPermissions")}
             </div>
             <div className="text-muted text-sm mt-2">
-              Tu rol: {user.role}
+              {t("app.yourRole")} {user.role}
             </div>
           </div>
         </div>
@@ -54,21 +50,20 @@ function ProtectedRoute({
     return <Redirect to={targetPath} />;
   }
 
-  console.log('[ProtectedRoute] Access granted, rendering component');
   return <Component />;
 }
 
 export default function App() {
   const { user, isLoading } = useAuthContext();
+  const { t } = useLanguage();
 
-  // Show loading screen while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl animate-bounce">🍗</div>
+          <div className="text-5xl animate-bounce">🏪</div>
           <div className="text-primary font-barlow text-xl font-bold animate-pulse">
-            Cargando...
+            {t("common.loading")}
           </div>
         </div>
       </div>

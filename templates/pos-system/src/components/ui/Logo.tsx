@@ -1,9 +1,21 @@
 interface LogoProps {
   size?: number;
   showWord?: boolean;
+  orgName?: string;
 }
 
-export function Logo({ size = 32, showWord = true }: LogoProps) {
+export function Logo({ size = 32, showWord = true, orgName }: LogoProps) {
+  const initials = orgName
+    ? orgName
+        .split(" ")
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+    : "JM";
+
+  const displayName = orgName ?? "JMarkets POS";
+
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
       <div
@@ -23,7 +35,7 @@ export function Logo({ size = 32, showWord = true }: LogoProps) {
           flexShrink: 0,
         }}
       >
-        PP
+        {initials}
       </div>
       {showWord && (
         <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
@@ -37,7 +49,7 @@ export function Logo({ size = 32, showWord = true }: LogoProps) {
               color: "hsl(var(--foreground))",
             }}
           >
-            Pollos Porteños
+            {displayName}
           </span>
           <span
             style={{

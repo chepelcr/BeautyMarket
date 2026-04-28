@@ -2,66 +2,64 @@ import { useEffect } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { AuthNavbar } from "@/components/layout/AuthNavbar";
 
 export default function SelectOrganization() {
   const { user } = useAuthContext();
   const { useUserOrganizations } = useOrganization();
   const { data: orgs = [], isLoading, error } = useUserOrganizations(user?.userId);
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
 
-  // Auto-select if only one org - must be in useEffect to avoid render-phase navigation
   useEffect(() => {
     if (!isLoading && orgs.length === 1 && !sessionStorage.getItem('selectedOrgId')) {
-      console.log('[SelectOrganization] Auto-selecting single org:', orgs[0]);
       sessionStorage.setItem("selectedOrgId", orgs[0].id);
       const role = user?.role;
       const targetPath = role === "cajero" ? "/pos" : "/dashboard";
-      console.log('[SelectOrganization] Navigating to:', targetPath, 'User role:', role);
       navigate(targetPath);
     }
   }, [isLoading, orgs, user?.role, navigate]);
 
   const handleSelect = (org: { id: string; name: string; templateName?: string }) => {
-    console.log('[SelectOrganization] User selected org:', org);
     sessionStorage.setItem("selectedOrgId", org.id);
-    // Redirect based on role
     const role = user?.role;
     navigate(role === "cajero" ? "/pos" : "/dashboard");
   };
 
   if (isLoading) {
-    console.log('[SelectOrganization] Loading organizations...');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted font-barlow text-lg animate-pulse">Cargando organizaciones...</div>
+        <AuthNavbar />
+        <div className="text-muted font-barlow text-lg animate-pulse">{t("orgs.loading")}</div>
       </div>
     );
   }
 
   if (error || orgs.length === 0) {
-    console.error('[SelectOrganization] Error or no orgs:', { error, orgsCount: orgs.length });
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6">
+        <AuthNavbar />
         <div className="text-4xl">⚠️</div>
         <div className="text-destructive font-barlow font-bold text-xl text-center">
-          No tenés organizaciones disponibles
+          {t("orgs.noOrgs")}
         </div>
         <div className="text-muted text-sm text-center">
-          Contactá al administrador para que te agregue a una organización.
+          {t("orgs.contactAdmin")}
         </div>
       </div>
     );
   }
 
-  console.log('[SelectOrganization] Showing org selection, count:', orgs.length);
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <AuthNavbar />
+
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">🏢</div>
           <h1 className="font-barlow font-extrabold text-2xl text-foreground">
-            SELECCIONÁ TU ORGANIZACIÓN
+            {t("orgs.selectTitle")}
           </h1>
         </div>
 

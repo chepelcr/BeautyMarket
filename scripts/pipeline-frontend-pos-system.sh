@@ -1,5 +1,5 @@
 #!/bin/bash
-# Phase: Deploy pollos-sales template — CFN stack + S3 sync + CF invalidation
+# Phase: Deploy pos-system template — CFN stack + S3 sync + CF invalidation
 set -euo pipefail
 
 ENVIRONMENT="${ENVIRONMENT:-dev}"
@@ -7,12 +7,12 @@ REGION="${REGION:-us-east-1}"
 FRONTEND_DOMAIN="${FRONTEND_DOMAIN:-j-markets.jcampos.dev}"
 ROOT_DOMAIN="${ROOT_DOMAIN:-jcampos.dev}"
 
-STACK_NAME="jmarkets-${ENVIRONMENT}-frontend-pollos-sales"
-BUCKET_NAME="jmarkets-${ENVIRONMENT}-pollos-sales"
-DIST_DIR="dist/templates/pollos-sales"
-DOMAIN="pollos-sales.${FRONTEND_DOMAIN}"
+STACK_NAME="jmarkets-${ENVIRONMENT}-frontend-pos-system"
+BUCKET_NAME="jmarkets-${ENVIRONMENT}-pos-system"
+DIST_DIR="dist/templates/pos-system"
+DOMAIN="pos.${FRONTEND_DOMAIN}"
 
-echo "=== JMarkets Frontend Deploy: pollos-sales ==="
+echo "=== JMarkets Frontend Deploy: pos-system ==="
 echo "  Environment : $ENVIRONMENT"
 echo "  Region      : $REGION"
 echo "  Domain      : $DOMAIN"
@@ -71,4 +71,4 @@ aws cloudfront create-invalidation \
   --paths "/*"
 
 echo ""
-echo "pollos-sales deployed: https://${DOMAIN}"
+echo "pos-system deployed: https://${DOMAIN}"

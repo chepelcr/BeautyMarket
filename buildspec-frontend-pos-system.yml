@@ -12,36 +12,36 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      - cd templates/pollos-sales && npm ci && cd ../..
+      - cd templates/pos-system && npm ci && cd ../..
 
   pre_build:
     commands:
       - |
         SSM_PATH="/jcampos/${ENVIRONMENT}/jmarkets"
-        cat > templates/pollos-sales/.env << EOF
+        cat > templates/pos-system/.env << EOF
         VITE_AWS_REGION=$(aws ssm get-parameter --name "${SSM_PATH}/aws/region" --query 'Parameter.Value' --output text --region ${REGION})
         VITE_AWS_COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/user-pool-id" --query 'Parameter.Value' --output text --region ${REGION})
         VITE_AWS_COGNITO_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/client-id" --query 'Parameter.Value' --output text --region ${REGION})
         VITE_API_URL=$(aws ssm get-parameter --name "${SSM_PATH}/api/url" --query 'Parameter.Value' --output text --region ${REGION})
         VITE_BASE_DOMAIN=${FRONTEND_DOMAIN}
-        VITE_TEMPLATE_NAME=pollos-sales
-        VITE_TEMPLATE_DISPLAY_NAME=Pollos Porteños Sales
+        VITE_TEMPLATE_NAME=pos-system
+        VITE_TEMPLATE_DISPLAY_NAME=JMarkets POS
         VITE_TEMPLATE_INDUSTRY=pos
         VITE_SINPE_NUMBER=8888-8888
         EOF
-      - echo "templates/pollos-sales/.env written"
+      - echo "templates/pos-system/.env written"
 
   build:
     commands:
-      - echo "Building pollos-sales template..."
-      - cd templates/pollos-sales && npm run build && cd ../..
+      - echo "Building pos-system template..."
+      - cd templates/pos-system && npm run build && cd ../..
 
   post_build:
     commands:
-      - bash scripts/pipeline-frontend-pollos-sales.sh
+      - bash scripts/pipeline-frontend-pos-system.sh
 
 artifacts:
   files:
     - "**/*"
-  base-directory: dist/templates/pollos-sales
+  base-directory: dist/templates/pos-system
   discard-paths: no

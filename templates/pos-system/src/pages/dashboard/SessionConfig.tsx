@@ -6,7 +6,9 @@ import { useOrganization } from "@/hooks/useOrganization";
 import type { Product } from "@/hooks/useProducts";
 import { ordersApi, ordersOrgPath } from "@/lib/api";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
+import { ProductImage } from "@/components/ui/ProductImage";
 import type { BranchListResponse } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Branch {
   branch_id: string;
@@ -37,6 +39,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
   const qc = useQueryClient();
 
   const [tab, setTab] = useState<Tab>("partido");
@@ -125,7 +128,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
       onDone?.();
     },
     onError: (err: Error) => {
-      setError(err.message || "Error al crear sesión");
+      setError(err.message || t("common.error"));
     },
   });
 
@@ -148,7 +151,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
         day: "numeric",
         month: "long",
       })
-    : "Sin fecha";
+    : t("session.noDate");
 
   return (
     <div style={{ padding: "24px 24px 40px", maxWidth: 1280, margin: "0 auto" }}>
@@ -165,10 +168,10 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
       >
         <div>
           <h1 className="t-h1" style={{ marginBottom: 6 }}>
-            Configurar sesión
+            {t("session.title")}
           </h1>
           <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Creá un nuevo partido o día operativo y asigná cajeros a cada puesto.
+            {t("session.subtitle")}
           </p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -183,7 +186,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
             disabled={!canActivate || mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            {mutation.isPending ? "Activando…" : "Activar sesión"}
+            {mutation.isPending ? t("session.activating") : t("session.activate")}
           </Button>
         </div>
       </div>
@@ -195,21 +198,21 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
           aria-selected={tab === "partido"}
           onClick={() => setTab("partido")}
         >
-          <Icon name="calendar" size={13} /> Datos del partido
+          <Icon name="calendar" size={13} /> {t("session.tabMatch")}
         </button>
         <button
           className="tab"
           aria-selected={tab === "puestos"}
           onClick={() => setTab("puestos")}
         >
-          <Icon name="store" size={13} /> Puestos y asignaciones
+          <Icon name="store" size={13} /> {t("session.tabStations")}
         </button>
         <button
           className="tab"
           aria-selected={tab === "inventario"}
           onClick={() => setTab("inventario")}
         >
-          <Icon name="box" size={13} /> Inventario inicial
+          <Icon name="box" size={13} /> {t("session.tabInventory")}
         </button>
       </div>
 
@@ -223,19 +226,19 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
           }}
         >
           <Card style={{ padding: 24 }}>
-            <CardTitle>Información de la sesión</CardTitle>
+            <CardTitle>{t("session.sessionInfo")}</CardTitle>
             <CardDescription style={{ marginBottom: 20 }}>
-              Los cajeros verán este contexto al abrir turno.
+              {t("session.sessionInfoDesc")}
             </CardDescription>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {/* Session type */}
               <div style={{ gridColumn: "1 / -1" }}>
-                <label className="label">Tipo de sesión</label>
+                <label className="label">{t("session.sessionType")}</label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {(
                     [
-                      { id: "partido", icon: "trending", label: "Partido", desc: "Ventas en estadio" },
-                      { id: "regular", icon: "store", label: "Día regular", desc: "Operación restaurante" },
+                      { id: "partido", icon: "trending", label: t("session.match"), desc: t("session.matchDesc") },
+                      { id: "regular", icon: "store", label: t("session.regular"), desc: t("session.regularDesc") },
                     ] as const
                   ).map((o) => (
                     <button
@@ -282,7 +285,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               {sessionType === "partido" && (
                 <>
                   <div>
-                    <label className="label">Equipo rival</label>
+                    <label className="label">{t("session.rivalTeam")}</label>
                     <input
                       className="input"
                       value={rival}
@@ -291,7 +294,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                     />
                   </div>
                   <div>
-                    <label className="label">Hora del partido</label>
+                    <label className="label">{t("session.matchTime")}</label>
                     <input
                       className="input"
                       type="time"
@@ -303,7 +306,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               )}
 
               <div>
-                <label className="label">Fecha</label>
+                <label className="label">{t("session.date")}</label>
                 <input
                   className="input"
                   type="date"
@@ -313,13 +316,13 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               </div>
 
               <div>
-                <label className="label">Sucursal principal</label>
+                <label className="label">{t("session.mainBranch")}</label>
                 <select
                   className="input"
                   value={branchId}
                   onChange={(e) => setBranchId(e.target.value)}
                 >
-                  <option value="">Sin sucursal</option>
+                  <option value="">{t("session.noBranch")}</option>
                   {branches.map((b) => (
                     <option key={b.branch_id} value={b.branch_id}>
                       {b.name} ({b.code})
@@ -332,9 +335,9 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
 
           {/* Preview card */}
           <Card style={{ padding: 22 }}>
-            <CardTitle>Vista previa</CardTitle>
+            <CardTitle>{t("session.preview")}</CardTitle>
             <CardDescription style={{ marginBottom: 16 }}>
-              Así la verán los cajeros
+              {t("session.previewDesc")}
             </CardDescription>
             <Card
               style={{
@@ -345,14 +348,14 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               }}
             >
               <Badge variant="primary-soft" style={{ marginBottom: 10 }}>
-                {sessionType === "partido" ? "Partido" : "Día regular"}
+                {sessionType === "partido" ? t("session.match") : t("session.regular")}
               </Badge>
               <div className="t-h2" style={{ marginBottom: 6, fontSize: 24 }}>
                 {sessionType === "partido"
                   ? rival
                     ? `vs ${rival}`
-                    : "vs Rival"
-                  : "Operación regular"}
+                    : t("session.vsRival")
+                  : t("session.regularOp")}
               </div>
               <div
                 className="t-sm"
@@ -365,7 +368,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div>
                   <div className="t-label" style={{ fontSize: 10 }}>
-                    Puestos
+                    {t("session.stations")}
                   </div>
                   <div
                     style={{
@@ -379,7 +382,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                 </div>
                 <div>
                   <div className="t-label" style={{ fontSize: 10 }}>
-                    Asignados
+                    {t("session.assigned")}
                   </div>
                   <div
                     style={{
@@ -412,9 +415,9 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               }}
             >
               <div>
-                <CardTitle>Seleccionar puestos</CardTitle>
+                <CardTitle>{t("session.selectStations")}</CardTitle>
                 <CardDescription>
-                  {activeBranches.size} puestos activos para esta sesión
+                  {t("session.activeForSession", { n: String(activeBranches.size) })}
                 </CardDescription>
               </div>
             </div>
@@ -424,7 +427,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                   className="t-sm"
                   style={{ color: "hsl(var(--muted-foreground))", padding: "12px 0" }}
                 >
-                  No hay sucursales disponibles.
+                  {t("session.noBranches")}
                 </p>
               )}
               {branches.map((b) => (
@@ -498,9 +501,9 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                 }}
               >
                 <div>
-                  <CardTitle>Asignaciones</CardTitle>
+                  <CardTitle>{t("session.assignments")}</CardTitle>
                   <CardDescription>
-                    {assigned}/{selectedBranches.length} puestos con cajero asignado
+                    {t("session.assignedCount", { n: String(assigned), total: String(selectedBranches.length) })}
                   </CardDescription>
                 </div>
               </div>
@@ -553,7 +556,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                           className="t-label"
                           style={{ fontSize: 10, marginBottom: 6 }}
                         >
-                          Cajero
+                          {t("session.cashier")}
                         </div>
                         {assignedMember ? (
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -580,13 +583,13 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                             </span>
                           </div>
                         ) : (
-                          <Badge variant="warning">Sin asignar</Badge>
+                          <Badge variant="warning">{t("session.unassigned")}</Badge>
                         )}
                       </div>
 
                       <div>
                         <label className="label" style={{ fontSize: 10 }}>
-                          Rol
+                          {t("session.role")}
                         </label>
                         <select
                           className="input input-sm"
@@ -595,8 +598,8 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                             setAssign(branch.branch_id, "role", e.target.value)
                           }
                         >
-                          <option value="cashier">Cajero</option>
-                          <option value="supervisor">Supervisor</option>
+                          <option value="cashier">{t("assignments.cashier")}</option>
+                          <option value="supervisor">{t("assignments.supervisor")}</option>
                         </select>
                       </div>
 
@@ -612,7 +615,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                           }
                           style={{ minWidth: 160 }}
                         >
-                          <option value="">Seleccionar…</option>
+                          <option value="">{t("session.select")}</option>
                           {members.map((m) => (
                             <option key={m.id} value={m.id}>
                               {m.name}
@@ -638,9 +641,9 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               borderBottom: "1px solid hsl(var(--border))",
             }}
           >
-            <CardTitle>Inventario inicial por puesto</CardTitle>
+            <CardTitle>{t("session.inventoryTitle")}</CardTitle>
             <CardDescription>
-              Cantidad de cada producto a entregar al abrir turno
+              {t("session.inventoryDesc")}
             </CardDescription>
           </div>
           <div style={{ overflowX: "auto" }}>
@@ -655,10 +658,10 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                   ))}
                   {selectedBranches.length === 0 && (
                     <th style={{ ...thStyle, textAlign: "center" }}>
-                      (Selecciona puestos primero)
+                      {t("session.selectFirst")}
                     </th>
                   )}
-                  <th style={{ ...thStyle, textAlign: "right" }}>Total</th>
+                  <th style={{ ...thStyle, textAlign: "right" }}>{t("session.total")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -676,20 +679,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                       >
                         <td style={tdStyle}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 6,
-                                background: "hsl(var(--muted))",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 16,
-                              }}
-                            >
-                              {p.emoji}
-                            </div>
+                            <ProductImage imageUrl={p.image_url} name={p.name} size={32} />
                             <div>
                               <div style={{ fontSize: 13, fontWeight: 600 }}>{p.name}</div>
                               <div
@@ -758,7 +748,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                         padding: 32,
                       }}
                     >
-                      No hay productos activos.
+                      {t("session.noActiveProducts")}
                     </td>
                   </tr>
                 )}

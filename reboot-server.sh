@@ -30,15 +30,15 @@ echo "Cleaning Vite caches..."
 rm -rf dashboard/node_modules/.vite dashboard/.vite dashboard/dist
 rm -rf landing-client/node_modules/.vite landing-client/.vite landing-client/dist
 rm -rf client/node_modules/.vite client/.vite client/dist
-rm -rf templates/pollos-sales/node_modules/.vite templates/pollos-sales/.vite templates/pollos-sales/dist
+rm -rf templates/pos-system/node_modules/.vite templates/pos-system/.vite templates/pos-system/dist
 echo "Caches cleared"
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Start all services in background (including pollos-sales)
-echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard, pollos-sales)...${NC}"
-nohup npm run dev:all:pollos > logs/server.log 2>&1 &
+# Start all services in background (including pos-system)
+echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard, pos-system)...${NC}"
+nohup npm run dev:all:pos > logs/server.log 2>&1 &
 DEV_ALL_PID=$!
 
 # Wait a moment to check if process started successfully
@@ -54,7 +54,7 @@ if ps -p $DEV_ALL_PID > /dev/null; then
     echo "  • API Server: http://localhost:5000"
     echo "  • Landing: http://localhost:3001"
     echo "  • Dashboard: http://localhost:3002"
-    echo -e "  • ${MAGENTA}Pollos Sales: http://localhost:9000${NC}"
+    echo -e "  • ${MAGENTA}POS System: http://localhost:9000${NC}"
     echo ""
     echo -e "${YELLOW}Logs:${NC}"
     echo "  • All services: tail -f logs/server.log"

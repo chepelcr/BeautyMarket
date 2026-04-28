@@ -6,6 +6,8 @@ import { useProducts } from "@/hooks/useProducts";
 import { useInventory } from "@/store/inventory";
 import type { Product } from "@/types";
 import { Icon, Card, Badge, Button } from "@/components/ui";
+import { ProductImage } from "@/components/ui/ProductImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 const fmtTime = (d: number) => new Date(d).toLocaleTimeString("es-CR", { hour: "2-digit", minute: "2-digit" });
@@ -20,13 +22,13 @@ interface ClosingFlowProps {
 }
 
 const DENOMS = [
-  { key: "b20000", label: "Billete 20.000", value: 20000 },
-  { key: "b10000", label: "Billete 10.000", value: 10000 },
-  { key: "b5000", label: "Billete 5.000", value: 5000 },
-  { key: "b2000", label: "Billete 2.000", value: 2000 },
-  { key: "b1000", label: "Billete 1.000", value: 1000 },
-  { key: "c500", label: "Moneda 500", value: 500 },
-  { key: "c100", label: "Moneda 100", value: 100 },
+  { key: "b20000", value: 20000, labelKey: "closing.bill20k" },
+  { key: "b10000", value: 10000, labelKey: "closing.bill10k" },
+  { key: "b5000", value: 5000, labelKey: "closing.bill5k" },
+  { key: "b2000", value: 2000, labelKey: "closing.bill2k" },
+  { key: "b1000", value: 1000, labelKey: "closing.bill1k" },
+  { key: "c500", value: 500, labelKey: "closing.coin500" },
+  { key: "c100", value: 100, labelKey: "closing.coin100" },
 ] as const;
 
 type DenomKey = typeof DENOMS[number]["key"];
@@ -41,6 +43,7 @@ export default function ClosingFlow({
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const { data: rawProducts } = useProducts();
+  const { t } = useLanguage();
   const products: Product[] = Array.isArray(rawProducts)
     ? rawProducts
     : (rawProducts as any)?.data ?? [];
@@ -64,7 +67,6 @@ export default function ClosingFlow({
   );
   const cashDiff = cashTotal - expectedCash;
 
-  // inventory.stock[id] = remaining quantity (opening - sold), keyed by numeric id
   const getExpected = (p: Product) => inventory.getStock(parseInt(p.product_id, 10)) ?? 0;
 
   const faltantes = activeProducts.filter((p) => {
@@ -120,16 +122,18 @@ export default function ClosingFlow({
         >
           <Icon name="checkCircle" size={32} />
         </div>
-        <h2 className="t-h2">Cierre enviado</h2>
+        <h2 className="t-h2">{t("closing.closeSent")}</h2>
         <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-          El gerente revisará y aprobará tu cierre.
+          {t("closing.managerWillReview")}
         </p>
         <Button variant="primary" size="xl" onClick={onClose} style={{ width: "100%" }}>
-          Cerrar
+          {t("common.close")}
         </Button>
       </div>
     );
   }
+
+  const stepLabels = [t("closing.stepInventory"), t("closing.stepCash"), t("closing.stepSummary")];
 
   return (
     <div
@@ -150,18 +154,20 @@ export default function ClosingFlow({
         <button
           className="btn btn-ghost btn-sm btn-icon"
           onClick={onClose}
-          aria-label="Volver"
+          aria-label={t("closing.back")}
         >
           <Icon name="arrowLeft" size={18} />
         </button>
         <div style={{ flex: 1 }}>
           <div className="t-label" style={{ fontSize: 10 }}>
-            Cierre de turno
+            {t("closing.title")}
           </div>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>Paso {step} de 3</div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>
+            {t("closing.step", { n: String(step), total: "3" })}
+          </div>
         </div>
         <Badge variant="warning">
-          <Icon name="lock" size={10} /> Cerrando
+          <Icon name="lock" size={10} /> {t("closing.closingLabel")}
         </Badge>
       </div>
 
@@ -183,7 +189,7 @@ export default function ClosingFlow({
           ))}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-          {["Inventario", "Efectivo", "Resumen"].map((label, i) => (
+          {stepLabels.map((label, i) => (
             <div
               key={label}
               className="t-xs"
@@ -224,10 +230,10 @@ export default function ClosingFlow({
                   <div
                     style={{ fontSize: 13, fontWeight: 700, marginBottom: 2, color: "hsl(var(--info))" }}
                   >
-                    Contá lo que te queda
+                    {t("closing.countRemaining")}
                   </div>
                   <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    El sistema compara con lo esperado (inventario inicial − vendido).
+                    {t("closing.systemCompares")}
                   </div>
                 </div>
               </div>
@@ -255,24 +261,11 @@ export default function ClosingFlow({
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 10,
-                          background: "hsl(var(--muted))",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 22,
-                        }}
-                      >
-                        {p.emoji}
-                      </div>
+                      <ProductImage imageUrl={p.image_url} name={p.name} size={44} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
                         <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          Restante esperado:{" "}
+                          {t("closing.expectedRemaining")}{" "}
                           <strong className="t-num" style={{ color: "hsl(var(--foreground))" }}>
                             {exp}
                           </strong>
@@ -332,7 +325,7 @@ export default function ClosingFlow({
           <>
             <Card style={{ padding: 16, marginBottom: 14 }}>
               <div className="t-label" style={{ marginBottom: 6 }}>
-                Total esperado en caja
+                {t("closing.totalExpected")}
               </div>
               <div className="t-stat-xl" style={{ fontSize: 36 }}>
                 {fmt(expectedCash)}
@@ -341,12 +334,12 @@ export default function ClosingFlow({
                 className="t-xs"
                 style={{ color: "hsl(var(--muted-foreground))", marginTop: 4 }}
               >
-                Fondo inicial + ventas en efectivo
+                {t("closing.initialFundSales")}
               </div>
             </Card>
 
             <div className="t-label" style={{ marginBottom: 10 }}>
-              Desglose de efectivo
+              {t("closing.cashBreakdown")}
             </div>
             <Card style={{ padding: 12 }}>
               {DENOMS.map((denom, i) => {
@@ -364,7 +357,7 @@ export default function ClosingFlow({
                     }}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>{denom.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{t(denom.labelKey)}</div>
                       <div className="t-xs t-num" style={{ color: "hsl(var(--muted-foreground))" }}>
                         × {fmt(denom.value)}
                       </div>
@@ -427,7 +420,7 @@ export default function ClosingFlow({
                   marginBottom: 6,
                 }}
               >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>Contado</span>
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("closing.counted")}</span>
                 <span className="t-num" style={{ fontWeight: 700 }}>
                   {fmt(cashTotal)}
                 </span>
@@ -440,7 +433,7 @@ export default function ClosingFlow({
                   marginBottom: 10,
                 }}
               >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>Esperado</span>
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("closing.expected")}</span>
                 <span className="t-num" style={{ fontWeight: 700 }}>
                   {fmt(expectedCash)}
                 </span>
@@ -454,7 +447,7 @@ export default function ClosingFlow({
                 }}
               >
                 <span className="t-label">
-                  {cashDiff > 0 ? "Sobrante" : cashDiff < 0 ? "Faltante" : "Diferencia"}
+                  {cashDiff > 0 ? t("closing.surplus") : cashDiff < 0 ? t("closing.shortage") : t("closing.difference")}
                 </span>
                 <span
                   className="t-stat"
@@ -489,13 +482,13 @@ export default function ClosingFlow({
               }}
             >
               <div className="t-label" style={{ color: "hsl(var(--primary))", marginBottom: 6 }}>
-                Turno · Puesto
+                {t("closing.shiftStation")}
               </div>
               <div className="t-h3" style={{ marginBottom: 4 }}>
-                Resumen final
+                {t("closing.finalSummary")}
               </div>
               <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                {user?.name ?? "Cajero"} · 19:00 → {fmtTime(Date.now())}
+                {user?.name ?? t("closing.cashier")} · 19:00 → {fmtTime(Date.now())}
               </div>
             </Card>
 
@@ -508,16 +501,16 @@ export default function ClosingFlow({
               }}
             >
               <Card style={{ padding: 14 }}>
-                <div className="t-label">Ventas</div>
+                <div className="t-label">{t("closing.sales")}</div>
                 <div className="t-stat" style={{ fontSize: 22, color: "hsl(var(--success))" }}>
                   —
                 </div>
                 <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                  Órdenes del turno
+                  {t("closing.shiftOrders")}
                 </div>
               </Card>
               <Card style={{ padding: 14 }}>
-                <div className="t-label">Efectivo</div>
+                <div className="t-label">{t("closing.cashLabel")}</div>
                 <div className="t-stat" style={{ fontSize: 22 }}>
                   {fmt(cashTotal)}
                 </div>
@@ -536,7 +529,7 @@ export default function ClosingFlow({
 
             <Card style={{ padding: 16, marginBottom: 14 }}>
               <div className="t-label" style={{ marginBottom: 10 }}>
-                Faltantes de producto
+                {t("closing.productShortages")}
               </div>
               {faltantes.length === 0 ? (
                 <div
@@ -549,7 +542,7 @@ export default function ClosingFlow({
                 >
                   <Icon name="checkCircle" size={18} style={{ color: "hsl(var(--success))" }} />
                   <span className="t-sm" style={{ fontWeight: 600 }}>
-                    Todo cuadra perfectamente
+                    {t("closing.allBalanced")}
                   </span>
                 </div>
               ) : (
@@ -567,7 +560,7 @@ export default function ClosingFlow({
                         borderBottom: "1px solid hsl(var(--border))",
                       }}
                     >
-                      <span style={{ fontSize: 18 }}>{p.emoji}</span>
+                      <ProductImage imageUrl={p.image_url} name={p.name} size={18} style={{ borderRadius: 4 }} />
                       <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{p.name}</span>
                       <Badge variant="destructive">−{exp - actual}</Badge>
                     </div>
@@ -578,11 +571,11 @@ export default function ClosingFlow({
 
             <Card style={{ padding: 14 }}>
               <div className="t-label" style={{ marginBottom: 8 }}>
-                Observaciones (opcional)
+                {t("closing.notes")}
               </div>
               <textarea
                 className="pp-input"
-                placeholder="Notas para el gerente…"
+                placeholder={t("closing.notesPlaceholder")}
                 style={{ minHeight: 70 }}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -622,7 +615,7 @@ export default function ClosingFlow({
               onClick={() => setStep((s) => s - 1)}
               style={{ flex: 0.8 }}
             >
-              <Icon name="arrowLeft" size={16} /> Atrás
+              <Icon name="arrowLeft" size={16} /> {t("closing.back")}
             </Button>
           )}
           {step < 3 ? (
@@ -633,7 +626,7 @@ export default function ClosingFlow({
               disabled={step === 1 && filledCount < activeProducts.length}
               style={{ flex: 1 }}
             >
-              Continuar <Icon name="arrowRight" size={16} />
+              {t("closing.continue")} <Icon name="arrowRight" size={16} />
             </Button>
           ) : (
             <Button
@@ -644,7 +637,7 @@ export default function ClosingFlow({
               style={{ flex: 1 }}
             >
               <Icon name="check" size={16} />{" "}
-              {loading ? "Enviando…" : "Cerrar turno"}
+              {loading ? t("closing.sending") : t("closing.closeShift")}
             </Button>
           )}
         </div>

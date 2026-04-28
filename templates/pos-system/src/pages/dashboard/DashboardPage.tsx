@@ -9,6 +9,7 @@ import PuestosPage from "./PuestosPage";
 import ProductsPage from "./ProductsPage";
 import ReportePage from "./ReportePage";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
 const fmtAgo = (ts: number) => {
@@ -140,6 +141,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
   isRefetching: boolean;
 }) {
   const { user } = useAuthContext();
+  const { t } = useLanguage();
   const totalRevenue = data?.total_revenue ?? 0;
   const totalSales = data?.total_sales ?? 0;
   const avgTicket = data?.avg_ticket ?? 0;
@@ -162,10 +164,16 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
       >
         <div>
           <h1 className="t-h1" style={{ marginBottom: 6 }}>
-            Buenas, {user?.name?.split(" ")[0] ?? "Gerente"}
+            {(() => {
+              const hour = new Date().getHours();
+              if (hour < 12) return t("dash.morningGreeting");
+              if (hour < 18) return t("dash.afternoonGreeting");
+              return t("dash.eveningGreeting");
+            })()},{" "}
+            {user?.firstName ?? user?.name?.split(" ")[0] ?? ""}
           </h1>
           <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {stands.length} puestos activos en tiempo real.
+            {t("dash.activeStations", { n: String(stands.length) })}
           </p>
         </div>
         <Button
@@ -175,7 +183,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
           onClick={refetch}
           disabled={isRefetching}
         >
-          {isRefetching ? "Actualizando…" : "Actualizar"}
+          {isRefetching ? t("dash.refreshing") : t("dash.refresh")}
         </Button>
       </div>
 
@@ -190,32 +198,32 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
       >
         {[
           {
-            label: "Ventas del partido",
+            label: t("dash.sessionSales"),
             value: isLoading ? "…" : fmt(totalRevenue),
             icon: "dollar",
             color: "",
             delta: "",
           },
           {
-            label: "Órdenes",
+            label: t("dash.orders"),
             value: isLoading ? "…" : String(totalSales),
             icon: "cart",
             color: "icon-pill-info",
             delta: "",
           },
           {
-            label: "Ticket promedio",
+            label: t("dash.avgTicket"),
             value: isLoading ? "…" : fmt(avgTicket),
             icon: "chart",
             color: "icon-pill-success",
             delta: "",
           },
           {
-            label: "Puestos activos",
+            label: t("dash.activeStationsLabel"),
             value: isLoading ? "…" : `${stands.length}`,
             icon: "store",
             color: "icon-pill-warning",
-            delta: "Todos sincronizados",
+            delta: t("dash.allSynced"),
           },
         ].map((k) => (
           <Card key={k.label} hoverable style={{ padding: 18 }}>
@@ -275,8 +283,8 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
             }}
           >
             <div>
-              <CardTitle>Ventas por hora</CardTitle>
-              <CardDescription>Sesión actual</CardDescription>
+              <CardTitle>{t("dash.hourlyChart")}</CardTitle>
+              <CardDescription>{t("dash.currentSession")}</CardDescription>
             </div>
             <Badge variant="success">↗ +22% vs anterior</Badge>
           </div>
@@ -302,14 +310,14 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
             }}
           >
             <div>
-              <CardTitle>Puestos en vivo</CardTitle>
-              <CardDescription>Estado de cada caja</CardDescription>
+              <CardTitle>{t("dash.liveStations")}</CardTitle>
+              <CardDescription>{t("dash.stationStatus")}</CardDescription>
             </div>
-            <Badge variant="success">{stands.length} activos</Badge>
+            <Badge variant="success">{t("dash.active", { n: String(stands.length) })}</Badge>
           </div>
           {isLoading ? (
             <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Cargando…
+              {t("dash.loading")}
             </div>
           ) : stands.length === 0 ? (
             <div
@@ -320,7 +328,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
                 padding: "24px 0",
               }}
             >
-              No hay puestos activos
+              {t("dash.noActiveStations")}
             </div>
           ) : (
             stands.map((p, i) => {
@@ -374,7 +382,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
                         className="t-xs t-num"
                         style={{ color: "hsl(var(--muted-foreground))" }}
                       >
-                        {p.sales_count} órdenes
+                        {t("dash.stationOrders", { n: String(p.sales_count) })}
                       </div>
                     </div>
                   </div>
@@ -412,25 +420,25 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
             }}
           >
             <div>
-              <CardTitle>Top productos</CardTitle>
-              <CardDescription>Más vendidos hoy</CardDescription>
+              <CardTitle>{t("dash.topProducts")}</CardTitle>
+              <CardDescription>{t("dash.bestSellers")}</CardDescription>
             </div>
           </div>
           {isLoading ? (
             <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Cargando…
+              {t("dash.loading")}
             </div>
           ) : ranking.length === 0 ? (
             <div
               className="t-sm"
               style={{ color: "hsl(var(--muted-foreground))", padding: "16px 0" }}
             >
-              Sin datos de ventas aún
+              {t("dash.noSalesData")}
             </div>
           ) : (
-            ranking.slice(0, 5).map((t, i) => (
+            ranking.slice(0, 5).map((item, i) => (
               <div
-                key={t.name}
+                key={item.name}
                 style={{
                   padding: "12px 0",
                   borderBottom:
@@ -459,15 +467,15 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
                       fontSize: 20,
                     }}
                   >
-                    {t.emoji}
+                    {item.emoji}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>{t.name}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>{item.name}</div>
                     <div
                       className="t-xs t-num"
                       style={{ color: "hsl(var(--muted-foreground))" }}
                     >
-                      {t.units} unidades · {fmt(t.revenue)}
+                      {t("dash.units", { n: String(item.units) })} · {fmt(item.revenue)}
                     </div>
                   </div>
                   <div
@@ -485,7 +493,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
                   <div
                     className="progress-bar"
                     style={{
-                      width: `${Math.min(100, (t.units / (ranking[0]?.units || 1)) * 100)}%`,
+                      width: `${Math.min(100, (item.units / (ranking[0]?.units || 1)) * 100)}%`,
                     }}
                   />
                 </div>
@@ -505,15 +513,15 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
             }}
           >
             <div>
-              <CardTitle>Feed de ventas</CardTitle>
-              <CardDescription>En tiempo real</CardDescription>
+              <CardTitle>{t("dash.salesFeed")}</CardTitle>
+              <CardDescription>{t("dash.realTime")}</CardDescription>
             </div>
             <Badge variant="primary-soft">
               <span
                 className="status-dot status-dot-live"
                 style={{ width: 6, height: 6 }}
               />{" "}
-              Live
+              {t("dash.live")}
             </Badge>
           </div>
           {stands.length === 0 && !isLoading ? (
@@ -521,7 +529,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
               className="t-sm"
               style={{ color: "hsl(var(--muted-foreground))", padding: "16px 0" }}
             >
-              No hay ventas recientes
+              {t("dash.noRecentSales")}
             </div>
           ) : (
             stands.slice(0, 5).map((f, i) => (
@@ -571,7 +579,7 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
                       textOverflow: "ellipsis",
                     }}
                   >
-                    {f.sales_count} órdenes registradas
+                    {t("dash.ordersRegistered", { n: String(f.sales_count) })}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -606,6 +614,7 @@ export default function DashboardPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
   const [page, setPage] = useState<Page>("dashboard");
 
   const { data: sessionsData } = useQuery({
@@ -632,7 +641,7 @@ export default function DashboardPage() {
         style={{ background: "hsl(var(--background))" }}
       >
         <div className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Cargando…
+          {t("common.loading")}
         </div>
       </div>
     );
@@ -655,12 +664,12 @@ export default function DashboardPage() {
         >
           <Icon name="alertTri" size={28} />
         </div>
-        <div className="t-h3">No hay organización seleccionada</div>
+        <div className="t-h3">{t("dash.noOrgSelected")}</div>
         <Button
           variant="primary"
           onClick={() => (window.location.href = "/organizations/select")}
         >
-          Seleccionar organización
+          {t("dash.selectOrg")}
         </Button>
       </div>
     );

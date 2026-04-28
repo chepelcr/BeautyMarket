@@ -1,5 +1,5 @@
 /**
- * Product DTOs for Pollos Sales
+ * Product DTOs for POS System
  */
 
 export interface Category {
@@ -15,12 +15,11 @@ export interface Product {
   category_id: string;
   category?: Category;
   image_url: string | null;
-  status: number; // 0 = inactive, 1 = active
+  status: number; // 1 = active, 2 = inactive, 3 = deleted
   sku?: string | null;
   stock_quantity?: number;
   created_on?: Date;
   updated_on?: Date;
-  emoji?: string; // For UI display
 }
 
 export interface ProductListResponse {

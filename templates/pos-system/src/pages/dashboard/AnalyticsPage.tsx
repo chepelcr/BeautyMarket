@@ -5,6 +5,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { fmt, fmtCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type AnalyticsTab = "products" | "sessions" | "vendors" | "context";
 
@@ -29,26 +30,28 @@ interface AnalyticsData {
 }
 
 type Period = "today" | "week" | "month" | "season";
-const PERIODS: { id: Period; label: string }[] = [
-  { id: "today", label: "Hoy" },
-  { id: "week", label: "Semana" },
-  { id: "month", label: "Mes" },
-  { id: "season", label: "Temporada" },
-];
-
-const TABS: { id: AnalyticsTab; label: string }[] = [
-  { id: "products", label: "🏆 Productos" },
-  { id: "sessions", label: "📅 Sesiones" },
-  { id: "vendors", label: "👤 Vendedores" },
-  { id: "context", label: "📍 Contexto" },
-];
 
 export default function AnalyticsPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
   const [tab, setTab] = useState<AnalyticsTab>("products");
   const [period, setPeriod] = useState<Period>("week");
+
+  const PERIODS: { id: Period; label: string }[] = [
+    { id: "today", label: t("analytics.today") },
+    { id: "week", label: t("analytics.week") },
+    { id: "month", label: t("analytics.month") },
+    { id: "season", label: t("analytics.season") },
+  ];
+
+  const TABS: { id: AnalyticsTab; label: string }[] = [
+    { id: "products", label: t("analytics.tabProducts") },
+    { id: "sessions", label: t("analytics.tabSessions") },
+    { id: "vendors", label: t("analytics.tabVendors") },
+    { id: "context", label: t("analytics.tabContext") },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ["analytics", org?.id, period],
@@ -60,7 +63,7 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col gap-6">
       <h2 className="font-barlow font-extrabold text-2xl text-foreground tracking-wide">
-        📊 REPORTERÍA
+        📊 {t("analytics.title")}
       </h2>
 
       {/* Period filter */}
@@ -78,10 +81,10 @@ export default function AnalyticsPage() {
       {data && (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { label: "INGRESOS", value: fmtCompact(data.kpis.totalRevenue) },
-            { label: "VENTAS", value: String(data.kpis.totalSales) },
-            { label: "TOP PRODUCTO", value: data.kpis.topProduct },
-            { label: "TOP CONTEXTO", value: data.kpis.topContext },
+            { label: t("analytics.revenue"), value: fmtCompact(data.kpis.totalRevenue) },
+            { label: t("analytics.sales"), value: String(data.kpis.totalSales) },
+            { label: t("analytics.topProduct"), value: data.kpis.topProduct },
+            { label: t("analytics.topContext"), value: data.kpis.topContext },
           ].map(({ label, value }) => (
             <div key={label} className="bg-surface border border-surface-border rounded-xl p-4">
               <div className="text-muted text-xs tracking-widest font-barlow mb-1">{label}</div>
@@ -102,7 +105,7 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {isLoading && <div className="text-muted font-barlow animate-pulse">Cargando...</div>}
+      {isLoading && <div className="text-muted font-barlow animate-pulse">{t("analytics.loading")}</div>}
 
       {/* Products tab */}
       {tab === "products" && data && (
@@ -111,10 +114,10 @@ export default function AnalyticsPage() {
             <thead>
               <tr className="border-b border-surface-border">
                 <th className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">#</th>
-                <th className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">PRODUCTO</th>
-                <th className="text-right px-4 py-3 text-xs text-muted font-barlow tracking-widest">UNIDADES</th>
-                <th className="text-right px-4 py-3 text-xs text-muted font-barlow tracking-widest">INGRESOS</th>
-                <th className="px-4 py-3 text-xs text-muted font-barlow tracking-widest">VOLUMEN</th>
+                <th className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colProduct")}</th>
+                <th className="text-right px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colUnits")}</th>
+                <th className="text-right px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colRevenue")}</th>
+                <th className="px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colVolume")}</th>
               </tr>
             </thead>
             <tbody>
@@ -150,7 +153,7 @@ export default function AnalyticsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-surface-border">
-                {["SESIÓN", "TIPO", "FECHA", "INGRESOS", "VENTAS", "ESTADO"].map((h) => (
+                {[t("analytics.colSession"), t("analytics.colType"), t("analytics.colDate"), t("analytics.colRevenue"), t("analytics.colSales"), t("analytics.colStatus")].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">{h}</th>
                 ))}
               </tr>
@@ -166,7 +169,7 @@ export default function AnalyticsPage() {
                   <td className="px-4 py-3">
                     <span className={cn("text-xs font-bold px-2 py-1 rounded",
                       s.status === "closed" ? "bg-success/20 text-success" : "bg-warning/20 text-warning")}>
-                      {s.status === "closed" ? "Cerrado" : "Activo"}
+                      {s.status === "closed" ? t("analytics.statusClosed") : t("analytics.statusActive")}
                     </span>
                   </td>
                 </tr>
@@ -182,7 +185,7 @@ export default function AnalyticsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-surface-border">
-                {["VENDEDOR", "TRANSACCIONES", "INGRESOS", "TICKET PROM.", "PAGO FAV."].map((h) => (
+                {[t("analytics.colVendor"), t("analytics.colTransactions"), t("analytics.colRevenue"), t("analytics.colAvgTicket"), t("analytics.colFavPayment")].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">{h}</th>
                 ))}
               </tr>
@@ -221,7 +224,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="text-right">
                     <div className="text-primary font-barlow font-bold">{fmtCompact(c.revenue)}</div>
-                    <div className="text-muted text-xs">{c.salesCount} ventas</div>
+                    <div className="text-muted text-xs">{t("analytics.salesCount", { n: String(c.salesCount) })}</div>
                   </div>
                 </div>
                 <div className="h-1.5 bg-surface-high rounded-full overflow-hidden">

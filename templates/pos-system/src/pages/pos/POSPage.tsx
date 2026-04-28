@@ -11,6 +11,8 @@ import { db } from "@/lib/db";
 import ClosingFlow from "@/components/pos/ClosingFlow";
 import InventoryOpening from "./InventoryOpening";
 import { Icon, Badge, Button, Card, SyncPill } from "@/components/ui";
+import { ProductImage } from "@/components/ui/ProductImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
@@ -22,7 +24,7 @@ interface CartItem {
   id: string;
   name: string;
   price: number;
-  emoji: string;
+  image_url: string | null;
   qty: number;
 }
 
@@ -35,6 +37,7 @@ export default function POSPage() {
   const { data: rawProducts, isLoading: productsLoading } = useProducts();
   const { items, add, remove, clear, total, count } = useCart();
   const { decrement } = useInventory();
+  const { t } = useLanguage();
 
   const [screen, setScreen] = useState<Screen>("inventory");
   const [category, setCategory] = useState("all");
@@ -59,7 +62,7 @@ export default function POSPage() {
     id: product.product_id,
     name: product.name,
     price: product.price,
-    emoji: product.emoji ?? "🍗",
+    image_url: product.image_url ?? null,
     qty,
   }));
   const cartTotal = total();
@@ -165,7 +168,7 @@ export default function POSPage() {
         }}
       >
         <div className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Cargando…
+          {t("common.loading")}
         </div>
       </div>
     );
@@ -190,9 +193,9 @@ export default function POSPage() {
         <div className="icon-pill icon-pill-lg" style={{ width: 64, height: 64, background: "hsl(var(--warning) / 0.15)", color: "hsl(var(--warning))" }}>
           <Icon name="alertTri" size={28} />
         </div>
-        <div className="t-h3" style={{ textAlign: "center" }}>No hay asignación activa</div>
+        <div className="t-h3" style={{ textAlign: "center" }}>{t("pos.noAssignment")}</div>
         <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center" }}>
-          Contactá al gerente para que te asigne un puesto.
+          {t("pos.contactManager")}
         </div>
       </div>
     );
@@ -249,7 +252,7 @@ export default function POSPage() {
         <button
           className="btn btn-ghost btn-sm btn-icon"
           onClick={() => setScreen("closing")}
-          aria-label="Cerrar turno"
+          aria-label={t("pos.closeShift")}
         >
           <Icon name="arrowLeft" size={18} />
         </button>
@@ -258,7 +261,7 @@ export default function POSPage() {
             {assignment.branch_id}
           </div>
           <div style={{ fontSize: 13, fontWeight: 600 }}>
-            {user?.name ?? "Cajero"} · Cajero
+            {user?.firstName ?? user?.name ?? t("pos.cashier")} · {t("pos.cashier")}
           </div>
         </div>
         <SyncPill state={syncStatus === "online" ? "online" : syncStatus === "syncing" ? "syncing" : "offline"} />
@@ -281,7 +284,7 @@ export default function POSPage() {
           <input
             className="pp-input"
             style={{ paddingLeft: 38 }}
-            placeholder="Buscar producto…"
+            placeholder={t("pos.searchProduct")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -334,16 +337,18 @@ export default function POSPage() {
                   opacity: p.status !== 0 ? 1 : 0.5,
                 }}
               >
-                <div
-                  className="product-image-placeholder"
+                <ProductImage
+                  imageUrl={p.image_url}
+                  name={p.name}
+                  size={0}
                   style={{
-                    fontSize: 42,
-                    borderRadius: "calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0 0",
+                    width: "100%",
+                    height: "auto",
                     aspectRatio: "16/10",
+                    borderRadius: "calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0 0",
+                    objectFit: "cover",
                   }}
-                >
-                  <span>{p.emoji}</span>
-                </div>
+                />
                 <div style={{ padding: 12 }}>
                   <div
                     style={{
@@ -396,7 +401,7 @@ export default function POSPage() {
             fontFamily: "var(--font-sans)",
           }}
         >
-          🔒 Cerrar turno
+          🔒 {t("pos.closeShift")}
         </button>
       </div>
 
@@ -444,7 +449,7 @@ export default function POSPage() {
                 >
                   {cartCount}
                 </span>
-                Ver orden
+                {t("pos.viewOrder")}
               </span>
               <span className="t-stat" style={{ fontSize: 22, color: "white" }}>
                 {fmt(cartTotal)}
@@ -513,10 +518,10 @@ export default function POSPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <h3 className="t-h3">
                   {cartStep === "cart"
-                    ? "Orden actual"
+                    ? t("pos.currentOrder")
                     : cartStep === "pay"
-                    ? "Cobrar"
-                    : "Venta completada"}
+                    ? t("pos.charge")
+                    : t("pos.saleDone")}
                 </h3>
                 {cartStep === "pay" && (
                   <Badge variant="primary-soft">{fmt(cartTotal)}</Badge>
@@ -525,7 +530,7 @@ export default function POSPage() {
               <button
                 className="btn btn-ghost btn-icon btn-sm"
                 onClick={closeCart}
-                aria-label="Cerrar"
+                aria-label={t("common.close")}
               >
                 <Icon name="close" size={18} />
               </button>
@@ -546,21 +551,11 @@ export default function POSPage() {
                         borderBottom: "1px solid hsl(var(--border))",
                       }}
                     >
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 8,
-                          background: "hsl(var(--muted))",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 22,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {item.emoji}
-                      </div>
+                      <ProductImage
+                        imageUrl={item.image_url}
+                        name={item.name}
+                        size={40}
+                      />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 600 }}>{item.name}</div>
                         <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
@@ -597,7 +592,7 @@ export default function POSPage() {
                         </span>
                         <button
                           className="btn btn-ghost btn-icon btn-sm"
-                          onClick={() => add({ id: item.id, name: item.name, price: item.price, emoji: item.emoji, isActive: true } as any)}
+                          onClick={() => { const pid = parseInt(item.id, 10); if (items[pid]) add(items[pid].product); }}
                           style={{ width: 30, height: 30 }}
                         >
                           <Icon name="plus" size={14} />
@@ -630,7 +625,7 @@ export default function POSPage() {
                       marginBottom: 14,
                     }}
                   >
-                    <div className="t-label">Total a cobrar</div>
+                    <div className="t-label">{t("payment.totalLabel")}</div>
                     <div className="t-stat-xl" style={{ fontSize: 34 }}>
                       {fmt(cartTotal)}
                     </div>
@@ -641,7 +636,7 @@ export default function POSPage() {
                     onClick={() => setCartStep("pay")}
                     style={{ width: "100%" }}
                   >
-                    Cobrar {fmt(cartTotal)}
+                    {t("pos.charge")} {fmt(cartTotal)}
                   </Button>
                 </div>
               </>
@@ -651,7 +646,7 @@ export default function POSPage() {
             {cartStep === "pay" && (
               <div style={{ padding: 20, overflowY: "auto" }}>
                 <div className="t-label" style={{ marginBottom: 10 }}>
-                  Método de pago
+                  {t("pos.paymentMethod")}
                 </div>
                 <div
                   style={{
@@ -663,9 +658,9 @@ export default function POSPage() {
                 >
                   {(
                     [
-                      { id: "cash", icon: "cash", label: "Efectivo" },
-                      { id: "card", icon: "card", label: "Tarjeta" },
-                      { id: "sinpe", icon: "smartphone", label: "SINPE" },
+                      { id: "cash", icon: "cash", label: t("pos.cash") },
+                      { id: "card", icon: "card", label: t("pos.card") },
+                      { id: "sinpe", icon: "smartphone", label: t("pos.sinpe") },
                     ] as const
                   ).map((m) => (
                     <button
@@ -706,7 +701,7 @@ export default function POSPage() {
 
                 {payMethod === "cash" && (
                   <div style={{ marginBottom: 20 }}>
-                    <label className="pp-label">Efectivo recibido</label>
+                    <label className="pp-label">{t("pos.cashReceived")}</label>
                     <div style={{ position: "relative" }}>
                       <span
                         style={{
@@ -758,7 +753,7 @@ export default function POSPage() {
                             marginBottom: 6,
                           }}
                         >
-                          <span style={{ color: "hsl(var(--muted-foreground))" }}>Recibido</span>
+                          <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("pos.received")}</span>
                           <span className="t-num" style={{ fontWeight: 700 }}>
                             {fmt(given)}
                           </span>
@@ -771,7 +766,7 @@ export default function POSPage() {
                             marginBottom: 6,
                           }}
                         >
-                          <span style={{ color: "hsl(var(--muted-foreground))" }}>Total</span>
+                          <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("pos.total")}</span>
                           <span className="t-num" style={{ fontWeight: 700 }}>
                             −{fmt(cartTotal)}
                           </span>
@@ -785,7 +780,7 @@ export default function POSPage() {
                           }}
                         >
                           <span className="t-label" style={{ color: "hsl(var(--success))" }}>
-                            Vuelto
+                            {t("pos.change")}
                           </span>
                           <span
                             className="t-stat"
@@ -821,10 +816,10 @@ export default function POSPage() {
                       <Icon name="card" size={24} />
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
-                      Pasar tarjeta en el POS
+                      {t("pos.swipeCard")}
                     </div>
                     <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      Monto a cobrar: {fmt(cartTotal)}
+                      {t("pos.amountToCharge")} {fmt(cartTotal)}
                     </div>
                   </Card>
                 )}
@@ -849,13 +844,13 @@ export default function POSPage() {
                         <Icon name="smartphone" size={18} />
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 600 }}>SINPE móvil</div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{t("pos.sinpeMobile")}</div>
                         <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          Al 8888-1234 · Pollos Porteños S.A.
+                          {org?.name ?? "JMarkets POS"}
                         </div>
                       </div>
                     </div>
-                    <label className="pp-label">Últimos 4 dígitos del SMS</label>
+                    <label className="pp-label">{t("pos.sinpeLastDigits")}</label>
                     <input
                       className="pp-input pp-input-lg"
                       placeholder="0000"
@@ -873,14 +868,14 @@ export default function POSPage() {
                   style={{ width: "100%" }}
                   disabled={!canConfirm}
                 >
-                  <Icon name="check" size={18} /> Confirmar cobro {fmt(cartTotal)}
+                  <Icon name="check" size={18} /> {t("pos.confirmCharge", { amount: fmt(cartTotal) })}
                 </Button>
                 <button
                   onClick={() => setCartStep("cart")}
                   className="btn btn-ghost btn-sm"
                   style={{ width: "100%", marginTop: 8 }}
                 >
-                  Volver a la orden
+                  {t("pos.backToOrder")}
                 </button>
               </div>
             )}
@@ -901,7 +896,7 @@ export default function POSPage() {
                   <Icon name="check" size={32} strokeWidth={3} />
                 </div>
                 <h3 className="t-h2" style={{ marginBottom: 6 }}>
-                  ¡Venta registrada!
+                  {t("pos.saleRegistered")}
                 </h3>
                 <div
                   className="t-body"
@@ -924,7 +919,7 @@ export default function POSPage() {
                     }}
                   >
                     <div className="t-label" style={{ color: "hsl(var(--success))" }}>
-                      Entregar vuelto
+                      {t("pos.deliverChange")}
                     </div>
                     <div
                       className="t-stat-xl"
@@ -936,7 +931,7 @@ export default function POSPage() {
                 )}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <Button variant="outline" icon="print">
-                    Imprimir
+                    {t("common.print")}
                   </Button>
                   <Button
                     variant="primary"
@@ -945,7 +940,7 @@ export default function POSPage() {
                       closeCart();
                     }}
                   >
-                    Nueva venta
+                    {t("pos.newSale")}
                   </Button>
                 </div>
               </div>

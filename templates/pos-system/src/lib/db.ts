@@ -39,13 +39,13 @@ export interface InventoryRecord {
   currentStock: number;
 }
 
-class PollosDB extends Dexie {
+class POSAppDB extends Dexie {
   sales!: Table<SaleRecord>;
   assignments!: Table<AssignmentRecord>;
   inventory!: Table<InventoryRecord>;
 
   constructor() {
-    super("pollos-sales-db");
+    super("pos-system-db");
     this.version(1).stores({
       sales: "++id, localId, assignmentId, synced, timestamp",
       assignments: "++id, assignmentId, orgId, userId",
@@ -54,4 +54,4 @@ class PollosDB extends Dexie {
   }
 }
 
-export const db = new PollosDB();
+export const db = new POSAppDB();

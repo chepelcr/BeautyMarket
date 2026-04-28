@@ -44,10 +44,44 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+.dark {
+  --background: 20 14% 8%;
+  --foreground: 30 20% 96%;
+  --card: 20 14% 12%;
+  --card-foreground: 30 20% 96%;
+  --popover: 20 14% 12%;
+  --popover-foreground: 30 20% 96%;
+  --primary: 23 88% 52%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 30 20% 96%;
+  --secondary-foreground: 20 14% 12%;
+  --muted: 20 10% 18%;
+  --muted-foreground: 30 10% 65%;
+  --accent: 23 88% 18%;
+  --accent-foreground: 23 88% 75%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 71% 50%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 55%;
+  --warning-foreground: 20 14% 8%;
+  --info: 217 91% 65%;
+  --info-foreground: 0 0% 100%;
+  --border: 20 10% 22%;
+  --input: 20 10% 22%;
+  --ring: 23 88% 52%;
+  --sidebar: 20 14% 10%;
+  --sidebar-foreground: 30 20% 96%;
+  --sidebar-accent: 20 10% 16%;
+  --sidebar-accent-foreground: 30 20% 96%;
+  --sidebar-border: 20 10% 18%;
+}
+
 /* ============ Base overrides ============ */
 @layer base {
   *, *::before, *::after { border-color: hsl(var(--border)); }
   html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
   html, body, #root { min-height: 100%; }
   body {
     background-color: hsl(var(--background));
@@ -187,4 +221,23 @@ textarea.pp-input { height: auto; padding: 10px 12px; resize: vertical; min-heig
 
 @media print {
   .nav-bar, .sidebar, .no-print { display: none !important; }
+}
+
+/* ============ Language switch animation ============ */
+.language-transitioning {
+  animation: langSlideOut 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+.language-slide-in {
+  animation: langSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes langSlideOut {
+  0%   { opacity: 1; transform: translateX(0) scale(1);    filter: blur(0px); }
+  100% { opacity: 0; transform: translateX(50px) scale(0.95); filter: blur(2px); }
+}
+
+@keyframes langSlideIn {
+  0%   { opacity: 0; transform: translateX(-50px) scale(0.95); filter: blur(2px); }
+  100% { opacity: 1; transform: translateX(0) scale(1);    filter: blur(0px); }
 }

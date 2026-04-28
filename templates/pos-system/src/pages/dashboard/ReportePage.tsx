@@ -3,6 +3,7 @@ import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
 const fmtNum = (n: number) => Math.round(Number(n) || 0).toLocaleString("es-CR");
@@ -58,6 +59,7 @@ export default function ReportePage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
 
   const { data, isLoading } = useQuery<ReportData>({
     queryKey: ["report", org?.id],
@@ -86,7 +88,7 @@ export default function ReportePage() {
     return (
       <div style={{ padding: 40, textAlign: "center" }}>
         <div className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Cargando reporte…
+          {t("report.loading")}
         </div>
       </div>
     );
@@ -107,7 +109,7 @@ export default function ReportePage() {
       >
         <div>
           <Badge variant="primary-soft" style={{ marginBottom: 8 }}>
-            Reporte final
+            {t("report.finalReport")}
           </Badge>
           <h1 className="t-h1" style={{ marginBottom: 6 }}>
             {session?.name ?? "Sesión sin nombre"}
@@ -121,10 +123,10 @@ export default function ReportePage() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Button variant="outline" icon="print" onClick={handlePrint}>
-            Imprimir
+            {t("report.print")}
           </Button>
           <Button variant="primary" icon="download">
-            Descargar PDF
+            {t("report.downloadPdf")}
           </Button>
         </div>
       </div>
@@ -148,7 +150,7 @@ export default function ReportePage() {
           }}
         >
           <div className="t-label" style={{ color: "hsl(var(--primary))", marginBottom: 6 }}>
-            Ingreso bruto
+            {t("report.grossIncome")}
           </div>
           <div
             className="t-stat-xl"
@@ -163,28 +165,28 @@ export default function ReportePage() {
 
         {[
           {
-            l: "Órdenes",
+            l: t("report.orders"),
             v: fmtNum(totals.ordenes),
             i: "cart",
             c: "info",
-            s: `${totals.ordenes} ventas realizadas`,
+            s: t("analytics.salesCount", { n: String(totals.ordenes) }),
           },
           {
-            l: "Ticket promedio",
+            l: t("report.avgTicket"),
             v: fmt(totals.ticket),
             i: "dollar",
             c: "success",
-            s: "Promedio por orden",
+            s: t("report.avgTicket"),
           },
           {
-            l: "Diferencia caja",
+            l: t("report.cashDiff"),
             v:
               totals.diferenciaCaja === 0
-                ? "Cuadrado"
+                ? t("report.balanced")
                 : (totals.diferenciaCaja > 0 ? "+" : "") + fmt(totals.diferenciaCaja),
             i: "alert",
             c: totals.diferenciaCaja === 0 ? "success" : Math.abs(totals.diferenciaCaja) < 1000 ? "warning" : "destructive",
-            s: totals.diferenciaCaja === 0 ? "Todos los puestos cuadrados" : `${stands.filter((s) => s.diff !== 0).length} puestos con diferencia`,
+            s: totals.diferenciaCaja === 0 ? t("report.allStandsBalanced") : t("report.standsWithDiff"),
           },
         ].map((k) => (
           <Card key={k.l} style={{ padding: 18 }}>
@@ -219,13 +221,13 @@ export default function ReportePage() {
       >
         {/* Payment methods */}
         <Card style={{ padding: 22 }}>
-          <CardTitle>Métodos de pago</CardTitle>
-          <CardDescription style={{ marginBottom: 16 }}>Distribución del total</CardDescription>
+          <CardTitle>{t("report.paymentMethods")}</CardTitle>
+          <CardDescription style={{ marginBottom: 16 }}>{t("report.distribution")}</CardDescription>
           {(
             [
-              { l: "Efectivo", v: totals.efectivo, c: "success", i: "cash" },
-              { l: "Tarjeta", v: totals.tarjeta, c: "info", i: "card" },
-              { l: "SINPE móvil", v: totals.sinpe, c: "primary", i: "smartphone" },
+              { l: t("report.cash"), v: totals.efectivo, c: "success", i: "cash" },
+              { l: t("report.card"), v: totals.tarjeta, c: "info", i: "card" },
+              { l: t("report.sinpeMobile"), v: totals.sinpe, c: "primary", i: "smartphone" },
             ] as const
           ).map((m) => {
             const pct = totals.ventas > 0 ? (m.v / totals.ventas) * 100 : 0;
@@ -283,11 +285,11 @@ export default function ReportePage() {
 
         {/* Puestos performance */}
         <Card style={{ padding: 22 }}>
-          <CardTitle>Rendimiento por puesto</CardTitle>
-          <CardDescription style={{ marginBottom: 14 }}>Ventas y cuadre final</CardDescription>
+          <CardTitle>{t("report.standPerformance")}</CardTitle>
+          <CardDescription style={{ marginBottom: 14 }}>{t("report.standPerformance")}</CardDescription>
           {stands.length === 0 && (
             <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Sin datos de puestos.
+              {t("report.noStandData")}
             </p>
           )}
           {stands.map((p, i) => {
@@ -337,7 +339,7 @@ export default function ReportePage() {
                       style={{ marginTop: 2 }}
                     >
                       {p.diff === 0
-                        ? "Cuadrado"
+                        ? t("report.balanced")
                         : (p.diff > 0 ? "+" : "−") + fmt(Math.abs(p.diff))}
                     </Badge>
                   </div>
@@ -363,11 +365,11 @@ export default function ReportePage() {
           }}
         >
           <div>
-            <CardTitle>Productos vendidos</CardTitle>
-            <CardDescription>Detalle completo del catálogo</CardDescription>
+            <CardTitle>{t("report.productsTable")}</CardTitle>
+            <CardDescription>{t("report.productsTable")}</CardDescription>
           </div>
           <Button variant="outline" size="sm" icon="download">
-            CSV
+            {t("report.csv")}
           </Button>
         </div>
         <div style={{ overflowX: "auto" }}>
@@ -375,10 +377,10 @@ export default function ReportePage() {
             <thead>
               <tr style={{ background: "hsl(var(--muted) / 0.4)" }}>
                 <th style={{ ...thStyle, width: 50 }}>#</th>
-                <th style={thStyle}>Producto</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>Unidades</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>Precio</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>Ingreso</th>
+                <th style={thStyle}>{t("analytics.colProduct")}</th>
+                <th style={{ ...thStyle, textAlign: "right" }}>{t("report.units")}</th>
+                <th style={{ ...thStyle, textAlign: "right" }}>{t("products.price")}</th>
+                <th style={{ ...thStyle, textAlign: "right" }}>{t("report.revenue")}</th>
                 <th style={{ ...thStyle, textAlign: "right" }}>%</th>
               </tr>
             </thead>
@@ -394,16 +396,16 @@ export default function ReportePage() {
                       padding: 32,
                     }}
                   >
-                    Sin datos de productos.
+                    {t("report.noProductData")}
                   </td>
                 </tr>
               )}
-              {topProducts.map((t, i) => {
+              {topProducts.map((prod, i) => {
                 const pct =
-                  totals.ventas > 0 ? (t.revenue / totals.ventas) * 100 : 0;
+                  totals.ventas > 0 ? (prod.revenue / totals.ventas) * 100 : 0;
                 return (
                   <tr
-                    key={t.id}
+                    key={prod.id}
                     style={{
                       borderBottom:
                         i < topProducts.length - 1
@@ -439,16 +441,16 @@ export default function ReportePage() {
                             flexShrink: 0,
                           }}
                         >
-                          {t.emoji ?? "🍗"}
+                          {prod.emoji ?? "🍗"}
                         </div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 700 }}>{t.name}</div>
-                          {t.category && (
+                          <div style={{ fontSize: 13, fontWeight: 700 }}>{prod.name}</div>
+                          {prod.category && (
                             <div
                               className="t-xs"
                               style={{ color: "hsl(var(--muted-foreground))" }}
                             >
-                              {t.category}
+                              {prod.category}
                             </div>
                           )}
                         </div>
@@ -458,10 +460,10 @@ export default function ReportePage() {
                       style={{ ...tdStyle, textAlign: "right", fontWeight: 700, fontFamily: "var(--font-display)" }}
                       className="t-num"
                     >
-                      {t.qty}
+                      {prod.qty}
                     </td>
                     <td style={{ ...tdStyle, textAlign: "right" }} className="t-num">
-                      {fmt(t.price)}
+                      {fmt(prod.price)}
                     </td>
                     <td
                       style={{
@@ -473,7 +475,7 @@ export default function ReportePage() {
                       }}
                       className="t-num"
                     >
-                      {fmt(t.revenue)}
+                      {fmt(prod.revenue)}
                     </td>
                     <td style={{ ...tdStyle, textAlign: "right" }}>
                       <div
@@ -517,7 +519,7 @@ export default function ReportePage() {
               <tfoot>
                 <tr style={{ background: "hsl(var(--muted) / 0.6)" }}>
                   <td style={tdStyle} />
-                  <td style={{ ...tdStyle, fontWeight: 800 }}>Total</td>
+                  <td style={{ ...tdStyle, fontWeight: 800 }}>{t("report.total")}</td>
                   <td
                     style={{
                       ...tdStyle,

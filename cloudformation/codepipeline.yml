@@ -268,19 +268,19 @@ Resources:
           GroupName: !Ref DeployDashboardLogGroup
           Status: ENABLED
 
-  # ── Phase 6: Deploy pollos-sales POS app (independent) ───────────────────────
+  # ── Phase 6: Deploy pos-system POS app (independent) ────────────────────────
 
-  DeployPollosSalesLogGroup:
+  DeployPosSystemLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-pollos-sales"
+      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-pos-system"
       RetentionInDays: 14
 
-  DeployPollosSalesProject:
+  DeployPosSystemProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "jmarkets-${Environment}-frontend-pollos-sales"
-      Description: Build pollos-sales POS app and deploy to S3+CloudFront
+      Name: !Sub "jmarkets-${Environment}-frontend-pos-system"
+      Description: Build pos-system POS app and deploy to S3+CloudFront
       ServiceRole:
         Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
       Artifacts:
@@ -307,11 +307,11 @@ Resources:
             Value: !Ref RootDomainParam
       Source:
         Type: CODEPIPELINE
-        BuildSpec: buildspec-frontend-pollos-sales.yml
+        BuildSpec: buildspec-frontend-pos-system.yml
       TimeoutInMinutes: 30
       LogsConfig:
         CloudWatchLogs:
-          GroupName: !Ref DeployPollosSalesLogGroup
+          GroupName: !Ref DeployPosSystemLogGroup
           Status: ENABLED
 
   # ── Phase 7: Deploy all 8 template storefronts ───────────────────────────────
@@ -498,16 +498,16 @@ Resources:
                 - Name: DashboardOutput
               RunOrder: 1
 
-        - Name: DeployPollosSales
+        - Name: DeployPosSystem
           Actions:
-            - Name: DeployPollosSales
+            - Name: DeployPosSystem
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: "1"
               Configuration:
-                ProjectName: !Ref DeployPollosSalesProject
+                ProjectName: !Ref DeployPosSystemProject
                 EnvironmentVariables: !Sub |
                   [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
                    {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
@@ -516,7 +516,7 @@ Resources:
               InputArtifacts:
                 - Name: SourceCode
               OutputArtifacts:
-                - Name: PollosSalesOutput
+                - Name: PosSystemOutput
               RunOrder: 1
 
         - Name: DeployTemplates

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon, Card, Button, Input } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type PaymentMethod = "Efectivo" | "SINPE" | "Tarjeta";
 
@@ -9,18 +10,19 @@ interface PaymentScreenProps {
   onConfirm: (method: PaymentMethod, received?: number) => Promise<void>;
 }
 
-const METHODS: { id: PaymentMethod; icon: string }[] = [
-  { id: "Efectivo", icon: "cash" },
-  { id: "SINPE", icon: "smartphone" },
-  { id: "Tarjeta", icon: "card" },
-];
-
 const fmt = (n: number) => "₡" + n.toLocaleString("es-CR");
 
 export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScreenProps) {
+  const { t } = useLanguage();
   const [method, setMethod] = useState<PaymentMethod>("Efectivo");
   const [received, setReceived] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const METHODS: { id: PaymentMethod; icon: string; label: string }[] = [
+    { id: "Efectivo", icon: "cash", label: t("pos.cash") },
+    { id: "SINPE", icon: "smartphone", label: t("pos.sinpe") },
+    { id: "Tarjeta", icon: "card", label: t("pos.card") },
+  ];
 
   const receivedNum = Number(received);
   const change = receivedNum - total;
@@ -41,13 +43,13 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Button variant="ghost" size="sm" icon="arrowLeft" onClick={onBack} />
-        <h2 className="t-h2" style={{ margin: 0 }}>Cobro</h2>
+        <h2 className="t-h2" style={{ margin: 0 }}>{t("payment.title")}</h2>
       </div>
 
       {/* Total card */}
       <Card style={{ padding: "20px 24px", textAlign: "center" }}>
         <div className="t-label" style={{ marginBottom: 8, letterSpacing: "0.08em" }}>
-          TOTAL A COBRAR
+          {t("payment.totalLabel")}
         </div>
         <div
           className="t-stat-xl"
@@ -59,7 +61,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
 
       {/* Method selector */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-        {METHODS.map(({ id, icon }) => (
+        {METHODS.map(({ id, icon, label }) => (
           <button
             key={id}
             type="button"
@@ -96,7 +98,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
                 color: method === id ? "hsl(var(--primary))" : "hsl(var(--foreground))",
               }}
             >
-              {id}
+              {label}
             </span>
           </button>
         ))}
@@ -106,7 +108,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
       {method === "Efectivo" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <label className="t-label" style={{ letterSpacing: "0.06em" }}>
-            MONTO RECIBIDO
+            {t("payment.receivedLabel")}
           </label>
           <Input
             type="number"
@@ -158,7 +160,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Icon name="cash" size={16} style={{ color: "hsl(var(--success))" } as any} />
                 <span style={{ fontSize: 14, fontWeight: 700, color: "hsl(var(--success))" }}>
-                  Devolver
+                  {t("payment.return")}
                 </span>
               </div>
               <span
@@ -181,7 +183,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
             >
               <Icon name="alertTri" size={14} />
               <span className="t-sm" style={{ fontWeight: 600 }}>
-                Faltan {fmt(total - receivedNum)}
+                {t("payment.remaining", { amount: fmt(total - receivedNum) })}
               </span>
             </div>
           )}
@@ -192,7 +194,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
       {method === "SINPE" && (
         <Card style={{ padding: "24px", textAlign: "center" }}>
           <div className="t-label" style={{ marginBottom: 10, letterSpacing: "0.06em" }}>
-            SINPE MÓVIL — NÚMERO DESTINO
+            {t("payment.sinpeTitle")}
           </div>
           <div
             className="t-num"
@@ -207,8 +209,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
             {import.meta.env.VITE_SINPE_NUMBER || "8888-8888"}
           </div>
           <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Pedile al cliente que transfiera{" "}
-            <strong style={{ color: "hsl(var(--primary))" }}>{fmt(total)}</strong>
+            {t("payment.sinpeInstruction", { amount: fmt(total) })}
           </p>
         </Card>
       )}
@@ -229,10 +230,10 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
             <Icon name="card" size={28} />
           </div>
           <div style={{ fontSize: 17, fontWeight: 700, fontFamily: "var(--font-display)", marginBottom: 6 }}>
-            Pasá la tarjeta por el datafono
+            {t("payment.cardInstruction")}
           </div>
           <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Monto: <strong style={{ color: "hsl(var(--primary))" }}>{fmt(total)}</strong>
+            {t("payment.amountLabel")} <strong style={{ color: "hsl(var(--primary))" }}>{fmt(total)}</strong>
           </p>
         </Card>
       )}
@@ -246,7 +247,9 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
         icon={loading ? undefined : "checkCircle"}
         style={{ width: "100%", marginTop: "auto" }}
       >
-        {loading ? "Registrando…" : `Confirmar ${method}`}
+        {loading
+          ? t("payment.registering")
+          : t("payment.confirm", { method: METHODS.find((m) => m.id === method)?.label ?? method })}
       </Button>
     </div>
   );

@@ -1,7 +1,7 @@
 {
-  "name": "Pollos Porteños Sales",
-  "short_name": "Pollos POS",
-  "description": "Sistema de ventas para Pollos Porteños",
+  "name": "JMarkets POS",
+  "short_name": "JMarkets POS",
+  "description": "Point of sale system by JMarkets",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111111",

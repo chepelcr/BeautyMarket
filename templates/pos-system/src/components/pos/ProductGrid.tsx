@@ -1,6 +1,8 @@
 import { Badge, Icon } from "@/components/ui";
+import { ProductImage } from "@/components/ui/ProductImage";
 import type { Product } from "@/hooks/useProducts";
 import { useInventory } from "@/store/inventory";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProductGridProps {
   products: Product[];
@@ -10,10 +12,15 @@ interface ProductGridProps {
   onCategoryChange: (cat: string) => void;
 }
 
-const CATEGORIES = ["Todos", "Comida", "Bebida"];
-
 export default function ProductGrid({ products, cart, onAdd, category, onCategoryChange }: ProductGridProps) {
   const getStock = useInventory((s) => s.getStock);
+  const { t } = useLanguage();
+
+  const CATEGORIES = [
+    { id: "Todos", label: t("pos.allCategories") },
+    { id: "Comida", label: "Comida" },
+    { id: "Bebida", label: "Bebida" },
+  ];
 
   const filtered =
     category === "Todos" ? products : products.filter((p) => (p as any).category_id === category);
@@ -33,12 +40,12 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
       >
         {CATEGORIES.map((cat) => (
           <button
-            key={cat}
+            key={cat.id}
             type="button"
-            onClick={() => onCategoryChange(cat)}
-            className={`btn btn-sm ${category === cat ? "btn-primary" : "btn-outline"}`}
+            onClick={() => onCategoryChange(cat.id)}
+            className={`btn btn-sm ${category === cat.id ? "btn-primary" : "btn-outline"}`}
           >
-            {cat}
+            {cat.label}
           </button>
         ))}
       </div>
@@ -133,7 +140,7 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
                 </div>
               )}
 
-              <span style={{ fontSize: 28 }}>{p.emoji}</span>
+              <ProductImage imageUrl={p.image_url} name={p.name} size={28} />
               <span
                 style={{
                   fontSize: 14,

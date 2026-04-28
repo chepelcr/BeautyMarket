@@ -70,14 +70,14 @@ export const crossAppApi = {
   get: <T>(path: string) => request<T>("GET", path, undefined, CROSS_APP_API_BASE),
   post: <T>(path: string, body: unknown) => request<T>("POST", path, body, CROSS_APP_API_BASE),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body, CROSS_APP_API_BASE),
-  delete: <T>(path: string) => request<T>("DELETE", path, CROSS_APP_API_BASE),
+  delete: <T>(path: string) => request<T>("DELETE", path, undefined, CROSS_APP_API_BASE),
 };
 
 export const ordersApi = {
   get: <T>(path: string) => request<T>("GET", path, undefined, CROSS_APP_API_BASE),
   post: <T>(path: string, body: unknown) => request<T>("POST", path, body, CROSS_APP_API_BASE),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body, CROSS_APP_API_BASE),
-  delete: <T>(path: string) => request<T>("DELETE", path, CROSS_APP_API_BASE),
+  delete: <T>(path: string) => request<T>("DELETE", path, undefined, CROSS_APP_API_BASE),
 };
 
 /** Build org-scoped API path (markets API) */

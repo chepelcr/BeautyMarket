@@ -1,21 +1,19 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { AuthNavbar } from "@/components/layout/AuthNavbar";
 
 export default function Login() {
   const { user, login, isLoading } = useAuthContext();
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  console.log('[Login] Component state:', { hasUser: !!user, isLoading });
-
-  // Redirect if already authenticated
   useEffect(() => {
     if (user && !isLoading) {
-      console.log('[Login] User authenticated, redirecting to org select');
-      // Always redirect to org select page, it will handle the rest
       navigate("/organizations/select");
     }
   }, [user, isLoading, navigate]);
@@ -23,26 +21,21 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    console.log('[Login] Attempting login...');
     try {
       await login(email, password);
-      console.log('[Login] Login successful');
-      // Navigation will be handled by the useEffect above after login completes
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Error al iniciar sesión";
-      console.error('[Login] Login failed:', errorMsg);
+      const errorMsg = err instanceof Error ? err.message : t("auth.loginError");
       setError(errorMsg);
     }
   };
 
-  // Show loading while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl animate-bounce">🍗</div>
+          <div className="text-5xl animate-bounce">🏪</div>
           <div className="text-primary font-barlow text-xl font-bold animate-pulse">
-            Cargando...
+            {t("common.loading")}
           </div>
         </div>
       </div>
@@ -51,20 +44,22 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <AuthNavbar />
+
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🍗</div>
+          <div className="text-5xl mb-3">🏪</div>
           <h1 className="font-barlow font-extrabold text-3xl text-primary tracking-wide">
-            POLLOS PORTEÑOS
+            JMarkets POS
           </h1>
-          <p className="text-muted text-sm mt-1">Sistema de Ventas</p>
+          <p className="text-muted text-sm mt-1">{t("auth.systemTitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-muted tracking-widest font-barlow">
-              CORREO
+              {t("auth.email")}
             </label>
             <input
               type="email"
@@ -72,13 +67,13 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="px-4 py-3 bg-surface border border-surface-border rounded-xl text-foreground font-barlow text-base outline-none focus:border-primary transition-colors"
-              placeholder="usuario@ejemplo.com"
+              placeholder={t("auth.emailPlaceholder")}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-muted tracking-widest font-barlow">
-              CONTRASEÑA
+              {t("auth.password")}
             </label>
             <input
               type="password"
@@ -101,7 +96,7 @@ export default function Login() {
             disabled={isLoading}
             className="w-full py-4 bg-primary text-white rounded-xl font-barlow font-extrabold text-xl tracking-wide disabled:opacity-50 active:bg-primary-dark transition-colors mt-2"
           >
-            {isLoading ? "Ingresando..." : "INGRESAR"}
+            {isLoading ? t("auth.loggingIn") : t("auth.login")}
           </button>
         </form>
       </div>

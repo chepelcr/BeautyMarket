@@ -1,6 +1,7 @@
 import type { SyncStatus } from "@/hooks/useSync";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Logo, SyncPill, Button, Icon } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface POSLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ export default function POSLayout({
   sessionName,
 }: POSLayoutProps) {
   const { logout } = useAuthContext();
+  const { t } = useLanguage();
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "hsl(var(--background))" }}>
@@ -36,7 +38,7 @@ export default function POSLayout({
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <SyncPill state={syncStatus} />
           <Button variant="ghost" size="sm" icon="logOut" onClick={logout}>
-            Salir
+            {t("shell.logout")}
           </Button>
         </div>
       </div>

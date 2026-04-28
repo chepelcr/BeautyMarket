@@ -1,4 +1,4 @@
-const CACHE_NAME = "pollos-sales-v1";
+const CACHE_NAME = "jmarkets-pos-v1";
 const API_SYNC_TAG = "sync-sales";
 
 self.addEventListener("install", (event) => {
@@ -48,7 +48,7 @@ async function syncPendingSales() {
 
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open("pollos-sales-db", 1);
+    const req = indexedDB.open("jmarkets-pos-db", 1);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });

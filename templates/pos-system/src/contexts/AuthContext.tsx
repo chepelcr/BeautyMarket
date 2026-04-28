@@ -20,7 +20,9 @@ export type UserRole = "cajero" | "gerente" | "supervisor";
 interface AuthUser {
   userId: string;
   email: string;
-  name: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
   role: UserRole;
 }
 

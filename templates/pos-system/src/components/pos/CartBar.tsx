@@ -1,5 +1,7 @@
 import { Icon, Button } from "@/components/ui";
+import { ProductImage } from "@/components/ui/ProductImage";
 import type { Product } from "@/hooks/useProducts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CartItem {
   product: Product;
@@ -16,6 +18,8 @@ interface CartBarProps {
 }
 
 export default function CartBar({ items, total, count, onAdd, onRemove, onCheckout }: CartBarProps) {
+  const { t } = useLanguage();
+
   return (
     <div
       style={{
@@ -54,8 +58,9 @@ export default function CartBar({ items, total, count, onAdd, onRemove, onChecko
                 >
                   <Icon name="plus" size={12} />
                 </button>
+                <ProductImage imageUrl={product.image_url} name={product.name} size={20} style={{ borderRadius: 4 }} />
                 <span className="t-sm" style={{ fontWeight: 500 }}>
-                  {product.emoji} {product.name}
+                  {product.name}
                 </span>
               </div>
               <span
@@ -80,8 +85,8 @@ export default function CartBar({ items, total, count, onAdd, onRemove, onChecko
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Icon name="cart" size={18} />
           {items.length > 0
-            ? `${count} ítem${count !== 1 ? "s" : ""}`
-            : "Seleccioná productos"}
+            ? `${count} ${count !== 1 ? t("cart.items") : t("cart.item")}`
+            : t("cart.selectProducts")}
         </span>
         {items.length > 0 && (
           <span className="t-num" style={{ fontSize: 18, fontWeight: 800 }}>

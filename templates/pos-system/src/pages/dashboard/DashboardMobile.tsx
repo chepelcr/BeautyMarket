@@ -4,6 +4,7 @@ import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Icon, Card, CardTitle, CardDescription, Badge } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
 const timeAgo = (s: number) => s < 60 ? `${s}s` : `${Math.floor(s / 60)}m`;
@@ -48,6 +49,7 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
 
   const [tab, setTab] = useState<MobileTab>("resumen");
 
@@ -92,13 +94,13 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
         )}
         <div style={{ flex: 1, textAlign: "center" }}>
           <div className="t-label" style={{ fontSize: 10 }}>
-            Panel gerente
+            {t("mobile.panel")}
           </div>
           <div style={{ fontSize: 13, fontWeight: 700 }}>{sessionName}</div>
         </div>
         <Badge variant="success" style={{ gap: 4 }}>
           <span className="status-dot status-dot-live" style={{ width: 5, height: 5 }} />
-          Live
+          {t("mobile.live")}
         </Badge>
       </header>
 
@@ -116,15 +118,15 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
           }}
         >
           <div className="t-label" style={{ color: "hsl(var(--primary))", marginBottom: 6 }}>
-            Ventas del partido
+            {t("mobile.sessionSales")}
           </div>
           <div className="t-stat-xl" style={{ fontSize: 42, color: "hsl(var(--primary))" }}>
             {fmt(totalSales)}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
-            <Badge variant="success">En vivo</Badge>
+            <Badge variant="success">{t("mobile.live")}</Badge>
             <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {kpis.activeStands ?? 0} puestos activos
+              {t("mobile.stationOrders", { n: String(kpis.activeStands ?? 0) })}
             </span>
           </div>
         </Card>
@@ -139,21 +141,21 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
           }}
         >
           {[
-            { l: "Órdenes", v: String(kpis.totalOrders ?? 0), icon: "cart", c: "info" },
+            { l: t("mobile.orders"), v: String(kpis.totalOrders ?? 0), icon: "cart", c: "info" },
             {
-              l: "Ticket",
+              l: t("mobile.ticket"),
               v: fmt(kpis.avgTicket ?? 0),
               icon: "dollar",
               c: "success",
             },
             {
-              l: "Puestos",
+              l: t("mobile.stations"),
               v: `${kpis.activeStands ?? 0}/${stands.length || 0}`,
               icon: "store",
               c: "primary",
             },
             {
-              l: "Cajeros",
+              l: t("mobile.cashiers"),
               v: String(kpis.activeCashiers ?? stands.length ?? 0),
               icon: "users",
               c: "warning",
@@ -187,19 +189,19 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
         <div className="tabs" style={{ width: "100%", marginBottom: 14 }}>
           {(
             [
-              { id: "resumen", l: "Resumen" },
-              { id: "puestos", l: "Puestos" },
-              { id: "top", l: "Top" },
+              { id: "resumen", l: t("mobile.summary") },
+              { id: "puestos", l: t("mobile.stationsTab") },
+              { id: "top", l: t("mobile.topTab") },
             ] as const
-          ).map((t) => (
+          ).map((tabItem) => (
             <button
-              key={t.id}
+              key={tabItem.id}
               className="tab"
-              aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === tabItem.id}
+              onClick={() => setTab(tabItem.id)}
               style={{ flex: 1, textAlign: "center" }}
             >
-              {t.l}
+              {tabItem.l}
             </button>
           ))}
         </div>
@@ -207,13 +209,13 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
         {/* Tab: Resumen — feed */}
         {tab === "resumen" && (
           <Card style={{ padding: 16 }}>
-            <CardTitle>Últimas ventas</CardTitle>
+            <CardTitle>{t("mobile.lastSales")}</CardTitle>
             <CardDescription style={{ marginBottom: 12 }}>
-              Feed en tiempo real
+              {t("mobile.liveFeed")}
             </CardDescription>
             {feed.length === 0 && (
               <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))", padding: "8px 0" }}>
-                Sin ventas aún.
+                {t("mobile.noSales")}
               </p>
             )}
             {feed.slice(0, 10).map((f, i) => (
@@ -277,7 +279,7 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
                     {fmt(f.total)}
                   </div>
                   <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    hace {timeAgo(f.secondsAgo)}
+                    {t("mobile.timeAgo", { time: timeAgo(f.secondsAgo) })}
                   </div>
                 </div>
               </div>
@@ -290,7 +292,7 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {stands.length === 0 && (
               <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Sin puestos activos.
+                {t("mobile.noActiveStations")}
               </p>
             )}
             {stands.map((p) => {
@@ -315,7 +317,7 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
                         <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          {p.cashierName ?? "Sin cajero"}
+                          {p.cashierName ?? t("mobile.noCashier")}
                         </div>
                       </div>
                     </div>
@@ -337,9 +339,9 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
                     className="t-xs t-num"
                     style={{ marginTop: 6, color: "hsl(var(--muted-foreground))" }}
                   >
-                    {p.totalOrders} órdenes
+                    {t("mobile.stationOrders", { n: String(p.totalOrders) })}
                     {p.totalOrders > 0
-                      ? ` · ticket ${fmt(Math.round(p.totalSales / p.totalOrders))}`
+                      ? ` · ${t("mobile.ticket")} ${fmt(Math.round(p.totalSales / p.totalOrders))}`
                       : ""}
                   </div>
                 </Card>
@@ -353,12 +355,12 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
           <Card style={{ padding: 14 }}>
             {topProducts.length === 0 && (
               <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Sin datos de productos.
+                {t("mobile.noProductData")}
               </p>
             )}
-            {topProducts.map((t, i) => (
+            {topProducts.map((prod, i) => (
               <div
-                key={t.id}
+                key={prod.id}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -392,12 +394,12 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
                     flexShrink: 0,
                   }}
                 >
-                  {t.emoji ?? "🍗"}
+                  {prod.emoji ?? "🍗"}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{t.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{prod.name}</div>
                   <div className="t-xs t-num" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {t.unitsSold} unidades
+                    {prod.unitsSold} {t("dash.units")}
                   </div>
                 </div>
                 <div
@@ -409,7 +411,7 @@ export default function DashboardMobile({ onBack }: { onBack?: () => void }) {
                     flexShrink: 0,
                   }}
                 >
-                  {fmt(t.revenue)}
+                  {fmt(prod.revenue)}
                 </div>
               </div>
             ))}

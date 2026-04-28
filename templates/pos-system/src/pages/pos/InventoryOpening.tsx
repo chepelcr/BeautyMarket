@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { useInventory } from "@/store/inventory";
 import type { Product } from "@/types";
 import { Icon, Card, Button, SyncPill } from "@/components/ui";
+import { ProductImage } from "@/components/ui/ProductImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
@@ -33,6 +35,7 @@ export default function InventoryOpening({
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const setOpeningStock = useInventory((s) => s.setOpeningStock);
+  const { t } = useLanguage();
 
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [cash, setCash] = useState("25000");
@@ -100,15 +103,15 @@ export default function InventoryOpening({
         <button
           className="btn btn-ghost btn-sm btn-icon"
           onClick={onExit}
-          aria-label="Volver"
+          aria-label={t("inv.back")}
         >
           <Icon name="arrowLeft" size={18} />
         </button>
         <div style={{ flex: 1 }}>
           <div className="t-label" style={{ fontSize: 10 }}>
-            Apertura de turno
+            {t("inv.shiftOpening")}
           </div>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>Conteo inicial</div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>{t("inv.initialCount")}</div>
         </div>
         <SyncPill state="online" />
       </div>
@@ -138,10 +141,10 @@ export default function InventoryOpening({
               marginBottom: 6,
             }}
           >
-            <div className="t-label">Progreso</div>
+            <div className="t-label">{t("inv.progress")}</div>
             <div className="t-sm" style={{ fontWeight: 700 }}>
               <span className="t-num">{filledCount}</span>/
-              <span className="t-num">{totalProducts}</span> productos
+              <span className="t-num">{totalProducts}</span> {t("inv.products")}
             </div>
           </div>
           <div className="progress">
@@ -161,9 +164,9 @@ export default function InventoryOpening({
               <Icon name="cash" size={16} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Efectivo inicial</div>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>{t("inv.initialCash")}</div>
               <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Fondo entregado por el gerente
+                {t("inv.initialFund")}
               </div>
             </div>
           </div>
@@ -208,7 +211,7 @@ export default function InventoryOpening({
             marginBottom: 10,
           }}
         >
-          <h3 className="t-label">Productos · contar unidades</h3>
+          <h3 className="t-label">{t("inv.countUnits")}</h3>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {activeProducts.map((p) => {
@@ -226,25 +229,11 @@ export default function InventoryOpening({
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 10,
-                      background: "hsl(var(--muted))",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 26,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {p.emoji}
-                  </div>
+                  <ProductImage imageUrl={p.image_url} name={p.name} size={48} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
                     <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      SKU {p.sku} · {fmt(p.price)}
+                      {t("inv.sku", { sku: p.sku ?? "", price: fmt(p.price) })}
                     </div>
                   </div>
                   <div
@@ -260,7 +249,7 @@ export default function InventoryOpening({
                     <button
                       className="btn btn-ghost btn-sm btn-icon"
                       onClick={() => adjustCount(p.product_id, -1)}
-                      aria-label="Restar"
+                      aria-label={t("inv.subtract")}
                     >
                       <Icon name="minus" size={14} />
                     </button>
@@ -286,7 +275,7 @@ export default function InventoryOpening({
                     <button
                       className="btn btn-ghost btn-sm btn-icon"
                       onClick={() => adjustCount(p.product_id, 1)}
-                      aria-label="Sumar"
+                      aria-label={t("inv.add")}
                     >
                       <Icon name="plus" size={14} />
                     </button>
@@ -324,7 +313,7 @@ export default function InventoryOpening({
         >
           <div style={{ flex: 1 }}>
             <div className="t-label" style={{ fontSize: 10 }}>
-              Valor inventario
+              {t("inv.inventoryValue")}
             </div>
             <div className="t-stat" style={{ fontSize: 20 }}>
               {fmt(totalValue)}
@@ -337,7 +326,7 @@ export default function InventoryOpening({
             onClick={() => setConfirmOpen(true)}
             style={{ flex: 1.2 }}
           >
-            <Icon name="check" size={16} /> Abrir turno
+            <Icon name="check" size={16} /> {t("inv.openShift")}
           </Button>
         </div>
       </div>
@@ -383,13 +372,13 @@ export default function InventoryOpening({
               <Icon name="checkCircle" size={26} />
             </div>
             <h3 className="t-h2" style={{ marginBottom: 6 }}>
-              Confirmar apertura
+              {t("inv.confirmTitle")}
             </h3>
             <p
               className="t-sm"
               style={{ color: "hsl(var(--muted-foreground))", marginBottom: 16 }}
             >
-              Al confirmar, el turno queda abierto y no podés cambiar el conteo inicial.
+              {t("inv.confirmMessage")}
             </p>
             <Card
               style={{
@@ -407,9 +396,9 @@ export default function InventoryOpening({
                   marginBottom: 6,
                 }}
               >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>Productos</span>
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.productsLabel")}</span>
                 <span style={{ fontWeight: 700 }} className="t-num">
-                  {totalProducts} items
+                  {t("inv.items", { n: totalProducts })}
                 </span>
               </div>
               <div
@@ -420,7 +409,7 @@ export default function InventoryOpening({
                   marginBottom: 6,
                 }}
               >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>Efectivo inicial</span>
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.cashLabel")}</span>
                 <span style={{ fontWeight: 700 }} className="t-num">
                   {fmt(Number(cash) || 0)}
                 </span>
@@ -428,7 +417,7 @@ export default function InventoryOpening({
               <div
                 style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}
               >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>Valor en stock</span>
+                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.stockValue")}</span>
                 <span style={{ fontWeight: 700 }} className="t-num">
                   {fmt(totalValue)}
                 </span>
@@ -436,19 +425,19 @@ export default function InventoryOpening({
             </Card>
             {mutation.isError && (
               <p className="t-sm" style={{ color: "hsl(var(--destructive))", marginBottom: 12 }}>
-                Error al guardar. Intentá de nuevo.
+                {t("inv.saveError")}
               </p>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-                Cancelar
+                {t("inv.cancel")}
               </Button>
               <Button
                 variant="primary"
                 disabled={mutation.isPending}
                 onClick={() => mutation.mutate()}
               >
-                {mutation.isPending ? "Guardando…" : "Confirmar"}
+                {mutation.isPending ? t("inv.saving") : t("inv.confirm")}
               </Button>
             </div>
           </Card>

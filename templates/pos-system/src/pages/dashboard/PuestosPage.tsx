@@ -6,6 +6,7 @@ import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import {
   Icon, Card, Badge, Button, Input, Drawer, Menu, EmptyState, LocationSelect,
 } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type {
   Branch, Terminal, BranchListResponse, TerminalListResponse,
   CreateBranchRequest, CreateTerminalRequest, BranchType, BranchStatus,
@@ -14,8 +15,6 @@ import type {
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-const TYPE_LABEL: Record<BranchType, string> = { stand: "Stand", restaurant: "Restaurante" };
-const STATUS_LABEL: Record<BranchStatus, string> = { 1: "Activo", 2: "Inactivo", 3: "Eliminado" };
 const STATUS_VARIANT: Record<BranchStatus, "success" | "secondary" | "destructive"> = {
   1: "success", 2: "secondary", 3: "destructive",
 };
@@ -30,6 +29,9 @@ interface BranchFormProps {
 }
 
 function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormProps) {
+  const { t } = useLanguage();
+  const TYPE_LABEL: Record<BranchType, string> = { stand: t("puestos.stand"), restaurant: t("puestos.restaurant") };
+  const STATUS_LABEL: Record<BranchStatus, string> = { 1: t("common.active"), 2: t("common.inactive"), 3: t("common.delete") };
   const [name, setName] = useState(editing?.name ?? "");
   const [code, setCode] = useState(editing?.code ?? "");
   const [type, setType] = useState<BranchType>(editing?.type ?? "stand");
@@ -65,7 +67,7 @@ function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormProps) {
     <form id="branch-form" onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Type toggle */}
       <div>
-        <label className="t-label" style={{ display: "block", marginBottom: 8 }}>Tipo de puesto</label>
+        <label className="t-label" style={{ display: "block", marginBottom: 8 }}>{t("session.sessionType")}</label>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {(["stand", "restaurant"] as BranchType[]).map((t) => (
             <button
@@ -91,14 +93,14 @@ function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormProps) {
 
       <div>
         <label className="t-label" htmlFor="b-name" style={{ display: "block", marginBottom: 6 }}>
-          Nombre <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+          {t("products.name")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
         </label>
         <Input id="b-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="ej. Puesto Principal, Sector Norte…" />
       </div>
 
       <div>
         <label className="t-label" htmlFor="b-code" style={{ display: "block", marginBottom: 6 }}>
-          Código <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+          {t("products.sku")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
         </label>
         <Input
           id="b-code" required value={code}
@@ -136,10 +138,10 @@ function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormProps) {
       {/* Footer buttons */}
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 4 }}>
         <Button variant="outline" size="sm" type="button" onClick={onClose} disabled={isSaving}>
-          Cancelar
+          {t("common.cancel")}
         </Button>
         <Button variant="primary" size="sm" type="submit" disabled={isSaving}>
-          {isSaving ? "Guardando…" : editing ? "Guardar cambios" : "Crear puesto"}
+          {isSaving ? t("common.saving") : editing ? t("common.save") : t("puestos.newStation")}
         </Button>
       </div>
     </form>
@@ -156,6 +158,7 @@ interface TerminalFormProps {
 }
 
 function TerminalForm({ branchId, onSave, isSaving, onClose }: TerminalFormProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [deviceId, setDeviceId] = useState("");
@@ -199,10 +202,10 @@ function TerminalForm({ branchId, onSave, isSaving, onClose }: TerminalFormProps
 
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 4 }}>
         <Button variant="outline" size="sm" type="button" onClick={onClose} disabled={isSaving}>
-          Cancelar
+          {t("common.cancel")}
         </Button>
         <Button variant="primary" size="sm" type="submit" disabled={isSaving}>
-          {isSaving ? "Guardando…" : "Agregar terminal"}
+          {isSaving ? t("common.saving") : t("puestos.addTerminal")}
         </Button>
       </div>
     </form>
@@ -212,6 +215,8 @@ function TerminalForm({ branchId, onSave, isSaving, onClose }: TerminalFormProps
 // ─── Terminal row ─────────────────────────────────────────────────────────────
 
 function TerminalRow({ terminal, isLast }: { terminal: Terminal; isLast: boolean }) {
+  const { t } = useLanguage();
+  const STATUS_LABEL: Record<BranchStatus, string> = { 1: t("common.active"), 2: t("common.inactive"), 3: t("common.delete") };
   const isActive = terminal.status === 1;
   const lastSeen = terminal.last_seen_at
     ? new Date(terminal.last_seen_at).toLocaleString("es-CR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
@@ -227,7 +232,7 @@ function TerminalRow({ terminal, isLast }: { terminal: Terminal; isLast: boolean
             {terminal.code}
           </span>
         </div>
-        {lastSeen && <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 1 }}>Último sync: {lastSeen}</div>}
+        {lastSeen && <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 1 }}>{lastSeen}</div>}
         {terminal.device_id && <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 1, fontFamily: "var(--font-mono)" }}>{terminal.device_id}</div>}
       </div>
       <Badge variant={STATUS_VARIANT[terminal.status]}>{STATUS_LABEL[terminal.status]}</Badge>
@@ -246,6 +251,9 @@ interface BranchCardProps {
 }
 
 function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTerminal }: BranchCardProps) {
+  const { t } = useLanguage();
+  const TYPE_LABEL: Record<BranchType, string> = { stand: t("puestos.stand"), restaurant: t("puestos.restaurant") };
+  const STATUS_LABEL: Record<BranchStatus, string> = { 1: t("common.active"), 2: t("common.inactive"), 3: t("common.delete") };
   const [expanded, setExpanded] = useState(false);
   const isActive = branch.status === 1;
   const typeColor = branch.type === "stand" ? "hsl(var(--primary))" : "hsl(220 80% 55%)";
@@ -258,10 +266,10 @@ function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTerminal }: Br
   const terminals = terminalsData?.data ?? [];
 
   const menuItems = [
-    { label: "Editar",      icon: "edit",        action: () => onEdit(branch),               hidden: branch.status === 3 },
-    { label: "Activar",     icon: "checkCircle", action: () => onStatusChange(branch, 1),    hidden: branch.status !== 2, color: "hsl(var(--success))" },
-    { label: "Desactivar",  icon: "xCircle",     action: () => onStatusChange(branch, 2),    hidden: branch.status !== 1 },
-    { label: "Eliminar",    icon: "trash",       action: () => onStatusChange(branch, 3),    hidden: branch.status === 3, color: "hsl(var(--destructive))" },
+    { label: t("common.edit"),        icon: "edit",        action: () => onEdit(branch),               hidden: branch.status === 3 },
+    { label: t("common.activate"),   icon: "checkCircle", action: () => onStatusChange(branch, 1),    hidden: branch.status !== 2, color: "hsl(var(--success))" },
+    { label: t("common.deactivate"), icon: "xCircle",     action: () => onStatusChange(branch, 2),    hidden: branch.status !== 1 },
+    { label: t("common.delete"),     icon: "trash",       action: () => onStatusChange(branch, 3),    hidden: branch.status === 3, color: "hsl(var(--destructive))" },
   ];
 
   return (
@@ -332,7 +340,7 @@ function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTerminal }: Br
         <div className="fade-up" style={{ borderTop: "1px solid hsl(var(--border) / 0.5)", background: "hsl(var(--muted) / 0.25)" }}>
           {terminals.length === 0 ? (
             <div style={{ padding: "16px 20px" }}>
-              <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Sin terminales registradas.</span>
+              <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{t("puestos.terminals")} — 0</span>
             </div>
           ) : (
             terminals.map((t, i) => <TerminalRow key={t.terminal_id} terminal={t} isLast={i === terminals.length - 1} />)
@@ -347,7 +355,7 @@ function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTerminal }: Br
                 style={{ width: "100%", borderStyle: "dashed" }}
               >
                 <Icon name="plus" size={13} />
-                Agregar terminal
+                {t("puestos.addTerminal")}
               </button>
             </div>
           )}
@@ -364,6 +372,7 @@ export default function PuestosPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
 
   const [filter, setFilter] = useState<"all" | BranchType>("all");
   const [showOnlyActive, setShowOnlyActive] = useState(false);
@@ -429,13 +438,13 @@ export default function PuestosPage() {
       {/* Page header */}
       <div className="fade-up" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16, flexWrap: "wrap" }}>
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 4 }}>Puestos</h1>
+          <h1 className="t-h1" style={{ marginBottom: 4 }}>{t("puestos.title")}</h1>
           <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {total === 0 ? "Sin puestos registrados." : `${activeCount} activos · ${total} en total`}
+            {total === 0 ? t("puestos.title") : t("puestos.subtitle", { active: String(activeCount), total: String(total) })}
           </p>
         </div>
         <Button variant="primary" icon="plus" onClick={() => { setEditingBranch(null); setBranchDrawer(true); }}>
-          Nuevo puesto
+          {t("puestos.newStation")}
         </Button>
       </div>
 
@@ -456,13 +465,13 @@ export default function PuestosPage() {
         <div style={{ display: "flex", gap: 6 }}>
           {(["all", "stand", "restaurant"] as const).map((f) => (
             <button key={f} type="button" onClick={() => setFilter(f)} className={`btn btn-sm ${filter === f ? "btn-primary" : "btn-outline"}`}>
-              {f === "all" ? "Todos" : TYPE_LABEL[f]}
+              {f === "all" ? t("puestos.all") : f === "stand" ? t("puestos.stand") : t("puestos.restaurant")}
             </button>
           ))}
         </div>
         <button type="button" onClick={() => setShowOnlyActive((v) => !v)} className={`btn btn-sm ${showOnlyActive ? "btn-success" : "btn-outline"}`} style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Icon name={showOnlyActive ? "checkCircle" : "eye"} size={14} />
-          Solo activos
+          {t("puestos.onlyActive")}
         </button>
       </div>
 
@@ -476,11 +485,11 @@ export default function PuestosPage() {
       ) : branches.length === 0 ? (
         <EmptyState
           icon="store"
-          title={search || filter !== "all" ? "Sin resultados" : "No hay puestos registrados"}
-          description={search || filter !== "all" ? "Probá con otros filtros." : "Creá el primer puesto para comenzar."}
+          title={search || filter !== "all" ? t("common.noResults") : t("puestos.title")}
+          description={search || filter !== "all" ? t("common.noResults") : t("puestos.newStation")}
           action={!search && filter === "all" ? (
             <Button variant="primary" icon="plus" onClick={() => { setEditingBranch(null); setBranchDrawer(true); }}>
-              Crear primer puesto
+              {t("puestos.newStation")}
             </Button>
           ) : undefined}
         />
@@ -503,8 +512,8 @@ export default function PuestosPage() {
       <Drawer
         open={branchDrawer}
         onClose={() => { setBranchDrawer(false); setEditingBranch(null); }}
-        title={editingBranch ? "Editar puesto" : "Nuevo puesto"}
-        subtitle={editingBranch ? `Código: ${editingBranch.code}` : "Completá los datos del puesto"}
+        title={editingBranch ? t("common.edit") + " " + t("puestos.title") : t("puestos.newStation")}
+        subtitle={editingBranch ? editingBranch.code : t("puestos.newStation")}
         icon="store"
       >
         <BranchForm
@@ -519,7 +528,7 @@ export default function PuestosPage() {
       <Drawer
         open={termDrawer}
         onClose={() => { setTermDrawer(false); setAddTermBranch(null); }}
-        title="Nueva terminal"
+        title={t("puestos.addTerminal")}
         subtitle={addTermBranch?.name}
         icon="sliders"
         iconBg="hsl(220 100% 60% / 0.12)"

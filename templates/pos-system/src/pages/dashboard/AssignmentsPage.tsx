@@ -5,6 +5,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Card, Badge, Button, Icon, Select, EmptyState } from "@/components/ui";
 import type { BranchListResponse } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Assignment {
   assignment_id: string;
@@ -39,17 +40,18 @@ interface Member {
 
 type Role = "cashier" | "supervisor";
 
-const ROLE_LABEL: Record<Role, string> = {
-  cashier: "Cajero",
-  supervisor: "Supervisor",
-};
-
 export default function AssignmentsPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+
+  const ROLE_LABEL: Record<Role, string> = {
+    cashier: t("assignments.cashier"),
+    supervisor: t("assignments.supervisor"),
+  };
 
   const [sessionId, setSessionId] = useState("");
   const [userId, setUserId] = useState("");
@@ -89,7 +91,7 @@ export default function AssignmentsPage() {
   const createMutation = useMutation({
     mutationFn: () => {
       if (!sessionId || !userId || !branchId)
-        throw new Error("Completá todos los campos requeridos");
+        throw new Error(t("common.error"));
       return crossAppApi.post(crossAppOrgPath(org!.id, "/assignments"), {
         session_id: sessionId,
         user_id: userId,
@@ -104,7 +106,7 @@ export default function AssignmentsPage() {
       setSessionId(""); setUserId(""); setBranchId(""); setRole("cashier");
       setFormError(null);
     },
-    onError: (err: Error) => setFormError(err.message || "Error al crear asignación"),
+    onError: (err: Error) => setFormError(err.message || t("common.error")),
   });
 
   const deactivateMutation = useMutation({
@@ -118,10 +120,10 @@ export default function AssignmentsPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h2 className="t-h2" style={{ margin: 0 }}>Asignaciones activas</h2>
+          <h2 className="t-h2" style={{ margin: 0 }}>{t("assignments.title")}</h2>
           {!isLoading && (
             <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))", marginTop: 2 }}>
-              {assignments.length} asignación{assignments.length !== 1 ? "es" : ""} en curso
+              {t("assignments.count", { n: String(assignments.length) })}
             </p>
           )}
         </div>
@@ -131,7 +133,7 @@ export default function AssignmentsPage() {
           icon={showForm ? "close" : "plus"}
           onClick={() => { setShowForm((v) => !v); setFormError(null); }}
         >
-          {showForm ? "Cancelar" : "Nueva asignación"}
+          {showForm ? t("common.cancel") : t("assignments.newAssignment")}
         </Button>
       </div>
 
@@ -146,7 +148,7 @@ export default function AssignmentsPage() {
               <Icon name="userPlus" size={14} />
             </div>
             <span style={{ fontSize: 15, fontWeight: 700, fontFamily: "var(--font-display)" }}>
-              Nueva asignación
+              {t("assignments.newAssignment")}
             </span>
           </div>
 
@@ -154,13 +156,13 @@ export default function AssignmentsPage() {
             {/* Session */}
             <div>
               <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-                Sesión
+                {t("assignments.session")}
               </label>
               <Select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
-                <option value="">Seleccionar sesión…</option>
+                <option value="">{t("session.select")}</option>
                 {sessions.map((s) => (
                   <option key={s.session_id} value={s.session_id}>
-                    {s.name} ({s.type === "match" ? "Partido" : "Turno"})
+                    {s.name} ({s.type === "match" ? t("session.match") : t("session.regular")})
                   </option>
                 ))}
               </Select>
@@ -169,10 +171,10 @@ export default function AssignmentsPage() {
             {/* Member */}
             <div>
               <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-                Vendedor
+                {t("assignments.seller")}
               </label>
               <Select value={userId} onChange={(e) => setUserId(e.target.value)}>
-                <option value="">Seleccionar miembro…</option>
+                <option value="">{t("session.select")}</option>
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
@@ -183,10 +185,10 @@ export default function AssignmentsPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-                  Puesto
+                  {t("puestos.title")}
                 </label>
                 <Select value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-                  <option value="">Seleccionar…</option>
+                  <option value="">{t("session.select")}</option>
                   {branches.map((b) => (
                     <option key={b.branch_id} value={b.branch_id}>{b.name}</option>
                   ))}
@@ -194,11 +196,11 @@ export default function AssignmentsPage() {
               </div>
               <div>
                 <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-                  Rol
+                  {t("assignments.role")}
                 </label>
                 <Select value={role} onChange={(e) => setRole(e.target.value as Role)}>
-                  <option value="cashier">Cajero</option>
-                  <option value="supervisor">Supervisor</option>
+                  <option value="cashier">{t("assignments.cashier")}</option>
+                  <option value="supervisor">{t("assignments.supervisor")}</option>
                 </Select>
               </div>
             </div>
@@ -218,7 +220,7 @@ export default function AssignmentsPage() {
               disabled={createMutation.isPending || !sessionId || !userId || !branchId}
               style={{ width: "100%" }}
             >
-              {createMutation.isPending ? "Asignando…" : "Crear asignación"}
+              {createMutation.isPending ? t("assignments.assigning") : t("assignments.create")}
             </Button>
           </div>
         </Card>
@@ -228,7 +230,7 @@ export default function AssignmentsPage() {
       {isLoading && (
         <div style={{ textAlign: "center", padding: "40px 0", color: "hsl(var(--muted-foreground))" }}>
           <div className="t-sm" style={{ animation: "pulse 1.5s ease-in-out infinite" }}>
-            Cargando asignaciones…
+            {t("assignments.loading")}
           </div>
         </div>
       )}
@@ -237,8 +239,8 @@ export default function AssignmentsPage() {
       {!isLoading && assignments.length === 0 && (
         <EmptyState
           icon="users"
-          title="Sin asignaciones activas"
-          description="Creá una asignación para enviar a un vendedor a un puesto."
+          title={t("assignments.noActive")}
+          description={t("assignments.noActive")}
         />
       )}
 
@@ -283,10 +285,10 @@ export default function AssignmentsPage() {
                 </div>
                 <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
                   <Icon name="store" size={11} />
-                  Puesto: {a.branch_id}
+                  {t("assignments.station", { id: a.branch_id })}
                   <span style={{ opacity: 0.5 }}>·</span>
                   <Icon name="clock" size={11} />
-                  Inicio: {startTime}
+                  {t("assignments.start", { time: startTime })}
                 </div>
               </div>
             </div>
@@ -298,7 +300,7 @@ export default function AssignmentsPage() {
               disabled={deactivateMutation.isPending}
               style={{ flexShrink: 0, color: "hsl(var(--destructive))", borderColor: "hsl(var(--destructive) / 0.4)" }}
             >
-              Finalizar
+              {t("assignments.finish")}
             </Button>
           </Card>
         );
