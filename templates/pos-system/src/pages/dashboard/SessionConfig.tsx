@@ -216,7 +216,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
     : t("session.noDate");
 
   return (
-    <div style={{ padding: "24px 24px 40px", maxWidth: 1280, margin: "0 auto" }}>
+    <div className="session-page">
       {/* Header */}
       <div
         style={{
@@ -254,45 +254,41 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
       </div>
 
       {/* Tabs */}
-      <div className="tabs" style={{ marginBottom: 18 }}>
-        <button
-          className="tab"
-          aria-selected={tab === "partido"}
-          onClick={() => setTab("partido")}
-        >
-          <Icon name="calendar" size={13} /> {t("session.tabMatch")}
-        </button>
-        <button
-          className="tab"
-          aria-selected={tab === "puestos"}
-          onClick={() => setTab("puestos")}
-        >
-          <Icon name="store" size={13} /> {t("session.tabStations")}
-        </button>
-        <button
-          className="tab"
-          aria-selected={tab === "inventario"}
-          onClick={() => setTab("inventario")}
-        >
-          <Icon name="box" size={13} /> {t("session.tabInventory")}
-        </button>
+      <div className="tabs-container" style={{ marginBottom: 18 }}>
+        <div className="tabs">
+          <button
+            className="tab"
+            aria-selected={tab === "partido"}
+            onClick={() => setTab("partido")}
+          >
+            <Icon name="calendar" size={13} /> {t("session.tabMatch")}
+          </button>
+          <button
+            className="tab"
+            aria-selected={tab === "puestos"}
+            onClick={() => setTab("puestos")}
+          >
+            <Icon name="store" size={13} /> {t("session.tabStations")}
+          </button>
+          <button
+            className="tab"
+            aria-selected={tab === "inventario"}
+            onClick={() => setTab("inventario")}
+          >
+            <Icon name="box" size={13} /> {t("session.tabInventory")}
+          </button>
+        </div>
       </div>
 
       {/* Tab: Datos del partido */}
       {tab === "partido" && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.5fr 1fr",
-            gap: 14,
-          }}
-        >
+        <div className="grid-session">
           <Card style={{ padding: 24 }}>
             <CardTitle>{t("session.sessionInfo")}</CardTitle>
             <CardDescription style={{ marginBottom: 20 }}>
               {t("session.sessionInfoDesc")}
             </CardDescription>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div className="grid-form">
               {/* Session type */}
               <div style={{ gridColumn: "1 / -1" }}>
                 <label className="label">{t("session.sessionType")}</label>
@@ -629,15 +625,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                             return (
                               <div
                                 key={memberIndex}
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1.5fr 1fr 1fr auto",
-                                  gap: 12,
-                                  alignItems: "center",
-                                  padding: "12px 16px",
-                                  background: "hsl(var(--muted) / 0.2)",
-                                  borderRadius: "var(--radius)",
-                                }}
+                                className="grid-member"
                               >
                                 {/* Member selector */}
                                 <div>

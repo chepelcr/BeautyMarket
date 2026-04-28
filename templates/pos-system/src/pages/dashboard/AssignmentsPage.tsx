@@ -190,7 +190,7 @@ export default function AssignmentsPage() {
             </div>
 
             {/* Branch + Role row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="grid-form" style={{ gap: 12 }}>
               <div>
                 <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
                   {t("puestos.title")}
