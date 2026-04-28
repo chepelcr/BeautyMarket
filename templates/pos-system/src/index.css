@@ -263,6 +263,9 @@ select.input, select.pp-input { appearance: none; -webkit-appearance: none; back
 @media (max-width: 640px) {
   .grid-form   { grid-template-columns: 1fr; gap: 12px; }
   .grid-member { grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* Tabs wrap into rows instead of scrolling */
+  .tabs-container .tabs { display: flex; flex-wrap: wrap; width: 100%; }
+  .tabs-container .tab  { flex: 1; min-width: 0; justify-content: center; }
 }
 
 /* ≤480px — small phones: fully stack member rows */

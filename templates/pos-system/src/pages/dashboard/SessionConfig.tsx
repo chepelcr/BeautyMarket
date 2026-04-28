@@ -207,6 +207,13 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
     });
   };
 
+  // All userIds already assigned anywhere in this session (across all branches)
+  const allAssignedUserIds = new Set(
+    Object.values(assignments)
+      .flatMap((s) => s.members.map((m) => m.userId))
+      .filter(Boolean)
+  );
+
   const dateLabel = sessionDate
     ? new Date(sessionDate).toLocaleDateString("es-CR", {
         weekday: "long",
@@ -599,6 +606,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                           variant="outline"
                           size="sm"
                           icon="plus"
+                          disabled={members.filter((m) => !allAssignedUserIds.has(m.userId)).length === 0}
                           onClick={() => addMemberToStation(branch.branch_id)}
                         >
                           {t("session.addMember")}
@@ -615,12 +623,16 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                           {stationMembers.map((member, memberIndex) => {
-                            const assignedMember = members.find((m) => m.userId === member.userId);
-                            const memberName = assignedMember
-                              ? [assignedMember.user.firstName, assignedMember.user.lastName]
-                                  .filter(Boolean)
-                                  .join(" ") || assignedMember.user.email
-                              : "";
+                            // Members selectable for this slot: not assigned anywhere else,
+                            // plus keep the slot's own current value visible
+                            const availableForSlot = members.filter(
+                              (m) => m.userId === member.userId || !allAssignedUserIds.has(m.userId)
+                            );
+
+                            // Supervisor already taken by another slot in this branch
+                            const branchHasSupervisor = stationMembers.some(
+                              (m, i) => i !== memberIndex && m.role === "supervisor"
+                            );
 
                             return (
                               <div
@@ -640,7 +652,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                                     }
                                   >
                                     <option value="">{t("session.select")}</option>
-                                    {members.map((m) => (
+                                    {availableForSlot.map((m) => (
                                       <option key={m.userId} value={m.userId}>
                                         {[m.user.firstName, m.user.lastName].filter(Boolean).join(" ") || m.user.email}
                                       </option>
@@ -669,20 +681,23 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                                   </select>
                                 </div>
 
-                                {/* Role selector */}
+                                {/* Role selector — supervisor hidden if branch already has one */}
                                 <div>
                                   <label className="label" style={{ fontSize: 10 }}>
                                     {t("session.role")}
                                   </label>
                                   <select
                                     className="input input-sm"
-                                    value={member.role}
+                                    value={branchHasSupervisor ? "cashier" : member.role}
+                                    disabled={branchHasSupervisor}
                                     onChange={(e) =>
                                       updateMember(branch.branch_id, memberIndex, "role", e.target.value)
                                     }
                                   >
                                     <option value="cashier">{t("assignments.cashier")}</option>
-                                    <option value="supervisor">{t("assignments.supervisor")}</option>
+                                    {!branchHasSupervisor && (
+                                      <option value="supervisor">{t("assignments.supervisor")}</option>
+                                    )}
                                   </select>
                                 </div>
 
