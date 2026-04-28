@@ -29,12 +29,12 @@ export function ProductImage({ imageUrl, name, size = 40, className = "", style 
         width: size,
         height: size,
         borderRadius: 6,
-        background: "var(--bg-secondary, #f3f4f6)",
+        background: "hsl(var(--muted))",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        color: "var(--text-secondary, #9ca3af)",
+        color: "hsl(var(--muted-foreground))",
         ...style,
       }}
     >
