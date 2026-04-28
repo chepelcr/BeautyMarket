@@ -20,8 +20,14 @@ interface Branch {
 
 interface Member {
   id: string;
-  name: string;
-  email: string;
+  userId: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
 }
 
 type SessionType = "partido" | "regular";
@@ -510,10 +516,15 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               <div style={{ padding: "0 24px" }}>
                 {selectedBranches.map((branch, i) => {
                   const assignedMember = members.find(
-                    (m) => m.id === assignments[branch.branch_id]?.userId
+                    (m) => m.userId === assignments[branch.branch_id]?.userId
                   );
-                  const initials = assignedMember?.name
-                    ? assignedMember.name
+                  const memberName = assignedMember
+                    ? [assignedMember.user.firstName, assignedMember.user.lastName]
+                        .filter(Boolean)
+                        .join(" ") || assignedMember.user.email
+                    : "";
+                  const initials = memberName
+                    ? memberName
                         .split(" ")
                         .map((n: string) => n[0])
                         .slice(0, 2)
@@ -579,7 +590,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                               {initials}
                             </div>
                             <span style={{ fontSize: 13, fontWeight: 600 }}>
-                              {assignedMember.name}
+                              {memberName}
                             </span>
                           </div>
                         ) : (
@@ -617,8 +628,8 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                         >
                           <option value="">{t("session.select")}</option>
                           {members.map((m) => (
-                            <option key={m.id} value={m.id}>
-                              {m.name}
+                            <option key={m.userId} value={m.userId}>
+                              {[m.user.firstName, m.user.lastName].filter(Boolean).join(" ") || m.user.email}
                             </option>
                           ))}
                         </select>

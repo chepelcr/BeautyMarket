@@ -34,8 +34,14 @@ interface Branch {
 
 interface Member {
   id: string;
-  name: string;
-  email: string;
+  userId: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
 }
 
 type Role = "cashier" | "supervisor";
@@ -176,7 +182,9 @@ export default function AssignmentsPage() {
               <Select value={userId} onChange={(e) => setUserId(e.target.value)}>
                 <option value="">{t("session.select")}</option>
                 {members.map((m) => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                  <option key={m.userId} value={m.userId}>
+                    {[m.user.firstName, m.user.lastName].filter(Boolean).join(" ") || m.user.email}
+                  </option>
                 ))}
               </Select>
             </div>
