@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { ROUTES } from "@/routePaths";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
@@ -615,7 +616,15 @@ export default function DashboardPage() {
   const { useDefaultOrganization } = useOrganization();
   const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
-  const [page, setPage] = useState<Page>("dashboard");
+  const [location, navigate] = useLocation();
+
+  const page: Page = (() => {
+    if (location.startsWith(ROUTES.DASHBOARD_SESSIONS)) return "config";
+    if (location.startsWith(ROUTES.DASHBOARD_STATIONS)) return "puestos";
+    if (location.startsWith(ROUTES.DASHBOARD_PRODUCTS)) return "productos";
+    if (location.startsWith(ROUTES.DASHBOARD_REPORTS))  return "reporte";
+    return "dashboard";
+  })();
 
   const { data: sessionsData } = useQuery({
     queryKey: ["sessions", org?.id],
@@ -667,7 +676,7 @@ export default function DashboardPage() {
         <div className="t-h3">{t("dash.noOrgSelected")}</div>
         <Button
           variant="primary"
-          onClick={() => (window.location.href = "/organizations/select")}
+          onClick={() => (window.location.href = ROUTES.SELECT_ORG)}
         >
           {t("dash.selectOrg")}
         </Button>
@@ -676,7 +685,14 @@ export default function DashboardPage() {
   }
 
   const handleNav = (id: string) => {
-    setPage(id as Page);
+    const paths: Record<string, string> = {
+      dashboard: ROUTES.DASHBOARD,
+      config:    ROUTES.DASHBOARD_SESSIONS,
+      puestos:   ROUTES.DASHBOARD_STATIONS,
+      productos: ROUTES.DASHBOARD_PRODUCTS,
+      reporte:   ROUTES.DASHBOARD_REPORTS,
+    };
+    navigate(paths[id] ?? ROUTES.DASHBOARD);
   };
 
   return (

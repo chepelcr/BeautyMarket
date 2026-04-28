@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { ROUTES } from "@/routePaths";
 import { useSync } from "@/hooks/useSync";
 import { useAssignment } from "@/hooks/useAssignment";
 import { useProducts } from "@/hooks/useProducts";
@@ -39,7 +41,12 @@ export default function POSPage() {
   const { decrement } = useInventory();
   const { t } = useLanguage();
 
-  const [screen, setScreen] = useState<Screen>("inventory");
+  const [location, navigate] = useLocation();
+  const screen: Screen = (() => {
+    if (location.startsWith(ROUTES.POS_INVENTORY)) return "inventory";
+    if (location.startsWith(ROUTES.POS_CLOSING))   return "closing";
+    return "pos";
+  })();
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
@@ -206,7 +213,7 @@ export default function POSPage() {
       <InventoryOpening
         products={activeProducts}
         assignmentId={assignment.assignment_id}
-        onDone={() => setScreen("pos")}
+        onDone={() => navigate(ROUTES.POS)}
         puestoName={assignment.branch_id}
         onExit={() => {}}
       />
@@ -221,7 +228,7 @@ export default function POSPage() {
         expectedCash={0}
         expectedSinpe={0}
         expectedCard={0}
-        onClose={() => setScreen("pos")}
+        onClose={() => navigate(ROUTES.POS)}
       />
     );
   }
@@ -251,7 +258,7 @@ export default function POSPage() {
       >
         <button
           className="btn btn-ghost btn-sm btn-icon"
-          onClick={() => setScreen("closing")}
+          onClick={() => navigate(ROUTES.POS_CLOSING)}
           aria-label={t("pos.closeShift")}
         >
           <Icon name="arrowLeft" size={18} />
@@ -385,7 +392,7 @@ export default function POSPage() {
 
         {/* Close shift link */}
         <button
-          onClick={() => setScreen("closing")}
+          onClick={() => navigate(ROUTES.POS_CLOSING)}
           style={{
             display: "block",
             width: "100%",
