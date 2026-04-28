@@ -142,7 +142,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
   const setAssign = (bid: string, field: keyof AssignmentEntry, value: string) =>
     setAssignments((a) => ({
       ...a,
-      [bid]: { ...a[bid], [field]: value, role: a[bid]?.role ?? "cashier" } as AssignmentEntry,
+      [bid]: { role: a[bid]?.role ?? "cashier", ...a[bid], [field]: value } as AssignmentEntry,
     }));
 
   const dateLabel = sessionDate
