@@ -737,7 +737,9 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
               {t("session.inventoryDesc")}
             </CardDescription>
           </div>
-          <div style={{ overflowX: "auto" }}>
+
+          {/* Desktop table layout */}
+          <div className="inv-desktop" style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "hsl(var(--muted) / 0.4)" }}>
@@ -772,17 +774,19 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                 {products
                   .filter((p) => p.status === 1)
                   .map((p) => {
-                    const total = selectedBranches.reduce(
-                      (s, b) => s + (inventory[b.branch_id]?.[p.product_id] ?? 0),
-                      0
-                    );
+                    const needsInventory = p.track_inventory === true;
+                    const total = needsInventory
+                      ? selectedBranches.reduce(
+                          (s, b) => s + (inventory[b.branch_id]?.[p.product_id] ?? 0),
+                          0
+                        )
+                      : 0;
                     const isSelected = selectedProducts.has(p.product_id);
-                    const needsInventory = p.track_inventory !== false;
 
                     return (
                       <tr
                         key={p.product_id}
-                        style={{ 
+                        style={{
                           borderBottom: "1px solid hsl(var(--border))",
                           opacity: isSelected ? 1 : 0.5,
                         }}
@@ -799,10 +803,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                             <ProductImage imageUrl={p.image_url} name={p.name} size={32} />
                             <div>
                               <div style={{ fontSize: 13, fontWeight: 600 }}>{p.name}</div>
-                              <div
-                                className="t-xs"
-                                style={{ color: "hsl(var(--muted-foreground))" }}
-                              >
+                              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
                                 {fmt(p.price)}
                                 {!needsInventory && (
                                   <Badge variant="secondary" style={{ marginLeft: 6, fontSize: 9 }}>
@@ -851,12 +852,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                           </td>
                         )}
                         <td
-                          style={{
-                            ...tdStyle,
-                            textAlign: "right",
-                            fontWeight: 800,
-                            fontFamily: "var(--font-display)",
-                          }}
+                          style={{ ...tdStyle, textAlign: "right", fontWeight: 800, fontFamily: "var(--font-display)" }}
                           className="t-num"
                         >
                           {needsInventory ? total : "—"}
@@ -868,12 +864,7 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                   <tr>
                     <td
                       colSpan={selectedBranches.length + 3}
-                      style={{
-                        ...tdStyle,
-                        textAlign: "center",
-                        color: "hsl(var(--muted-foreground))",
-                        padding: 32,
-                      }}
+                      style={{ ...tdStyle, textAlign: "center", color: "hsl(var(--muted-foreground))", padding: 32 }}
                     >
                       {t("session.noActiveProducts")}
                     </td>
@@ -881,6 +872,122 @@ export default function SessionConfig({ onDone }: { onDone?: () => void }) {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile card layout */}
+          <div className="inv-mobile">
+            {products.filter((p) => p.status === 1).length === 0 ? (
+              <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center", padding: "24px 0" }}>
+                {t("session.noActiveProducts")}
+              </p>
+            ) : (
+              products.filter((p) => p.status === 1).map((p) => {
+                const needsInventory = p.track_inventory === true;
+                const isSelected = selectedProducts.has(p.product_id);
+
+                return (
+                  <div
+                    key={p.product_id}
+                    style={{
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      opacity: isSelected ? 1 : 0.55,
+                    }}
+                  >
+                    {/* Card header */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "12px 14px",
+                        background: "hsl(var(--muted) / 0.35)",
+                        borderBottom: needsInventory && selectedBranches.length > 0
+                          ? "1px solid hsl(var(--border))"
+                          : undefined,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleProduct(p.product_id)}
+                        style={{ flexShrink: 0 }}
+                      />
+                      <ProductImage imageUrl={p.image_url} name={p.name} size={36} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {p.name}
+                        </div>
+                        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          {fmt(p.price)}
+                          {!needsInventory && (
+                            <Badge variant="secondary" style={{ fontSize: 9 }}>
+                              {t("session.noInventoryTracking")}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Branch quantity rows — only when inventory tracking is on */}
+                    {needsInventory && selectedBranches.length > 0 && (
+                      <div>
+                        {selectedBranches.map((b, bi) => (
+                          <div
+                            key={b.branch_id}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "10px 14px",
+                              borderBottom: bi < selectedBranches.length - 1
+                                ? "1px solid hsl(var(--border))"
+                                : undefined,
+                              gap: 10,
+                            }}
+                          >
+                            <span className="t-sm" style={{ fontWeight: 500, color: "hsl(var(--muted-foreground))" }}>
+                              {b.name}
+                            </span>
+                            <input
+                              className="input input-sm t-num"
+                              type="number"
+                              min={0}
+                              disabled={!isSelected}
+                              style={{
+                                width: 80,
+                                textAlign: "center",
+                                fontWeight: 700,
+                                fontFamily: "var(--font-display)",
+                              }}
+                              value={inventory[b.branch_id]?.[p.product_id] ?? 0}
+                              onChange={(e) =>
+                                setInventory((inv) => ({
+                                  ...inv,
+                                  [b.branch_id]: {
+                                    ...inv[b.branch_id],
+                                    [p.product_id]: Number(e.target.value),
+                                  },
+                                }))
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {needsInventory && selectedBranches.length === 0 && (
+                      <div style={{ padding: "10px 14px" }}>
+                        <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                          {t("session.selectFirst")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </Card>
       )}
