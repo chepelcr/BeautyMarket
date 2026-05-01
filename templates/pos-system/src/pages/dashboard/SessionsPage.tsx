@@ -6,7 +6,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { Icon, Card, Badge, Button, Drawer } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
-import SessionConfig from "./SessionConfigNew";
+import SessionConfig from "./SessionConfig";
 
 type SessionFilter = "all" | "active" | "closed";
 
