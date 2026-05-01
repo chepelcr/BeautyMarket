@@ -30,6 +30,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.inactive": "Inactivo",
     "common.print": "Imprimir",
     "common.edit": "Editar",
+    "common.view": "Ver",
 
     // auth
     "auth.email": "CORREO",
@@ -202,6 +203,7 @@ const translations: Record<Language, Record<string, string>> = {
     "dash.noOrgSelected": "No hay organización seleccionada",
     "dash.selectOrg": "Seleccionar organización",
     "dash.managerPanel": "Panel gerente",
+    "dash.goToPOS": "Ir al POS",
 
     // products
     "products.title": "Catálogo",
@@ -371,6 +373,24 @@ const translations: Record<Language, Record<string, string>> = {
     "session.selectFirst": "(Selecciona puestos primero)",
     "session.total": "Total",
     "session.noActiveProducts": "No hay productos activos.",
+    "session.addMember": "Agregar miembro",
+    "session.noMembers": "Sin miembros asignados",
+    "session.member": "Miembro",
+    "session.terminal": "Terminal",
+    "session.noTerminal": "Sin terminal",
+    "session.manageActiveSessions": "Gestionar sesiones activas y cerradas",
+    "session.newSession": "Nueva sesión",
+    "session.allSessions": "Todas",
+    "session.activeSessions": "Activas",
+    "session.closedSessions": "Cerradas",
+    "session.noSessions": "No hay sesiones aún",
+    "session.createFirstSession": "Crea tu primera sesión para iniciar operaciones",
+    "session.active": "Activa",
+    "session.startTime": "Hora de inicio",
+    "session.endTime": "Hora de fin",
+    "session.endSession": "Finalizar sesión",
+    "session.confirmEnd": "¿Estás seguro de que quieres finalizar esta sesión?",
+    "session.confirmDelete": "¿Estás seguro de que quieres eliminar esta sesión?",
 
     // analytics
     "analytics.title": "REPORTERÍA",
@@ -426,6 +446,7 @@ const translations: Record<Language, Record<string, string>> = {
     "common.inactive": "Inactive",
     "common.print": "Print",
     "common.edit": "Edit",
+    "common.view": "View",
 
     // auth
     "auth.email": "EMAIL",
@@ -598,6 +619,7 @@ const translations: Record<Language, Record<string, string>> = {
     "dash.noOrgSelected": "No organization selected",
     "dash.selectOrg": "Select organization",
     "dash.managerPanel": "Manager panel",
+    "dash.goToPOS": "Go to POS",
 
     // products
     "products.title": "Catalog",
@@ -767,6 +789,19 @@ const translations: Record<Language, Record<string, string>> = {
     "session.selectFirst": "(Select stations first)",
     "session.total": "Total",
     "session.noActiveProducts": "No active products.",
+    "session.manageActiveSessions": "Manage active and closed sessions",
+    "session.newSession": "New session",
+    "session.allSessions": "All",
+    "session.activeSessions": "Active",
+    "session.closedSessions": "Closed",
+    "session.noSessions": "No sessions yet",
+    "session.createFirstSession": "Create your first session to start operations",
+    "session.active": "Active",
+    "session.startTime": "Start time",
+    "session.endTime": "End time",
+    "session.endSession": "End session",
+    "session.confirmEnd": "Are you sure you want to end this session?",
+    "session.confirmDelete": "Are you sure you want to delete this session?",
 
     // analytics
     "analytics.title": "ANALYTICS",

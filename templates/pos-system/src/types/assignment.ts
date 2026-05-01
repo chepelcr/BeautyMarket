@@ -12,6 +12,17 @@ export interface AssignmentUser {
   last_name: string;
 }
 
+export interface AssignmentProduct {
+  product_id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+  category_id?: string;
+  stock_quantity: number;
+  track_inventory: boolean;
+  status: number;
+}
+
 export interface Assignment {
   assignment_id: string;
   organization_id: string;
@@ -27,6 +38,7 @@ export interface Assignment {
   updated_at?: string;
   created_by: string;
   user?: AssignmentUser;
+  products?: AssignmentProduct[];
 }
 
 export interface CreateAssignmentRequest {

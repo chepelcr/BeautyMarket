@@ -65,7 +65,7 @@ export default function ReportePage() {
     queryKey: ["report", org?.id],
     enabled: !!user && !!org,
     queryFn: () =>
-      crossAppApi.get<ReportData>(crossAppOrgPath(org!.id, "/report")),
+      crossAppApi.get<ReportData>(crossAppOrgPath(org!.id, "/dashboard")),
   });
 
   const session = data?.session;
@@ -127,6 +127,9 @@ export default function ReportePage() {
           </Button>
           <Button variant="primary" icon="download">
             {t("report.downloadPdf")}
+          </Button>
+          <Button variant="outline" icon="store" onClick={() => (window.location.href = "/pos")}>
+            {t("dash.goToPOS")}
           </Button>
         </div>
       </div>

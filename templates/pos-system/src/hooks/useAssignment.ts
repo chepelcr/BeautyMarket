@@ -17,9 +17,18 @@ export function useAssignment() {
     enabled: !!user && !!org,
     queryFn: async () => {
       try {
-        const data = await crossAppApi.get<Assignment>(
-          crossAppOrgPath(org!.id, "/assignments/active")
+        // Get active assignments for the current user
+        const response = await crossAppApi.get<{ data: Assignment[] }>(
+          crossAppOrgPath(org!.id, `/assignments?assigned_user_id=${user!.userId}&search=status:1`)
         );
+        
+        // Get the first active assignment for this user
+        const data = response.data?.[0] || (Array.isArray(response) ? response[0] : response);
+        
+        if (!data) {
+          throw new Error("No hay asignación activa");
+        }
+        
         // Cache in IndexedDB for offline access
         await db.assignments.where({ userId: user!.userId, orgId: org!.id }).delete();
         await db.assignments.add({

@@ -5,10 +5,11 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import DashboardShell from "@/components/layout/DashboardShell";
-import SessionConfig from "./SessionConfig";
+import SessionsPage from "./SessionsPage";
 import PuestosPage from "./PuestosPage";
 import ProductsPage from "./ProductsPage";
 import ReportePage from "./ReportePage";
+import POSIntegratedPage from "./POSIntegratedPage";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -20,7 +21,7 @@ const fmtAgo = (ts: number) => {
   return "hace " + Math.floor(diff / 3600) + " h";
 };
 
-type Page = "dashboard" | "config" | "puestos" | "productos" | "reporte";
+type Page = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos";
 
 interface StandData {
   id: string;
@@ -192,6 +193,14 @@ function DashboardPanel({ data, isLoading, refetch, isRefetching }: {
           disabled={isRefetching}
         >
           {isRefetching ? t("dash.refreshing") : t("dash.refresh")}
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          icon="store"
+          onClick={() => (window.location.href = "/pos")}
+        >
+          {t("dash.goToPOS")}
         </Button>
       </div>
 
@@ -521,6 +530,7 @@ export default function DashboardPage() {
     if (location.startsWith(ROUTES.DASHBOARD_STATIONS)) return "puestos";
     if (location.startsWith(ROUTES.DASHBOARD_PRODUCTS)) return "productos";
     if (location.startsWith(ROUTES.DASHBOARD_REPORTS))  return "reporte";
+    if (location.startsWith(ROUTES.DASHBOARD_POS))      return "pos";
     return "dashboard";
   })();
 
@@ -589,6 +599,7 @@ export default function DashboardPage() {
       puestos:   ROUTES.DASHBOARD_STATIONS,
       productos: ROUTES.DASHBOARD_PRODUCTS,
       reporte:   ROUTES.DASHBOARD_REPORTS,
+      pos:       ROUTES.DASHBOARD_POS,
     };
     navigate(paths[id] ?? ROUTES.DASHBOARD);
   };
@@ -608,10 +619,11 @@ export default function DashboardPage() {
           isRefetching={isRefetching}
         />
       )}
-      {page === "config" && <SessionConfig />}
+      {page === "config" && <SessionsPage />}
       {page === "puestos" && <PuestosPage />}
       {page === "productos" && <ProductsPage />}
       {page === "reporte" && <ReportePage />}
+      {page === "pos" && <POSIntegratedPage />}
     </DashboardShell>
   );
 }

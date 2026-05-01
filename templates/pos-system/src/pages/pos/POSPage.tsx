@@ -36,7 +36,6 @@ export default function POSPage() {
   const { useDefaultOrganization } = useOrganization();
   const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
   const { data: assignment, isLoading: assignmentLoading, error: assignmentError } = useAssignment();
-  const { data: rawProducts, isLoading: productsLoading } = useProducts();
   const { items, add, remove, clear, total, count } = useCart();
   const { decrement } = useInventory();
   const { t } = useLanguage();
@@ -61,10 +60,8 @@ export default function POSPage() {
   const [lastChange, setLastChange] = useState(0);
   const [orderNum, setOrderNum] = useState(0);
 
-  const productsList = Array.isArray(rawProducts)
-    ? rawProducts
-    : (rawProducts as any)?.data ?? [];
-  const activeProducts = productsList.filter((p: any) => p.status === 1);
+  // Use products from assignment if available, otherwise show empty
+  const activeProducts = assignment?.products ?? [];
   const cartItems: CartItem[] = Object.values(items).map(({ product, qty }: any) => ({
     id: product.product_id,
     name: product.name,
@@ -161,7 +158,7 @@ export default function POSPage() {
 
   const canConfirm = payMethod === "card" || payMethod === "sinpe" || given >= cartTotal;
 
-  if (orgLoading || assignmentLoading || productsLoading) {
+  if (orgLoading || assignmentLoading) {
     return (
       <div
         style={{

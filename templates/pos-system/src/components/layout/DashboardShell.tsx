@@ -6,7 +6,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { useLanguageSwitch } from "@/hooks/useLanguageSwitch";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -36,6 +36,7 @@ function Sidebar({
     { id: "puestos", icon: "store", label: t("shell.stations") },
     { id: "productos", icon: "package", label: t("shell.products") },
     { id: "reporte", icon: "trending", label: t("shell.reports") },
+    { id: "pos", icon: "smartphone", label: "POS" },
   ];
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.name || "";
@@ -149,6 +150,7 @@ export default function DashboardShell({
   sessionLocation,
 }: DashboardShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { dark, toggle: toggleDark } = useDarkMode();
   const { language, toggle: toggleLanguage } = useLanguageSwitch();
   const { t } = useLanguage();
@@ -179,17 +181,52 @@ export default function DashboardShell({
       {/* Desktop/tablet sidebar (≥769px) */}
       <div
         style={{
-          width: 240,
+          width: sidebarCollapsed ? 0 : 240,
           display: "none",
           position: "sticky",
           top: 0,
           height: "100vh",
           flexShrink: 0,
+          transition: "width 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+          overflow: "hidden",
         }}
         className="dashboard-sidebar-full"
       >
         <Sidebar active={active} onNav={handleNav} />
       </div>
+
+      {/* Desktop sidebar toggle button - semi-hidden tab that appears on hover */}
+      <button
+        className="dashboard-sidebar-toggle"
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        style={{
+          position: "fixed",
+          left: sidebarCollapsed ? -20 : 220,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: 28,
+          height: 80,
+          background: "hsl(var(--card))",
+          border: "1px solid hsl(var(--border))",
+          borderLeft: "none",
+          borderRadius: "0 12px 12px 0",
+          display: "none",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          zIndex: 50,
+          transition: "left 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s",
+          boxShadow: "2px 0 12px rgba(0,0,0,0.06)",
+          opacity: 0.3,
+        }}
+        aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+      >
+        <Icon 
+          name={sidebarCollapsed ? "chevronRight" : "chevronLeft"} 
+          size={16} 
+          style={{ color: "hsl(var(--muted-foreground))" }}
+        />
+      </button>
 
       {/* Mobile drawer overlay */}
       {drawerOpen && (
@@ -315,10 +352,29 @@ export default function DashboardShell({
         @media (min-width: 769px) {
           .dashboard-sidebar-full { display: block !important; }
           .dashboard-hamburger { display: none !important; }
+          .dashboard-sidebar-toggle { display: flex !important; }
         }
         @media (max-width: 768px) {
           .dashboard-sidebar-full { display: none !important; }
           .dashboard-hamburger { display: flex !important; }
+          .dashboard-sidebar-toggle { display: none !important; }
+        }
+        
+        /* Semi-hidden tab that reveals on hover */
+        .dashboard-sidebar-toggle:hover {
+          left: ${sidebarCollapsed ? '0' : '240'}px !important;
+          opacity: 1 !important;
+          background: hsl(var(--accent));
+        }
+        
+        /* Also reveal when hovering near the edge */
+        .dashboard-sidebar-toggle:before {
+          content: '';
+          position: absolute;
+          left: -20px;
+          top: 0;
+          width: 20px;
+          height: 100%;
         }
         
         @keyframes slideInLeft {
