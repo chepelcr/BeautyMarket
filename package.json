@@ -42,7 +42,9 @@
     "build:template:pet-care": "cd templates/pet-care && npm install && npm run build",
     "dev:template:beauty-essentials": "cd templates/beauty-essentials && npm run dev",
     "build:template:beauty-essentials": "cd templates/beauty-essentials && npm install && npm run build",
-    "build:templates": "npm run build:template:jmarkets-demo && npm run build:template:tech-gadgets && npm run build:template:vintage-fashion && npm run build:template:artisan-crafts && npm run build:template:gourmet-foods && npm run build:template:fitness-hub && npm run build:template:pet-care && npm run build:template:beauty-essentials",
+    "dev:template:pollo-porteno": "cd templates/pollo-porteno && npm run dev",
+    "build:template:pollo-porteno": "cd templates/pollo-porteno && npm install && npm run build",
+    "build:templates": "npm run build:template:jmarkets-demo && npm run build:template:tech-gadgets && npm run build:template:vintage-fashion && npm run build:template:artisan-crafts && npm run build:template:gourmet-foods && npm run build:template:fitness-hub && npm run build:template:pet-care && npm run build:template:beauty-essentials && npm run build:template:pollo-porteno",
     "build:dashboard": "cd dashboard && npm run build",
     "deploy:all-frontend": "npm run build:templates && npm run build:dashboard && node setup-template-bucket.js"
   },
