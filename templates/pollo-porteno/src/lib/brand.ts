@@ -15,6 +15,31 @@ export const BRAND = {
     'Una tradición porteña que se siente desde el primer bocado.',
   owner: 'María Leticia Vega',
   ownerRole: 'Propietaria',
+  heroBadge: 'Asado al carbón',
+  cta: {
+    menu: 'Ver el menú',
+    directions: 'Cómo llegar',
+    aboutTitle: 'Una tradición porteña',
+    aboutDescription:
+      'En Pollo Porteño servimos pollo asado al carbón con la sazón de recetas familiares, ' +
+      'hechas con paciencia y cariño. Cada plato es un pedacito de hogar, listo para disfrutar ' +
+      'con la familia o para llevar.',
+  },
+  featured: {
+    badge: 'Los favoritos',
+    title: 'Nuestro menú',
+    subtitle:
+      'Pollo asado a la leña, combos familiares y guarniciones recién hechas.',
+  },
+  visit: {
+    title: 'Visítanos',
+    subtitle:
+      'Te esperamos para que disfrutes nuestro pollo recién salido de la parrilla.',
+    mapsLabel: 'Ver ubicación en Google Maps',
+    facebookLabel: 'Síguenos en Facebook',
+    openMaps: 'Abrir en Google Maps',
+    directions: 'Toca para obtener indicaciones',
+  },
   contact: {
     facebookUrl:
       'https://www.facebook.com/photo/?fbid=534237635277587&set=a.534237618610922',

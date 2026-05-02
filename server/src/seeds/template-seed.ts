@@ -105,9 +105,83 @@ const defaultTemplates: InsertTemplate[] = [
     isActive: true,
     sortOrder: 8,
   },
+  {
+    name: 'pollo-porteno',
+    displayName: 'Pollo Porteño',
+    description: 'Charcoal-grilled chicken restaurant landing page template',
+    category: 'restaurant',
+    thumbnailUrl: '/templates/pollo-porteno.jpg',
+    previewUrl: `https://pollo-porteno-example.${baseDomain}`,
+    repositoryUrl: 'https://github.com/chepelcr/template-pollo-porteno',
+    isActive: true,
+    sortOrder: 9,
+  },
 ];
 
+interface TemplateThemeOverride {
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  loadingIcon: string;
+  productFallbackIcon: string;
+}
+
+const themeOverrides: Record<string, TemplateThemeOverride> = {
+  'pollo-porteno': {
+    primaryColor: '#c0392b',
+    secondaryColor: '#f5b919',
+    fontFamily: 'Poppins',
+    loadingIcon: 'Flame',
+    productFallbackIcon: 'Drumstick',
+  },
+};
+
+interface TemplateContactOverride {
+  email: string;
+  phone: string;
+  address: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  twitterUrl: string;
+  whatsappNumber: string;
+  businessHours: string;
+}
+
+const contactOverrides: Record<string, TemplateContactOverride> = {
+  'pollo-porteno': {
+    email: 'contacto@polloporteno.example.com',
+    phone: '+50670391069',
+    address: 'Ver ubicación en Google Maps',
+    facebookUrl: 'https://www.facebook.com/photo/?fbid=534237635277587&set=a.534237618610922',
+    instagramUrl: '',
+    twitterUrl: '',
+    whatsappNumber: '+50670391069',
+    businessHours: 'Lun-Vie 11:00 a.m. – 9:00 p.m. · Sáb-Dom 11:00 a.m. – 10:00 p.m.',
+  },
+};
+
 async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, templateName: string) {
+  const themeDefaults: TemplateThemeOverride = {
+    primaryColor: '#e91e63',
+    secondaryColor: '#fce7f3',
+    fontFamily: 'Inter',
+    loadingIcon: 'Sparkles',
+    productFallbackIcon: 'Sparkles',
+  };
+  const theme = { ...themeDefaults, ...(themeOverrides[templateName] ?? {}) };
+
+  const contactDefaults: TemplateContactOverride = {
+    email: 'contact@example.com',
+    phone: '+50670391069',
+    address: '123 Main St, City, Country',
+    facebookUrl: 'https://facebook.com/example',
+    instagramUrl: 'https://instagram.com/example',
+    twitterUrl: 'https://twitter.com/example',
+    whatsappNumber: '+50670391069',
+    businessHours: 'Mon-Fri: 9AM-6PM',
+  };
+  const contact = { ...contactDefaults, ...(contactOverrides[templateName] ?? {}) };
+
   const existingTheme = await db
     .select()
     .from(templateThemeSettings)
@@ -117,21 +191,24 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
   if (existingTheme.length === 0) {
     await db.insert(templateThemeSettings).values({
       templateId,
-      primaryColor: '#e91e63',
-      secondaryColor: '#fce7f3',
+      primaryColor: theme.primaryColor,
+      secondaryColor: theme.secondaryColor,
       logoUrl: null,
       faviconUrl: null,
-      fontFamily: 'Inter',
-      loadingIcon: 'Sparkles',
-      productFallbackIcon: 'Sparkles',
+      fontFamily: theme.fontFamily,
+      loadingIcon: theme.loadingIcon,
+      productFallbackIcon: theme.productFallbackIcon,
     });
     console.log(`  ✓ Added theme settings`);
   } else {
     // Always update icon fields
     await db.update(templateThemeSettings)
-      .set({ 
-        loadingIcon: 'Sparkles', 
-        productFallbackIcon: 'Sparkles' 
+      .set({
+        primaryColor: theme.primaryColor,
+        secondaryColor: theme.secondaryColor,
+        fontFamily: theme.fontFamily,
+        loadingIcon: theme.loadingIcon,
+        productFallbackIcon: theme.productFallbackIcon,
       })
       .where(eq(templateThemeSettings.templateId, templateId));
     console.log(`  ✓ Updated theme settings`);
@@ -146,26 +223,19 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
   if (existingContact.length === 0) {
     await db.insert(templateContactSettings).values({
       templateId,
-      email: 'contact@example.com',
-      phone: '+50670391069',
-      address: '123 Main St, City, Country',
-      facebookUrl: 'https://facebook.com/example',
-      instagramUrl: 'https://instagram.com/example',
-      twitterUrl: 'https://twitter.com/example',
-      whatsappNumber: '+50670391069',
-      businessHours: 'Mon-Fri: 9AM-6PM',
+      ...contact,
     });
     console.log(`  ✓ Added contact settings`);
   } else {
     // Always update contact settings
     await db.update(templateContactSettings)
       .set({
-        phone: '+50670391069',
-        facebookUrl: 'https://facebook.com/example',
-        instagramUrl: 'https://instagram.com/example',
-        twitterUrl: 'https://twitter.com/example',
-        whatsappNumber: '+50670391069',
-        businessHours: 'Mon-Fri: 9AM-6PM',
+        phone: contact.phone,
+        facebookUrl: contact.facebookUrl,
+        instagramUrl: contact.instagramUrl,
+        twitterUrl: contact.twitterUrl,
+        whatsappNumber: contact.whatsappNumber,
+        businessHours: contact.businessHours,
       })
       .where(eq(templateContactSettings.templateId, templateId));
     console.log(`  ✓ Updated contact settings`);
@@ -674,7 +744,7 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
 
   if (updatedCategories.length > 0) {
     const products = getProductsForTemplate(templateName, templateId, updatedCategories);
-    
+
     if (existingProducts.length === 0) {
       await db.insert(templateProducts).values(products);
       console.log(`  ✓ Added ${products.length} products`);
@@ -685,6 +755,146 @@ async function seedTemplateContent(db: PostgresJsDatabase, templateId: string, t
       console.log(`  ✓ Updated ${products.length} products`);
     }
   }
+
+  // Per-template section content overrides. The generic insert above writes the
+  // default beauty/skincare copy for every template; this pass rewrites the
+  // section content rows so the storefront reads restaurant-themed copy for
+  // pollo-porteno (and is a no-op for every other template).
+  await applyTemplateSectionOverrides(db, templateId, templateName);
+}
+
+interface SectionRow {
+  componentId: string;
+  key: string;
+  value: string;
+  valueType: string;
+  displayName: string;
+  sortOrder: number;
+}
+
+const sectionOverrides: Record<string, Record<string, SectionRow[]>> = {
+  'pollo-porteno': {
+    hero: [
+      { componentId: 'hero-badge', key: 'badge', value: 'Asado al carbón', valueType: 'string', displayName: 'Badge Text', sortOrder: 1 },
+      { componentId: 'hero-title', key: 'title', value: 'Pollo Porteño', valueType: 'string', displayName: 'Hero Title', sortOrder: 2 },
+      { componentId: 'hero-subtitle', key: 'subtitle', value: 'Auténtico sabor a la parrilla — pollo asado a la leña, recetas caseras y guarniciones que saben a hogar.', valueType: 'string', displayName: 'Hero Subtitle', sortOrder: 3 },
+      { componentId: 'hero-cta-primary', key: 'ctaPrimary', value: 'Ver el menú', valueType: 'string', displayName: 'Primary CTA', sortOrder: 4 },
+      { componentId: 'hero-cta-secondary', key: 'ctaSecondary', value: 'Cómo llegar', valueType: 'string', displayName: 'Secondary CTA', sortOrder: 5 },
+      { componentId: 'hero-stats', key: 'stats', value: JSON.stringify([
+        { label: 'Años de tradición', value: '20+' },
+        { label: 'Recetas caseras', value: '15+' },
+        { label: 'Asado al carbón', value: '100%' },
+      ]), valueType: 'json', displayName: 'Stats', sortOrder: 6 },
+      { componentId: 'hero-image', key: 'image', value: '/logo.png', valueType: 'image_url', displayName: 'Hero Image', sortOrder: 7 },
+    ],
+    benefits: [
+      { componentId: 'benefits-items', key: 'items', value: JSON.stringify([
+        { icon: 'Flame', title: 'Pollo asado al carbón', description: 'Marinado por horas y cocinado lentamente sobre brasas para un sabor inconfundible.' },
+        { icon: 'Salad', title: 'Guarniciones caseras', description: 'Papas, ensalada fresca, tortillas y salsas preparadas todos los días.' },
+        { icon: 'Heart', title: 'Recetas de familia', description: 'Sazón porteña con la calidez de una tradición que pasa de generación en generación.' },
+        { icon: 'Award', title: 'Tradición porteña', description: 'Una receta cuidada con cariño, hecha por la familia, para tu familia.' },
+      ]), valueType: 'json', displayName: 'Benefits Items', sortOrder: 1 },
+    ],
+    cta: [
+      { componentId: 'cta-title', key: 'title', value: '¿Listo para disfrutar?', valueType: 'string', displayName: 'CTA Title', sortOrder: 1 },
+      { componentId: 'cta-description', key: 'description', value: 'Visítanos o llámanos para reservar tu pollo recién salido de la parrilla.', valueType: 'string', displayName: 'CTA Description', sortOrder: 2 },
+      { componentId: 'cta-button', key: 'buttonText', value: 'Cómo llegar', valueType: 'string', displayName: 'Button Text', sortOrder: 3 },
+      { componentId: 'cta-count', key: 'subscriberCount', value: '20+', valueType: 'string', displayName: 'Subscriber Count', sortOrder: 4 },
+      { componentId: 'cta-count-text', key: 'subscriberText', value: 'años llenando mesas porteñas', valueType: 'string', displayName: 'Subscriber Text', sortOrder: 5 },
+    ],
+    testimonials: [
+      { componentId: 'testimonials-title', key: 'title', value: 'Lo que dicen nuestros clientes', valueType: 'string', displayName: 'Section Title', sortOrder: 1 },
+      { componentId: 'testimonials-description', key: 'description', value: 'El sabor que nos hizo parte de la familia porteña.', valueType: 'string', displayName: 'Section Description', sortOrder: 2 },
+      { componentId: 'testimonials-items', key: 'items', value: JSON.stringify([
+        { name: 'Carlos M.', role: 'Cliente frecuente', text: 'El pollo más sabroso del barrio. La sazón es inigualable.', rating: 5 },
+        { name: 'Ana R.', role: 'Familia porteña', text: 'Un combo familiar y todos felices. ¡Las tortillas son lo mejor!', rating: 5 },
+        { name: 'José P.', role: 'Vecino', text: 'Voy desde hace años. La calidad nunca cambia.', rating: 5 },
+      ]), valueType: 'json', displayName: 'Testimonials', sortOrder: 3 },
+    ],
+    featured: [
+      { componentId: 'featured-badge', key: 'badge', value: 'Los favoritos', valueType: 'string', displayName: 'Badge', sortOrder: 1 },
+      { componentId: 'featured-title', key: 'title', value: 'Nuestro menú', valueType: 'string', displayName: 'Title', sortOrder: 2 },
+      { componentId: 'featured-subtitle', key: 'subtitle', value: 'Pollo entero, combos familiares y guarniciones recién hechas.', valueType: 'string', displayName: 'Subtitle', sortOrder: 3 },
+    ],
+    newsletter: [
+      { componentId: 'newsletter-title', key: 'title', value: 'Síguenos en Facebook', valueType: 'string', displayName: 'Title', sortOrder: 1 },
+      { componentId: 'newsletter-description', key: 'description', value: 'Entérate de nuestras promociones y novedades del día.', valueType: 'string', displayName: 'Description', sortOrder: 2 },
+      { componentId: 'newsletter-placeholder', key: 'placeholder', value: 'Ingresa tu correo', valueType: 'string', displayName: 'Input Placeholder', sortOrder: 3 },
+      { componentId: 'newsletter-button', key: 'buttonText', value: 'Visitar Facebook', valueType: 'string', displayName: 'Button Text', sortOrder: 4 },
+    ],
+  },
+};
+
+const aboutSectionOverrides: Record<string, Record<string, SectionRow[]>> = {
+  'pollo-porteno': {
+    hero: [
+      { componentId: 'about-hero-title', key: 'title', value: 'Una tradición porteña', valueType: 'string', displayName: 'Title', sortOrder: 1 },
+      { componentId: 'about-hero-subtitle', key: 'subtitle', value: 'Sazón casera y pollo asado al carbón desde hace más de dos décadas.', valueType: 'string', displayName: 'Subtitle', sortOrder: 2 },
+    ],
+    story: [
+      { componentId: 'story-title', key: 'title', value: 'Nuestra historia', valueType: 'string', displayName: 'Title', sortOrder: 1 },
+      { componentId: 'story-content', key: 'content', value: 'Pollo Porteño nació de una receta familiar cuidada con cariño por María Leticia Vega. Cada plato lleva la sazón de una cocina hecha en casa: pollo marinado por horas, asado lentamente al carbón y acompañado por guarniciones recién preparadas. Visítanos y descubre por qué somos parte de la mesa porteña.', valueType: 'text', displayName: 'Content', sortOrder: 2 },
+    ],
+    values: [
+      { componentId: 'values-title', key: 'title', value: 'Nuestros valores', valueType: 'string', displayName: 'Title', sortOrder: 1 },
+      { componentId: 'values-items', key: 'items', value: JSON.stringify([
+        { icon: 'Flame', title: 'Tradición', description: 'Recetas familiares que respetamos y cuidamos en cada plato.' },
+        { icon: 'Heart', title: 'Sabor casero', description: 'Ingredientes frescos y cocción al carbón, como en casa.' },
+        { icon: 'Users', title: 'Familia', description: 'Cada cliente es parte de la familia porteña.' },
+        { icon: 'Award', title: 'Calidad', description: 'El mismo sabor inconfundible, día tras día.' },
+      ]), valueType: 'json', displayName: 'Values', sortOrder: 2 },
+    ],
+  },
+};
+
+async function applyTemplateSectionOverrides(
+  db: PostgresJsDatabase,
+  templateId: string,
+  templateName: string,
+): Promise<void> {
+  const home = sectionOverrides[templateName];
+  const about = aboutSectionOverrides[templateName];
+  if (!home && !about) return;
+
+  // Resolve page IDs once.
+  const pages = await db
+    .select()
+    .from(templatePages)
+    .where(eq(templatePages.templateId, templateId));
+
+  const replaceForPage = async (
+    pageSlug: string,
+    overrides: Record<string, SectionRow[]>,
+  ) => {
+    const page = pages.find((p) => p.slug === pageSlug);
+    if (!page) return;
+
+    const sections = await db
+      .select()
+      .from(templatePageSections)
+      .where(eq(templatePageSections.templatePageId, page.id));
+
+    for (const section of sections) {
+      const rows = overrides[section.sectionType];
+      if (!rows) continue;
+
+      await db
+        .delete(templateSectionContent)
+        .where(eq(templateSectionContent.templateSectionId, section.id));
+
+      await db.insert(templateSectionContent).values(
+        rows.map((row) => ({
+          templateSectionId: section.id,
+          ...row,
+        })),
+      );
+    }
+  };
+
+  if (home) await replaceForPage('home', home);
+  if (about) await replaceForPage('about', about);
+
+  console.log(`  ✓ Applied ${templateName} section content overrides`);
 }
 
 function getCategoriesForTemplate(templateName: string, templateId: string) {
@@ -721,6 +931,12 @@ function getCategoriesForTemplate(templateName: string, templateId: string) {
       { name: 'Destacados', slug: 'featured', description: 'Productos destacados' },
       { name: 'Nuevos Ingresos', slug: 'new-arrivals', description: 'Últimos productos' },
     ],
+    'pollo-porteno': [
+      { name: 'Parrilla', slug: 'parrilla', description: 'Pollo asado al carbón y especialidades a la leña' },
+      { name: 'Combos', slug: 'combos', description: 'Combos familiares e individuales' },
+      { name: 'Guarniciones', slug: 'guarniciones', description: 'Acompañamientos y entradas caseras' },
+      { name: 'Bebidas', slug: 'bebidas', description: 'Refrescos, naturales y bebidas frías' },
+    ],
   };
 
   const categories = templateCategories[templateName] || templateCategories['jmarkets-demo'];
@@ -753,6 +969,8 @@ function validateProductTypes(products: any[], templateName: string): void {
 function getProductsForTemplate(templateName: string, templateId: string, categories: any[]) {
   const cat1 = categories[0]?.id;
   const cat2 = categories[1]?.id;
+  const cat3 = categories[2]?.id;
+  const cat4 = categories[3]?.id;
 
   const templateProducts: Record<string, any[]> = {
     'beauty-essentials': [
@@ -823,6 +1041,18 @@ function getProductsForTemplate(templateName: string, templateId: string, catego
       { name: 'Servicio Demo', price: 9999, categoryId: cat2, duration: '60 minutos', onSale: false, isService: true, type: 'service' },
       { name: 'Programa Demo', price: 14999, categoryId: cat2, duration: '4 semanas', difficulty: 'beginner', onSale: false, isService: false, type: 'program' },
     ],
+    'pollo-porteno': [
+      { name: 'Pollo entero asado', price: 7500, categoryId: cat1, description: 'Pollo entero a la leña con guarnición a elección.', onSale: false, isService: false, type: 'product' },
+      { name: 'Medio pollo asado', price: 4200, categoryId: cat1, description: 'Medio pollo a la leña con guarnición a elección.', onSale: false, isService: false, type: 'product' },
+      { name: 'Cuarto de pollo', price: 2500, categoryId: cat1, description: 'Cuarto de pollo asado, ideal para una persona.', onSale: false, isService: false, type: 'product' },
+      { name: 'Combo familiar', price: 9800, categoryId: cat2, description: 'Pollo entero + papas + ensalada + tortillas + 2 salsas.', onSale: false, isService: false, type: 'product' },
+      { name: 'Combo individual', price: 3500, categoryId: cat2, description: 'Cuarto de pollo + papas + tortillas + bebida.', onSale: false, isService: false, type: 'product' },
+      { name: 'Papas a la francesa', price: 1800, categoryId: cat3, description: 'Porción generosa, doradas y crujientes.', onSale: false, isService: false, type: 'product' },
+      { name: 'Ensalada fresca', price: 1500, categoryId: cat3, description: 'Lechuga, tomate, pepino y aderezo de la casa.', onSale: false, isService: false, type: 'product' },
+      { name: 'Tortillas hechas a mano', price: 800, categoryId: cat3, description: 'Tortillas de maíz recién hechas (porción de 4).', onSale: false, isService: false, type: 'product' },
+      { name: 'Refresco natural', price: 1200, categoryId: cat4, description: 'Refresco natural del día (cas, mora, piña, sandía).', onSale: false, isService: false, type: 'product' },
+      { name: 'Gaseosa', price: 1000, categoryId: cat4, description: 'Coca-Cola, Sprite o Fanta — lata 350 ml.', onSale: false, isService: false, type: 'product' },
+    ],
   };
 
   const products = templateProducts[templateName] || templateProducts['jmarkets-demo'];
@@ -833,7 +1063,7 @@ function getProductsForTemplate(templateName: string, templateId: string, catego
     templateId,
     categoryId: p.categoryId,
     name: p.name,
-    description: `de alta calidad ${p.name.toLowerCase()}`,
+    description: p.description || `de alta calidad ${p.name.toLowerCase()}`,
     price: p.price,
     originalPrice: p.originalPrice || null,
     discount: p.discount || null,
