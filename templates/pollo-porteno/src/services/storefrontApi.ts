@@ -20,6 +20,27 @@ function orgBase(organizationId: string): string {
   return `/api/public/organizations/${organizationId}`;
 }
 
+export interface PageSectionContentRow {
+  key: string;
+  value: string;
+  valueType: 'string' | 'text' | 'number' | 'json' | 'image_url';
+}
+
+export interface PageSectionResponse {
+  id: string;
+  sectionType: string;
+  name: string;
+  sortOrder: number;
+  content?: PageSectionContentRow[];
+}
+
+export interface PageResponse {
+  id: string;
+  slug: string;
+  title: string;
+  sections?: PageSectionResponse[];
+}
+
 export const storefrontApi = {
   getOrganization: (organizationId: string) =>
     anonymousApi.get<Organization>(orgBase(organizationId)),
@@ -40,4 +61,7 @@ export const storefrontApi = {
 
   getProduct: (organizationId: string, productId: string) =>
     anonymousApi.get<Product>(`${orgBase(organizationId)}/products/${productId}`),
+
+  getPage: (organizationId: string, slug: string) =>
+    anonymousApi.get<PageResponse>(`${orgBase(organizationId)}/pages/${slug}`),
 };
