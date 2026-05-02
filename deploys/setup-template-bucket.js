@@ -71,6 +71,7 @@ const TEMPLATE_ORGS = [
   'fitness-hub-example',
   'pet-care-example',
   'beauty-essentials-example',
+  'pollo-porteno-example',
 ];
 
 // Map template subdomains to their build directories
@@ -83,6 +84,7 @@ const TEMPLATE_BUILD_PATHS = {
   'fitness-hub-example': './dist/templates/fitness-hub',
   'pet-care-example': './dist/templates/pet-care',
   'beauty-essentials-example': './dist/templates/beauty-essentials',
+  'pollo-porteno-example': './dist/templates/pollo-porteno',
 };
 
 // Configure AWS Clients with Profile

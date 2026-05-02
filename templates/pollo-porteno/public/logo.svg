@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Placeholder logo: replace public/logo.png with the official Pollo Porteño artwork. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eaf3fb"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="32" fill="url(#bg)"/>
+  <path d="M60,140 Q200,40 340,140" fill="none" stroke="#c0392b" stroke-width="14" stroke-linecap="round"/>
+  <text x="200" y="125" text-anchor="middle" font-family="'Bebas Neue', Impact, sans-serif" font-size="44" fill="#c0392b" font-weight="800" letter-spacing="2">POLLO PORTEÑO</text>
+  <!-- Roof -->
+  <polygon points="160,210 260,210 240,170 180,170" fill="#c0392b" stroke="#1f1b18" stroke-width="3"/>
+  <!-- House body -->
+  <rect x="170" y="210" width="80" height="80" fill="#faf6ee" stroke="#1f1b18" stroke-width="3"/>
+  <rect x="195" y="240" width="30" height="50" fill="#f5b919" stroke="#1f1b18" stroke-width="3"/>
+  <!-- Chimney -->
+  <rect x="225" y="160" width="20" height="30" fill="#faf6ee" stroke="#1f1b18" stroke-width="3"/>
+  <!-- Chicken body -->
+  <ellipse cx="290" cy="240" rx="42" ry="48" fill="#ffffff" stroke="#1f1b18" stroke-width="3"/>
+  <!-- Chicken comb -->
+  <path d="M275,200 q5,-12 14,-3 q9,-12 14,-2 q8,-10 14,2" fill="#c0392b" stroke="#1f1b18" stroke-width="3"/>
+  <!-- Beak -->
+  <polygon points="320,232 340,238 320,246" fill="#f5b919" stroke="#1f1b18" stroke-width="2"/>
+  <!-- Eye -->
+  <circle cx="305" cy="225" r="3" fill="#1f1b18"/>
+  <!-- Thumb up -->
+  <path d="M335,260 q15,-5 18,8 q3,12 -10,16" fill="#ffffff" stroke="#1f1b18" stroke-width="3"/>
+  <!-- Palm tree -->
+  <path d="M120,260 q-5,-30 0,-60 q-15,15 -30,10 q15,5 25,-5 q-20,5 -25,-15 q15,10 30,5 q-10,15 0,65 z" fill="#3aa55a" stroke="#1f1b18" stroke-width="3"/>
+</svg>

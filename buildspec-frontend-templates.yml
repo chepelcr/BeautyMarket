@@ -12,9 +12,9 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      # Install deps for all 8 templates in parallel
+      # Install deps for all 9 templates in parallel
       - |
-        for TMPL in jmarkets-demo tech-gadgets vintage-fashion artisan-crafts gourmet-foods fitness-hub pet-care beauty-essentials; do
+        for TMPL in jmarkets-demo tech-gadgets vintage-fashion artisan-crafts gourmet-foods fitness-hub pet-care beauty-essentials pollo-porteno; do
           (cd templates/$TMPL && npm ci) &
         done
         wait
@@ -39,6 +39,7 @@ phases:
           [fitness-hub]="Fitness Hub"
           [pet-care]="Pet Care"
           [beauty-essentials]="Beauty Essentials"
+          [pollo-porteno]="Pollo Porteño"
         )
         declare -A INDUSTRIES=(
           [jmarkets-demo]="general"
@@ -49,9 +50,10 @@ phases:
           [fitness-hub]="fitness"
           [pet-care]="pets"
           [beauty-essentials]="beauty"
+          [pollo-porteno]="restaurant"
         )
 
-        for TMPL in jmarkets-demo tech-gadgets vintage-fashion artisan-crafts gourmet-foods fitness-hub pet-care beauty-essentials; do
+        for TMPL in jmarkets-demo tech-gadgets vintage-fashion artisan-crafts gourmet-foods fitness-hub pet-care beauty-essentials pollo-porteno; do
           cat > templates/${TMPL}/.env << EOF
         VITE_AWS_REGION=${AWS_REGION_VAL}
         VITE_AWS_COGNITO_USER_POOL_ID=${USER_POOL_ID}
@@ -68,7 +70,7 @@ phases:
 
   build:
     commands:
-      - echo "Building all 8 template storefronts..."
+      - echo "Building all template storefronts..."
       - npm run build:templates
 
   post_build:

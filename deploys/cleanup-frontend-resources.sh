@@ -47,6 +47,7 @@ TEMPLATE_SUBDOMAINS=(
   fitness-hub-example
   pet-care-example
   beauty-essentials-example
+  pollo-porteno-example
 )
 
 DOMAIN_DASHES="${BASE_DOMAIN//./-}"   # j-markets-jcampos-dev

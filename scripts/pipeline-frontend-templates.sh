@@ -1,5 +1,5 @@
 #!/bin/bash
-# Phase: Deploy all 8 template storefronts — CFN stacks in parallel + S3 sync + CF invalidation
+# Phase: Deploy all template storefronts — CFN stacks in parallel + S3 sync + CF invalidation
 set -euo pipefail
 
 ENVIRONMENT="${ENVIRONMENT:-dev}"
@@ -7,7 +7,7 @@ REGION="${REGION:-us-east-1}"
 FRONTEND_DOMAIN="${FRONTEND_DOMAIN:-j-markets.jcampos.dev}"
 ROOT_DOMAIN="${ROOT_DOMAIN:-jcampos.dev}"
 
-# All 8 template slugs (must match templates/ folder names)
+# Template slugs (must match templates/ folder names)
 TEMPLATES=(
   jmarkets-demo
   tech-gadgets
@@ -17,6 +17,7 @@ TEMPLATES=(
   fitness-hub
   pet-care
   beauty-essentials
+  pollo-porteno
 )
 
 echo "=== JMarkets Frontend Deploy: Templates (${#TEMPLATES[@]} apps) ==="
