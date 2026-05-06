@@ -55,17 +55,23 @@ const thStyle: React.CSSProperties = {
 };
 const tdStyle: React.CSSProperties = { padding: "14px 16px", fontSize: 13 };
 
-export default function ReportePage() {
+interface ReportePageProps {
+  sessionId?: string;
+}
+
+export default function ReportePage({ sessionId }: ReportePageProps = {}) {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
 
   const { data, isLoading } = useQuery<ReportData>({
-    queryKey: ["report", org?.id],
+    queryKey: ["report", org?.id, sessionId],
     enabled: !!user && !!org,
     queryFn: () =>
-      crossAppApi.get<ReportData>(crossAppOrgPath(org!.id, "/dashboard")),
+      crossAppApi.get<ReportData>(
+        crossAppOrgPath(org!.id, `/dashboard${sessionId ? `?session_id=${sessionId}` : ""}`)
+      ),
   });
 
   const session = data?.session;
@@ -95,44 +101,46 @@ export default function ReportePage() {
   }
 
   return (
-    <div style={{ padding: "24px 24px 40px", maxWidth: 1400, margin: "0 auto" }}>
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 20,
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <div>
-          <Badge variant="primary-soft" style={{ marginBottom: 8 }}>
-            {t("report.finalReport")}
-          </Badge>
-          <h1 className="t-h1" style={{ marginBottom: 6 }}>
-            {session?.name ?? "Sesión sin nombre"}
-          </h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {session?.date ? new Date(session.date).toLocaleDateString("es-CR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "Fecha no disponible"}
-            {session?.location ? ` · ${session.location}` : ""}
-            {session?.startTime ? ` · ${session.startTime}` : ""}
-            {session?.endTime ? ` → ${session.endTime}` : ""}
-          </p>
+    <div style={{ padding: sessionId ? "24px" : "24px 24px 40px", maxWidth: sessionId ? "none" : 1400, margin: "0 auto" }}>
+      {/* Header — hide in inline/drawer mode */}
+      {!sessionId && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: 20,
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <div>
+            <Badge variant="primary-soft" style={{ marginBottom: 8 }}>
+              {t("report.finalReport")}
+            </Badge>
+            <h1 className="t-h1" style={{ marginBottom: 6 }}>
+              {session?.name ?? "Sesión sin nombre"}
+            </h1>
+            <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+              {session?.date ? new Date(session.date).toLocaleDateString("es-CR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "Fecha no disponible"}
+              {session?.location ? ` · ${session.location}` : ""}
+              {session?.startTime ? ` · ${session.startTime}` : ""}
+              {session?.endTime ? ` → ${session.endTime}` : ""}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button variant="outline" icon="print" onClick={handlePrint}>
+              {t("report.print")}
+            </Button>
+            <Button variant="primary" icon="download">
+              {t("report.downloadPdf")}
+            </Button>
+            <Button variant="outline" icon="store" onClick={() => (window.location.href = "/pos")}>
+              {t("dash.goToPOS")}
+            </Button>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Button variant="outline" icon="print" onClick={handlePrint}>
-            {t("report.print")}
-          </Button>
-          <Button variant="primary" icon="download">
-            {t("report.downloadPdf")}
-          </Button>
-          <Button variant="outline" icon="store" onClick={() => (window.location.href = "/pos")}>
-            {t("dash.goToPOS")}
-          </Button>
-        </div>
-      </div>
+      )}
 
       {/* Hero KPIs */}
       <div

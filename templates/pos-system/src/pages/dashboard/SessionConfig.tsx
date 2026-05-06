@@ -56,12 +56,24 @@ interface StationAssignments {
   members: AssignmentEntry[];
 }
 
+interface SessionData {
+  session_id: string;
+  name: string;
+  type: string;
+  context: string;
+  start_time: string;
+  expected_revenue?: number;
+  status: number;
+}
+
 interface SessionConfigProps {
   onDone?: () => void;
   onSuccess?: () => void;
+  initialSession?: SessionData;
 }
 
-export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps) {
+export default function SessionConfig({ onDone, onSuccess, initialSession }: SessionConfigProps) {
+  const isEditMode = !!initialSession;
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
@@ -69,10 +81,23 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
   const qc = useQueryClient();
 
   const [tab, setTab] = useState<Tab>("details");
-  const [sessionType, setSessionType] = useState<SessionType>("partido");
-  const [rival, setRival] = useState("");
-  const [sessionTime, setSessionTime] = useState("19:00");
-  const [sessionDate, setSessionDate] = useState(new Date().toISOString().split("T")[0]);
+  const [sessionType, setSessionType] = useState<SessionType>(
+    initialSession?.type === "shift" ? "regular" : "partido"
+  );
+  const [rival, setRival] = useState(
+    initialSession ? initialSession.name.replace(/^vs\s*/i, "") : ""
+  );
+  const [sessionTime, setSessionTime] = useState(
+    initialSession ? new Date(initialSession.start_time).toTimeString().slice(0, 5) : "19:00"
+  );
+  const [sessionDate, setSessionDate] = useState(
+    initialSession
+      ? new Date(initialSession.start_time).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0]
+  );
+  const [expectedRevenue, setExpectedRevenue] = useState(
+    initialSession?.expected_revenue ? String(initialSession.expected_revenue) : ""
+  );
   const [activeBranches, setActiveBranches] = useState<Set<string>>(new Set());
   const [assignments, setAssignments] = useState<Record<string, StationAssignments>>({});
   const [inventory, setInventory] = useState<Record<string, Record<string, number>>>({});
@@ -208,7 +233,7 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
       .filter(Boolean)
   );
 
-  // Mutation
+  // Mutation — create or update depending on mode
   const mutation = useMutation({
     mutationFn: async () => {
       setError(null);
@@ -217,30 +242,40 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
           ? new Date(`${sessionDate}T${sessionTime}:00`).toISOString()
           : new Date().toISOString();
 
-      // Prepare assignments data
-      const assignmentsData = selectedBranches
-        .filter((b) => assignments[b.branch_id]?.members?.length > 0)
-        .flatMap((b) =>
-          assignments[b.branch_id].members.map((member) => ({
-            user_id: member.userId,
-            branch_id: b.branch_id,
-            terminal_id: member.terminalId,
-            role: member.role ?? "cashier",
-          }))
+      if (isEditMode) {
+        // PATCH: update editable fields only
+        await crossAppApi.patch(
+          crossAppOrgPath(org!.id, `/sessions/${initialSession!.session_id}`),
+          {
+            name: sessionType === "partido" ? `vs ${rival}` : "Operación regular",
+            type: sessionType === "partido" ? "match" : "shift",
+            context: sessionType === "partido" ? "gradas" : "caja",
+            start_time,
+            expected_revenue: expectedRevenue ? parseFloat(expectedRevenue) : undefined,
+          }
         );
+      } else {
+        // POST: create session with assignments and products
+        const assignmentsData = selectedBranches
+          .filter((b) => assignments[b.branch_id]?.members?.length > 0)
+          .flatMap((b) =>
+            assignments[b.branch_id].members.map((member) => ({
+              user_id: member.userId,
+              branch_id: b.branch_id,
+              terminal_id: member.terminalId,
+              role: member.role ?? "cashier",
+            }))
+          );
 
-      // Single request with all session data
-      await crossAppApi.post(
-        crossAppOrgPath(org!.id, "/sessions"),
-        {
+        await crossAppApi.post(crossAppOrgPath(org!.id, "/sessions"), {
           name: sessionType === "partido" ? `vs ${rival}` : "Operación regular",
           type: sessionType === "partido" ? "match" : "shift",
           context: sessionType === "partido" ? "gradas" : "caja",
           start_time,
           product_ids: selectedProducts.size > 0 ? Array.from(selectedProducts) : undefined,
-          assignments: assignmentsData, // Send assignments in the same request
-        }
-      );
+          assignments: assignmentsData,
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard", org?.id] });
@@ -264,10 +299,10 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
         }}
       >
         <h2 className="t-h2" style={{ marginBottom: 6 }}>
-          {t("session.title")}
+          {isEditMode ? "Editar sesión" : t("session.title")}
         </h2>
         <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {t("session.subtitle")}
+          {isEditMode ? "Modifica los detalles de la sesión activa." : t("session.subtitle")}
         </p>
         {error && (
           <div
@@ -288,52 +323,60 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
 
       {/* Scrollable Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-        {/* Tabs */}
+        {/* Tabs — edit mode only shows details */}
         <div className="tabs" style={{ marginBottom: 20 }}>
-          <button
-            className="tab"
-            aria-selected={tab === "details"}
-            onClick={() => setTab("details")}
-          >
+          <button className="tab" aria-selected={tab === "details"} onClick={() => setTab("details")}>
             {t("session.tabMatch")}
           </button>
-          <button
-            className="tab"
-            aria-selected={tab === "stations"}
-            onClick={() => setTab("stations")}
-          >
-            {t("session.tabStations")}
-          </button>
-          <button
-            className="tab"
-            aria-selected={tab === "inventory"}
-            onClick={() => setTab("inventory")}
-          >
-            {t("session.tabInventory")}
-          </button>
+          {!isEditMode && (
+            <>
+              <button className="tab" aria-selected={tab === "stations"} onClick={() => setTab("stations")}>
+                {t("session.tabStations")}
+              </button>
+              <button className="tab" aria-selected={tab === "inventory"} onClick={() => setTab("inventory")}>
+                {t("session.tabInventory")}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Tab Content */}
         {tab === "details" && (
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
-            <SessionTypeSelector
-              sessionType={sessionType}
-              setSessionType={setSessionType}
-              rival={rival}
-              setRival={setRival}
-              sessionTime={sessionTime}
-              setSessionTime={setSessionTime}
-              sessionDate={sessionDate}
-              setSessionDate={setSessionDate}
-            />
-            <SessionPreview
-              sessionType={sessionType}
-              rival={rival}
-              sessionDate={sessionDate}
-              sessionTime={sessionTime}
-              selectedBranchesCount={selectedBranches.length}
-              assignedCount={assigned}
-            />
+            <div>
+              <SessionTypeSelector
+                sessionType={sessionType}
+                setSessionType={setSessionType}
+                rival={rival}
+                setRival={setRival}
+                sessionTime={sessionTime}
+                setSessionTime={setSessionTime}
+                sessionDate={sessionDate}
+                setSessionDate={setSessionDate}
+              />
+              <div style={{ marginTop: 14 }}>
+                <label className="label">Meta de ventas (opcional)</label>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  step="500"
+                  value={expectedRevenue}
+                  onChange={(e) => setExpectedRevenue(e.target.value)}
+                  placeholder="₡ 0"
+                />
+              </div>
+            </div>
+            {!isEditMode && (
+              <SessionPreview
+                sessionType={sessionType}
+                rival={rival}
+                sessionDate={sessionDate}
+                sessionTime={sessionTime}
+                selectedBranchesCount={selectedBranches.length}
+                assignedCount={assigned}
+              />
+            )}
           </div>
         )}
 
@@ -374,19 +417,9 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
           background: "hsl(var(--card))",
         }}
       >
-        {/* Validation feedback */}
-        {!canActivate && (
-          <div
-            style={{
-              marginBottom: 12,
-              padding: "10px 14px",
-              background: "hsl(var(--muted) / 0.5)",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "var(--radius)",
-              fontSize: 12,
-              color: "hsl(var(--muted-foreground))",
-            }}
-          >
+        {/* Validation feedback — only for create mode */}
+        {!isEditMode && !canActivate && (
+          <div style={{ marginBottom: 12, padding: "10px 14px", background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)", fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
             {t("session.requiredSteps")}:
             <ul style={{ margin: "6px 0 0 0", paddingLeft: 20 }}>
               {!hasSelectedBranches && <li>{t("session.selectBranches")}</li>}
@@ -396,16 +429,19 @@ export default function SessionConfig({ onDone, onSuccess }: SessionConfigProps)
             </ul>
           </div>
         )}
-        
+
         <Button
           variant="primary"
           size="lg"
           icon="check"
-          disabled={!canActivate || mutation.isPending}
+          disabled={(!isEditMode && !canActivate) || mutation.isPending}
           onClick={() => mutation.mutate()}
           style={{ width: "100%" }}
         >
-          {mutation.isPending ? t("session.activating") : t("session.activate")}
+          {mutation.isPending
+            ? (isEditMode ? "Guardando…" : t("session.activating"))
+            : (isEditMode ? "Guardar cambios" : t("session.activate"))
+          }
         </Button>
       </div>
     </div>
