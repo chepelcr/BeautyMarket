@@ -6,7 +6,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { db } from "@/lib/db";
 import { useInventory } from "@/store/inventory";
 import type { Product } from "@/types";
-import { Icon, Card, Button, SyncPill } from "@/components/ui";
+import { Icon, Card, Button, SyncPill, Modal } from "@/components/ui";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -332,117 +332,40 @@ export default function InventoryOpening({
       </div>
 
       {/* Confirm modal */}
-      {confirmOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 60,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
-          <div
-            onClick={() => setConfirmOpen(false)}
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)" }}
-          />
-          <Card
-            className="fade-up"
-            style={{
-              position: "relative",
-              width: "100%",
-              maxWidth: 360,
-              padding: 22,
-              textAlign: "center",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-            }}
-          >
-            <div
-              className="icon-pill icon-pill-lg"
-              style={{
-                margin: "0 auto 14px",
-                background: "hsl(var(--success) / 0.15)",
-                color: "hsl(var(--success))",
-                width: 60,
-                height: 60,
-              }}
-            >
-              <Icon name="checkCircle" size={26} />
-            </div>
-            <h3 className="t-h2" style={{ marginBottom: 6 }}>
-              {t("inv.confirmTitle")}
-            </h3>
-            <p
-              className="t-sm"
-              style={{ color: "hsl(var(--muted-foreground))", marginBottom: 16 }}
-            >
-              {t("inv.confirmMessage")}
-            </p>
-            <Card
-              style={{
-                padding: 12,
-                marginBottom: 14,
-                background: "hsl(var(--muted) / 0.5)",
-                textAlign: "left",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  marginBottom: 6,
-                }}
-              >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.productsLabel")}</span>
-                <span style={{ fontWeight: 700 }} className="t-num">
-                  {t("inv.items", { n: totalProducts })}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  marginBottom: 6,
-                }}
-              >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.cashLabel")}</span>
-                <span style={{ fontWeight: 700 }} className="t-num">
-                  {fmt(Number(cash) || 0)}
-                </span>
-              </div>
-              <div
-                style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}
-              >
-                <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.stockValue")}</span>
-                <span style={{ fontWeight: 700 }} className="t-num">
-                  {fmt(totalValue)}
-                </span>
-              </div>
-            </Card>
-            {mutation.isError && (
-              <p className="t-sm" style={{ color: "hsl(var(--destructive))", marginBottom: 12 }}>
-                {t("inv.saveError")}
-              </p>
-            )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-                {t("inv.cancel")}
-              </Button>
-              <Button
-                variant="primary"
-                disabled={mutation.isPending}
-                onClick={() => mutation.mutate()}
-              >
-                {mutation.isPending ? t("inv.saving") : t("inv.confirm")}
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        variant="success"
+        title={t("inv.confirmTitle")}
+        description={t("inv.confirmMessage")}
+        cancel={{ label: t("inv.cancel"), onClick: () => setConfirmOpen(false) }}
+        confirm={{
+          label: t("inv.confirm"),
+          onClick: () => mutation.mutate(),
+          loading: mutation.isPending,
+          loadingLabel: t("inv.saving"),
+        }}
+      >
+        <Card style={{ padding: 12, background: "hsl(var(--muted) / 0.5)", textAlign: "left" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
+            <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.productsLabel")}</span>
+            <span style={{ fontWeight: 700 }} className="t-num">{t("inv.items", { n: totalProducts })}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
+            <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.cashLabel")}</span>
+            <span style={{ fontWeight: 700 }} className="t-num">{fmt(Number(cash) || 0)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+            <span style={{ color: "hsl(var(--muted-foreground))" }}>{t("inv.stockValue")}</span>
+            <span style={{ fontWeight: 700 }} className="t-num">{fmt(totalValue)}</span>
+          </div>
+        </Card>
+        {mutation.isError && (
+          <p className="t-sm" style={{ color: "hsl(var(--destructive))", marginTop: 10 }}>
+            {t("inv.saveError")}
+          </p>
+        )}
+      </Modal>
     </div>
   );
 }

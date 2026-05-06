@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useSearch } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Card, Badge, Button, Drawer } from "@/components/ui";
+import { Icon, Card, Badge, Button, Drawer, Modal } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SessionConfig from "./SessionConfig";
 import ReportePage from "./ReportePage";
@@ -81,6 +81,7 @@ export default function SessionsPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("overview");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [endConfirmId, setEndConfirmId] = useState<string | null>(null);
 
   // Get filter from search params
   const filter = (new URLSearchParams(searchParams).get("filter") as SessionFilter) || "all";
@@ -157,9 +158,7 @@ export default function SessionsPage() {
 
   const handleDelete = (sessionId: string) => deleteMutation.mutate(sessionId);
 
-  const handleEndSession = (sessionId: string) => {
-    if (confirm(t("session.confirmEnd"))) endSessionMutation.mutate(sessionId);
-  };
+  const handleEndSession = (sessionId: string) => setEndConfirmId(sessionId);
 
   const handleView = (session: Session) => {
     setSelectedSession(session);
@@ -284,25 +283,27 @@ export default function SessionsPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, width: "100%", maxWidth: 400 }} className="session-actions">
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0, minWidth: 180 }} className="session-actions">
                   {isActive(session) && (
-                    <Button variant="secondary" size="sm" icon="lock" onClick={() => handleEndSession(session.session_id)} disabled={endSessionMutation.isPending} style={{ gridColumn: "span 3" }}>
+                    <Button variant="secondary" size="sm" icon="lock" onClick={() => handleEndSession(session.session_id)} disabled={endSessionMutation.isPending} style={{ width: "100%" }}>
                       {t("session.endSession")}
                     </Button>
                   )}
-                  <Button variant="outline" size="sm" icon="eye" onClick={() => handleView(session)}>
-                    {t("common.view")}
-                  </Button>
-                  {isActive(session) && (
-                    <Button variant="outline" size="sm" icon="edit" onClick={() => handleEdit(session)}>
-                      {t("common.edit") ?? "Editar"}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Button variant="outline" size="sm" icon="eye" onClick={() => handleView(session)} style={{ flex: 1 }}>
+                      {t("common.view")}
                     </Button>
-                  )}
-                  {!isActive(session) && (
-                    <Button variant="ghost" size="sm" icon="trash" onClick={() => setDeleteConfirmId(session.session_id)} disabled={deleteMutation.isPending} style={{ gridColumn: "span 2" }}>
-                      {t("common.delete")}
-                    </Button>
-                  )}
+                    {isActive(session) && (
+                      <Button variant="outline" size="sm" icon="edit" onClick={() => handleEdit(session)} style={{ flex: 1 }}>
+                        {t("common.edit") ?? "Editar"}
+                      </Button>
+                    )}
+                    {!isActive(session) && (
+                      <Button variant="ghost" size="sm" icon="trash" onClick={() => setDeleteConfirmId(session.session_id)} disabled={deleteMutation.isPending} style={{ flex: 1 }}>
+                        {t("common.delete")}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </Card>
@@ -372,7 +373,7 @@ export default function SessionsPage() {
                     <Button variant="outline" size="sm" icon="edit" onClick={() => { setViewOpen(false); handleEdit(selectedSession); }}>
                       {t("common.edit") ?? "Editar"}
                     </Button>
-                    <Button variant="secondary" size="sm" icon="lock" onClick={() => handleEndSession(selectedSession.session_id)} disabled={endSessionMutation.isPending}>
+                    <Button variant="secondary" size="sm" icon="lock" onClick={() => setEndConfirmId(selectedSession.session_id)} disabled={endSessionMutation.isPending}>
                       {t("session.endSession")}
                     </Button>
                   </>
@@ -560,37 +561,41 @@ export default function SessionsPage() {
         )}
       </Drawer>
 
-      {/* Delete Confirmation Modal */}
-      {deleteConfirmId && (
-        <div
-          style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", animation: "fadeIn 0.2s" }}
-          onClick={() => setDeleteConfirmId(null)}
-        >
-          <div
-            style={{ maxWidth: 400, margin: 16, animation: "fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-          <Card style={{ padding: 24 }}>
-            <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 16px", background: "hsl(var(--destructive) / 0.15)", color: "hsl(var(--destructive))", width: 56, height: 56 }}>
-              <Icon name="alertTri" size={24} />
-            </div>
-            <h3 className="t-h3" style={{ textAlign: "center", marginBottom: 8 }}>{t("session.confirmDelete")}</h3>
-            <p className="t-sm" style={{ textAlign: "center", color: "hsl(var(--muted-foreground))", marginBottom: 20 }}>Esta acción no se puede deshacer.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>{t("common.cancel")}</Button>
-              <Button variant="destructive" onClick={() => handleDelete(deleteConfirmId)} disabled={deleteMutation.isPending}>
-                {deleteMutation.isPending ? t("common.loading") : t("common.delete")}
-              </Button>
-            </div>
-          </Card>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        title={t("session.confirmDelete")}
+        description="Esta acción no se puede deshacer."
+        variant="destructive"
+        cancel={{ label: t("common.cancel"), onClick: () => setDeleteConfirmId(null) }}
+        confirm={{
+          label: t("common.delete"),
+          variant: "destructive",
+          onClick: () => deleteConfirmId && handleDelete(deleteConfirmId),
+          loading: deleteMutation.isPending,
+          loadingLabel: t("common.loading"),
+        }}
+      />
+
+      <Modal
+        open={!!endConfirmId}
+        onClose={() => setEndConfirmId(null)}
+        title={t("session.endSession")}
+        description={t("session.confirmEnd")}
+        variant="warning"
+        cancel={{ label: t("common.cancel"), onClick: () => setEndConfirmId(null) }}
+        confirm={{
+          label: t("session.endSession"),
+          variant: "secondary",
+          onClick: () => endConfirmId && endSessionMutation.mutate(endConfirmId, { onSuccess: () => setEndConfirmId(null) }),
+          loading: endSessionMutation.isPending,
+          loadingLabel: t("common.loading"),
+        }}
+      />
 
       <style>{`
         @media (max-width: 768px) {
-          .session-actions { grid-template-columns: 1fr !important; max-width: 100% !important; }
-          .session-actions button { grid-column: span 1 !important; }
+          .session-actions { flex-direction: column !important; }
         }
       `}</style>
     </div>

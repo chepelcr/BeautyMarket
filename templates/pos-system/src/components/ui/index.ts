@@ -9,4 +9,5 @@ export { Menu } from "./Menu";
 export type { MenuItem } from "./Menu";
 export { SyncPill } from "./SyncPill";
 export { EmptyState } from "./EmptyState";
+export { Modal } from "./Modal";
 export { LocationSelect } from "./LocationSelect";

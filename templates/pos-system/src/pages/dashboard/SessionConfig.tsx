@@ -328,16 +328,12 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
           <button className="tab" aria-selected={tab === "details"} onClick={() => setTab("details")}>
             {t("session.tabMatch")}
           </button>
-          {!isEditMode && (
-            <>
-              <button className="tab" aria-selected={tab === "stations"} onClick={() => setTab("stations")}>
-                {t("session.tabStations")}
-              </button>
-              <button className="tab" aria-selected={tab === "inventory"} onClick={() => setTab("inventory")}>
-                {t("session.tabInventory")}
-              </button>
-            </>
-          )}
+          <button className="tab" aria-selected={tab === "stations"} onClick={() => setTab("stations")}>
+            {t("session.tabStations")}
+          </button>
+          <button className="tab" aria-selected={tab === "inventory"} onClick={() => setTab("inventory")}>
+            {t("session.tabInventory")}
+          </button>
         </div>
 
         {/* Tab Content */}
