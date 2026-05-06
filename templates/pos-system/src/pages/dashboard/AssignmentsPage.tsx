@@ -69,14 +69,14 @@ export default function AssignmentsPage() {
     queryKey: ["assignments", org?.id],
     enabled: !!user && !!org,
     queryFn: () =>
-      crossAppApi.get<Assignment[]>(crossAppOrgPath(org!.id, "/assignments?is_active=true")),
+      crossAppApi.get<Assignment[]>(crossAppOrgPath(org!.id, "/assignments?search=status:1")),
   });
 
   const { data: sessions = [] } = useQuery({
     queryKey: ["sessions-active", org?.id],
     enabled: !!user && !!org && showForm,
     queryFn: () =>
-      crossAppApi.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
+      crossAppApi.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?search=status:1")),
   });
 
   const { data: branchesResponse } = useQuery({

@@ -90,6 +90,12 @@ export function userPath(userId: string, endpoint: string) {
   return `/api/users/${userId}${endpoint}`;
 }
 
+/** Build user+org-scoped API path for cross-app-be (e.g. user-specific assignments) */
+export function crossAppUserOrgPath(userId: string, orgId: string, endpoint: string) {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `/api/users/${userId}/organizations/${orgId}${cleanEndpoint}`;
+}
+
 /** Build org-scoped API path for cross-app-be (sessions, assignments, branches, etc.) */
 export function crossAppOrgPath(orgId: string, endpoint: string) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
