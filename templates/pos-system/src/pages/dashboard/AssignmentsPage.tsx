@@ -15,14 +15,14 @@ interface Assignment {
   terminal_id: string | null;
   role: "cashier" | "supervisor";
   start_time: string;
-  is_active: boolean;
+  status: number;
 }
 
 interface Session {
   session_id: string;
   name: string;
   type: string;
-  is_active: boolean;
+  status: number;
 }
 
 interface Branch {
@@ -117,7 +117,7 @@ export default function AssignmentsPage() {
 
   const deactivateMutation = useMutation({
     mutationFn: (assignmentId: string) =>
-      crossAppApi.patch(crossAppOrgPath(org!.id, `/assignments/${assignmentId}`), { is_active: false }),
+      crossAppApi.patch(crossAppOrgPath(org!.id, `/assignments/${assignmentId}/status`), { status: 2 }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["assignments", org?.id] }),
   });
 

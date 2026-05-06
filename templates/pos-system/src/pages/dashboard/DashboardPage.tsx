@@ -50,7 +50,7 @@ interface Session {
   type: string;
   context: string;
   start_time: string;
-  is_active: boolean;
+  status: number;
 }
 
 function SalesChart() {
@@ -534,17 +534,19 @@ export default function DashboardPage() {
     return "dashboard";
   })();
 
+  const isMainDashboard = page === "dashboard";
+
   const { data: sessionsData } = useQuery({
     queryKey: ["sessions", org?.id],
-    enabled: !!org,
+    enabled: !!org && isMainDashboard,
     queryFn: () =>
-      crossAppApi.get<{ data: Session[] }>(crossAppOrgPath(org!.id, "/sessions?is_active=true")),
+      crossAppApi.get<{ data: Session[] }>(crossAppOrgPath(org!.id, "/sessions?search=status:1")),
   });
   const activeSession = sessionsData?.data?.[0];
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["dashboard", org?.id],
-    enabled: !!user && !!org,
+    enabled: !!user && !!org && isMainDashboard,
     refetchInterval: 30_000,
     retry: 3,
     queryFn: () =>

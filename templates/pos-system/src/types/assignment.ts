@@ -53,7 +53,6 @@ export interface CreateAssignmentRequest {
 export interface UpdateAssignmentRequest {
   terminal_id?: string;
   end_time?: string;
-  is_active?: boolean;
 }
 
 export interface AssignmentListResponse {
