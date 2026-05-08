@@ -63,8 +63,8 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
         }}
       >
         {filtered.map((p) => {
-          const pid = parseInt(p.product_id, 10);
-          const inCart = cart[pid] ?? 0;
+          const pid = p.product_id;
+          const inCart = cart[pid as any] ?? 0;
           const localStock = getStock(pid);
           const stock = localStock !== undefined ? localStock : (p.stock_quantity ?? 0);
           const isOut = stock === 0;

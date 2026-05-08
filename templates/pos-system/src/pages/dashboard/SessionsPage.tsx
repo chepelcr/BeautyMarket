@@ -4,67 +4,15 @@ import { useLocation, useSearch } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Card, Badge, Button, Drawer, Modal } from "@/components/ui";
+import { Icon, Card, Button, Drawer, Modal } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SessionCard } from "@/components/sessions/SessionCard";
+import { SessionDetailDrawer } from "@/components/sessions/SessionDetailDrawer";
 import SessionConfig from "./SessionConfig";
-import ReportePage from "./ReportePage";
+import type { Session, Assignment, DashboardData } from "@/types";
 
 type SessionFilter = "all" | "active" | "closed";
 type DrawerTab = "overview" | "assignments" | "sales" | "report";
-
-interface Session {
-  session_id: string;
-  name: string;
-  type: string;
-  context: string;
-  start_time: string;
-  end_time?: string;
-  status: number; // 1=Active, 2=Inactive, 3=Deleted
-  branch_id?: string;
-  expected_revenue?: number;
-  actual_revenue?: number;
-  created_at: string;
-}
-
-interface AssignmentUser {
-  id: string;
-  username: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-interface Assignment {
-  assignment_id: string;
-  user_id: string;
-  branch_id: string;
-  terminal_id?: string;
-  role: string;
-  start_time: string;
-  end_time?: string;
-  status: number;
-  user?: AssignmentUser;
-}
-
-interface StandData {
-  id: string;
-  name: string;
-  cashier_name: string;
-  context: string;
-  total_revenue: number;
-  sales_count: number;
-  cash: number;
-  sinpe: number;
-  card: number;
-}
-
-interface DashboardData {
-  stands: StandData[];
-  total_revenue: number;
-  total_sales: number;
-  avg_ticket: number;
-  product_ranking: Array<{ name: string; emoji: string; units: number; revenue: number }>;
-}
 
 export default function SessionsPage() {
   const { user } = useAuthContext();
@@ -83,20 +31,15 @@ export default function SessionsPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [endConfirmId, setEndConfirmId] = useState<string | null>(null);
 
-  // Get filter from search params
   const filter = (new URLSearchParams(searchParams).get("filter") as SessionFilter) || "all";
 
   const setFilter = (f: SessionFilter) => {
     const params = new URLSearchParams(searchParams);
-    if (f === "all") {
-      params.delete("filter");
-    } else {
-      params.set("filter", f);
-    }
+    if (f === "all") params.delete("filter");
+    else params.set("filter", f);
     setLocation(`?${params.toString()}`, { replace: true });
   };
 
-  // Fetch sessions — use search=status:1/2 so the backend search system handles it
   const { data: sessionsData, isLoading } = useQuery({
     queryKey: ["sessions", org?.id, filter],
     enabled: !!org,
@@ -111,7 +54,6 @@ export default function SessionsPage() {
 
   const sessions = sessionsData?.data ?? [];
 
-  // Assignments for selected session
   const { data: assignmentsData, isLoading: assignmentsLoading } = useQuery({
     queryKey: ["session-assignments", org?.id, selectedSession?.session_id],
     enabled: !!org && !!selectedSession,
@@ -121,9 +63,6 @@ export default function SessionsPage() {
       ),
   });
 
-  const assignments = assignmentsData?.data ?? [];
-
-  // Dashboard/sales data for selected session
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ["session-dashboard", org?.id, selectedSession?.session_id],
     enabled: !!org && !!selectedSession,
@@ -133,32 +72,21 @@ export default function SessionsPage() {
       ),
   });
 
-  // Delete session mutation
   const deleteMutation = useMutation({
     mutationFn: (sessionId: string) =>
       crossAppApi.patch(crossAppOrgPath(org!.id, `/sessions/${sessionId}/status`), { status: 3 }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions", org?.id] });
-      setDeleteConfirmId(null);
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["sessions", org?.id] }); setDeleteConfirmId(null); },
   });
 
-  // End session mutation — set status to 2 (Inactive)
   const endSessionMutation = useMutation({
     mutationFn: (sessionId: string) =>
       crossAppApi.patch(crossAppOrgPath(org!.id, `/sessions/${sessionId}/status`), { status: 2 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions", org?.id] });
       queryClient.invalidateQueries({ queryKey: ["session-dashboard", org?.id] });
-      if (selectedSession) {
-        setSelectedSession((s) => s ? { ...s, status: 2 } : null);
-      }
+      if (selectedSession) setSelectedSession((s) => s ? { ...s, status: 2 } : null);
     },
   });
-
-  const handleDelete = (sessionId: string) => deleteMutation.mutate(sessionId);
-
-  const handleEndSession = (sessionId: string) => setEndConfirmId(sessionId);
 
   const handleView = (session: Session) => {
     setSelectedSession(session);
@@ -169,32 +97,6 @@ export default function SessionsPage() {
   const handleEdit = (session: Session) => {
     setEditSession(session);
     setConfigOpen(true);
-  };
-
-  const handleConfigClose = () => {
-    setConfigOpen(false);
-    setEditSession(null);
-  };
-
-  const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("es-CR", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  const isActive = (s: Session) => s.status === 1;
-
-  const getUserDisplayName = (a: Assignment) => {
-    if (a.user?.firstName || a.user?.lastName) {
-      return `${a.user.firstName ?? ""} ${a.user.lastName ?? ""}`.trim();
-    }
-    return a.user?.username ?? a.user_id.slice(0, 8);
   };
 
   return (
@@ -213,11 +115,7 @@ export default function SessionsPage() {
       {/* Filters */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         {(["all", "active", "closed"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={filter === f ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm"}
-          >
+          <button key={f} onClick={() => setFilter(f)} className={filter === f ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm"}>
             {f === "all" ? t("session.allSessions") : f === "active" ? t("session.activeSessions") : t("session.closedSessions")}
           </button>
         ))}
@@ -225,9 +123,7 @@ export default function SessionsPage() {
 
       {/* Sessions list */}
       {isLoading ? (
-        <div className="t-body" style={{ color: "hsl(var(--muted-foreground))", padding: "40px 0", textAlign: "center" }}>
-          {t("common.loading")}
-        </div>
+        <div className="t-body" style={{ color: "hsl(var(--muted-foreground))", padding: "40px 0", textAlign: "center" }}>{t("common.loading")}</div>
       ) : sessions.length === 0 ? (
         <Card style={{ padding: 40, textAlign: "center" }}>
           <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 16px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 64, height: 64 }}>
@@ -240,326 +136,40 @@ export default function SessionsPage() {
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
           {sessions.map((session) => (
-            <Card key={session.session_id} style={{ padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 200 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <div className={`icon-pill ${isActive(session) ? "" : "icon-pill-muted"}`} style={{ width: 40, height: 40 }}>
-                      <Icon name={session.type === "match" ? "trending" : "store"} size={18} />
-                    </div>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <h3 className="t-h3" style={{ fontSize: 18 }}>{session.name}</h3>
-                        {isActive(session) && (
-                          <Badge variant="success" style={{ gap: 5 }}>
-                            <span className="status-dot status-dot-live" style={{ width: 5, height: 5 }} />
-                            {t("session.active")}
-                          </Badge>
-                        )}
-                        {session.status === 2 && <Badge variant="secondary">{t("session.closed") ?? "Cerrada"}</Badge>}
-                      </div>
-                      <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                        {session.type === "match" ? t("session.match") : t("session.regular")} · {session.context}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 12 }}>
-                    <div>
-                      <div className="t-label" style={{ fontSize: 10 }}>{t("session.startTime")}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(session.start_time)}</div>
-                    </div>
-                    {session.end_time && (
-                      <div>
-                        <div className="t-label" style={{ fontSize: 10 }}>{t("session.endTime")}</div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(session.end_time)}</div>
-                      </div>
-                    )}
-                    {session.expected_revenue != null && (
-                      <div>
-                        <div className="t-label" style={{ fontSize: 10 }}>Meta</div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{fmt(session.expected_revenue)}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0, minWidth: 180 }} className="session-actions">
-                  {isActive(session) && (
-                    <Button variant="secondary" size="sm" icon="lock" onClick={() => handleEndSession(session.session_id)} disabled={endSessionMutation.isPending} style={{ width: "100%" }}>
-                      {t("session.endSession")}
-                    </Button>
-                  )}
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button variant="outline" size="sm" icon="eye" onClick={() => handleView(session)} style={{ flex: 1 }}>
-                      {t("common.view")}
-                    </Button>
-                    {isActive(session) && (
-                      <Button variant="outline" size="sm" icon="edit" onClick={() => handleEdit(session)} style={{ flex: 1 }}>
-                        {t("common.edit") ?? "Editar"}
-                      </Button>
-                    )}
-                    {!isActive(session) && (
-                      <Button variant="ghost" size="sm" icon="trash" onClick={() => setDeleteConfirmId(session.session_id)} disabled={deleteMutation.isPending} style={{ flex: 1 }}>
-                        {t("common.delete")}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
+            <SessionCard
+              key={session.session_id}
+              session={session}
+              endingPending={endSessionMutation.isPending}
+              deletingPending={deleteMutation.isPending}
+              onView={handleView}
+              onEdit={handleEdit}
+              onEndSession={(id) => setEndConfirmId(id)}
+              onDeleteConfirm={(id) => setDeleteConfirmId(id)}
+            />
           ))}
         </div>
       )}
 
       {/* Create/Edit Session Drawer */}
-      <Drawer open={configOpen} onClose={handleConfigClose} width="min(900px, 100vw)" title={editSession ? "Editar sesión" : t("session.newSession")}>
-        <SessionConfig
-          initialSession={editSession ?? undefined}
-          onSuccess={handleConfigClose}
-        />
+      <Drawer open={configOpen} onClose={() => { setConfigOpen(false); setEditSession(null); }} width="min(900px, 100vw)" title={editSession ? "Editar sesión" : t("session.newSession")}>
+        <SessionConfig initialSession={editSession ?? undefined} onSuccess={() => { setConfigOpen(false); setEditSession(null); }} />
       </Drawer>
 
       {/* Session Detail Drawer */}
-      <Drawer open={viewOpen} onClose={() => setViewOpen(false)} width="min(860px, 100vw)" title={selectedSession?.name ?? ""}>
-        {selectedSession && (
-          <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-            {/* Drawer Header */}
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid hsl(var(--border))", flexShrink: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <div className={`icon-pill ${isActive(selectedSession) ? "" : "icon-pill-muted"}`} style={{ width: 44, height: 44 }}>
-                  <Icon name={selectedSession.type === "match" ? "trending" : "store"} size={20} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <h2 className="t-h2" style={{ marginBottom: 0 }}>{selectedSession.name}</h2>
-                    {isActive(selectedSession) && (
-                      <Badge variant="success" style={{ gap: 5 }}>
-                        <span className="status-dot status-dot-live" style={{ width: 5, height: 5 }} />
-                        {t("session.active")}
-                      </Badge>
-                    )}
-                    {selectedSession.status === 2 && <Badge variant="secondary">{t("session.closed") ?? "Cerrada"}</Badge>}
-                  </div>
-                  <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {selectedSession.type === "match" ? t("session.match") : t("session.regular")} · {selectedSession.context}
-                  </div>
-                </div>
-              </div>
-
-              {/* Info row */}
-              <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginTop: 8 }}>
-                <div>
-                  <div className="t-label" style={{ fontSize: 10 }}>{t("session.startTime")}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(selectedSession.start_time)}</div>
-                </div>
-                {selectedSession.end_time && (
-                  <div>
-                    <div className="t-label" style={{ fontSize: 10 }}>{t("session.endTime")}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(selectedSession.end_time)}</div>
-                  </div>
-                )}
-                {selectedSession.expected_revenue != null && (
-                  <div>
-                    <div className="t-label" style={{ fontSize: 10 }}>Meta de ventas</div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{fmt(selectedSession.expected_revenue)}</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Action buttons */}
-              <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-                {isActive(selectedSession) && (
-                  <>
-                    <Button variant="outline" size="sm" icon="edit" onClick={() => { setViewOpen(false); handleEdit(selectedSession); }}>
-                      {t("common.edit") ?? "Editar"}
-                    </Button>
-                    <Button variant="secondary" size="sm" icon="lock" onClick={() => setEndConfirmId(selectedSession.session_id)} disabled={endSessionMutation.isPending}>
-                      {t("session.endSession")}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Drawer Tabs */}
-            <div style={{ padding: "0 24px", borderBottom: "1px solid hsl(var(--border))", flexShrink: 0 }}>
-              <div className="tabs">
-                {(["overview", "assignments", "sales", "report"] as DrawerTab[]).map((tab) => (
-                  <button key={tab} className="tab" aria-selected={drawerTab === tab} onClick={() => setDrawerTab(tab)}>
-                    {tab === "overview" ? "Resumen" : tab === "assignments" ? "Asignaciones" : tab === "sales" ? "Ventas" : "Reporte"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Drawer Content */}
-            <div style={{ flex: 1, overflowY: "auto" }}>
-              {/* OVERVIEW TAB */}
-              {drawerTab === "overview" && (
-                <div style={{ padding: 24 }}>
-                  {dashboardLoading ? (
-                    <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center", padding: 32 }}>{t("common.loading")}</div>
-                  ) : (
-                    <>
-                      {/* KPI Cards */}
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>
-                        {[
-                          { label: "Ventas totales", value: fmt(dashboardData?.total_revenue ?? 0), icon: "dollar", color: "primary" },
-                          { label: "Órdenes", value: String(dashboardData?.total_sales ?? 0), icon: "cart", color: "info" },
-                          { label: "Ticket promedio", value: fmt(dashboardData?.avg_ticket ?? 0), icon: "trending", color: "success" },
-                          { label: "Puestos activos", value: String(dashboardData?.stands?.length ?? 0), icon: "store", color: "warning" },
-                        ].map((k) => (
-                          <Card key={k.label} style={{ padding: 16 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                              <div className="t-label" style={{ fontSize: 10 }}>{k.label}</div>
-                              <div className={`icon-pill icon-pill-${k.color}`} style={{ width: 28, height: 28 }}>
-                                <Icon name={k.icon} size={12} />
-                              </div>
-                            </div>
-                            <div className="t-stat-xl" style={{ fontSize: 22 }}>{k.value}</div>
-                          </Card>
-                        ))}
-                      </div>
-
-                      {/* Stand breakdown */}
-                      {(dashboardData?.stands?.length ?? 0) > 0 && (
-                        <Card style={{ padding: 0 }}>
-                          <div style={{ padding: "16px 20px", borderBottom: "1px solid hsl(var(--border))" }}>
-                            <div className="t-h3" style={{ fontSize: 15 }}>Rendimiento por puesto</div>
-                          </div>
-                          {dashboardData!.stands.map((stand, i) => (
-                            <div key={stand.id} style={{ padding: "14px 20px", borderBottom: i < dashboardData!.stands.length - 1 ? "1px solid hsl(var(--border))" : "none" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                                <div>
-                                  <div style={{ fontSize: 14, fontWeight: 700 }}>{stand.name}</div>
-                                  <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{stand.cashier_name} · {stand.sales_count} órdenes</div>
-                                </div>
-                                <div style={{ textAlign: "right" }}>
-                                  <div className="t-num" style={{ fontSize: 16, fontWeight: 800, fontFamily: "var(--font-display)", color: "hsl(var(--primary))" }}>{fmt(stand.total_revenue)}</div>
-                                </div>
-                              </div>
-                              <div style={{ display: "flex", gap: 8 }}>
-                                {[
-                                  { l: "Efectivo", v: stand.cash, c: "success" },
-                                  { l: "SINPE", v: stand.sinpe, c: "primary" },
-                                  { l: "Tarjeta", v: stand.card, c: "info" },
-                                ].map((p) => (
-                                  <Badge key={p.l} variant={p.c as any} style={{ fontSize: 11 }}>{p.l}: {fmt(p.v)}</Badge>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </Card>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* ASSIGNMENTS TAB */}
-              {drawerTab === "assignments" && (
-                <div style={{ padding: 24 }}>
-                  {assignmentsLoading ? (
-                    <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center", padding: 32 }}>{t("common.loading")}</div>
-                  ) : assignments.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: 40 }}>
-                      <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 12px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 56, height: 56 }}>
-                        <Icon name="users" size={24} />
-                      </div>
-                      <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Sin asignaciones</div>
-                    </div>
-                  ) : (
-                    <div style={{ display: "grid", gap: 10 }}>
-                      {assignments.map((a) => (
-                        <Card key={a.assignment_id} style={{ padding: 16 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                            <div className="icon-pill" style={{ width: 40, height: 40, background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))", flexShrink: 0 }}>
-                              <Icon name="user" size={18} />
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 14, fontWeight: 700 }}>{getUserDisplayName(a)}</div>
-                              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                                {a.branch_id?.slice(0, 8)}…
-                              </div>
-                            </div>
-                            <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
-                              <Badge variant={a.role === "supervisor" ? "warning" : "secondary"}>
-                                {a.role === "supervisor" ? "Supervisor" : "Cajero"}
-                              </Badge>
-                              <Badge variant={a.status === 1 ? "success" : "secondary"}>
-                                {a.status === 1 ? "Activo" : "Inactivo"}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* SALES TAB */}
-              {drawerTab === "sales" && (
-                <div style={{ padding: 24 }}>
-                  {dashboardLoading ? (
-                    <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center", padding: 32 }}>{t("common.loading")}</div>
-                  ) : (dashboardData?.stands?.length ?? 0) === 0 ? (
-                    <div style={{ textAlign: "center", padding: 40 }}>
-                      <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 12px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 56, height: 56 }}>
-                        <Icon name="dollar" size={24} />
-                      </div>
-                      <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Sin ventas registradas</div>
-                    </div>
-                  ) : (
-                    <div style={{ display: "grid", gap: 14 }}>
-                      {dashboardData!.stands.map((stand) => {
-                        const total = stand.total_revenue || 1;
-                        return (
-                          <Card key={stand.id} style={{ padding: 20 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-                              <div>
-                                <div style={{ fontSize: 15, fontWeight: 700 }}>{stand.name}</div>
-                                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{stand.cashier_name} · {stand.context}</div>
-                              </div>
-                              <div style={{ textAlign: "right" }}>
-                                <div className="t-num" style={{ fontSize: 20, fontWeight: 800, fontFamily: "var(--font-display)", color: "hsl(var(--primary))" }}>{fmt(stand.total_revenue)}</div>
-                                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{stand.sales_count} ventas</div>
-                              </div>
-                            </div>
-                            {[
-                              { l: "Efectivo", v: stand.cash, c: "hsl(var(--success))" },
-                              { l: "SINPE", v: stand.sinpe, c: "hsl(var(--primary))" },
-                              { l: "Tarjeta", v: stand.card, c: "hsl(var(--info))" },
-                            ].map((p) => {
-                              const pct = (p.v / total) * 100;
-                              return (
-                                <div key={p.l} style={{ marginBottom: 8 }}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                                    <span style={{ fontSize: 12, fontWeight: 600 }}>{p.l}</span>
-                                    <span className="t-num" style={{ fontSize: 12 }}>{fmt(p.v)} <span style={{ color: "hsl(var(--muted-foreground))" }}>({pct.toFixed(0)}%)</span></span>
-                                  </div>
-                                  <div className="progress progress-thin">
-                                    <div className="progress-bar" style={{ width: `${pct}%`, background: p.c }} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* REPORT TAB — inline ReportePage with sessionId prop */}
-              {drawerTab === "report" && (
-                <ReportePage sessionId={selectedSession.session_id} />
-              )}
-            </div>
-          </div>
-        )}
-      </Drawer>
+      <SessionDetailDrawer
+        open={viewOpen}
+        session={selectedSession}
+        assignments={assignmentsData?.data ?? []}
+        assignmentsLoading={assignmentsLoading}
+        dashboardData={dashboardData}
+        dashboardLoading={dashboardLoading}
+        activeTab={drawerTab}
+        endingPending={endSessionMutation.isPending}
+        onClose={() => setViewOpen(false)}
+        onTabChange={setDrawerTab}
+        onEdit={() => { setViewOpen(false); if (selectedSession) handleEdit(selectedSession); }}
+        onEndSession={(id) => setEndConfirmId(id)}
+      />
 
       <Modal
         open={!!deleteConfirmId}
@@ -568,13 +178,7 @@ export default function SessionsPage() {
         description="Esta acción no se puede deshacer."
         variant="destructive"
         cancel={{ label: t("common.cancel"), onClick: () => setDeleteConfirmId(null) }}
-        confirm={{
-          label: t("common.delete"),
-          variant: "destructive",
-          onClick: () => deleteConfirmId && handleDelete(deleteConfirmId),
-          loading: deleteMutation.isPending,
-          loadingLabel: t("common.loading"),
-        }}
+        confirm={{ label: t("common.delete"), variant: "destructive", onClick: () => deleteConfirmId && deleteMutation.mutate(deleteConfirmId), loading: deleteMutation.isPending, loadingLabel: t("common.loading") }}
       />
 
       <Modal
@@ -584,19 +188,11 @@ export default function SessionsPage() {
         description={t("session.confirmEnd")}
         variant="warning"
         cancel={{ label: t("common.cancel"), onClick: () => setEndConfirmId(null) }}
-        confirm={{
-          label: t("session.endSession"),
-          variant: "secondary",
-          onClick: () => endConfirmId && endSessionMutation.mutate(endConfirmId, { onSuccess: () => setEndConfirmId(null) }),
-          loading: endSessionMutation.isPending,
-          loadingLabel: t("common.loading"),
-        }}
+        confirm={{ label: t("session.endSession"), variant: "secondary", onClick: () => endConfirmId && endSessionMutation.mutate(endConfirmId, { onSuccess: () => setEndConfirmId(null) }), loading: endSessionMutation.isPending, loadingLabel: t("common.loading") }}
       />
 
       <style>{`
-        @media (max-width: 768px) {
-          .session-actions { flex-direction: column !important; }
-        }
+        @media (max-width: 768px) { .session-actions { flex-direction: column !important; } }
       `}</style>
     </div>
   );

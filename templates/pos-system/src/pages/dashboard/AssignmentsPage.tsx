@@ -28,7 +28,7 @@ interface Session {
 interface Branch {
   branch_id: string;
   name: string;
-  code: string;
+  code: number;
   status: number;
 }
 

@@ -63,7 +63,7 @@ export default function InventoryOpening({
       }));
 
       for (const item of items) {
-        setOpeningStock(parseInt(item.productId, 10), item.quantity);
+        setOpeningStock(item.productId, item.quantity);
         await db.inventory.put({
           productId: parseInt(item.productId, 10),
           assignmentId,

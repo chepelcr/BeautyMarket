@@ -6,7 +6,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { useLanguageSwitch } from "@/hooks/useLanguageSwitch";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "clients";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -35,6 +35,7 @@ function Sidebar({
     { id: "config", icon: "settings", label: t("shell.sessions") },
     { id: "puestos", icon: "store", label: t("shell.stations") },
     { id: "productos", icon: "package", label: t("shell.products") },
+    { id: "clients", icon: "user", label: t("shell.clients") },
     { id: "reporte", icon: "trending", label: t("shell.reports") },
     { id: "pos", icon: "smartphone", label: "POS" },
   ];

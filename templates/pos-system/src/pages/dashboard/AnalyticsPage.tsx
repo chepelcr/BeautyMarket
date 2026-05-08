@@ -6,6 +6,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { fmt, fmtCompact } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AnalyticsTable } from "@/components/analytics/AnalyticsTable";
 
 type AnalyticsTab = "products" | "sessions" | "vendors" | "context";
 
@@ -109,105 +110,70 @@ export default function AnalyticsPage() {
 
       {/* Products tab */}
       {tab === "products" && data && (
-        <div className="bg-surface border border-surface-border rounded-2xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-surface-border">
-                <th className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">#</th>
-                <th className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colProduct")}</th>
-                <th className="text-right px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colUnits")}</th>
-                <th className="text-right px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colRevenue")}</th>
-                <th className="px-4 py-3 text-xs text-muted font-barlow tracking-widest">{t("analytics.colVolume")}</th>
+        <AnalyticsTable headers={["#", t("analytics.colProduct"), t("analytics.colUnits"), t("analytics.colRevenue"), t("analytics.colVolume")]}>
+          {data.products.map((p, i) => {
+            const maxUnits = data.products[0]?.units ?? 1;
+            return (
+              <tr key={p.name} className="border-b border-surface-border last:border-0 hover:bg-surface-high">
+                <td className="px-4 py-3 text-muted font-mono text-xs">{i + 1}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{p.emoji}</span>
+                    <span className="font-barlow font-bold text-foreground">{p.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right font-barlow font-bold text-foreground">{p.units}</td>
+                <td className="px-4 py-3 text-right font-barlow font-bold text-primary">{fmtCompact(p.revenue)}</td>
+                <td className="px-4 py-3 w-32">
+                  <div className="h-1.5 bg-surface-high rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${(p.units / maxUnits) * 100}%` }} />
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {data.products.map((p, i) => {
-                const maxUnits = data.products[0]?.units ?? 1;
-                return (
-                  <tr key={p.name} className="border-b border-surface-border last:border-0 hover:bg-surface-high">
-                    <td className="px-4 py-3 text-muted font-mono text-xs">{i + 1}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{p.emoji}</span>
-                        <span className="font-barlow font-bold text-foreground">{p.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-barlow font-bold text-foreground">{p.units}</td>
-                    <td className="px-4 py-3 text-right font-barlow font-bold text-primary">{fmtCompact(p.revenue)}</td>
-                    <td className="px-4 py-3 w-32">
-                      <div className="h-1.5 bg-surface-high rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full" style={{ width: `${(p.units / maxUnits) * 100}%` }} />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+            );
+          })}
+        </AnalyticsTable>
       )}
 
       {/* Sessions tab */}
       {tab === "sessions" && data && (
-        <div className="bg-surface border border-surface-border rounded-2xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-surface-border">
-                {[t("analytics.colSession"), t("analytics.colType"), t("analytics.colDate"), t("analytics.colRevenue"), t("analytics.colSales"), t("analytics.colStatus")].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.sessions.map((s) => (
-                <tr key={s.id} className="border-b border-surface-border last:border-0 hover:bg-surface-high">
-                  <td className="px-4 py-3 font-barlow font-bold text-foreground">{s.name}</td>
-                  <td className="px-4 py-3 text-muted text-sm capitalize">{s.type}</td>
-                  <td className="px-4 py-3 text-muted text-sm font-mono">{s.date}</td>
-                  <td className="px-4 py-3 text-primary font-barlow font-bold">{fmtCompact(s.revenue)}</td>
-                  <td className="px-4 py-3 text-foreground font-barlow">{s.salesCount}</td>
-                  <td className="px-4 py-3">
-                    <span className={cn("text-xs font-bold px-2 py-1 rounded",
-                      s.status === "closed" ? "bg-success/20 text-success" : "bg-warning/20 text-warning")}>
-                      {s.status === "closed" ? t("analytics.statusClosed") : t("analytics.statusActive")}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AnalyticsTable headers={[t("analytics.colSession"), t("analytics.colType"), t("analytics.colDate"), t("analytics.colRevenue"), t("analytics.colSales"), t("analytics.colStatus")]}>
+          {data.sessions.map((s) => (
+            <tr key={s.id} className="border-b border-surface-border last:border-0 hover:bg-surface-high">
+              <td className="px-4 py-3 font-barlow font-bold text-foreground">{s.name}</td>
+              <td className="px-4 py-3 text-muted text-sm capitalize">{s.type}</td>
+              <td className="px-4 py-3 text-muted text-sm font-mono">{s.date}</td>
+              <td className="px-4 py-3 text-primary font-barlow font-bold">{fmtCompact(s.revenue)}</td>
+              <td className="px-4 py-3 text-foreground font-barlow">{s.salesCount}</td>
+              <td className="px-4 py-3">
+                <span className={cn("text-xs font-bold px-2 py-1 rounded",
+                  s.status === "closed" ? "bg-success/20 text-success" : "bg-warning/20 text-warning")}>
+                  {s.status === "closed" ? t("analytics.statusClosed") : t("analytics.statusActive")}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </AnalyticsTable>
       )}
 
       {/* Vendors tab */}
       {tab === "vendors" && data && (
-        <div className="bg-surface border border-surface-border rounded-2xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-surface-border">
-                {[t("analytics.colVendor"), t("analytics.colTransactions"), t("analytics.colRevenue"), t("analytics.colAvgTicket"), t("analytics.colFavPayment")].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs text-muted font-barlow tracking-widest">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.vendors.map((v, i) => (
-                <tr key={v.name} className="border-b border-surface-border last:border-0 hover:bg-surface-high">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {i < 3 && <span className="text-sm">{["🥇","🥈","🥉"][i]}</span>}
-                      <span className="font-barlow font-bold text-foreground">{v.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-foreground font-barlow">{v.transactions}</td>
-                  <td className="px-4 py-3 text-primary font-barlow font-bold">{fmtCompact(v.revenue)}</td>
-                  <td className="px-4 py-3 text-foreground font-barlow">{fmt(v.avgTicket)}</td>
-                  <td className="px-4 py-3 text-muted text-sm">{v.favPayment}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AnalyticsTable headers={[t("analytics.colVendor"), t("analytics.colTransactions"), t("analytics.colRevenue"), t("analytics.colAvgTicket"), t("analytics.colFavPayment")]}>
+          {data.vendors.map((v, i) => (
+            <tr key={v.name} className="border-b border-surface-border last:border-0 hover:bg-surface-high">
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  {i < 3 && <span className="text-sm">{["🥇","🥈","🥉"][i]}</span>}
+                  <span className="font-barlow font-bold text-foreground">{v.name}</span>
+                </div>
+              </td>
+              <td className="px-4 py-3 text-foreground font-barlow">{v.transactions}</td>
+              <td className="px-4 py-3 text-primary font-barlow font-bold">{fmtCompact(v.revenue)}</td>
+              <td className="px-4 py-3 text-foreground font-barlow">{fmt(v.avgTicket)}</td>
+              <td className="px-4 py-3 text-muted text-sm">{v.favPayment}</td>
+            </tr>
+          ))}
+        </AnalyticsTable>
       )}
 
       {/* Context tab */}

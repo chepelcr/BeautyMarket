@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(~/.claude/skills/be-builder/**)",
+      "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\biller-apps\\\\data-services\\\\app\\\\tax-amounts\\\\\" -Force)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\chepe\\.claude\\skills\\be-builder"
+    ]
+  }
+}

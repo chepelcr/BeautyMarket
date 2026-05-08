@@ -45,11 +45,16 @@ export function CardBody({ children, className = "", style }: CardSectionProps) 
   );
 }
 
-export function CardFooter({ children, className = "", style }: CardSectionProps) {
+interface CardFooterProps extends CardSectionProps {
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+}
+
+export function CardFooter({ children, className = "", style, onClick }: CardFooterProps) {
   return (
     <div
       className={className}
       style={{ padding: "16px 24px", borderTop: "1px solid hsl(var(--border))", ...style }}
+      onClick={onClick}
     >
       {children}
     </div>

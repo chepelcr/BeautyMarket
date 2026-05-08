@@ -7,16 +7,27 @@ interface ImagePickerProps {
   size?: number;
 }
 
-export function ImagePicker({ currentUrl, onFileChange, size = 100 }: ImagePickerProps) {
+export function ImagePicker({ currentUrl, onFileChange }: ImagePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [hovering, setHovering] = useState(false);
+
+  const applyFile = (file: File) => {
+    setPreview(URL.createObjectURL(file));
+    onFileChange(file);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
-    if (file) {
-      setPreview(URL.createObjectURL(file));
-      onFileChange(file);
-    }
+    if (file) applyFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) applyFile(file);
   };
 
   const handleRemove = (e: React.MouseEvent) => {
@@ -29,73 +40,92 @@ export function ImagePicker({ currentUrl, onFileChange, size = 100 }: ImagePicke
   const displaySrc = preview ?? currentUrl;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div
-        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => !displaySrc && inputRef.current?.click()}
         style={{
-          width: size,
-          height: size,
-          borderRadius: 8,
-          border: "2px dashed var(--border-color, #e5e7eb)",
-          background: "var(--bg-secondary, #f9fafb)",
-          cursor: "pointer",
+          width: "100%",
+          height: 160,
+          borderRadius: 10,
+          border: `2px dashed ${dragging ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+          background: dragging ? "hsl(var(--primary) / 0.06)" : "hsl(var(--muted) / 0.35)",
+          cursor: displaySrc ? "default" : "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
           position: "relative",
-          flexShrink: 0,
-          transition: "border-color 0.15s",
+          transition: "border-color 0.2s, background 0.2s",
         }}
-        onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--accent, #6366f1)")}
-        onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border-color, #e5e7eb)")}
       >
         {displaySrc ? (
-          <img
-            src={displaySrc}
-            alt="preview"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
+          <>
+            <img
+              src={displaySrc}
+              alt="preview"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+            {/* Hover overlay with actions */}
+            <div
+              onMouseEnter={() => setHovering(true)}
+              onMouseLeave={() => setHovering(false)}
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.45)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                opacity: hovering ? 1 : 0,
+                transition: "opacity 0.2s",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                style={{
+                  fontSize: 12,
+                  padding: "5px 14px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(255,255,255,0.6)",
+                  background: "rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  cursor: "pointer",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                Cambiar
+              </button>
+              <button
+                type="button"
+                onClick={handleRemove}
+                style={{
+                  fontSize: 12,
+                  padding: "5px 14px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(255,100,100,0.6)",
+                  background: "rgba(239,68,68,0.2)",
+                  color: "#fca5a5",
+                  cursor: "pointer",
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: "var(--text-secondary, #9ca3af)" }}>
-            <Icon name="upload" size={22} />
-            <span style={{ fontSize: 10, textAlign: "center", lineHeight: 1.2 }}>Subir imagen</span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, color: "hsl(var(--muted-foreground))", userSelect: "none" }}>
+            <Icon name="upload" size={28} />
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>Arrastra una imagen aquí</div>
+              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>o haz clic para seleccionar</div>
+            </div>
           </div>
-        )}
-      </div>
-
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          style={{
-            fontSize: 12,
-            padding: "4px 10px",
-            borderRadius: 6,
-            border: "1px solid var(--border-color, #e5e7eb)",
-            background: "var(--bg-primary, #fff)",
-            cursor: "pointer",
-            color: "var(--text-primary, #111)",
-          }}
-        >
-          {displaySrc ? "Cambiar" : "Seleccionar"}
-        </button>
-        {displaySrc && (
-          <button
-            type="button"
-            onClick={handleRemove}
-            style={{
-              fontSize: 12,
-              padding: "4px 10px",
-              borderRadius: 6,
-              border: "1px solid var(--border-color, #e5e7eb)",
-              background: "var(--bg-primary, #fff)",
-              cursor: "pointer",
-              color: "var(--error, #ef4444)",
-            }}
-          >
-            Eliminar
-          </button>
         )}
       </div>
 

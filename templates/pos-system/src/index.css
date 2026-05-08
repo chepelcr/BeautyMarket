@@ -212,6 +212,7 @@ select.input, select.pp-input { appearance: none; -webkit-appearance: none; back
 .separator-v { width: 1px; background: hsl(var(--border)); align-self: stretch; }
 
 /* ============ Animations ============ */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }

@@ -15,7 +15,7 @@ export interface Branch {
   branch_id: string;
   organization_id: string;
   name: string;
-  code: string;
+  code: number;
   type: BranchType;
   status: BranchStatus;
   location?: BranchLocation | null;
@@ -31,7 +31,7 @@ export interface Terminal {
   organization_id: string;
   branch_id: string;
   name: string;
-  code: string;
+  code: number;
   device_id?: string;
   status: BranchStatus;
   registered_at?: string;
@@ -42,7 +42,7 @@ export interface Terminal {
 
 export interface CreateBranchRequest {
   name: string;
-  code: string;
+  code: number;
   type: BranchType;
   location?: BranchLocation;
   phone?: string;
@@ -51,7 +51,7 @@ export interface CreateBranchRequest {
 export interface CreateTerminalRequest {
   branch_id: string;
   name: string;
-  code: string;
+  code: number;
   device_id?: string;
 }
 

@@ -1,18 +1,29 @@
-import { Route, Switch, Redirect, useLocation } from "wouter";
+import { Route, Switch, Redirect, useLocation, useParams } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { DocumentVersionProvider } from "@/contexts/DocumentVersionContext";
+import { CountryISO } from "@/lib/enums";
+import { ROUTES } from "@/routePaths";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import Login from "@/pages/Login";
 import SelectOrganization from "@/pages/SelectOrganization";
-import DashboardPage from "@/pages/dashboard/DashboardPage";
-import { ROUTES } from "@/routePaths";
+import DashboardHome from "@/pages/dashboard/DashboardPage";
+import SessionsPage from "@/pages/dashboard/SessionsPage";
+import PuestosPage from "@/pages/dashboard/PuestosPage";
+import ProductsPage from "@/pages/dashboard/ProductsPage";
+import ReportePage from "@/pages/dashboard/ReportePage";
+import POSIntegratedPage from "@/pages/dashboard/POSIntegratedPage";
+import ClientsPage from "@/pages/dashboard/ClientsPage";
+import ClientDetailPage from "@/pages/dashboard/ClientDetailPage";
 
 const DASHBOARD_ROLES = ["gerente", "supervisor", "customer", "cajero"];
 
-function ProtectedRoute({
-  component: Component,
+// Auth guard — redirects to login if unauthenticated, checks role if provided
+function RequireAuth({
+  children,
   roles,
 }: {
-  component: React.ComponentType;
+  children: React.ReactNode;
   roles?: string[];
 }) {
   const { user, isLoading } = useAuthContext();
@@ -33,26 +44,31 @@ function ProtectedRoute({
   }
 
   if (roles && user.role && !roles.includes(user.role)) {
-    const targetPath = ROUTES.DASHBOARD;
-    if (location === targetPath) {
-      return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-4xl mb-4">🚫</div>
-            <div className="text-destructive font-barlow font-bold text-xl">
-              {t("app.noPermissions")}
-            </div>
-            <div className="text-muted text-sm mt-2">
-              {t("app.yourRole")} {user.role}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return <Redirect to={targetPath} />;
+    return <Redirect to={ROUTES.DASHBOARD} />;
   }
 
-  return <Component />;
+  return <>{children}</>;
+}
+
+// Shorthand: protected page inside the dashboard shell
+function DashboardPage({ children }: { children: React.ReactNode }) {
+  return (
+    <RequireAuth roles={DASHBOARD_ROLES}>
+      <DocumentVersionProvider isoCode={CountryISO.COSTA_RICA}>
+        <DashboardLayout>{children}</DashboardLayout>
+      </DocumentVersionProvider>
+    </RequireAuth>
+  );
+}
+
+// Client detail route — reads :clientId from Wouter params
+function ClientDetailRoute() {
+  const { clientId } = useParams<{ clientId: string }>();
+  return (
+    <DashboardPage>
+      <ClientDetailPage clientId={clientId ?? ""} />
+    </DashboardPage>
+  );
 }
 
 export default function Routes() {
@@ -60,19 +76,55 @@ export default function Routes() {
 
   return (
     <Switch>
+      {/* Public */}
       <Route path={ROUTES.LOGIN} component={Login} />
       <Route
         path={ROUTES.SELECT_ORG}
-        component={() => <ProtectedRoute component={SelectOrganization} />}
+        component={() => (
+          <RequireAuth>
+            <SelectOrganization />
+          </RequireAuth>
+        )}
       />
+
+      {/* Dashboard — more specific paths first */}
+      <Route
+        path={ROUTES.DASHBOARD_SESSIONS}
+        component={() => <DashboardPage><SessionsPage /></DashboardPage>}
+      />
+      <Route
+        path={ROUTES.DASHBOARD_STATIONS}
+        component={() => <DashboardPage><PuestosPage /></DashboardPage>}
+      />
+      <Route
+        path={ROUTES.DASHBOARD_PRODUCTS}
+        component={() => <DashboardPage><ProductsPage /></DashboardPage>}
+      />
+      <Route
+        path={ROUTES.DASHBOARD_REPORTS}
+        component={() => <DashboardPage><ReportePage /></DashboardPage>}
+      />
+      <Route
+        path={ROUTES.DASHBOARD_POS}
+        component={() => <DashboardPage><POSIntegratedPage /></DashboardPage>}
+      />
+
+      {/* Clients — detail before list so :clientId is matched first */}
+      <Route
+        path={`${ROUTES.DASHBOARD_CLIENTS}/:clientId`}
+        component={ClientDetailRoute}
+      />
+      <Route
+        path={ROUTES.DASHBOARD_CLIENTS}
+        component={() => <DashboardPage><ClientsPage /></DashboardPage>}
+      />
+
       <Route
         path={ROUTES.DASHBOARD}
-        component={() => <ProtectedRoute component={DashboardPage} roles={DASHBOARD_ROLES} />}
+        component={() => <DashboardPage><DashboardHome /></DashboardPage>}
       />
-      <Route
-        path={`${ROUTES.DASHBOARD}/:page+`}
-        component={() => <ProtectedRoute component={DashboardPage} roles={DASHBOARD_ROLES} />}
-      />
+
+      {/* Root redirect */}
       <Route path="/">
         {user ? (
           <Redirect to={ROUTES.DASHBOARD} />

@@ -8,8 +8,8 @@ export type AssignmentStatus = 1 | 2 | 3; // 1=Active, 2=Inactive, 3=Deleted
 export interface AssignmentUser {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface AssignmentProduct {

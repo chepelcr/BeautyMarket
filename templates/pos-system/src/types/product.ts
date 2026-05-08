@@ -7,18 +7,40 @@ export interface Category {
   name: string;
 }
 
+export interface ProductTax {
+  tax_type_id: number;
+  tax_code?: string;
+  rate: number;
+  special_fields?: {
+    quantity?: number;
+    percentage?: number;
+    tax_amount_id?: number;
+    volume_consumption?: number;
+  };
+}
+
+export interface ProductDiscount {
+  discount_type_id: number;
+  rate?: number;
+  amount?: number;
+}
+
 export interface Product {
   product_id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
-  category_id: string;
+  sale_price?: number;
+  category_id?: string;
   category?: Category;
   image_url: string | null;
   status: number; // 1 = active, 2 = inactive, 3 = deleted
   sku?: string | null;
   stock_quantity?: number;
-  track_inventory?: boolean; // Whether this product requires inventory tracking
+  track_inventory?: boolean;
+  cabys?: string | null;
+  taxes?: ProductTax[];
+  discounts?: ProductDiscount[];
   created_on?: Date;
   updated_on?: Date;
 }

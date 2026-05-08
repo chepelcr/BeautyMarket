@@ -16,7 +16,7 @@ export type { AuthUser, AuthContextValue, UserRole } from "./auth";
 export type { Organization, OrganizationListResponse } from "./organization";
 
 // Products
-export type { Product, Category, ProductListResponse } from "./product";
+export type { Product, ProductTax, ProductDiscount, Category, ProductListResponse } from "./product";
 
 // Sessions
 export type {
@@ -33,6 +33,7 @@ export type {
   AssignmentRole,
   AssignmentStatus,
   AssignmentUser,
+  AssignmentProduct,
   CreateAssignmentRequest,
   UpdateAssignmentRequest,
   AssignmentListResponse,
@@ -58,4 +59,4 @@ export type {
 export type { Member, MemberListResponse } from "./member";
 
 // Dashboard
-export type { StandData, DashboardData, DashboardKPIs } from "./dashboard";
+export type { StandData, DashboardData, DashboardKPIs, ProductRankItem } from "./dashboard";

@@ -1,10 +1,10 @@
 import { create } from "zustand";
 
 interface InventoryStore {
-  stock: Record<number, number>;
-  setOpeningStock: (productId: number, qty: number) => void;
-  decrement: (productId: number, qty: number) => void;
-  getStock: (productId: number) => number | undefined;
+  stock: Record<string, number>;
+  setOpeningStock: (productId: string, qty: number) => void;
+  decrement: (productId: string, qty: number) => void;
+  getStock: (productId: string) => number | undefined;
 }
 
 export const useInventory = create<InventoryStore>((set, get) => ({

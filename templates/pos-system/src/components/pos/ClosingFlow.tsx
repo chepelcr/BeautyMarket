@@ -67,7 +67,7 @@ export default function ClosingFlow({
   );
   const cashDiff = cashTotal - expectedCash;
 
-  const getExpected = (p: Product) => inventory.getStock(parseInt(p.product_id, 10)) ?? 0;
+  const getExpected = (p: Product) => inventory.getStock(p.product_id) ?? 0;
 
   const faltantes = activeProducts.filter((p) => {
     const actual = Number(finalCounts[p.product_id]) || 0;

@@ -1,4 +1,4 @@
-import { Icon, Card, CardTitle, CardDescription, Badge } from "@/components/ui";
+import { Card, CardTitle, CardDescription, Badge } from "@/components/ui";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Product } from "@/hooks/useProducts";
@@ -6,7 +6,7 @@ import type { Product } from "@/hooks/useProducts";
 interface Branch {
   branch_id: string;
   name: string;
-  code: string;
+  code: number;
   type: "stand" | "restaurant";
   status: number;
 }

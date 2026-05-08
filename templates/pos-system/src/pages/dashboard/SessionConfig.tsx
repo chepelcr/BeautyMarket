@@ -4,7 +4,7 @@ import { api, orgPath, crossAppApi, crossAppOrgPath, ordersApi, ordersOrgPath } 
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import type { Product } from "@/hooks/useProducts";
-import type { BranchListResponse } from "@/types";
+import type { BranchListResponse, Session } from "@/types";
 import { Button } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SessionTypeSelector from "@/components/session/SessionTypeSelector";
@@ -16,7 +16,7 @@ import InventoryTable from "@/components/session/InventoryTable";
 interface Branch {
   branch_id: string;
   name: string;
-  code: string;
+  code: number;
   type: "stand" | "restaurant";
   status: number;
   terminals?: Terminal[];
@@ -25,7 +25,7 @@ interface Branch {
 interface Terminal {
   terminal_id: string;
   name: string;
-  code: string;
+  code: number;
   branch_id: string;
   status: number;
 }
@@ -56,20 +56,10 @@ interface StationAssignments {
   members: AssignmentEntry[];
 }
 
-interface SessionData {
-  session_id: string;
-  name: string;
-  type: string;
-  context: string;
-  start_time: string;
-  expected_revenue?: number;
-  status: number;
-}
-
 interface SessionConfigProps {
   onDone?: () => void;
   onSuccess?: () => void;
-  initialSession?: SessionData;
+  initialSession?: Session;
 }
 
 export default function SessionConfig({ onDone, onSuccess, initialSession }: SessionConfigProps) {

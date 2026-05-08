@@ -4,6 +4,8 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { PaymentBreakdown } from "@/components/sessions/PaymentBreakdown";
+import { StandBreakdown } from "@/components/sessions/StandBreakdown";
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
 const fmtNum = (n: number) => Math.round(Number(n) || 0).toLocaleString("es-CR");
@@ -86,8 +88,6 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
   };
   const stands = data?.stands ?? [];
   const topProducts = data?.topProducts ?? [];
-  const maxStandSales = Math.max(...stands.map((s) => s.sales), 1);
-
   const handlePrint = () => window.print();
 
   if (isLoading) {
@@ -230,138 +230,8 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
       <div
         style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}
       >
-        {/* Payment methods */}
-        <Card style={{ padding: 22 }}>
-          <CardTitle>{t("report.paymentMethods")}</CardTitle>
-          <CardDescription style={{ marginBottom: 16 }}>{t("report.distribution")}</CardDescription>
-          {(
-            [
-              { l: t("report.cash"), v: totals.efectivo, c: "success", i: "cash" },
-              { l: t("report.card"), v: totals.tarjeta, c: "info", i: "card" },
-              { l: t("report.sinpeMobile"), v: totals.sinpe, c: "primary", i: "smartphone" },
-            ] as const
-          ).map((m) => {
-            const pct = totals.ventas > 0 ? (m.v / totals.ventas) * 100 : 0;
-            return (
-              <div key={m.l} style={{ marginBottom: 14 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 6,
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div
-                      className={`icon-pill ${m.c === "primary" ? "" : `icon-pill-${m.c}`}`}
-                      style={{ width: 26, height: 26 }}
-                    >
-                      <Icon name={m.i} size={12} />
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 700 }}>{m.l}</span>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div
-                      className="t-num"
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        fontFamily: "var(--font-display)",
-                      }}
-                    >
-                      {fmt(m.v)}
-                    </div>
-                    <div
-                      className="t-xs t-num"
-                      style={{ color: "hsl(var(--muted-foreground))" }}
-                    >
-                      {pct.toFixed(0)}%
-                    </div>
-                  </div>
-                </div>
-                <div className="progress" style={{ height: 8 }}>
-                  <div
-                    className="progress-bar"
-                    style={{
-                      width: `${pct}%`,
-                      background: `hsl(var(--${m.c}))`,
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </Card>
-
-        {/* Puestos performance */}
-        <Card style={{ padding: 22 }}>
-          <CardTitle>{t("report.standPerformance")}</CardTitle>
-          <CardDescription style={{ marginBottom: 14 }}>{t("report.standPerformance")}</CardDescription>
-          {stands.length === 0 && (
-            <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {t("report.noStandData")}
-            </p>
-          )}
-          {stands.map((p, i) => {
-            const pct = (p.sales / maxStandSales) * 100;
-            return (
-              <div
-                key={p.name}
-                style={{
-                  padding: "12px 0",
-                  borderBottom:
-                    i < stands.length - 1 ? "1px solid hsl(var(--border))" : "none",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 6,
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
-                    <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      {p.cashierName} · {p.orders} órdenes
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div
-                      className="t-num"
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 800,
-                        fontFamily: "var(--font-display)",
-                      }}
-                    >
-                      {fmt(p.sales)}
-                    </div>
-                    <Badge
-                      variant={
-                        p.diff === 0
-                          ? "success"
-                          : Math.abs(p.diff) < 1000
-                          ? "warning"
-                          : "destructive"
-                      }
-                      style={{ marginTop: 2 }}
-                    >
-                      {p.diff === 0
-                        ? t("report.balanced")
-                        : (p.diff > 0 ? "+" : "−") + fmt(Math.abs(p.diff))}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="progress progress-thin">
-                  <div className="progress-bar" style={{ width: `${pct}%` }} />
-                </div>
-              </div>
-            );
-          })}
-        </Card>
+        <PaymentBreakdown totals={totals} />
+        <StandBreakdown stands={stands} />
       </div>
 
       {/* Top products table */}

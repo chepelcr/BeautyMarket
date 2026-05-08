@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface Branch {
   branch_id: string;
   name: string;
-  code: string;
+  code: number;
   type: "stand" | "restaurant";
   status: number;
   terminals?: Terminal[];
@@ -13,7 +13,7 @@ interface Branch {
 interface Terminal {
   terminal_id: string;
   name: string;
-  code: string;
+  code: number;
   branch_id: string;
   status: number;
 }
