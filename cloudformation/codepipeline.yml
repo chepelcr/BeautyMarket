@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: JMarkets CI/CD pipeline — BuildLambda + UpdateFunction + UpdateApiGateway + DeployLanding + DeployDashboard + DeployTemplates
+Description: JMarkets CI/CD pipeline — BuildLambda + UpdateFunction + UpdateApiGateway + DeployLanding + DeployDashboard + DeployTemplates + DeployPosLanding
 
 Parameters:
   Environment:
@@ -45,6 +45,21 @@ Parameters:
     Type: String
     Default: j-markets.jcampos.dev
     Description: Base domain for all frontend apps (landing, dashboard, templates)
+
+  PosLandingDomainParam:
+    Type: String
+    Default: pos-landing.jcampos.dev
+    Description: Custom domain for the pos-landing marketing site
+
+  PosLandingS3BucketParam:
+    Type: String
+    Default: jcampos-pos-landing
+    Description: S3 bucket name serving pos-landing.jcampos.dev (must exist before first run)
+
+  PosLandingCfDistIdParam:
+    Type: String
+    Default: ""
+    Description: CloudFront distribution ID for pos-landing.jcampos.dev (leave empty to skip invalidation until infra is created)
 
 Resources:
 
@@ -363,6 +378,61 @@ Resources:
           GroupName: !Ref DeployTemplatesLogGroup
           Status: ENABLED
 
+  # ── Phase 8: Deploy pos-landing marketing site ───────────────────────────────
+
+  DeployPosLandingLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-pos-landing"
+      RetentionInDays: 14
+
+  DeployPosLandingProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jmarkets-${Environment}-frontend-pos-landing"
+      Description: Build pos-landing Vite app and deploy to S3+CloudFront at pos-landing.jcampos.dev
+      ServiceRole:
+        Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Type: PLAINTEXT
+            Value: !Ref Environment
+          - Name: REGION
+            Type: PLAINTEXT
+            Value: !Ref AWS::Region
+          - Name: FRONTEND_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref FrontendDomainParam
+          - Name: ROOT_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref RootDomainParam
+          - Name: POS_LANDING_DOMAIN
+            Type: PLAINTEXT
+            Value: !Ref PosLandingDomainParam
+          - Name: POS_LANDING_S3_BUCKET
+            Type: PLAINTEXT
+            Value: !Ref PosLandingS3BucketParam
+          - Name: POS_LANDING_CF_DIST_ID
+            Type: PLAINTEXT
+            Value: !Ref PosLandingCfDistIdParam
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec-frontend-pos-landing.yml
+      TimeoutInMinutes: 30
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: !Ref DeployPosLandingLogGroup
+          Status: ENABLED
+
   # ── Pipeline ─────────────────────────────────────────────────────────────────
 
   JmarketsPipeline:
@@ -538,6 +608,30 @@ Resources:
                 - Name: SourceCode
               OutputArtifacts:
                 - Name: TemplatesOutput
+              RunOrder: 1
+
+        - Name: DeployPosLanding
+          Actions:
+            - Name: DeployPosLanding
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref DeployPosLandingProject
+                EnvironmentVariables: !Sub |
+                  [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
+                   {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
+                   {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
+                   {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"},
+                   {"name":"POS_LANDING_DOMAIN","value":"${PosLandingDomainParam}","type":"PLAINTEXT"},
+                   {"name":"POS_LANDING_S3_BUCKET","value":"${PosLandingS3BucketParam}","type":"PLAINTEXT"},
+                   {"name":"POS_LANDING_CF_DIST_ID","value":"${PosLandingCfDistIdParam}","type":"PLAINTEXT"}]
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: PosLandingOutput
               RunOrder: 1
 
 Outputs:

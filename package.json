@@ -10,6 +10,7 @@
     "dev:pos": "cd templates/pos-system && npm run dev",
     "dev:all": "concurrently -n \"server,landing,dashboard\" -c \"blue,green,yellow\" \"npm run dev\" \"npm run dev:landing\" \"npm run dev:dashboard\"",
     "dev:all:pos": "concurrently -n \"server,landing,dashboard,pos\" -c \"blue,green,yellow,magenta\" \"npm run dev\" \"npm run dev:landing\" \"npm run dev:dashboard\" \"npm run dev:pos\"",
+    "dev:all:full": "concurrently -n \"server,landing,dashboard,pos,pos-landing\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev\" \"npm run dev:landing\" \"npm run dev:dashboard\" \"npm run dev:pos\" \"npm run dev:template:pos-landing\"",
     "build": "npm run build:store && npm run build:landing && npm run build:server",
     "build:store": "vite build",
     "build:landing": "cd landing-client && npm run build",

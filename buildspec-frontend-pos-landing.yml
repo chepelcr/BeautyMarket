@@ -1,0 +1,34 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "dev"
+    REGION: "us-east-1"
+    FRONTEND_DOMAIN: "j-markets.jcampos.dev"
+    ROOT_DOMAIN: "jcampos.dev"
+    POS_LANDING_DOMAIN: "pos-landing.jcampos.dev"
+    POS_LANDING_S3_BUCKET: ""
+    POS_LANDING_CF_DIST_ID: ""
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "=== Installing pos-landing dependencies ==="
+      - cd templates/pos-landing
+      - npm ci
+      - cd ../..
+
+  build:
+    commands:
+      - echo "=== Building pos-landing ==="
+      - cd templates/pos-landing
+      - npm run build
+      - cd ../..
+      - echo "=== Deploying pos-landing to S3 ==="
+      - bash templates/pos-landing/scripts/pipeline-deploy.sh
+
+  post_build:
+    commands:
+      - echo "pos-landing deploy complete"

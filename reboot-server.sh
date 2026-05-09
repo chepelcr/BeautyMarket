@@ -14,8 +14,8 @@ taskkill //F //IM node.exe 2>/dev/null || true
 taskkill //F //IM tsx.exe 2>/dev/null || true
 
 # Force kill processes on specific ports
-echo "Stopping processes on ports 3001, 3002, 5000, 9000..."
-for port in 3001 3002 5000 9000; do
+echo "Stopping processes on ports 3001, 3002, 5000, 9000, 5180..."
+for port in 3001 3002 5000 9000 5180; do
   pid=$(netstat -ano | grep ":$port" | grep LISTENING | awk '{print $5}' | head -1)
   if [ ! -z "$pid" ]; then
     taskkill //F //PID $pid 2>/dev/null || true
@@ -31,14 +31,15 @@ rm -rf dashboard/node_modules/.vite dashboard/.vite dashboard/dist
 rm -rf landing-client/node_modules/.vite landing-client/.vite landing-client/dist
 rm -rf client/node_modules/.vite client/.vite client/dist
 rm -rf templates/pos-system/node_modules/.vite templates/pos-system/.vite templates/pos-system/dist
+rm -rf templates/pos-landing/node_modules/.vite templates/pos-landing/.vite
 echo "Caches cleared"
 
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-# Start all services in background (including pos-system)
-echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard, pos-system)...${NC}"
-nohup npm run dev:all:pos > logs/server.log 2>&1 &
+# Start all services in background (including pos-system and pos-landing)
+echo -e "${GREEN}🚀 Starting all services (server, landing, dashboard, pos-system, pos-landing)...${NC}"
+nohup npm run dev:all:full > logs/server.log 2>&1 &
 DEV_ALL_PID=$!
 
 # Wait a moment to check if process started successfully
@@ -51,10 +52,12 @@ if ps -p $DEV_ALL_PID > /dev/null; then
     echo -e "${YELLOW}Process PID:${NC} $DEV_ALL_PID"
     echo ""
     echo -e "${YELLOW}URLs:${NC}"
-    echo "  • API Server: http://localhost:5000"
-    echo "  • Landing: http://localhost:3001"
-    echo "  • Dashboard: http://localhost:3002"
-    echo -e "  • ${MAGENTA}POS System: http://localhost:9000${NC}"
+    echo "  • API Server:  http://localhost:5000"
+    echo "  • Landing:     http://localhost:3001"
+    echo "  • Dashboard:   http://localhost:3002"
+    echo -e "  • ${MAGENTA}POS System:    http://localhost:9000${NC}"
+    echo -e "  • ${YELLOW}POS Landing:   http://localhost:5180${NC}"
+    echo -e "  • ${YELLOW}Local Dashboard: http://localhost:5180/dashboard${NC}"
     echo ""
     echo -e "${YELLOW}Logs:${NC}"
     echo "  • All services: tail -f logs/server.log"
