@@ -3,11 +3,14 @@ import { LogoIcon } from '@/components/ui/LogoIcon';
 import { Icon } from '@/components/ui/Icon';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export function Footer() {
-  const { t } = useTranslation();
+interface FooterColumn {
+  heading: string;
+  links:   string[];
+}
 
-  const columns = t('footer.columns') as unknown as Array<{ heading: string; links: string[] }>;
-  const safeColumns = Array.isArray(columns) ? columns : [];
+export function Footer() {
+  const { t, tRaw } = useTranslation();
+  const columns = tRaw<FooterColumn[]>('footer.columns') ?? [];
 
   return (
     <footer className="bg-secondary text-secondary-foreground">
@@ -28,7 +31,7 @@ export function Footer() {
         </div>
 
         {/* Link columns */}
-        {safeColumns.map((col, i) => (
+        {columns.map((col, i) => (
           <div key={i} className="md:col-span-2">
             <div className="font-display font-bold uppercase text-xs tracking-[0.18em] text-secondary-foreground/60">
               {col.heading}

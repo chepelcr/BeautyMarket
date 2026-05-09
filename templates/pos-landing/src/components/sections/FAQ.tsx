@@ -7,9 +7,8 @@ interface FaqItem {
 }
 
 export function FAQ() {
-  const { t }  = useTranslation();
-  const items  = t('faq.items') as unknown as FaqItem[];
-  const safeItems = Array.isArray(items) ? items : [];
+  const { t, tRaw } = useTranslation();
+  const items = tRaw<FaqItem[]>('faq.items') ?? [];
 
   return (
     <section id="preguntas" className="py-20 lg:py-28">
@@ -20,7 +19,7 @@ export function FAQ() {
             {t('faq.headline')}
           </h2>
         </div>
-        <Accordion items={safeItems} />
+        <Accordion items={items} />
       </div>
     </section>
   );

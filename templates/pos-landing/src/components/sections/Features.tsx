@@ -14,9 +14,8 @@ interface FeatureGroup {
 }
 
 export function Features() {
-  const { t } = useTranslation();
-  const groups = t('features.groups') as unknown as FeatureGroup[];
-  const safeGroups = Array.isArray(groups) ? groups : [];
+  const { t, tRaw } = useTranslation();
+  const groups = tRaw<FeatureGroup[]>('features.groups') ?? [];
 
   return (
     <section id="caracteristicas" className="py-20 lg:py-28">
@@ -34,7 +33,7 @@ export function Features() {
         </div>
 
         <div className="space-y-14">
-          {safeGroups.map((g, gi) => (
+          {groups.map((g, gi) => (
             <div key={gi}>
               <div className="flex items-end justify-between mb-5 gap-4 flex-wrap">
                 <div>

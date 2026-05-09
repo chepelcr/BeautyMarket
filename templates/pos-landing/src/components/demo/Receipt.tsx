@@ -12,12 +12,12 @@ interface ReceiptProps {
 }
 
 export function Receipt({ cart, method, change, tendered, onClose }: ReceiptProps) {
-  const { t }   = useTranslation();
+  const { t, tRaw } = useTranslation();
   const consec  = '00100001010000' + Math.floor(100000 + Math.random() * 900000);
   const clave   = '506' + Date.now().toString().slice(-22);
 
-  const docTypes  = t('demo.receipt.types') as unknown as Record<string, string>;
-  const methods   = t('demo.receipt.methods') as unknown as Record<string, string>;
+  const docTypes  = tRaw<Record<string, string>>('demo.receipt.types') ?? {};
+  const methods   = tRaw<Record<string, string>>('demo.receipt.methods') ?? {};
 
   const typeLabel   = docTypes?.[cart.docType] ?? cart.docType;
   const methodLabel = methods?.[method] ?? method;

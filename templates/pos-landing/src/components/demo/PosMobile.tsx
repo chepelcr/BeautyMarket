@@ -20,7 +20,7 @@ interface PosMobileProps {
 }
 
 export function PosMobile({ cart, onCheckout }: PosMobileProps) {
-  const { t }       = useTranslation();
+  const { t, tRaw } = useTranslation();
   const { config }  = useConfig();
   const [query, setQuery] = useState('');
   const [cat, setCat]     = useState('Todo');
@@ -29,7 +29,7 @@ export function PosMobile({ cart, onCheckout }: PosMobileProps) {
   const categories = config.demo.categories;
   const products   = config.demo.products;
   const customers  = config.demo.customers;
-  const docTypes   = t('demo.docTypes') as unknown as Array<{ key: string; name: string; desc: string }>;
+  const docTypes   = tRaw<Array<{ key: string; name: string; desc: string }>>('demo.docTypes') ?? [];
 
   const filtered = products.filter(p =>
     (cat === 'Todo' || p.cat === cat) &&

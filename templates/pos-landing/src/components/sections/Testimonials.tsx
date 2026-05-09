@@ -8,9 +8,8 @@ interface TestimonialItem {
 }
 
 export function Testimonials() {
-  const { t }   = useTranslation();
-  const items   = t('testimonials.items') as unknown as TestimonialItem[];
-  const safeItems = Array.isArray(items) ? items : [];
+  const { t, tRaw } = useTranslation();
+  const items = tRaw<TestimonialItem[]>('testimonials.items') ?? [];
 
   return (
     <section className="py-20 lg:py-24 border-y border-border bg-card/40">
@@ -22,7 +21,7 @@ export function Testimonials() {
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-4">
-          {safeItems.map((item, i) => (
+          {items.map((item, i) => (
             <figure key={i} className="card p-6 flex flex-col gap-4">
               <Icon name="Quote" size={22} className="text-primary" />
               <blockquote className="text-[15px] leading-relaxed text-foreground">

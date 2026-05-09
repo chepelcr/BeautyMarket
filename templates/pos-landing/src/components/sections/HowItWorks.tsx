@@ -8,9 +8,8 @@ interface Step {
 }
 
 export function HowItWorks() {
-  const { t }  = useTranslation();
-  const steps  = t('howItWorks.steps') as unknown as Step[];
-  const safeSteps = Array.isArray(steps) ? steps : [];
+  const { t, tRaw } = useTranslation();
+  const steps = tRaw<Step[]>('howItWorks.steps') ?? [];
 
   return (
     <section id="como" className="py-20 lg:py-28 bg-muted/40 border-y border-border">
@@ -28,7 +27,7 @@ export function HowItWorks() {
           />
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {safeSteps.map((step, i) => (
+          {steps.map((step, i) => (
             <div key={i} className="relative card p-6">
               <div className="absolute top-4 right-4 font-display font-extrabold text-5xl text-primary/15 leading-none t-num">
                 0{i + 1}

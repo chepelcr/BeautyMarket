@@ -15,7 +15,7 @@ export default function App() {
       <ThemeApplicator />
       <BrowserRouter>
         <Routes>
-          {/* Public routes — wrapped in AppShell (TopNav + Footer) */}
+          {/* Landing — inside AppShell (TopNav + Footer) */}
           <Route element={<AppShell />}>
             <Route
               path="/"
@@ -25,17 +25,19 @@ export default function App() {
                 </Suspense>
               }
             />
-            <Route
-              path="/demo"
-              element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <DemoPage />
-                </Suspense>
-              }
-            />
           </Route>
 
-          {/* Dashboard — no shell, localhost-only */}
+          {/* Demo — full-screen, no nav or footer (matches wireframe) */}
+          <Route
+            path="/demo"
+            element={
+              <Suspense fallback={<PageSkeleton />}>
+                <DemoPage />
+              </Suspense>
+            }
+          />
+
+          {/* Dashboard — localhost-only config editor */}
           <Route
             path="/dashboard"
             element={

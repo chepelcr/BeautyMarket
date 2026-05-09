@@ -11,10 +11,9 @@ import { cn } from '@/lib/cn';
 
 export function Hero() {
   const { config } = useConfig();
-  const { t }      = useTranslation();
-  const variant    = config.sections.hero.variant;
-  const ticker     = t('hero.ticker') as unknown as string[];
-  const safeItems  = Array.isArray(ticker) ? ticker : [];
+  const { t, tRaw } = useTranslation();
+  const variant  = config.sections.hero.variant;
+  const ticker   = tRaw<string[]>('hero.ticker') ?? [];
 
   return (
     <section id="top" className="relative overflow-hidden">
@@ -22,15 +21,14 @@ export function Hero() {
       <div className="absolute inset-x-0 top-0 h-[480px] bg-gradient-to-b from-primary/8 to-transparent pointer-events-none" />
       <div className="absolute -top-24 right-[-10%] w-[480px] h-[480px] rounded-full bg-primary/15 blur-3xl pointer-events-none" />
       {variant === 'split' ? <HeroSplit /> : <HeroCentered />}
-      <Ticker items={safeItems} />
+      <Ticker items={ticker} />
     </section>
   );
 }
 
 function HeroCentered() {
-  const { t }       = useTranslation();
-  const trustBadges = t('hero.trustBadges') as unknown as string[];
-  const safeBadges  = Array.isArray(trustBadges) ? trustBadges : [];
+  const { t, tRaw } = useTranslation();
+  const trustBadges = tRaw<string[]>('hero.trustBadges') ?? [];
 
   return (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-12 lg:pt-20 lg:pb-16">
@@ -76,7 +74,7 @@ function HeroCentered() {
 
         {/* Trust badges */}
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-          {safeBadges.map((badge) => (
+          {trustBadges.map((badge) => (
             <span key={badge} className="flex items-center gap-1.5">
               <Icon name="Check" size={16} className="text-success" />
               {badge}
@@ -91,7 +89,7 @@ function HeroCentered() {
 }
 
 function HeroSplit() {
-  const { t }       = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 lg:pt-20 lg:pb-16 grid lg:grid-cols-12 gap-10 items-center">
@@ -321,12 +319,12 @@ function PosScreenshotMobile({ products, sub, iva, total, cartCount }: MockProps
   const [tab, setTab] = useState<'productos' | 'carrito'>('productos');
   const hatched = { backgroundImage: `repeating-linear-gradient(45deg, hsl(var(--muted-foreground) / .14) 0 1px, transparent 1px 9px)` };
   const grid = [
-    { n: 'Shampoo Argán',   p: 6500  },
-    { n: 'Crema Hidratante', p: 8400 },
-    { n: 'Mascarilla',      p: 3200  },
-    { n: 'Acondicionador',  p: 5800  },
-    { n: 'Sérum Vitamina C',p: 12400 },
-    { n: 'Tónico Facial',   p: 4900  },
+    { n: 'Shampoo Argán',    p: 6500  },
+    { n: 'Crema Hidratante', p: 8400  },
+    { n: 'Mascarilla',       p: 3200  },
+    { n: 'Acondicionador',   p: 5800  },
+    { n: 'Sérum Vitamina C', p: 12400 },
+    { n: 'Tónico Facial',    p: 4900  },
   ];
   return (
     <div className="flex justify-center">

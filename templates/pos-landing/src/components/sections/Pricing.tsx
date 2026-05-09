@@ -11,7 +11,7 @@ interface Addon {
 
 export function Pricing() {
   const { config }  = useConfig();
-  const { t }       = useTranslation();
+  const { t, tRaw } = useTranslation();
   const compact     = config.sections.pricing.variant === 'compact';
   const { currency, usdRateCRC, oneTimePrice, freeDocs, amortizationMonths, moneyBackDays } = config.pricing;
 
@@ -19,15 +19,11 @@ export function Pricing() {
   const monthly = fmt(Math.round(oneTimePrice / amortizationMonths));
   const nextYear = Math.floor(amortizationMonths / 12) + 1;
 
-  const freeBullets = t('pricing.freeBullets') as unknown as Array<[string, boolean]>;
-  const proBullets  = t('pricing.proBullets')  as unknown as Array<[string, boolean]>;
-  const addons      = t('pricing.addons')       as unknown as Addon[];
+  const freeBullets = tRaw<Array<[string, boolean]>>('pricing.freeBullets') ?? [];
+  const proBullets  = tRaw<Array<[string, boolean]>>('pricing.proBullets')  ?? [];
+  const addons      = tRaw<Addon[]>('pricing.addons') ?? [];
 
-  const safeFreeBullets = Array.isArray(freeBullets) ? freeBullets : [];
-  const safeProBullets  = Array.isArray(proBullets)  ? proBullets  : [];
-  const safeAddons      = Array.isArray(addons)       ? addons      : [];
-
-  const proPrice   = fmt(oneTimePrice);
+  const proPrice = fmt(oneTimePrice);
 
   const moneyBack = t('pricing.moneyBackLabel', { days: String(moneyBackDays) });
   const amort     = t('pricing.amortizationLabel', {
@@ -75,7 +71,7 @@ export function Pricing() {
               {t('pricing.freeCta')}<Icon name="ArrowRight" size={15} />
             </a>
             <ul className="space-y-2.5 text-sm">
-              {safeFreeBullets.map(([text, ok], i) => {
+              {freeBullets.map(([text, ok], i) => {
                 const label = text.replace('{{freeDocs}}', String(freeDocs));
                 return (
                   <li key={i} className={`flex items-start gap-2.5 ${ok ? '' : 'text-muted-foreground/60 line-through'}`}>
@@ -114,7 +110,7 @@ export function Pricing() {
               {t('pricing.proCta')}<Icon name="ArrowRight" size={15} />
             </a>
             <ul className="space-y-2.5 text-sm">
-              {safeProBullets.map(([text, ok], i) => (
+              {proBullets.map(([text], i) => (
                 <li key={i} className="flex items-start gap-2.5">
                   <Icon name="Check" size={16} className="text-primary mt-0.5 shrink-0" />
                   <span>{text}</span>
@@ -129,9 +125,9 @@ export function Pricing() {
         </div>
 
         {/* Add-ons */}
-        {safeAddons.length > 0 && (
+        {addons.length > 0 && (
           <div className="mt-10 grid sm:grid-cols-3 gap-3 text-sm">
-            {safeAddons.map((addon, i) => (
+            {addons.map((addon, i) => (
               <div key={i} className="card p-4 flex items-start gap-3">
                 <div className="w-9 h-9 rounded-md bg-accent text-accent-foreground flex items-center justify-center shrink-0">
                   <Icon name={addon.icon as IconName} size={18} />

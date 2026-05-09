@@ -10,10 +10,9 @@ interface HaciendaCard {
 
 export function Hacienda() {
   const { config } = useConfig();
-  const { t }      = useTranslation();
-  const compact    = config.sections.hacienda.variant === 'compact';
-  const cards      = t('hacienda.cards') as unknown as HaciendaCard[];
-  const safeCards  = Array.isArray(cards) ? cards : [];
+  const { t, tRaw } = useTranslation();
+  const compact  = config.sections.hacienda.variant === 'compact';
+  const cards    = tRaw<HaciendaCard[]>('hacienda.cards') ?? [];
 
   return (
     <section id="hacienda" className="py-20 lg:py-28 relative overflow-hidden">
@@ -36,9 +35,9 @@ export function Hacienda() {
           <p className="mt-3 text-muted-foreground">{t('hacienda.subheadline')}</p>
         </div>
 
-        {/* Cards */}
+        {/* Cards — 6 cards matching wireframe */}
         <div className={`grid gap-4 ${compact ? 'sm:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
-          {safeCards.map((card, i) => (
+          {cards.map((card, i) => (
             <div key={i} className={`card p-5 ${compact ? '' : 'lg:p-6'}`}>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-md bg-accent text-accent-foreground flex items-center justify-center">
