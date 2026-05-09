@@ -119,12 +119,82 @@
     }
   },
   "pricing": {
-    "currency": "CRC",
+    "currency": "USD",
     "usdRateCRC": 600,
-    "oneTimePrice": 199000,
     "freeDocs": 30,
     "amortizationMonths": 36,
-    "moneyBackDays": 30
+    "moneyBackDays": 30,
+    "features": [
+      { "id": "products",       "label": "Productos" },
+      { "id": "customers",      "label": "Clientes" },
+      { "id": "docs",           "label": "Documentos electrónicos" },
+      { "id": "branches",       "label": "Sucursales y terminales" },
+      { "id": "docTypes",       "label": "Tipos de documento" },
+      { "id": "contingency",    "label": "Modo contingencia" },
+      { "id": "reports",        "label": "Reportes" },
+      { "id": "acceptDocs",     "label": "Aceptación de documentos recibidos" },
+      { "id": "futureFeatures", "label": "Próximas funciones de cumplimiento" },
+      { "id": "support",        "label": "Soporte" }
+    ],
+    "plans": [
+      {
+        "id": "free",
+        "name": "Free",
+        "tagline": "Para empezar tu negocio sin gastar.",
+        "priceCRC": 0,
+        "priceMin": 0,
+        "priceMax": 0,
+        "priceSuffix": "/ Para siempre",
+        "showPriceSlider": false,
+        "ctaLabel": "Crear cuenta gratis",
+        "ctaHref": "#",
+        "badge": "Para siempre",
+        "highlighted": false,
+        "subline": "Sin tarjeta. Sin trial. Sin caducidad.",
+        "showAmortization": false,
+        "showMoneyBack": false,
+        "features": [
+          { "label": "Hasta 50 productos",                         "enabled": true,  "color": "success" },
+          { "label": "Hasta 30 clientes",                          "enabled": true,  "color": "success" },
+          { "label": "{{freeDocs}} documentos electrónicos / mes", "enabled": true,  "color": "success" },
+          { "label": "1 sucursal · 1 terminal",                    "enabled": true,  "color": "success" },
+          { "label": "Tiquete y factura electrónica",              "enabled": true,  "color": "success" },
+          { "label": "Reportes básicos de ventas",                 "enabled": true,  "color": "success" },
+          { "label": "Soporte por correo",                         "enabled": true,  "color": "success" },
+          { "label": "Multi-sucursal",                             "enabled": false },
+          { "label": "Modo contingencia",                          "enabled": false },
+          { "label": "Notas de crédito y débito",                  "enabled": false }
+        ]
+      },
+      {
+        "id": "pro",
+        "name": "Pago Único Pro",
+        "tagline": "Pagás una vez. Nunca más.",
+        "priceCRC": 199000,
+        "priceMin": 99000,
+        "priceMax": 399000,
+        "priceSuffix": "una vez",
+        "showPriceSlider": true,
+        "ctaLabel": "Desbloquear todo",
+        "ctaHref": "#",
+        "badge": "Recomendado",
+        "highlighted": true,
+        "showAmortization": true,
+        "showMoneyBack": true,
+        "features": [
+          { "label": "Productos ilimitados",                                  "enabled": true, "color": "primary" },
+          { "label": "Clientes ilimitados",                                   "enabled": true, "color": "primary" },
+          { "label": "Documentos electrónicos ilimitados",                    "enabled": true, "color": "primary" },
+          { "label": "Multi-sucursal y multi-terminal",                       "enabled": true, "color": "primary" },
+          { "label": "Todos los tipos de documento (FE, TE, NC, ND, FC, FEX)","enabled": true, "color": "primary" },
+          { "label": "Modo contingencia ATV",                                 "enabled": true, "color": "primary" },
+          { "label": "Reportes avanzados y exportación",                      "enabled": true, "color": "primary" },
+          { "label": "Aceptación de documentos recibidos",                    "enabled": true, "color": "primary" },
+          { "label": "Próximas funciones de cumplimiento incluidas",          "enabled": true, "color": "primary" },
+          { "label": "Soporte prioritario por WhatsApp",                      "enabled": true, "color": "primary" }
+        ]
+      }
+    ]
   },
   "demo": {
     "categories": [
@@ -542,101 +612,6 @@
         "eyebrow": "Precios honestos",
         "headline": "Empezá gratis. Crecé sin atarte.",
         "subheadline": "Dos opciones. Sin trucos. Sin \"desde\", sin asteriscos, sin upgrade obligatorio para descargar tus datos.",
-        "freeName": "Free",
-        "freeTagline": "Para empezar tu negocio sin gastar.",
-        "freePrice": "₡0",
-        "freePriceSub": "Para siempre",
-        "freeCta": "Crear cuenta gratis",
-        "freeBadge": "Para siempre",
-        "freeSubline": "Sin tarjeta. Sin trial. Sin caducidad.",
-        "freeBullets": [
-          [
-            "Hasta 50 productos",
-            true
-          ],
-          [
-            "Hasta 30 clientes",
-            true
-          ],
-          [
-            "{{freeDocs}} documentos electrónicos / mes",
-            true
-          ],
-          [
-            "1 sucursal · 1 terminal",
-            true
-          ],
-          [
-            "Tiquete y factura electrónica",
-            true
-          ],
-          [
-            "Reportes básicos de ventas",
-            true
-          ],
-          [
-            "Soporte por correo",
-            true
-          ],
-          [
-            "Multi-sucursal",
-            false
-          ],
-          [
-            "Modo contingencia",
-            false
-          ],
-          [
-            "Notas de crédito y débito",
-            false
-          ]
-        ],
-        "proName": "Pago Único Pro",
-        "proTagline": "Pagás una vez. Nunca más.",
-        "proCta": "Desbloquear todo",
-        "proBadge": "Recomendado",
-        "proBullets": [
-          [
-            "Productos ilimitados",
-            true
-          ],
-          [
-            "Clientes ilimitados",
-            true
-          ],
-          [
-            "Documentos electrónicos ilimitados",
-            true
-          ],
-          [
-            "Multi-sucursal y multi-terminal",
-            true
-          ],
-          [
-            "Todos los tipos de documento (FE, TE, NC, ND, FC, FEX)",
-            true
-          ],
-          [
-            "Modo contingencia ATV",
-            true
-          ],
-          [
-            "Reportes avanzados y exportación",
-            true
-          ],
-          [
-            "Aceptación de documentos recibidos",
-            true
-          ],
-          [
-            "Próximas funciones de cumplimiento incluidas",
-            true
-          ],
-          [
-            "Soporte prioritario por WhatsApp",
-            true
-          ]
-        ],
         "moneyBackLabel": "Garantía de devolución de {{days}} días si no es lo que esperabas.",
         "amortizationLabel": "Equivalente a {{monthly}}/mes si lo amortizás a {{months}} años — y a partir del año {{nextYear}} seguís pagando ₡0.",
         "addons": [

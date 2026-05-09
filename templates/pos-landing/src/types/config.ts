@@ -4,6 +4,37 @@ export type HeroVariant = 'centered' | 'split';
 export type HaciendaVariant = 'default' | 'compact';
 export type PricingVariant = 'default' | 'compact';
 export type LangKey = 'es' | 'en';
+export type FeatureColor = 'success' | 'warning' | 'destructive' | 'primary' | 'muted';
+
+export interface FeatureDef {
+  id:    string;
+  label: string;
+}
+
+export interface PlanFeature {
+  label:   string;
+  enabled: boolean;
+  color?:  FeatureColor;
+}
+
+export interface Plan {
+  id:               string;
+  name:             string;
+  tagline:          string;
+  priceCRC:         number;
+  priceMin:         number;
+  priceMax:         number;
+  priceSuffix:      string;
+  showPriceSlider:  boolean;
+  ctaLabel:         string;
+  ctaHref:          string;
+  badge?:           string;
+  highlighted:      boolean;
+  subline?:         string;
+  showAmortization: boolean;
+  showMoneyBack:    boolean;
+  features:         PlanFeature[];
+}
 
 export interface AccentPalette {
   primary:          string;
@@ -134,24 +165,11 @@ export type TranslationMap = {
     promoBadge: string;
   };
   pricing: {
-    eyebrow:              string;
-    headline:             string;
-    subheadline:          string;
-    freeName:             string;
-    freeTagline:          string;
-    freePrice:            string;
-    freePriceSub:         string;
-    freeCta:              string;
-    freeBadge:            string;
-    freeSubline:          string;
-    freeBullets:          Array<[string, boolean]>;
-    proName:              string;
-    proTagline:           string;
-    proCta:               string;
-    proBadge:             string;
-    proBullets:           Array<[string, boolean]>;
-    moneyBackLabel:       string;
-    amortizationLabel:    string;
+    eyebrow:           string;
+    headline:          string;
+    subheadline:       string;
+    moneyBackLabel:    string;
+    amortizationLabel: string;
     addons: Array<{ icon: string; title: string; description: string }>;
   };
   testimonials: {
@@ -259,10 +277,11 @@ export interface AppConfig {
   pricing: {
     currency:           CurrencyKey;
     usdRateCRC:         number;
-    oneTimePrice:       number;
     freeDocs:           number;
     amortizationMonths: number;
     moneyBackDays:      number;
+    features:           FeatureDef[];
+    plans:              Plan[];
   };
   demo: {
     products:   DemoProduct[];
