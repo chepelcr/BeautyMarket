@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Icon } from '@/components/ui/Icon';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useConfig } from '@/hooks/useConfig';
 
 export function FinalCta() {
-  const { t } = useTranslation();
+  const { t }      = useTranslation();
+  const { config } = useConfig();
+  const appUrl     = config.meta.appUrl;
 
   return (
     <section id="login" className="py-20 lg:py-28 relative overflow-hidden">
@@ -15,7 +18,7 @@ export function FinalCta() {
         }}
       />
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-center">
-        {/* Left text */}
+        {/* Left: main CTA */}
         <div className="lg:col-span-7 text-primary-foreground">
           <div className="t-label" style={{ color: 'rgba(255,255,255,.65)' }}>
             {t('finalCta.eyebrow')}
@@ -46,44 +49,25 @@ export function FinalCta() {
           </div>
         </div>
 
-        {/* Login card */}
+        {/* Right: login button card */}
         <div className="lg:col-span-5">
-          <div className="card p-6 lg:p-7 shadow-2xl shadow-foreground/30">
-            <div className="flex items-center gap-2 mb-1">
-              <Icon name="Lock" size={16} className="text-primary" />
-              <h3 className="font-display font-bold text-lg">{t('finalCta.loginTitle')}</h3>
+          <div className="card p-6 lg:p-8 shadow-2xl shadow-foreground/30 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <Icon name="Lock" size={26} />
             </div>
-            <p className="text-sm text-muted-foreground mb-4">{t('finalCta.loginSub')}</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[12px] font-semibold mb-1.5">{t('finalCta.loginEmailLabel')}</label>
-                <input
-                  type="email"
-                  placeholder={t('finalCta.loginEmailPlaceholder')}
-                  className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <div>
-                <label className="block text-[12px] font-semibold mb-1.5">{t('finalCta.loginPasswordLabel')}</label>
-                <input
-                  type="password"
-                  placeholder={t('finalCta.loginPasswordPlaceholder')}
-                  className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <button className="w-full h-11 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-primary/90 flex items-center justify-center gap-2">
-                {t('finalCta.loginCta')}
-                <Icon name="ArrowRight" size={15} />
-              </button>
-              <div className="flex justify-between text-[12px]">
-                <a className="text-muted-foreground hover:text-foreground" href="#">
-                  {t('finalCta.loginForgot')}
-                </a>
-                <a className="text-primary font-semibold" href="#precios">
-                  {t('finalCta.loginCreate')}
-                </a>
-              </div>
+            <div>
+              <h3 className="font-display font-bold text-xl">{t('finalCta.loginTitle')}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{t('finalCta.loginSub')}</p>
             </div>
+            <a
+              href={appUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-12 rounded-md bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 shadow-md shadow-primary/30"
+            >
+              {t('finalCta.loginCta')}
+              <Icon name="ArrowUpRight" size={16} />
+            </a>
           </div>
         </div>
       </div>

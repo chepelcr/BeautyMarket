@@ -4,6 +4,7 @@
     "siteTitle": "JMarkets POS — Punto de Venta · Facturación Electrónica 4.4",
     "siteDescription": "El punto de venta costarricense con facturación electrónica 4.4 — sin renta mensual.",
     "siteUrl": "https://pos-landing.jcampos.dev",
+    "appUrl": "https://pos-system.j-markets.jcampos.dev",
     "lang": "es"
   },
   "theme": {

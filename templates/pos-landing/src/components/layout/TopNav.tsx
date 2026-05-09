@@ -4,6 +4,7 @@ import { Icon } from '@/components/ui/Icon';
 import { LogoIcon } from '@/components/ui/LogoIcon';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useTheme } from '@/hooks/useTheme';
+import { useConfig } from '@/hooks/useConfig';
 import { cn } from '@/lib/cn';
 
 const NAV_LINKS = [
@@ -16,6 +17,8 @@ const NAV_LINKS = [
 export function TopNav() {
   const { t, lang, setLang } = useTranslation();
   const { dark, setDark }     = useTheme();
+  const { config }            = useConfig();
+  const appUrl                = config.meta.appUrl;
   const [open, setOpen]       = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate              = useNavigate();
@@ -98,12 +101,14 @@ export function TopNav() {
           </button>
 
           {/* Login */}
-          <button
-            onClick={() => handleNavClick('/#login')}
+          <a
+            href={appUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="hidden sm:inline-flex h-9 px-3.5 items-center text-sm font-semibold hover:bg-muted rounded-md"
           >
             {t('nav.login')}
-          </button>
+          </a>
 
           {/* CTA */}
           <button
@@ -146,6 +151,15 @@ export function TopNav() {
           >
             {t('nav.demo')}
           </NavLink>
+          <a
+            href={appUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className="px-3 py-2.5 rounded-md text-sm font-medium hover:bg-muted text-left"
+          >
+            {t('nav.login')}
+          </a>
           <div className="flex items-center gap-2 pt-2 border-t border-border mt-1">
             <button
               onClick={() => setLang(lang === 'es' ? 'en' : 'es')}

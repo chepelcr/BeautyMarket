@@ -236,6 +236,7 @@ export interface AppConfig {
     siteTitle:       string;
     siteDescription: string;
     siteUrl:         string;
+    appUrl:          string;
     lang:            LangKey;
   };
   theme: {
