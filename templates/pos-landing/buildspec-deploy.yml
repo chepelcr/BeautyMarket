@@ -1,0 +1,18 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "dev"
+    S3_BUCKET: ""
+    CLOUDFRONT_DISTRIBUTION_ID: ""
+    SITE_DOMAIN: "pos-landing.jcampos.dev"
+
+phases:
+  build:
+    commands:
+      - echo "=== Deploying pos-landing to S3 ==="
+      - bash templates/pos-landing/scripts/pipeline-deploy.sh
+
+  post_build:
+    commands:
+      - echo "Deploy phase complete"

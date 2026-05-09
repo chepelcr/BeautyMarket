@@ -1,0 +1,195 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CodePipeline for pos-landing static site — builds Vite app and deploys to S3/CloudFront
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+
+  SourceOwnerParam:
+    Type: String
+    Default: chepelcr
+
+  SourceRepoParam:
+    Type: String
+    Default: BeautyMarket
+
+  SourceBranchParam:
+    Type: String
+    Default: main
+
+  BuildComputeTypeParam:
+    Type: String
+    Default: BUILD_GENERAL1_SMALL
+
+  # S3 bucket that serves the static site (must exist before deploying this stack)
+  S3BucketParam:
+    Type: String
+    Default: jcampos-pos-landing
+
+  # CloudFront distribution ID to invalidate after deploy (must exist before deploying)
+  CloudFrontDistributionIdParam:
+    Type: String
+    Default: ""
+    Description: CloudFront distribution ID — leave empty to skip invalidation on first deploy
+
+  SiteDomainParam:
+    Type: String
+    Default: pos-landing.jcampos.dev
+
+Resources:
+
+  # ── CloudWatch Log Groups ──────────────────────────────────────────────────
+
+  BuildLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jcampos-${Environment}-pos-landing-build"
+      RetentionInDays: 14
+
+  DeployLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/jcampos-${Environment}-pos-landing-deploy"
+      RetentionInDays: 14
+
+  # ── Phase 1: Build Vite app ───────────────────────────────────────────────
+
+  PosLandingBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jcampos-${Environment}-pos-landing-build"
+      Description: Build pos-landing Vite React app
+      ServiceRole: !ImportValue
+        Fn::Sub: "jcampos-${Environment}-codebuild-web-service-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: !Ref BuildComputeTypeParam
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: templates/pos-landing/buildspec-build.yml
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: !Ref BuildLogGroup
+      TimeoutInMinutes: 30
+
+  # ── Phase 2: Deploy to S3 + invalidate CloudFront ─────────────────────────
+
+  PosLandingDeployProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "jcampos-${Environment}-pos-landing-deploy"
+      Description: Sync pos-landing build to S3 and invalidate CloudFront
+      ServiceRole: !ImportValue
+        Fn::Sub: "jcampos-${Environment}-codebuild-web-service-role-arn"
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: !Ref BuildComputeTypeParam
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+          - Name: S3_BUCKET
+            Value: !Ref S3BucketParam
+          - Name: CLOUDFRONT_DISTRIBUTION_ID
+            Value: !Ref CloudFrontDistributionIdParam
+          - Name: SITE_DOMAIN
+            Value: !Ref SiteDomainParam
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: templates/pos-landing/buildspec-deploy.yml
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: !Ref DeployLogGroup
+      TimeoutInMinutes: 15
+
+  # ── Pipeline ───────────────────────────────────────────────────────────────
+
+  PosLandingPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub "jcampos-${Environment}-pos-landing-pipeline"
+      RoleArn: !ImportValue
+        Fn::Sub: "jcampos-${Environment}-codepipeline-role-arn"
+      ArtifactStore:
+        Type: S3
+        Location: !ImportValue
+          Fn::Sub: "jcampos-${Environment}-codepipeline-artifacts-bucket-name"
+      Stages:
+
+        - Name: Source
+          Actions:
+            - Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: "1"
+              Configuration:
+                ConnectionArn: !ImportValue
+                  Fn::Sub: "jcampos-${Environment}-github-connection-arn"
+                FullRepositoryId: !Sub "${SourceOwnerParam}/${SourceRepoParam}"
+                BranchName: !Ref SourceBranchParam
+                OutputArtifactFormat: CODE_ZIP
+                DetectChanges: "true"
+              OutputArtifacts:
+                - Name: SourceCode
+              RunOrder: 1
+
+        - Name: BuildSite
+          Actions:
+            - Name: BuildSite
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref PosLandingBuildProject
+              InputArtifacts:
+                - Name: SourceCode
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+
+        - Name: DeploySite
+          Actions:
+            - Name: DeploySite
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref PosLandingDeployProject
+                PrimarySource: SourceCode
+              InputArtifacts:
+                - Name: SourceCode
+                - Name: BuildOutput
+              OutputArtifacts:
+                - Name: DeployOutput
+              RunOrder: 1
+
+Outputs:
+  PipelineName:
+    Value: !Sub "jcampos-${Environment}-pos-landing-pipeline"
+    Export:
+      Name: !Sub "jcampos-${Environment}-pos-landing-pipeline-name"
+
+  BuildProjectName:
+    Value: !Ref PosLandingBuildProject
+
+  DeployProjectName:
+    Value: !Ref PosLandingDeployProject

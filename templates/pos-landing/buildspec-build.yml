@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "dev"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "=== Installing pos-landing dependencies ==="
+      - cd templates/pos-landing
+      - npm ci
+
+  build:
+    commands:
+      - echo "=== Building pos-landing ==="
+      - bash scripts/pipeline-build.sh
+
+  post_build:
+    commands:
+      - echo "Build phase complete"
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist/templates/pos-landing
+  discard-paths: no

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es" class="">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Demo · JMarkets POS — Punto de Venta</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          background: 'hsl(var(--background))',
+          foreground: 'hsl(var(--foreground))',
+          card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+          border: 'hsl(var(--border))',
+          muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+          primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+          accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+          secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+          success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+          warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+          info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+          destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+        },
+        fontFamily: {
+          sans: ['Barlow', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          display: ['"Barlow Condensed"', 'Barlow', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  :root {
+    --background: 30 40% 98%;
+    --foreground: 20 14% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14% 16%;
+    --primary: 23 88% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 20 14% 16%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 30 25% 94%;
+    --muted-foreground: 20 8% 45%;
+    --accent: 23 100% 95%;
+    --accent-foreground: 23 88% 35%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 48%;
+    --warning-foreground: 20 14% 12%;
+    --info: 217 91% 55%;
+    --info-foreground: 0 0% 100%;
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 23 88% 47%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 20 14% 8%;
+    --foreground: 30 20% 96%;
+    --card: 20 14% 12%;
+    --card-foreground: 30 20% 96%;
+    --primary: 23 88% 52%;
+    --muted: 20 10% 18%;
+    --muted-foreground: 30 10% 65%;
+    --accent: 23 88% 18%;
+    --accent-foreground: 23 88% 75%;
+    --border: 20 10% 22%;
+  }
+
+  html, body { background: hsl(var(--background)); color: hsl(var(--foreground)); height: 100%; }
+  body {
+    font-family: Barlow, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    overflow: hidden;
+  }
+  .font-display { font-family: 'Barlow Condensed', Barlow, sans-serif !important; letter-spacing: -0.005em; }
+  .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace !important; }
+  .t-num { font-variant-numeric: tabular-nums; }
+
+  @keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 hsl(var(--success) / 0.55); } 50% { box-shadow: 0 0 0 6px hsl(var(--success) / 0); } }
+  .status-dot-live { width: 8px; height: 8px; border-radius: 999px; background: hsl(var(--success)); animation: pulse-dot 2s infinite; display: inline-block; }
+
+  /* Toast */
+  @keyframes toast-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .toast { animation: toast-in .25s ease-out; }
+
+  /* Hide scrollbar in scroll regions */
+  .scroll-area { scrollbar-width: thin; scrollbar-color: hsl(var(--border)) transparent; }
+  .scroll-area::-webkit-scrollbar { width: 6px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+
+  /* Sheet */
+  @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet-anim { animation: sheet-up .28s cubic-bezier(0.32, 0.72, 0, 1); }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  .fade-anim { animation: fade-in .2s ease-out; }
+</style>
+</head>
+
+<body>
+<div id="root" class="h-screen"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="../icons.jsx"></script>
+<script type="text/babel" src="demo-data.jsx"></script>
+<script type="text/babel" src="demo-desktop.jsx"></script>
+<script type="text/babel" src="demo-mobile.jsx"></script>
+<script type="text/babel" src="demo-app.jsx"></script>
+</body>
+</html>

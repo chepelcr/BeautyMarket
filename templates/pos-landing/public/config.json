@@ -1,0 +1,466 @@
+{
+  "_version": 1,
+  "meta": {
+    "siteTitle": "JMarkets POS — Punto de Venta · Facturación Electrónica 4.4",
+    "siteDescription": "El punto de venta costarricense con facturación electrónica 4.4 — sin renta mensual.",
+    "siteUrl": "https://pos-landing.jcampos.dev",
+    "lang": "es"
+  },
+  "theme": {
+    "accent": "orange",
+    "dark": false
+  },
+  "tokens": {
+    "accentPalettes": {
+      "orange": {
+        "primary":          "23 88% 47%",
+        "primaryDark":      "23 88% 52%",
+        "accent":           "23 100% 95%",
+        "accentForeground": "23 88% 35%",
+        "accentDark":       "23 88% 18%",
+        "accentFgDark":     "23 88% 75%",
+        "ring":             "23 88% 47%",
+        "ringDark":         "23 88% 52%"
+      },
+      "indigo": {
+        "primary":          "235 60% 50%",
+        "primaryDark":      "235 60% 55%",
+        "accent":           "235 100% 96%",
+        "accentForeground": "235 60% 38%",
+        "accentDark":       "235 60% 18%",
+        "accentFgDark":     "235 60% 75%",
+        "ring":             "235 60% 50%",
+        "ringDark":         "235 60% 55%"
+      },
+      "teal": {
+        "primary":          "174 65% 32%",
+        "primaryDark":      "174 65% 38%",
+        "accent":           "174 60% 94%",
+        "accentForeground": "174 65% 24%",
+        "accentDark":       "174 65% 16%",
+        "accentFgDark":     "174 65% 70%",
+        "ring":             "174 65% 32%",
+        "ringDark":         "174 65% 38%"
+      },
+      "violet": {
+        "primary":          "262 60% 48%",
+        "primaryDark":      "262 60% 54%",
+        "accent":           "262 100% 96%",
+        "accentForeground": "262 60% 36%",
+        "accentDark":       "262 60% 18%",
+        "accentFgDark":     "262 60% 75%",
+        "ring":             "262 60% 48%",
+        "ringDark":         "262 60% 54%"
+      }
+    },
+    "neutral": {
+      "background":     "30 40% 98%",
+      "backgroundDark": "20 14% 8%",
+      "foreground":     "20 14% 16%",
+      "foregroundDark": "30 20% 96%",
+      "card":           "0 0% 100%",
+      "cardDark":       "20 14% 12%",
+      "muted":          "30 25% 94%",
+      "mutedDark":      "20 10% 18%",
+      "mutedFg":        "20 8% 45%",
+      "mutedFgDark":    "30 10% 65%",
+      "border":         "30 15% 88%",
+      "borderDark":     "20 10% 22%"
+    },
+    "semantic": {
+      "success":         "142 71% 40%",
+      "successDark":     "142 71% 50%",
+      "warning":         "38 92% 48%",
+      "warningDark":     "38 92% 55%",
+      "destructive":     "0 72% 51%",
+      "destructiveDark": "0 72% 55%",
+      "info":            "217 91% 55%",
+      "infoDark":        "217 91% 65%"
+    },
+    "radius": "0.5rem",
+    "fontSans":    "Barlow",
+    "fontDisplay": "Barlow Condensed",
+    "fontMono":    "JetBrains Mono"
+  },
+  "sections": {
+    "hero":          { "visible": true, "variant": "centered" },
+    "vsCompetition": { "visible": true },
+    "features":      { "visible": true },
+    "howItWorks":    { "visible": true },
+    "hacienda":      { "visible": true, "variant": "default" },
+    "pricing":       { "visible": true, "variant": "default" },
+    "testimonials":  { "visible": true },
+    "faq":           { "visible": true },
+    "finalCta":      { "visible": true },
+    "footer":        { "visible": true }
+  },
+  "pricing": {
+    "currency":           "CRC",
+    "usdRateCRC":         600,
+    "oneTimePrice":       199000,
+    "freeDocs":           30,
+    "amortizationMonths": 36,
+    "moneyBackDays":      30
+  },
+  "demo": {
+    "categories": ["Todo", "Cabello", "Facial", "Solar", "Cuerpo", "Aroma"],
+    "products": [
+      { "id": "sh-arg-250",  "cat": "Cabello",  "name": "Shampoo Argán 250ml",     "sku": "SH-ARG-250",  "price": 6500,  "stock": 24, "cabys": "3307100100200" },
+      { "id": "cr-fac-50",   "cat": "Facial",   "name": "Crema Hidratante 50ml",   "sku": "CR-FAC-50",   "price": 8400,  "stock": 18, "cabys": "3307900100100" },
+      { "id": "mk-car-x1",   "cat": "Facial",   "name": "Mascarilla Carbón",       "sku": "MK-CAR-X1",   "price": 3200,  "stock": 42, "cabys": "3307900100200" },
+      { "id": "ac-coc-250",  "cat": "Cabello",  "name": "Acondicionador Coco",     "sku": "AC-COC-250",  "price": 5800,  "stock": 31, "cabys": "3307100100300" },
+      { "id": "sr-vit-30",   "cat": "Facial",   "name": "Sérum Vitamina C 30ml",   "sku": "SR-VIT-30",   "price": 12400, "stock": 12, "cabys": "3307900100300" },
+      { "id": "tn-fac-200",  "cat": "Facial",   "name": "Tónico Facial 200ml",     "sku": "TN-FAC-200",  "price": 4900,  "stock": 19, "cabys": "3307900100400" },
+      { "id": "bl-spf-50",   "cat": "Solar",    "name": "Bloqueador SPF 50",       "sku": "BL-SPF-50",   "price": 9200,  "stock": 27, "cabys": "3304990000100" },
+      { "id": "ex-cor-200",  "cat": "Cuerpo",   "name": "Exfoliante Corporal",     "sku": "EX-COR-200",  "price": 6700,  "stock": 22, "cabys": "3307900100500" },
+      { "id": "ae-ess-30",   "cat": "Aroma",    "name": "Aceite Esencial 30ml",    "sku": "AE-ESS-30",   "price": 8100,  "stock": 16, "cabys": "3303000000100" },
+      { "id": "lb-hid-15",   "cat": "Facial",   "name": "Bálsamo Labial 15ml",     "sku": "LB-HID-15",   "price": 2800,  "stock": 88, "cabys": "3304100000100" },
+      { "id": "br-cab-x1",   "cat": "Cabello",  "name": "Brocha Tinte",            "sku": "BR-CAB-X1",   "price": 3500,  "stock": 14, "cabys": "9603290000100" },
+      { "id": "pf-flo-50",   "cat": "Aroma",    "name": "Perfume Floral 50ml",     "sku": "PF-FLO-50",   "price": 18500, "stock": 9,  "cabys": "3303000000200" }
+    ],
+    "customers": [
+      { "id": "cf", "name": "Cliente de contado",     "id_doc": "—",             "email": "" },
+      { "id": "c1", "name": "María Solís",             "id_doc": "1-1234-5678",   "email": "maria@example.cr" },
+      { "id": "c2", "name": "Salón Bella Vista S.A.",  "id_doc": "3-101-987654",  "email": "admin@bellavista.cr" },
+      { "id": "c3", "name": "Andrés Quirós",           "id_doc": "1-0987-6543",   "email": "andres@example.cr" }
+    ]
+  },
+  "translations": {
+    "es": {
+      "nav": {
+        "home":     "Inicio",
+        "features": "Características",
+        "hacienda": "Hacienda 4.4",
+        "pricing":  "Precios",
+        "faq":      "Preguntas",
+        "login":    "Iniciar sesión",
+        "cta":      "Empezar gratis",
+        "demo":     "Demo"
+      },
+      "hero": {
+        "badge":        "Versión 4.4 Hacienda",
+        "badgeSub":     "· vigente sep/2025",
+        "headline":     "El POS que cumple con Hacienda sin cobrarte mensualidad.",
+        "subheadline":  "Vendé, facturá electrónicamente y manejá tu inventario. Empezá gratis y desbloqueá todo con un único pago — sin suscripciones, sin sorpresas a fin de mes.",
+        "ctaPrimary":   "Empezar gratis",
+        "ctaSecondary": "Ver demo en vivo",
+        "trustBadges":  ["Sin tarjeta", "Setup en 5 min", "En español 🇨🇷"],
+        "ticker":       ["Factura electrónica 4.4", "Hacienda CR validado", "CABYS integrado", "XML + PDF firmados", "Notas de crédito y débito", "Tiquete electrónico", "Multi-sucursal", "Multi-terminal", "Plan contingencia ATV"],
+        "demoLabel":    "Probá la demo funcional",
+        "statusLabel":  "Validando con Hacienda — promedio 1.2s",
+        "deviceDesktop": "Escritorio",
+        "deviceMobile":  "Móvil"
+      },
+      "vs": {
+        "eyebrow":     "Por qué cambiar",
+        "headline":    "Pagás una vez. Vendés para siempre.",
+        "subheadline": "Mientras otros sistemas te cobran por bloque de documentos o mes a mes, JMarkets POS es tuyo con un solo pago.",
+        "cols":        ["Característica", "JMarkets POS", "Facturador postpago", "Suscripción mensual"],
+        "disclaimer":  "Comparativa contra los modelos comerciales más comunes en Costa Rica. Sujeto a cambios.",
+        "rows": [
+          { "feature": "Modelo de pago",              "jm": "Pago único de por vida",   "alt1": "Pago por bloque de documentos",  "alt2": "Suscripción mensual recurrente" },
+          { "feature": "Productos",                   "jm": "Ilimitados (Pro)",          "alt1": "Por paquete",                    "alt2": "Limitado por plan" },
+          { "feature": "Documentos electrónicos",     "jm": "Ilimitados (Pro)",          "alt1": "Por bloque comprado",            "alt2": "Por plan / extras" },
+          { "feature": "Multi-sucursal y terminal",   "jm": "Incluido",                  "alt1": "Add-on",                         "alt2": "Add-on" },
+          { "feature": "Modo contingencia (offline)", "jm": "Sí",                        "alt1": "Limitado",                       "alt2": "Generalmente no" },
+          { "feature": "Costo a 3 años",              "jm": "Pago único",                "alt1": "Acumulado por bloques",          "alt2": "Acumulado por mes" }
+        ]
+      },
+      "features": {
+        "eyebrow":  "Lo que tenés desde el día uno",
+        "headline": "Todo lo que un negocio necesita. Nada que no usés.",
+        "groups": [
+          {
+            "eyebrow": "Punto de venta",
+            "title":   "Vendé como te gusta",
+            "items": [
+              { "icon": "ShoppingCart",   "title": "Carrito y caja rápida",      "desc": "Búsqueda por código de barras o por nombre, atajos de teclado, productos favoritos en cuadrícula." },
+              { "icon": "Scan",           "title": "Lector de barras y balanza", "desc": "Compatible con scanners USB y balanzas con cálculo de peso variable." },
+              { "icon": "Wallet",         "title": "Múltiples métodos de pago",  "desc": "Efectivo, tarjeta, SINPE Móvil y otros — combinás varios en una sola venta." },
+              { "icon": "Receipt",        "title": "Tabs de documentos",         "desc": "Mantené varios documentos abiertos (factura, tiquete, NC/ND) sin perder el carrito." }
+            ]
+          },
+          {
+            "eyebrow": "Catálogo e inventario",
+            "title":   "Tu inventario, ordenado",
+            "items": [
+              { "icon": "Package",   "title": "Productos y servicios",   "desc": "Variantes, fotos, precios por sucursal, costo y margen automáticos." },
+              { "icon": "Boxes",     "title": "Stock multi-sucursal",    "desc": "Movimientos, traslados, ajustes y alertas de mínimo en tiempo real." },
+              { "icon": "Tag",       "title": "CABYS oficial",           "desc": "Buscador integrado del Catálogo de Bienes y Servicios del Ministerio de Hacienda." },
+              { "icon": "Users",     "title": "Clientes y proveedores",  "desc": "Importá tu base por CSV, historial de compras y crédito por cliente." }
+            ]
+          },
+          {
+            "eyebrow": "Facturación electrónica",
+            "title":   "Hacienda, sin dolores",
+            "items": [
+              { "icon": "FileSignature", "title": "Firma y envío automático",  "desc": "Firmás con tu llave criptográfica, JMarkets envía y reintenta hasta validar." },
+              { "icon": "FileText",      "title": "Todos los documentos 4.4",  "desc": "Factura, tiquete, exportación, compra, notas de crédito y débito." },
+              { "icon": "ShieldCheck",   "title": "Modo contingencia",         "desc": "Si Hacienda se cae, seguís facturando. Reenvío automático cuando vuelve." },
+              { "icon": "BadgeCheck",    "title": "Recibidos y aceptación",    "desc": "Aceptás o rechazás documentos recibidos directamente desde el POS." }
+            ]
+          },
+          {
+            "eyebrow": "Operación",
+            "title":   "Pensado para tu día",
+            "items": [
+              { "icon": "Building2",  "title": "Multi-sucursal y terminal", "desc": "Cada cajero con su sesión, arqueos por terminal y reportes por sucursal." },
+              { "icon": "BarChart2",  "title": "Reportes en vivo",          "desc": "Ventas por hora, top productos, ticket promedio, márgenes — sin esperar fin de mes." },
+              { "icon": "Cloud",      "title": "Tus datos, tu nube",        "desc": "Respaldos automáticos, exportación a Excel/CSV, sin tomar tu información de rehén." },
+              { "icon": "Smartphone", "title": "Mobile y tablet",           "desc": "Funciona en cualquier dispositivo — abrís el navegador y vendés." }
+            ]
+          }
+        ]
+      },
+      "howItWorks": {
+        "eyebrow":  "Cómo empezar",
+        "headline": "De cero a vendiendo en 5 minutos.",
+        "steps": [
+          { "icon": "Plus",          "title": "Creá tu cuenta",          "desc": "Registrás tu negocio y tu primera sucursal en menos de 2 minutos. No pedimos tarjeta." },
+          { "icon": "Package",       "title": "Cargá tu catálogo",       "desc": "Importás CSV o creás productos a mano. Buscamos automáticamente el código CABYS." },
+          { "icon": "FileSignature", "title": "Subí tu llave Hacienda",  "desc": "Llave criptográfica + usuario ATV. JMarkets se encarga del resto del trámite técnico." },
+          { "icon": "ShoppingCart",  "title": "Empezá a vender",         "desc": "Abrís el POS, escaneás, cobrás. La factura electrónica sale firmada y validada." }
+        ]
+      },
+      "hacienda": {
+        "eyebrow":     "Cumplimiento Ministerio de Hacienda",
+        "headline":    "Versión 4.4. Lista hoy.",
+        "subheadline": "Toda la complejidad técnica de la facturación electrónica costarricense, resuelta. Vos solo te dedicás a vender.",
+        "cards": [
+          { "icon": "FileSignature", "title": "Firma criptográfica",      "desc": "Subís tu llave una sola vez. Firmamos cada XML según los esquemas oficiales 4.4." },
+          { "icon": "BadgeCheck",    "title": "Validación ATV",            "desc": "Enviamos al Ministerio de Hacienda y monitoreamos hasta el estado final. Reintentamos en automático." },
+          { "icon": "ShieldCheck",   "title": "Plan de contingencia",      "desc": "Si ATV está caído, seguís facturando. JMarkets reenvía cuando el servicio vuelve." },
+          { "icon": "FileText",      "title": "Aceptación de recibidos",   "desc": "Aceptás, rechazás parcial o totalmente documentos recibidos sin salir del sistema." },
+          { "icon": "Tag",           "title": "CABYS al día",              "desc": "Catálogo sincronizado con Hacienda. Nuevas tarifas IVA aplicadas automáticamente." },
+          { "icon": "Layers",        "title": "Reportes para tu contador", "desc": "Exportá libros de ventas y compras en el formato exacto que pide tu contador." }
+        ],
+        "promoTitle": "Próximamente: asistente IIBI y obligaciones automáticas",
+        "promoDesc":  "Recordatorios de declaración IVA, libros automáticos de compras y ventas, conciliación bancaria con SINPE — todo dentro del Pago Único.",
+        "promoBadge": "En camino"
+      },
+      "pricing": {
+        "eyebrow":     "Precios honestos",
+        "headline":    "Empezá gratis. Crecé sin atarte.",
+        "subheadline": "Dos opciones. Sin trucos. Sin \"desde\", sin asteriscos, sin upgrade obligatorio para descargar tus datos.",
+        "freeName":    "Free",
+        "freeTagline": "Para empezar tu negocio sin gastar.",
+        "freePrice":   "₡0",
+        "freePriceSub":"Para siempre",
+        "freeCta":     "Crear cuenta gratis",
+        "freeBadge":   "Para siempre",
+        "freeSubline": "Sin tarjeta. Sin trial. Sin caducidad.",
+        "freeBullets": [
+          ["Hasta 50 productos", true],
+          ["Hasta 30 clientes", true],
+          ["{{freeDocs}} documentos electrónicos / mes", true],
+          ["1 sucursal · 1 terminal", true],
+          ["Tiquete y factura electrónica", true],
+          ["Reportes básicos de ventas", true],
+          ["Soporte por correo", true],
+          ["Multi-sucursal", false],
+          ["Modo contingencia", false],
+          ["Notas de crédito y débito", false]
+        ],
+        "proName":    "Pago Único Pro",
+        "proTagline": "Pagás una vez. Nunca más.",
+        "proCta":     "Desbloquear todo",
+        "proBadge":   "Recomendado",
+        "proBullets": [
+          ["Productos ilimitados", true],
+          ["Clientes ilimitados", true],
+          ["Documentos electrónicos ilimitados", true],
+          ["Multi-sucursal y multi-terminal", true],
+          ["Todos los tipos de documento (FE, TE, NC, ND, FC, FEX)", true],
+          ["Modo contingencia ATV", true],
+          ["Reportes avanzados y exportación", true],
+          ["Aceptación de documentos recibidos", true],
+          ["Próximas funciones de cumplimiento incluidas", true],
+          ["Soporte prioritario por WhatsApp", true]
+        ],
+        "moneyBackLabel":    "Garantía de devolución de {{days}} días si no es lo que esperabas.",
+        "amortizationLabel": "Equivalente a {{monthly}}/mes si lo amortizás a {{months}} años — y a partir del año {{nextYear}} seguís pagando ₡0.",
+        "addons": [
+          { "icon": "Building2",  "title": "Sucursal extra",     "description": "Pagás una pequeña tarifa única por cada sucursal adicional." },
+          { "icon": "Smartphone", "title": "Terminal extra",     "description": "Activá nuevas terminales sin cambiarte de plan." },
+          { "icon": "Cloud",      "title": "Migración asistida", "description": "Te ayudamos a traer tus datos desde tu sistema actual o desde Excel." }
+        ]
+      },
+      "testimonials": {
+        "eyebrow":  "Quien ya cambió",
+        "headline": "Negocios costarricenses que ya no pagan mensualidad.",
+        "items": [
+          { "quote": "Pasamos de pagar mensualidades a tener un sistema que es nuestro. La diferencia se siente cada fin de mes.",                                   "author": "Carolina M.",    "role": "Dueña, Beauty Studio Heredia" },
+          { "quote": "El modo contingencia salvó dos días enteros de ventas cuando ATV estuvo caído. Ningún cliente se fue sin tiquete.",                             "author": "Andrés R.",      "role": "Mini-súper Tres Ríos" },
+          { "quote": "Migramos en una tarde. Importamos productos por CSV y al día siguiente ya estábamos facturando.",                                               "author": "María Fernanda", "role": "Boutique Curridabat" }
+        ]
+      },
+      "faq": {
+        "eyebrow":  "Preguntas frecuentes",
+        "headline": "Lo que la gente nos pregunta.",
+        "items": [
+          { "q": "¿El plan gratis tiene fecha de vencimiento?",          "a": "No. El plan Free es gratuito para siempre dentro de los límites mensuales (productos, clientes y documentos). Solo pagás cuando necesitás más." },
+          { "q": "¿Qué incluye exactamente el \"Pago Único\"?",          "a": "Productos y clientes ilimitados, facturación electrónica sin tope mensual, multi-sucursal, multi-terminal, reportes avanzados, modo contingencia y todas las nuevas funciones de cumplimiento Hacienda que liberemos." },
+          { "q": "¿Necesito mi propia llave criptográfica?",             "a": "Sí — es un requisito de Hacienda. Si no la tenés, te guiamos paso a paso para obtenerla en el portal ATV (es gratis)." },
+          { "q": "¿Funciona si se cae mi internet o ATV?",               "a": "El POS sigue funcionando offline. Los documentos quedan en cola y se firman/envían apenas vuelva la conexión, sin que vos hagas nada." },
+          { "q": "¿Puedo migrar desde otro sistema o desde Excel?",      "a": "Sí. Importás productos y clientes por CSV. Para historial fiscal, te ayudamos en la migración inicial sin costo." },
+          { "q": "¿Tengo soporte en español?",                           "a": "Soporte humano por WhatsApp y correo, en horario costarricense. El equipo está acá, no en otro continente." }
+        ]
+      },
+      "finalCta": {
+        "eyebrow":                "Tu próximo punto de venta",
+        "headline":               "Vendé hoy. Cumplí con Hacienda mañana.",
+        "subheadline":            "Empezá gratis sin tarjeta. Cuando estés listo, desbloqueá todo con un solo pago.",
+        "ctaPrimary":             "Crear mi cuenta gratis",
+        "ctaSecondary":           "Ver demo",
+        "loginTitle":             "¿Ya tenés cuenta?",
+        "loginSub":               "Iniciá sesión en tu POS",
+        "loginEmailLabel":        "Correo",
+        "loginEmailPlaceholder":  "vos@negocio.cr",
+        "loginPasswordLabel":     "Contraseña",
+        "loginPasswordPlaceholder": "••••••••",
+        "loginCta":               "Entrar al POS",
+        "loginForgot":            "¿Olvidaste tu contraseña?",
+        "loginCreate":            "Crear cuenta"
+      },
+      "footer": {
+        "tagline":   "El punto de venta costarricense con facturación electrónica 4.4 — sin renta mensual.",
+        "madeIn":    "Hecho en Costa Rica · 🇨🇷",
+        "columns": [
+          { "heading": "Producto", "links": ["Características", "Hacienda 4.4", "Precios", "Demo en vivo"] },
+          { "heading": "Soporte",  "links": ["Centro de ayuda", "Estado del servicio", "Migración", "Contactar"] },
+          { "heading": "Legal",    "links": ["Términos", "Privacidad", "Cookies", "Cumplimiento"] }
+        ],
+        "copyright": "© 2026 JMarkets POS. Todos los derechos reservados.",
+        "version":   "v4.4 · API 2.1.0"
+      },
+      "demo": {
+        "searchPlaceholder": "Buscar producto, SKU o escaneá código…",
+        "noResults":         "Sin resultados",
+        "categories":        ["Todo", "Cabello", "Facial", "Solar", "Cuerpo", "Aroma"],
+        "emptyCart":         "Tocá un producto",
+        "emptyCartSub":      "para agregarlo al carrito",
+        "customers": {
+          "pickLabel":   "Seleccionar cliente",
+          "defaultName": "Cliente de contado"
+        },
+        "cart": {
+          "title":    "Carrito",
+          "docType":  "FE",
+          "checkout": "Cobrar",
+          "subtotal": "Subtotal",
+          "iva":      "IVA 13%",
+          "total":    "TOTAL",
+          "clear":    "Vaciar"
+        },
+        "checkout": {
+          "title":          "Cobrar venta",
+          "totalLabel":     "Total a cobrar",
+          "paymentTitle":   "Método de pago",
+          "paymentMethods": {
+            "cash":  "Efectivo",
+            "card":  "Tarjeta",
+            "sinpe": "SINPE Móvil"
+          },
+          "tenderedLabel":  "Efectivo recibido",
+          "changeLabel":    "Vuelto",
+          "exactLabel":     "Exacto",
+          "cardNote":       "Insertá la tarjeta en el datáfono. JMarkets POS detecta automáticamente la respuesta del banco.",
+          "sinpeNote":      "El cliente envía un SINPE al número del comercio. Confirmás manualmente la recepción.",
+          "confirmLabel":   "Confirmar cobro",
+          "processingTitle": "Firmando XML 4.4…",
+          "processingSteps": ["Generación de XML", "Firma criptográfica", "Enviando a ATV Hacienda"],
+          "successTitle":   "¡Venta completada!",
+          "successSub":     "completada",
+          "newSaleLabel":   "Nueva venta"
+        },
+        "receipt": {
+          "typeLabel":    "Tipo",
+          "consecLabel":  "Consecutivo",
+          "claveLabel":   "Clave",
+          "clientLabel":  "Cliente",
+          "paymentLabel": "Pago",
+          "types":        { "FE": "Factura E.", "TE": "Tiquete E.", "NC": "Nota Crédito" },
+          "methods":      { "cash": "Efectivo", "card": "Tarjeta", "sinpe": "SINPE" },
+          "sendXml":      "Enviar XML",
+          "printTicket":  "Imprimir tiquete"
+        },
+        "docTypes": [
+          { "key": "FE", "name": "Factura electrónica",  "desc": "Para clientes registrados" },
+          { "key": "TE", "name": "Tiquete electrónico",  "desc": "Venta al consumidor final" },
+          { "key": "NC", "name": "Nota de crédito",      "desc": "Devolución / corrección" }
+        ],
+        "onlineLabel": "En línea",
+        "branchLabel": "Sucursal Central · Terminal 02",
+        "demoLabel":   "Demo"
+      }
+    },
+    "en": {
+      "nav": {
+        "home":     "Home",
+        "features": "Features",
+        "hacienda": "Hacienda 4.4",
+        "pricing":  "Pricing",
+        "faq":      "FAQ",
+        "login":    "Log in",
+        "cta":      "Start free",
+        "demo":     "Demo"
+      },
+      "hero": {
+        "badge":        "Version 4.4 Hacienda",
+        "badgeSub":     "· effective Sep/2025",
+        "headline":     "The POS that complies with Hacienda without monthly fees.",
+        "subheadline":  "Sell, issue electronic invoices, and manage your inventory. Start free and unlock everything with a one-time payment — no subscriptions, no end-of-month surprises.",
+        "ctaPrimary":   "Start free",
+        "ctaSecondary": "See live demo",
+        "trustBadges":  ["No credit card", "5-min setup", "In Spanish 🇨🇷"],
+        "ticker":       ["Electronic Invoice 4.4", "Hacienda CR validated", "CABYS integrated", "Signed XML + PDF", "Credit & debit notes", "Electronic receipt", "Multi-branch", "Multi-terminal", "ATV contingency plan"],
+        "demoLabel":    "Try the functional demo",
+        "statusLabel":  "Validating with Hacienda — avg 1.2s",
+        "deviceDesktop": "Desktop",
+        "deviceMobile":  "Mobile"
+      },
+      "vs": {
+        "eyebrow":     "Why switch",
+        "headline":    "Pay once. Sell forever.",
+        "subheadline": "While other systems charge you per document block or monthly, JMarkets POS is yours with a single payment.",
+        "cols":        ["Feature", "JMarkets POS", "Post-paid invoicer", "Monthly subscription"],
+        "disclaimer":  "Comparison against the most common commercial models in Costa Rica. Subject to change.",
+        "rows": [
+          { "feature": "Payment model",              "jm": "One-time lifetime payment", "alt1": "Pay-per-document-block",   "alt2": "Recurring monthly subscription" },
+          { "feature": "Products",                   "jm": "Unlimited (Pro)",           "alt1": "By package",               "alt2": "Limited by plan" },
+          { "feature": "Electronic documents",       "jm": "Unlimited (Pro)",           "alt1": "By purchased block",       "alt2": "By plan / extras" },
+          { "feature": "Multi-branch & terminal",    "jm": "Included",                  "alt1": "Add-on",                   "alt2": "Add-on" },
+          { "feature": "Contingency mode (offline)", "jm": "Yes",                       "alt1": "Limited",                  "alt2": "Generally no" },
+          { "feature": "Cost over 3 years",          "jm": "One-time payment",          "alt1": "Accumulated by blocks",    "alt2": "Accumulated monthly" }
+        ]
+      },
+      "finalCta": {
+        "eyebrow":                "Your next point of sale",
+        "headline":               "Sell today. Comply with Hacienda tomorrow.",
+        "subheadline":            "Start free without a credit card. When you're ready, unlock everything with a single payment.",
+        "ctaPrimary":             "Create my free account",
+        "ctaSecondary":           "See demo",
+        "loginTitle":             "Already have an account?",
+        "loginSub":               "Sign in to your POS",
+        "loginEmailLabel":        "Email",
+        "loginEmailPlaceholder":  "you@business.com",
+        "loginPasswordLabel":     "Password",
+        "loginPasswordPlaceholder": "••••••••",
+        "loginCta":               "Enter POS",
+        "loginForgot":            "Forgot your password?",
+        "loginCreate":            "Create account"
+      },
+      "footer": {
+        "tagline":   "The Costa Rican POS with electronic invoicing 4.4 — no monthly fee.",
+        "madeIn":    "Made in Costa Rica · 🇨🇷",
+        "columns": [
+          { "heading": "Product", "links": ["Features", "Hacienda 4.4", "Pricing", "Live demo"] },
+          { "heading": "Support", "links": ["Help center", "Service status", "Migration", "Contact"] },
+          { "heading": "Legal",   "links": ["Terms", "Privacy", "Cookies", "Compliance"] }
+        ],
+        "copyright": "© 2026 JMarkets POS. All rights reserved.",
+        "version":   "v4.4 · API 2.1.0"
+      }
+    }
+  }
+}

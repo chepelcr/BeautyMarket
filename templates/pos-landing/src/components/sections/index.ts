@@ -1,0 +1,9 @@
+export { Hero }           from './Hero';
+export { VsCompetition }  from './VsCompetition';
+export { Features }       from './Features';
+export { HowItWorks }     from './HowItWorks';
+export { Hacienda }       from './Hacienda';
+export { Pricing }        from './Pricing';
+export { Testimonials }   from './Testimonials';
+export { FAQ }            from './FAQ';
+export { FinalCta }       from './FinalCta';
