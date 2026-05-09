@@ -6,15 +6,17 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useSaveConfig } from '@/hooks/useSaveConfig';
 import { cn } from '@/lib/cn';
 
+const MetaTab         = lazy(() => import('./MetaTab').then(m => ({ default: m.MetaTab })));
 const ThemeTab        = lazy(() => import('./ThemeTab').then(m => ({ default: m.ThemeTab })));
 const TranslationsTab = lazy(() => import('./TranslationsTab').then(m => ({ default: m.TranslationsTab })));
 const PricingTab      = lazy(() => import('./PricingTab').then(m => ({ default: m.PricingTab })));
 const ProductsTab     = lazy(() => import('./ProductsTab').then(m => ({ default: m.ProductsTab })));
 const SectionsTab     = lazy(() => import('./SectionsTab').then(m => ({ default: m.SectionsTab })));
 
-type TabId = 'theme' | 'sections' | 'pricing' | 'products' | 'translations';
+type TabId = 'meta' | 'theme' | 'sections' | 'pricing' | 'products' | 'translations';
 
-const TABS: Array<{ id: TabId; label: string; icon: 'Palette' | 'LayoutDashboard' | 'DollarSign' | 'Package' | 'Languages' }> = [
+const TABS: Array<{ id: TabId; label: string; icon: 'Settings' | 'Palette' | 'LayoutDashboard' | 'DollarSign' | 'Package' | 'Languages' }> = [
+  { id: 'meta',         label: 'Meta / URLs',  icon: 'Settings'        },
   { id: 'theme',        label: 'Theme',        icon: 'Palette'         },
   { id: 'sections',     label: 'Sections',     icon: 'LayoutDashboard' },
   { id: 'pricing',      label: 'Pricing',      icon: 'DollarSign'      },
@@ -23,7 +25,7 @@ const TABS: Array<{ id: TabId; label: string; icon: 'Palette' | 'LayoutDashboard
 ];
 
 export function DashboardLayout() {
-  const [activeTab, setActiveTab] = useState<TabId>('theme');
+  const [activeTab, setActiveTab] = useState<TabId>('meta');
   const { save, saving, saved, error } = useSaveConfig();
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -34,7 +36,7 @@ export function DashboardLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
-      {/* Dashboard top bar */}
+      {/* Top bar */}
       <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-3">
           <LogoIcon size={28} />
@@ -86,6 +88,7 @@ export function DashboardLayout() {
             {TABS.find(t => t.id === activeTab)?.label}
           </h2>
           <Suspense fallback={<Spinner size={32} className="mx-auto mt-8" />}>
+            {activeTab === 'meta'         && <MetaTab />}
             {activeTab === 'theme'        && <ThemeTab />}
             {activeTab === 'sections'     && <SectionsTab />}
             {activeTab === 'pricing'      && <PricingTab />}
@@ -94,7 +97,7 @@ export function DashboardLayout() {
           </Suspense>
         </main>
 
-        {/* Preview iframe */}
+        {/* Live preview iframe */}
         <aside className="hidden xl:flex flex-col w-[480px] shrink-0 border-l border-border bg-background">
           <div className="h-10 border-b border-border flex items-center px-4 text-xs font-semibold text-muted-foreground">
             Live Preview

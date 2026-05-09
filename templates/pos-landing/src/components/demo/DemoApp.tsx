@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react';
 import { PosDesktop } from './PosDesktop';
 import { PosMobile }  from './PosMobile';
-import { DeviceSwitch } from './DeviceSwitch';
 import { CheckoutModal } from './CheckoutModal';
 import { Toast } from '@/components/ui/Toast';
 import { useCart } from '@/hooks/useCart';
 import { useConfig } from '@/hooks/useConfig';
 
-type Device = 'desktop' | 'mobile';
+// Reactive auto-detect: switches on resize/orientation change, no localStorage
+function useAutoDevice(): 'desktop' | 'mobile' {
+  const [device, setDevice] = useState<'desktop' | 'mobile'>(() =>
+    window.innerWidth < 768 ? 'mobile' : 'desktop'
+  );
 
-function useDevice(): [Device, (d: Device) => void] {
-  const [device, setDeviceState] = useState<Device>(() => {
-    const saved = localStorage.getItem('pos-demo-device');
-    if (saved === 'mobile' || saved === 'desktop') return saved;
-    return window.innerWidth < 768 ? 'mobile' : 'desktop';
-  });
+  useEffect(() => {
+    const onResize = () => setDevice(window.innerWidth < 768 ? 'mobile' : 'desktop');
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
-  const setDevice = (d: Device) => {
-    setDeviceState(d);
-    localStorage.setItem('pos-demo-device', d);
-  };
-
-  return [device, setDevice];
+  return device;
 }
 
 interface ToastState {
@@ -30,13 +27,13 @@ interface ToastState {
 }
 
 export function DemoApp() {
-  const { config }                = useConfig();
-  const cart                      = useCart(config.demo.customers[0]);
-  const [device, setDevice]       = useDevice();
-  const [checkout, setCheckout]   = useState(false);
-  const [toast, setToast]         = useState<ToastState | null>(null);
+  const { config }              = useConfig();
+  const cart                    = useCart(config.demo.customers[0]);
+  const device                  = useAutoDevice();
+  const [checkout, setCheckout] = useState(false);
+  const [toast, setToast]       = useState<ToastState | null>(null);
 
-  // Seed the cart with first product on mount
+  // Seed cart with first product so demo starts non-empty
   useEffect(() => {
     if (cart.items.length === 0 && config.demo.products.length > 0) {
       cart.add(config.demo.products[0]);
@@ -51,9 +48,9 @@ export function DemoApp() {
 
   return (
     <div className="h-full relative overflow-hidden">
-      <DeviceSwitch device={device} setDevice={setDevice} />
-
       {device === 'mobile' ? (
+        // On actual mobile: fill the viewport edge-to-edge
+        // On desktop (when narrow): show phone frame centered on grey background
         <div className="h-full bg-foreground/5 flex items-center justify-center p-0 md:p-6">
           <div className="h-full w-full md:w-[390px] md:h-[844px] md:rounded-[44px] md:border-[10px] md:border-foreground/85 md:shadow-2xl md:shadow-foreground/40 overflow-hidden bg-background relative">
             <PosMobile cart={cart} onCheckout={() => setCheckout(true)} />
@@ -71,9 +68,7 @@ export function DemoApp() {
         />
       )}
 
-      {toast && (
-        <Toast {...toast} onDone={() => setToast(null)} />
-      )}
+      {toast && <Toast {...toast} onDone={() => setToast(null)} />}
     </div>
   );
 }
