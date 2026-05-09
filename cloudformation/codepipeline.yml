@@ -51,16 +51,6 @@ Parameters:
     Default: pos-landing.jcampos.dev
     Description: Custom domain for the pos-landing marketing site
 
-  PosLandingS3BucketParam:
-    Type: String
-    Default: jcampos-pos-landing
-    Description: S3 bucket name serving pos-landing.jcampos.dev (must exist before first run)
-
-  PosLandingCfDistIdParam:
-    Type: String
-    Default: ""
-    Description: CloudFront distribution ID for pos-landing.jcampos.dev (leave empty to skip invalidation until infra is created)
-
 Resources:
 
   # ── Log Groups ───────────────────────────────────────────────────────────────
@@ -418,12 +408,6 @@ Resources:
           - Name: POS_LANDING_DOMAIN
             Type: PLAINTEXT
             Value: !Ref PosLandingDomainParam
-          - Name: POS_LANDING_S3_BUCKET
-            Type: PLAINTEXT
-            Value: !Ref PosLandingS3BucketParam
-          - Name: POS_LANDING_CF_DIST_ID
-            Type: PLAINTEXT
-            Value: !Ref PosLandingCfDistIdParam
       Source:
         Type: CODEPIPELINE
         BuildSpec: buildspec-frontend-pos-landing.yml
@@ -625,9 +609,7 @@ Resources:
                    {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
                    {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
                    {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"},
-                   {"name":"POS_LANDING_DOMAIN","value":"${PosLandingDomainParam}","type":"PLAINTEXT"},
-                   {"name":"POS_LANDING_S3_BUCKET","value":"${PosLandingS3BucketParam}","type":"PLAINTEXT"},
-                   {"name":"POS_LANDING_CF_DIST_ID","value":"${PosLandingCfDistIdParam}","type":"PLAINTEXT"}]
+                   {"name":"POS_LANDING_DOMAIN","value":"${PosLandingDomainParam}","type":"PLAINTEXT"}]
               InputArtifacts:
                 - Name: SourceCode
               OutputArtifacts:

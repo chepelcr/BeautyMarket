@@ -7,28 +7,25 @@ env:
     FRONTEND_DOMAIN: "j-markets.jcampos.dev"
     ROOT_DOMAIN: "jcampos.dev"
     POS_LANDING_DOMAIN: "pos-landing.jcampos.dev"
-    POS_LANDING_S3_BUCKET: ""
-    POS_LANDING_CF_DIST_ID: ""
 
 phases:
   install:
     runtime-versions:
       nodejs: 20
     commands:
-      - echo "=== Installing pos-landing dependencies ==="
-      - cd templates/pos-landing
-      - npm ci
-      - cd ../..
+      - cd templates/pos-landing && npm ci && cd ../..
 
   build:
     commands:
-      - echo "=== Building pos-landing ==="
-      - cd templates/pos-landing
-      - npm run build
-      - cd ../..
-      - echo "=== Deploying pos-landing to S3 ==="
-      - bash templates/pos-landing/scripts/pipeline-deploy.sh
+      - echo "Building pos-landing..."
+      - cd templates/pos-landing && npm run build && cd ../..
 
   post_build:
     commands:
-      - echo "pos-landing deploy complete"
+      - bash scripts/pipeline-frontend-pos-landing.sh
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist/templates/pos-landing
+  discard-paths: no
