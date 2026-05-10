@@ -1,5 +1,6 @@
 import { Package2 } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PackagingSectionProps {
   unitsPerBox: string;
@@ -16,9 +17,11 @@ export function PackagingSection({
   disabled,
   onChange,
 }: PackagingSectionProps) {
+  const { t } = useLanguage();
+
   return (
     <SectionWrapper
-      title="Información de empaque"
+      title={t("products.packageInfo")}
       icon={Package2}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -26,12 +29,12 @@ export function PackagingSection({
     >
       <div>
         <label className="pp-label">
-          Unidades por caja <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+          {t("products.unitsPerBox")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
         </label>
         <input
           type="number"
           className="pp-input"
-          placeholder="Ej: 12"
+          placeholder={t("products.unitsPerBoxPlaceholder")}
           min={1}
           value={unitsPerBox}
           onChange={(e) => onChange(e.target.value)}

@@ -84,7 +84,7 @@ export function GeneralInfoSection({
       {/* Unit of Measure */}
       {units.length > 0 && (
         <div>
-          <label className="pp-label">Unidad de medida</label>
+          <label className="pp-label">{t("products.unitOfMeasure")}</label>
           {!customUnit ? (
             <select
               className="pp-input"
@@ -94,19 +94,19 @@ export function GeneralInfoSection({
                 }
               }}
             >
-              <option value="">Seleccionar unidad…</option>
+              <option value="">{t("products.selectUnit")}</option>
               {units.map((u: { id: number; description: string; code?: string }) => (
                 <option key={u.id} value={String(u.id)}>
                   {u.description}{u.code ? ` (${u.code})` : ""}
                 </option>
               ))}
-              <option value="__other__">Otros…</option>
+              <option value="__other__">{t("products.otherUnit")}</option>
             </select>
           ) : (
             <div style={{ display: "flex", gap: 6 }}>
               <input
                 className="pp-input"
-                placeholder="Especificar unidad"
+                placeholder={t("products.specifyUnit")}
                 style={{ flex: 1 }}
               />
               <button
@@ -115,7 +115,7 @@ export function GeneralInfoSection({
                 onClick={() => setCustomUnit(false)}
                 style={{ fontSize: 12 }}
               >
-                Cancelar
+                {t("common.cancel")}
               </button>
             </div>
           )}
@@ -131,14 +131,14 @@ export function GeneralInfoSection({
           onChange={(v) => onChange({ track_inventory: v })}
         />
         <ToggleRow
-          label="Información fiscal"
-          description="Habilitar CABYS, IVA y datos fiscales"
+          label={t("products.fiscalInfo")}
+          description={t("products.fiscalInfoDesc")}
           checked={form.has_fiscal_info}
           onChange={(v) => onChange({ has_fiscal_info: v })}
         />
         <ToggleRow
-          label="Información de empaque"
-          description="Unidades por caja y detalles de empaque"
+          label={t("products.packageInfo")}
+          description={t("products.packageInfoDesc")}
           checked={form.has_package_info}
           onChange={(v) => onChange({ has_package_info: v })}
         />

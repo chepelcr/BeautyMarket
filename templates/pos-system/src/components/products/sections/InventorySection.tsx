@@ -22,7 +22,7 @@ export function InventorySection({
 
   return (
     <SectionWrapper
-      title={t("products.trackInventory") || "Gestión de inventario"}
+      title={t("products.inventoryTitle")}
       icon={Boxes}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -39,7 +39,7 @@ export function InventorySection({
           onChange={(e) => onChange({ low_stock_threshold: e.target.value })}
         />
         <p className="t-xs" style={{ marginTop: 4, color: "hsl(var(--muted-foreground))" }}>
-          Se enviará una alerta cuando el stock llegue a este nivel.
+          {t("products.lowStockHint")}
         </p>
       </div>
     </SectionWrapper>

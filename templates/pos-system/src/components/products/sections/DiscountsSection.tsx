@@ -2,6 +2,7 @@ import { Tag } from "lucide-react";
 import { Icon } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllDiscountTypes } from "@/hooks/useDataApi";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { CountryISO } from "@/lib/enums";
 import type { DiscountFormEntry } from "@/types/productForm";
 
@@ -29,6 +30,7 @@ export function DiscountsSection({
   onRemove,
   onUpdate,
 }: DiscountsSectionProps) {
+  const { t } = useLanguage();
   const { data: discountTypesData } = useAllDiscountTypes({ iso_code: ISO });
   const discountTypeList = discountTypesData ?? [];
 
@@ -46,7 +48,7 @@ export function DiscountsSection({
 
   return (
     <SectionWrapper
-      title="Descuentos"
+      title={t("products.discounts")}
       icon={Tag}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -56,7 +58,7 @@ export function DiscountsSection({
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {discounts.length === 0 && (
           <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", padding: "4px 0" }}>
-            Sin descuentos. Selecciona un tipo abajo para agregar.
+            {t("products.noDiscountsHint")}
           </div>
         )}
 
@@ -136,13 +138,13 @@ export function DiscountsSection({
                       {isOtros && (
                         <div style={{ marginTop: 6 }}>
                           <label className="pp-label" style={{ fontSize: 11 }}>
-                            Razón <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+                            {t("products.discountReason")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
                           </label>
                           <input
                             type="text"
                             className="pp-input"
                             style={{ fontSize: 12 }}
-                            placeholder="Describa el motivo del descuento"
+                            placeholder={t("products.discountReasonPlaceholder")}
                             value={disc.reason ?? ""}
                             onChange={(e) => onUpdate(disc.id, { reason: e.target.value })}
                           />
@@ -159,7 +161,7 @@ export function DiscountsSection({
         {/* Total */}
         {discounts.length > 0 && (
           <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
-            <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Total:</span>
+            <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{t("products.discountTotal")}</span>
             <span
               style={{
                 fontSize: 13,
@@ -176,7 +178,7 @@ export function DiscountsSection({
             )}
             {totalExceeds && (
               <span style={{ fontSize: 11, color: "hsl(var(--destructive))" }}>
-                ¡No puede exceder 100%!
+                {t("products.discountExceeds")}
               </span>
             )}
           </div>
@@ -201,7 +203,7 @@ export function DiscountsSection({
             }
           }}
         >
-          <option value="">Agregar descuento…</option>
+          <option value="">{t("products.addDiscount")}</option>
           {discountTypeList.map((dt: { id: number; description: string }) => (
             <option key={dt.id} value={String(dt.id)}>
               {dt.description}

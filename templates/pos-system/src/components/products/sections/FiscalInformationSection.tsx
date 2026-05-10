@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Landmark, X, Search, Loader2, AlertTriangle } from "lucide-react";
+import { Landmark, X, Search, AlertTriangle } from "lucide-react";
+import { Spinner } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useCabysSearch, useAllProductTypes } from "@/hooks/useDataApi";
 import { CountryISO } from "@/lib/enums";
 import type { ProductFormState } from "@/types/productForm";
@@ -25,6 +27,7 @@ export function FiscalInformationSection({
   onChange,
   onCabysSelect,
 }: FiscalInformationSectionProps) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -112,7 +115,7 @@ export function FiscalInformationSection({
   return (
     <>
       <SectionWrapper
-        title="Información fiscal"
+        title={t("products.fiscalInformation")}
         icon={Landmark}
         isExpanded={isExpanded}
         onToggle={onToggle}
@@ -121,7 +124,7 @@ export function FiscalInformationSection({
         {/* 1. Product type — radio pills */}
         {productTypes.length > 0 && (
           <div>
-            <label className="pp-label">Tipo de producto</label>
+            <label className="pp-label">{t("products.productType")}</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
               {productTypes.map((pt: { id: number; description: string }) => {
                 const selected = form.productTypeId === pt.id;
@@ -192,7 +195,7 @@ export function FiscalInformationSection({
           /* Search state — no code input, just description search */
           <div ref={dropdownRef} style={{ position: "relative" }}>
             <label className="pp-label">
-              Buscar CABYS{" "}
+              {t("products.searchCabys")}{" "}
               <span style={{ color: "hsl(var(--destructive))" }}>*</span>
             </label>
             <div style={{ display: "flex", gap: 6 }}>
@@ -212,8 +215,8 @@ export function FiscalInformationSection({
                   className="pp-input"
                   placeholder={
                     !form.productTypeId
-                      ? "Selecciona un tipo de producto primero"
-                      : "Buscar por nombre del producto…"
+                      ? t("products.selectProductTypeFirst")
+                      : t("products.searchByName")
                   }
                   value={searchTerm}
                   style={{ paddingLeft: 30 }}
@@ -231,7 +234,7 @@ export function FiscalInformationSection({
                 style={{ flexShrink: 0, padding: "0 12px" }}
               >
                 {loading ? (
-                  <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                  <Spinner size={14} />
                 ) : (
                   <Search size={14} />
                 )}
@@ -292,7 +295,7 @@ export function FiscalInformationSection({
                     </span>
                     {item.tax_rate && (
                       <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
-                        IVA sugerido: {item.tax_rate.percentage}%
+                        {t("products.suggestedIva", { pct: String(item.tax_rate.percentage) })}
                       </span>
                     )}
                   </button>
@@ -318,14 +321,14 @@ export function FiscalInformationSection({
                   textAlign: "center",
                 }}
               >
-                Sin resultados para "{searchTerm}"
+                {t("products.noResultsFor", { query: searchTerm })}
               </div>
             )}
           </div>
         )}
 
         <p className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Código CABYS de Hacienda (13 dígitos). Requerido para facturación electrónica.
+          {t("products.cabysHelp")}
         </p>
       </SectionWrapper>
 
@@ -355,10 +358,10 @@ export function FiscalInformationSection({
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <AlertTriangle size={18} style={{ color: "hsl(var(--warning, 38 92% 50%))", flexShrink: 0 }} />
-              <span style={{ fontSize: 15, fontWeight: 700 }}>Cambiar tipo de producto</span>
+              <span style={{ fontSize: 15, fontWeight: 700 }}>{t("products.changeProductType")}</span>
             </div>
             <p style={{ fontSize: 13, color: "hsl(var(--muted-foreground))", marginBottom: 20, lineHeight: 1.5 }}>
-              Cambiar el tipo de producto eliminará el CABYS seleccionado y el IVA asociado. ¿Deseas continuar?
+              {t("products.changeProductTypeWarning")}
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <button
@@ -366,7 +369,7 @@ export function FiscalInformationSection({
                 className="btn btn-ghost btn-sm"
                 onClick={() => { setPendingProductTypeId(undefined); setShowConfirm(false); }}
               >
-                Cancelar
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -381,7 +384,7 @@ export function FiscalInformationSection({
                 }}
                 onClick={confirmProductTypeChange}
               >
-                Continuar
+                {t("common.continue")}
               </button>
             </div>
           </div>

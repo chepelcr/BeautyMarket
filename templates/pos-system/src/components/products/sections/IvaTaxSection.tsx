@@ -2,6 +2,7 @@ import { Percent } from "lucide-react";
 import { Icon } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from "@/hooks/useDataApi";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { GetAllFactoryTaxChargesParams } from "@/services/data-api/dtos";
 import { CountryISO } from "@/lib/enums";
 import type { TaxFormEntry } from "@/types/productForm";
@@ -36,6 +37,7 @@ export function IvaTaxSection({
   onUpdate,
   onFactoryTaxChargeChange,
 }: IvaTaxSectionProps) {
+  const { t } = useLanguage();
   const { data: taxesData } = useAllTaxes({ iso_code: ISO });
   const { data: taxRatesData } = useAllTaxRates({ iso_code: ISO });
   const { data: taxFactorsData } = useAllTaxFactors({ iso_code: ISO });
@@ -66,7 +68,7 @@ export function IvaTaxSection({
 
   return (
     <SectionWrapper
-      title="IVA"
+      title={t("products.iva")}
       icon={Percent}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -103,7 +105,7 @@ export function IvaTaxSection({
                       if (r) onUpdate(tax.taxTypeId, { taxRateId: r.id, rate: (r as { percentage: number }).percentage });
                     }}
                   >
-                    <option value="">Tasa…</option>
+                    <option value="">{t("products.taxRate")}</option>
                     {rateList.map((r: { id: number; percentage: number; description: string }) => (
                       <option key={r.id} value={String(r.id)}>
                         {r.percentage}% — {r.description}
@@ -130,14 +132,14 @@ export function IvaTaxSection({
 
               {isIvarbu && (
                 <div>
-                  <label className="pp-label" style={{ fontSize: 11 }}>Factor IVARBU</label>
+                  <label className="pp-label" style={{ fontSize: 11 }}>{t("products.ivarbuFactor")}</label>
                   <select
                     className="pp-input"
                     style={{ fontSize: 13 }}
                     value={tax.taxFactorId ?? ""}
                     onChange={(e) => onUpdate(tax.taxTypeId, { taxFactorId: Number(e.target.value) })}
                   >
-                    <option value="">Seleccionar factor…</option>
+                    <option value="">{t("products.selectFactor")}</option>
                     {factorList.map((f: { id: number; description: string }) => (
                       <option key={f.id} value={String(f.id)}>
                         {f.description}
@@ -169,7 +171,7 @@ export function IvaTaxSection({
               }
             }}
           >
-            <option value="">Agregar IVA…</option>
+            <option value="">{t("products.addIva")}</option>
             {ivaTaxTypes.map((tt: { id: number; description: string }) => (
               <option key={tt.id} value={String(tt.id)}>
                 {tt.description}
@@ -190,7 +192,7 @@ export function IvaTaxSection({
             }}
           >
             <label className="pp-label" style={{ marginBottom: 6 }}>
-              Cargo de fábrica (impuesto asumido)
+              {t("products.factoryTaxCharge")}
             </label>
             <select
               className="pp-input"
@@ -201,7 +203,7 @@ export function IvaTaxSection({
                 onFactoryTaxChargeChange(id, charge?.code === "01");
               }}
             >
-              <option value="">Sin cargo de fábrica</option>
+              <option value="">{t("products.noFactoryCharge")}</option>
               {factoryCharges.map((c: { id: number; description: string }) => (
                 <option key={c.id} value={String(c.id)}>
                   {c.description}
@@ -211,8 +213,8 @@ export function IvaTaxSection({
             {selectedCharge && (
               <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 4 }}>
                 {(selectedCharge as { code?: string }).code === "01"
-                  ? "El impuesto de fábrica se asume en el precio — afecta el cálculo del total."
-                  : "Cargo de fábrica sin impuesto asumido."}
+                  ? t("products.factoryTaxAssumed")
+                  : t("products.factoryTaxNotAssumed")}
               </div>
             )}
           </div>

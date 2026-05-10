@@ -319,54 +319,55 @@ Resources:
           GroupName: !Ref DeployPosSystemLogGroup
           Status: ENABLED
 
-  # ── Phase 7: Deploy all 8 template storefronts ───────────────────────────────
-
-  DeployTemplatesLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-templates"
-      RetentionInDays: 14
-
-  DeployTemplatesProject:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Sub "jmarkets-${Environment}-frontend-templates"
-      Description: Build all 8 template storefronts and deploy to S3+CloudFront via CFN stacks
-      ServiceRole:
-        Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
-      Artifacts:
-        Type: CODEPIPELINE
-      Cache:
-        Type: NO_CACHE
-      Environment:
-        Type: LINUX_CONTAINER
-        # MEDIUM: building 8 Vite apps needs more RAM than the Lambda build
-        ComputeType: BUILD_GENERAL1_MEDIUM
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
-        PrivilegedMode: false
-        EnvironmentVariables:
-          - Name: ENVIRONMENT
-            Type: PLAINTEXT
-            Value: !Ref Environment
-          - Name: REGION
-            Type: PLAINTEXT
-            Value: !Ref AWS::Region
-          - Name: FRONTEND_DOMAIN
-            Type: PLAINTEXT
-            Value: !Ref FrontendDomainParam
-          - Name: ROOT_DOMAIN
-            Type: PLAINTEXT
-            Value: !Ref RootDomainParam
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: buildspec-frontend-templates.yml
-      # Initial creation: 8 parallel CFN stacks (CloudFront + ACM) ≈ 20 min
-      # + npm install + 8 Vite builds + 8 S3 syncs ≈ 20 min → 60 min is safe
-      TimeoutInMinutes: 60
-      LogsConfig:
-        CloudWatchLogs:
-          GroupName: !Ref DeployTemplatesLogGroup
-          Status: ENABLED
+  # ── Phase 7: Deploy all 8 template storefronts — DISABLED ───────────────────
+  # Uncomment this block (and the pipeline stage below) to re-enable template deploys.
+  #
+  # DeployTemplatesLogGroup:
+  #   Type: AWS::Logs::LogGroup
+  #   Properties:
+  #     LogGroupName: !Sub "/aws/codebuild/jmarkets-${Environment}-frontend-templates"
+  #     RetentionInDays: 14
+  #
+  # DeployTemplatesProject:
+  #   Type: AWS::CodeBuild::Project
+  #   Properties:
+  #     Name: !Sub "jmarkets-${Environment}-frontend-templates"
+  #     Description: Build all 8 template storefronts and deploy to S3+CloudFront via CFN stacks
+  #     ServiceRole:
+  #       Fn::ImportValue: !Sub "jmarkets-fe-${Environment}-pipeline-role-arn"
+  #     Artifacts:
+  #       Type: CODEPIPELINE
+  #     Cache:
+  #       Type: NO_CACHE
+  #     Environment:
+  #       Type: LINUX_CONTAINER
+  #       # MEDIUM: building 8 Vite apps needs more RAM than the Lambda build
+  #       ComputeType: BUILD_GENERAL1_MEDIUM
+  #       Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+  #       PrivilegedMode: false
+  #       EnvironmentVariables:
+  #         - Name: ENVIRONMENT
+  #           Type: PLAINTEXT
+  #           Value: !Ref Environment
+  #         - Name: REGION
+  #           Type: PLAINTEXT
+  #           Value: !Ref AWS::Region
+  #         - Name: FRONTEND_DOMAIN
+  #           Type: PLAINTEXT
+  #           Value: !Ref FrontendDomainParam
+  #         - Name: ROOT_DOMAIN
+  #           Type: PLAINTEXT
+  #           Value: !Ref RootDomainParam
+  #     Source:
+  #       Type: CODEPIPELINE
+  #       BuildSpec: buildspec-frontend-templates.yml
+  #     # Initial creation: 8 parallel CFN stacks (CloudFront + ACM) ≈ 20 min
+  #     # + npm install + 8 Vite builds + 8 S3 syncs ≈ 20 min → 60 min is safe
+  #     TimeoutInMinutes: 60
+  #     LogsConfig:
+  #       CloudWatchLogs:
+  #         GroupName: !Ref DeployTemplatesLogGroup
+  #         Status: ENABLED
 
   # ── Phase 8: Deploy pos-landing marketing site ───────────────────────────────
 
@@ -573,26 +574,27 @@ Resources:
                 - Name: PosSystemOutput
               RunOrder: 1
 
-        - Name: DeployTemplates
-          Actions:
-            - Name: DeployTemplates
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Provider: CodeBuild
-                Version: "1"
-              Configuration:
-                ProjectName: !Ref DeployTemplatesProject
-                EnvironmentVariables: !Sub |
-                  [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
-                   {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
-                   {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
-                   {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"}]
-              InputArtifacts:
-                - Name: SourceCode
-              OutputArtifacts:
-                - Name: TemplatesOutput
-              RunOrder: 1
+        # DeployTemplates stage — DISABLED (uncomment to re-enable)
+        # - Name: DeployTemplates
+        #   Actions:
+        #     - Name: DeployTemplates
+        #       ActionTypeId:
+        #         Category: Build
+        #         Owner: AWS
+        #         Provider: CodeBuild
+        #         Version: "1"
+        #       Configuration:
+        #         ProjectName: !Ref DeployTemplatesProject
+        #         EnvironmentVariables: !Sub |
+        #           [{"name":"ENVIRONMENT","value":"${Environment}","type":"PLAINTEXT"},
+        #            {"name":"REGION","value":"${AWS::Region}","type":"PLAINTEXT"},
+        #            {"name":"FRONTEND_DOMAIN","value":"${FrontendDomainParam}","type":"PLAINTEXT"},
+        #            {"name":"ROOT_DOMAIN","value":"${RootDomainParam}","type":"PLAINTEXT"}]
+        #       InputArtifacts:
+        #         - Name: SourceCode
+        #       OutputArtifacts:
+        #         - Name: TemplatesOutput
+        #       RunOrder: 1
 
         - Name: DeployPosLanding
           Actions:

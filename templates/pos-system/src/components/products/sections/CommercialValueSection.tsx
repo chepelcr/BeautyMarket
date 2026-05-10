@@ -1,6 +1,7 @@
 import { DollarSign } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { TaxCalculationService } from "@/services/taxCalculationService";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { TaxFormEntry, DiscountFormEntry, ProductFormState } from "@/types/productForm";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
@@ -27,6 +28,7 @@ export function CommercialValueSection({
   disabled,
   onChange,
 }: CommercialValueSectionProps) {
+  const { t } = useLanguage();
   const price = Number(form.price) || 0;
 
   const taxEntries = taxes.map((t) => ({
@@ -87,7 +89,7 @@ export function CommercialValueSection({
 
   return (
     <SectionWrapper
-      title="Precio comercial"
+      title={t("products.commercialPrice")}
       icon={DollarSign}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -96,7 +98,7 @@ export function CommercialValueSection({
       {/* Base price input */}
       <div>
         <label className="pp-label">
-          Precio base (sin impuestos){" "}
+          {t("products.basePriceNoTax")}{" "}
           <span style={{ color: "hsl(var(--destructive))" }}>*</span>
         </label>
         <div style={{ position: "relative" }}>
@@ -145,7 +147,7 @@ export function CommercialValueSection({
             }}
           >
             <span className="t-label" style={{ color: "hsl(var(--primary))" }}>
-              Precio de venta estimado
+              {t("products.estimatedSalePrice")}
             </span>
             <span
               style={{
@@ -161,7 +163,7 @@ export function CommercialValueSection({
 
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Base price */}
-            <Row label="Precio base" value={fmt(price)} />
+            <Row label={t("products.basePriceLine")} value={fmt(price)} />
 
             {/* Each discount line */}
             {discountLines.map((d, i) => (
@@ -175,7 +177,7 @@ export function CommercialValueSection({
 
             {/* Net price after discounts */}
             {totalDiscountAmount > 0 && (
-              <Row label="Precio neto" value={fmt(netPrice)} bold />
+              <Row label={t("products.netPrice")} value={fmt(netPrice)} bold />
             )}
 
             {/* Other/special taxes (added before IVA base) */}
@@ -193,7 +195,7 @@ export function CommercialValueSection({
               <>
                 <div style={{ borderTop: "1px solid hsl(var(--border) / 0.4)", margin: "4px 0" }} />
                 <Row
-                  label="Base para IVA"
+                  label={t("products.baseForIva")}
                   value={fmt(baseAmount)}
                   bold
                   color="hsl(var(--foreground))"
@@ -214,7 +216,7 @@ export function CommercialValueSection({
             {/* Factory assumed tax */}
             {factoryAssumedTax > 0 && (
               <Row
-                label="Impuesto asumido fábrica"
+                label={t("products.factoryAssumedTax")}
                 value={`-${fmt(factoryAssumedTax)}`}
                 color="hsl(var(--warning, 38 92% 50%))"
               />
@@ -225,10 +227,10 @@ export function CommercialValueSection({
               <>
                 <div style={{ borderTop: "1px solid hsl(var(--border) / 0.5)", margin: "4px 0" }} />
                 {(calc?.ivaTaxTotal ?? 0) > 0 && (
-                  <Row label="Total IVA" value={`+${fmt(calc!.ivaTaxTotal)}`} bold />
+                  <Row label={t("products.totalIva")} value={`+${fmt(calc!.ivaTaxTotal)}`} bold />
                 )}
                 {(calc?.otherTaxTotal ?? 0) > 0 && (
-                  <Row label="Total otros impuestos" value={`+${fmt(calc!.otherTaxTotal)}`} bold />
+                  <Row label={t("products.totalOtherTaxes")} value={`+${fmt(calc!.otherTaxTotal)}`} bold />
                 )}
               </>
             )}

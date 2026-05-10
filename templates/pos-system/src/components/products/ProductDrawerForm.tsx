@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import { Drawer, Button } from "@/components/ui";
+import { Drawer, Button, Spinner } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAllProductTypes, useAllMeasurementUnits, useAllTaxes, useAllTaxRates } from "@/hooks/useDataApi";
 import { TaxCalculationService } from "@/services/taxCalculationService";
@@ -86,13 +85,29 @@ export function ProductDrawerForm({
   const { t } = useLanguage();
   const isNew = drawerProduct === "new";
 
-  // Preload data for initial render — React Query deduplicates with section-level calls
-  const { isLoading: loadingProductTypes } = useAllProductTypes();
-  const { isLoading: loadingUnits } = useAllMeasurementUnits();
-  const { isLoading: loadingTaxes, data: taxesData } = useAllTaxes({ iso_code: ISO });
-  const { isLoading: loadingRates, data: ratesData } = useAllTaxRates({ iso_code: ISO });
+  // Preload data — React Query deduplicates with section-level calls
+  const { data: productTypesData } = useAllProductTypes();
+  useAllMeasurementUnits(); // pre-warms cache for GeneralInfoSection
+  const { data: taxesData } = useAllTaxes({ iso_code: ISO });
+  const { data: ratesData } = useAllTaxRates({ iso_code: ISO });
 
-  const isLoadingInitial = loadingProductTypes || loadingUnits || loadingTaxes || loadingRates;
+  // Data-based check: true until all minimum required data is available in cache
+  const dataReady = !!(productTypesData && taxesData && ratesData);
+
+  // Track per-drawer-open session so loader always shows when drawer opens,
+  // even if data was cached from a previous session (React Query isLoading = false with cache).
+  const [drawerReady, setDrawerReady] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setDrawerReady(false); // reset so next open starts with loader
+      return;
+    }
+    if (dataReady) {
+      setDrawerReady(true);
+    }
+  }, [open, dataReady]);
+
 
   // Packaging units local state
   const [unitsPerBox, setUnitsPerBox] = useState("");
@@ -342,23 +357,13 @@ export function ProductDrawerForm({
         </div>
       }
     >
-      {/* Initial data loader */}
-      {isLoadingInitial ? (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-            padding: "60px 24px",
-            color: "hsl(var(--muted-foreground))",
-          }}
-        >
-          <Loader2 size={28} style={{ animation: "spin 1s linear infinite", color: "hsl(var(--primary))" }} />
-          <span style={{ fontSize: 13 }}>Cargando información…</span>
-        </div>
-      ) : (
+      {/* Loader — fills the sidebar body and centers vertically */}
+      {!drawerReady && (
+        <Spinner fullHeight label={t("products.loadingInfo")} />
+      )}
+
+      {/* Form content — only rendered once data is ready */}
+      {drawerReady && (
         <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
 
           {/* 1. General Information */}

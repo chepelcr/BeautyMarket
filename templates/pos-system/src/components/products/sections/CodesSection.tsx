@@ -2,6 +2,7 @@ import { Barcode } from "lucide-react";
 import { Icon } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllCodes } from "@/hooks/useDataApi";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { CountryISO } from "@/lib/enums";
 import type { GetAllCodesParams } from "@/services/data-api/dtos";
 import type { CodeFormEntry } from "@/types/productForm";
@@ -27,6 +28,7 @@ export function CodesSection({
   onRemove,
   onUpdate,
 }: CodesSectionProps) {
+  const { t } = useLanguage();
   // document_version_id is auto-injected by the data API client via DocumentVersionProvider
   const { data: codesData } = useAllCodes({ iso_code: ISO } as GetAllCodesParams);
   const codeTypes = codesData ?? [];
@@ -38,7 +40,7 @@ export function CodesSection({
 
   return (
     <SectionWrapper
-      title="Códigos del producto"
+      title={t("products.productCodes")}
       icon={Barcode}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -87,7 +89,7 @@ export function CodesSection({
                 type="text"
                 className="pp-input"
                 style={{ fontSize: 12 }}
-                placeholder="Valor del código"
+                placeholder={t("products.codeValue")}
                 value={entry.value}
                 onChange={(e) => onUpdate(idx, { value: e.target.value })}
               />
@@ -96,13 +98,13 @@ export function CodesSection({
               {isOtros && (
                 <div style={{ marginTop: 6 }}>
                   <label className="pp-label" style={{ fontSize: 11 }}>
-                    Especificar tipo <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+                    {t("products.specifyType")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
                   </label>
                   <input
                     type="text"
                     className="pp-input"
                     style={{ fontSize: 12 }}
-                    placeholder="Describe el tipo de código"
+                    placeholder={t("products.codeTypePlaceholder")}
                     value={entry.reason ?? ""}
                     onChange={(e) => onUpdate(idx, { reason: e.target.value })}
                   />
@@ -131,7 +133,7 @@ export function CodesSection({
               }
             }}
           >
-            <option value="">Agregar tipo de código…</option>
+            <option value="">{t("products.addCodeType")}</option>
             {availableTypes.map((ct: { id: number; description: string }) => (
               <option key={ct.id} value={String(ct.id)}>
                 {ct.description}

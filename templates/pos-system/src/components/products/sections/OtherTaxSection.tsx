@@ -2,6 +2,7 @@ import { Receipt } from "lucide-react";
 import { Icon } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllTaxes, useAllTaxAmounts } from "@/hooks/useDataApi";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { CountryISO } from "@/lib/enums";
 import { getTaxConfig } from "@/types/taxTypeConfig";
 import type { TaxFormEntry } from "@/types/productForm";
@@ -39,6 +40,7 @@ function SpecialTaxRow({
   onUpdate: (taxTypeId: number, patch: Partial<TaxFormEntry>) => void;
   onRemove: (taxTypeId: number) => void;
 }) {
+  const { t } = useLanguage();
   const cfg = getTaxConfig(tax.taxCode);
   const needsAmounts = SPECIAL_AMOUNT_CODES.includes(tax.taxCode);
 
@@ -139,14 +141,14 @@ function SpecialTaxRow({
               {isAlcoholic && (
                 <div>
                   <label className="pp-label" style={{ fontSize: 11 }}>
-                    Porcentaje alcohólico
+                    {t("products.alcoholPercentage")}
                   </label>
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <input
                       type="number"
                       className="pp-input"
                       style={{ flex: 1, fontSize: 12 }}
-                      placeholder="Ej: 5.5"
+                      placeholder={t("products.alcoholPercentageExample")}
                       min={0}
                       max={100}
                       step={0.1}
@@ -157,12 +159,12 @@ function SpecialTaxRow({
                   </div>
                   {selectedAmount && (
                     <div className="t-xs" style={{ color: "hsl(var(--primary))", marginTop: 3 }}>
-                      ₡{selectedAmount.amount.toLocaleString("es-CR")} / unidad — {selectedAmount.description}
+                      {t("products.amountPerUnit", { amount: selectedAmount.amount.toLocaleString("es-CR"), desc: selectedAmount.description })}
                     </div>
                   )}
                   {tax.specialFields?.percentage && !selectedAmount && taxAmounts.length > 0 && (
                     <div className="t-xs" style={{ color: "hsl(var(--destructive))", marginTop: 3 }}>
-                      No hay monto para ese porcentaje
+                      {t("products.noAmountForPercentage")}
                     </div>
                   )}
                 </div>
@@ -171,7 +173,7 @@ function SpecialTaxRow({
               {/* Manual tax amount select for non-alcoholic */}
               {isNonAlcoholic && taxAmounts.length > 0 && (
                 <div>
-                  <label className="pp-label" style={{ fontSize: 11 }}>Monto de impuesto</label>
+                  <label className="pp-label" style={{ fontSize: 11 }}>{t("products.taxAmountLabel")}</label>
                   <select
                     className="pp-input"
                     style={{ fontSize: 12 }}
@@ -182,7 +184,7 @@ function SpecialTaxRow({
                       })
                     }
                   >
-                    <option value="">Seleccionar monto…</option>
+                    <option value="">{t("products.selectAmount")}</option>
                     {taxAmounts.map((ta) => (
                       <option key={ta.id} value={String(ta.id)}>
                         {ta.description} — ₡{ta.amount.toLocaleString("es-CR")}
@@ -208,7 +210,7 @@ function SpecialTaxRow({
                   })
                 }
               >
-                <option value="">Seleccionar monto…</option>
+                <option value="">{t("products.selectAmount")}</option>
                 {taxAmounts.map((ta) => (
                   <option key={ta.id} value={String(ta.id)}>
                     {ta.description} — ₡{ta.amount.toLocaleString("es-CR")}
@@ -221,7 +223,7 @@ function SpecialTaxRow({
           {/* Quantity field — all special codes */}
           {["03", "04", "05", "06"].includes(tax.taxCode) && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Cantidad UdM</label>
+              <label className="pp-label" style={{ fontSize: 11 }}>{t("products.quantityUdm")}</label>
               <input
                 type="number"
                 className="pp-input"
@@ -241,7 +243,7 @@ function SpecialTaxRow({
           {/* ISEBA (04) percentage */}
           {tax.taxCode === "04" && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Porcentaje</label>
+              <label className="pp-label" style={{ fontSize: 11 }}>{t("products.percentage")}</label>
               <input
                 type="number"
                 className="pp-input"
@@ -262,7 +264,7 @@ function SpecialTaxRow({
           {/* ISEBEC (05) volume per unit */}
           {tax.taxCode === "05" && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Volumen por unidad</label>
+              <label className="pp-label" style={{ fontSize: 11 }}>{t("products.volumePerUnit")}</label>
               <input
                 type="number"
                 className="pp-input"
@@ -295,6 +297,7 @@ export function OtherTaxSection({
   onRemove,
   onUpdate,
 }: OtherTaxSectionProps) {
+  const { t } = useLanguage();
   const { data: taxesData } = useAllTaxes({ iso_code: ISO });
   const allTaxTypes = taxesData ?? [];
 
@@ -305,7 +308,7 @@ export function OtherTaxSection({
 
   return (
     <SectionWrapper
-      title="Otros impuestos"
+      title={t("products.otherTaxes")}
       icon={Receipt}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -341,7 +344,7 @@ export function OtherTaxSection({
             }
           }}
         >
-          <option value="">Agregar impuesto…</option>
+          <option value="">{t("products.addTax")}</option>
           {otherTaxTypes
             .filter((tt: { id: number }) => !taxes.some((ft) => ft.taxTypeId === tt.id))
             .map((tt: { id: number; description: string }) => (
