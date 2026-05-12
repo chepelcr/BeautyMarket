@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tantml:react-query";
 import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Card, Badge, Button, Icon, Select, EmptyState, Pagination } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import type { BranchListResponse } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AssignmentSkeletonCard } from "@/components/assignments/AssignmentSkeletonCard";
 
 interface Assignment {
   assignment_id: string;
@@ -262,10 +264,8 @@ export default function AssignmentsPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "hsl(var(--muted-foreground))" }}>
-          <div className="t-sm" style={{ animation: "pulse 1.5s ease-in-out infinite" }}>
-            {t("assignments.loading")}
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {Array.from({ length: pageSize }).map((_, i) => <AssignmentSkeletonCard key={i} />)}
         </div>
       )}
 
@@ -279,18 +279,18 @@ export default function AssignmentsPage() {
       )}
 
       {/* Assignment cards */}
-      {assignments.map((a) => {
+      {assignments.map((a, i) => {
         const startTime = new Date(a.start_time).toLocaleTimeString("es-CR", {
           hour: "2-digit",
           minute: "2-digit",
         });
 
         return (
-          <Card
-            key={a.assignment_id}
-            className="fade-up"
-            style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
-          >
+          <FadeIn key={a.assignment_id} delay={i * 0.03} duration={0.4}>
+            <Card
+              className="fade-up"
+              style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+            >
             <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
               <div
                 className="icon-pill"
@@ -337,6 +337,7 @@ export default function AssignmentsPage() {
               {t("assignments.finish")}
             </Button>
           </Card>
+          </FadeIn>
         );
       })}
 

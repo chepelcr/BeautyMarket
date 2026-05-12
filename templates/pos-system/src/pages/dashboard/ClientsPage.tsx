@@ -7,7 +7,7 @@ import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { ClientSkeletonCard } from "@/components/clients/ClientSkeletonCard";
 import { ClientDrawerForm } from "@/components/clients/ClientDrawerForm";
-import { Icon, Button, Pagination } from "@/components/ui";
+import { Icon, Button, Pagination, Spinner } from "@/components/ui";
 
 export default function ClientsPage() {
   const { orgId } = useOrgContext();
@@ -95,8 +95,8 @@ export default function ClientsPage() {
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))", gap: 14 }}>
-          {clients.map((c) => (
-            <ClientCard key={c.client_id} client={c} orgId={orgId} onNavigate={() => goToDetail(c.client_id)} onEdit={openEdit} onToggleActive={handleToggleActive} />
+          {clients.map((c, i) => (
+            <ClientCard key={c.client_id} client={c} orgId={orgId} onNavigate={() => goToDetail(c.client_id)} onEdit={openEdit} onToggleActive={handleToggleActive} delay={i * 0.03} />
           ))}
         </div>
       )}

@@ -1,4 +1,5 @@
 import { Card, CardFooter, Icon, Badge, Menu } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useUpdateClientStatus, clientDisplayName, formatPhone, type Client } from "@/hooks/useClients";
 import { ID_TYPE_SHORT } from "@/lib/enums";
 import { POS as T } from "@/theme/pos";
@@ -10,9 +11,10 @@ interface ClientCardProps {
   onNavigate: () => void;
   onEdit: (c: Client) => void;
   onToggleActive?: (client: Client, newStatus: number) => void;
+  delay?: number;
 }
 
-export function ClientCard({ client, orgId, onNavigate, onEdit, onToggleActive }: ClientCardProps) {
+export function ClientCard({ client, orgId, onNavigate, onEdit, onToggleActive, delay = 0 }: ClientCardProps) {
   const statusMutation = useUpdateClientStatus(orgId);
   const displayName = clientDisplayName(client);
   const [bg, fg] = avatarColor(displayName);
@@ -31,11 +33,12 @@ export function ClientCard({ client, orgId, onNavigate, onEdit, onToggleActive }
   };
 
   return (
-    <Card
-      hoverable
-      onClick={onNavigate}
-      style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 14, cursor: "pointer", position: "relative" }}
-    >
+    <FadeIn delay={delay} duration={0.4}>
+      <Card
+        hoverable
+        onClick={onNavigate}
+        style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 14, cursor: "pointer", position: "relative" }}
+      >
       {/* Avatar + name + menu */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ width: 46, height: 46, borderRadius: 13, background: bg, color: fg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 800, fontFamily: T.fontDisplay, flexShrink: 0, boxShadow: `0 2px 8px ${bg}55` }}>
@@ -104,5 +107,6 @@ export function ClientCard({ client, orgId, onNavigate, onEdit, onToggleActive }
         </span>
       </CardFooter>
     </Card>
+    </FadeIn>
   );
 }

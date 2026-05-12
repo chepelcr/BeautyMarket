@@ -1,4 +1,5 @@
 import { Card, Icon, Badge, Button } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fmt, formatDate } from "@/utils/formatDate";
 import type { Session } from "@/types";
@@ -11,14 +12,16 @@ interface SessionCardProps {
   onEdit: (s: Session) => void;
   onEndSession: (id: string) => void;
   onDeleteConfirm: (id: string) => void;
+  delay?: number;
 }
 
-export function SessionCard({ session, endingPending, deletingPending, onView, onEdit, onEndSession, onDeleteConfirm }: SessionCardProps) {
+export function SessionCard({ session, endingPending, deletingPending, onView, onEdit, onEndSession, onDeleteConfirm, delay = 0 }: SessionCardProps) {
   const { t } = useLanguage();
   const isActive = session.status === 1;
 
   return (
-    <Card style={{ padding: "18px 20px" }}>
+    <FadeIn delay={delay} duration={0.4}>
+      <Card style={{ padding: "18px 20px" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
@@ -67,5 +70,6 @@ export function SessionCard({ session, endingPending, deletingPending, onView, o
         </div>
       </div>
     </Card>
+    </FadeIn>
   );
 }

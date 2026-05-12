@@ -8,6 +8,7 @@ import { Icon, Card, Button, Drawer, Modal, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionDetailDrawer } from "@/components/sessions/SessionDetailDrawer";
+import { SessionSkeletonCard } from "@/components/sessions/SessionSkeletonCard";
 import SessionConfig from "./SessionConfig";
 import type { Session, Assignment, DashboardData } from "@/types";
 
@@ -134,7 +135,9 @@ export default function SessionsPage() {
 
       {/* Sessions list */}
       {isLoading ? (
-        <div className="t-body" style={{ color: "hsl(var(--muted-foreground))", padding: "40px 0", textAlign: "center" }}>{t("common.loading")}</div>
+        <div style={{ display: "grid", gap: 14 }}>
+          {Array.from({ length: pageSize }).map((_, i) => <SessionSkeletonCard key={i} />)}
+        </div>
       ) : sessions.length === 0 ? (
         <Card style={{ padding: 40, textAlign: "center" }}>
           <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 16px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 64, height: 64 }}>
@@ -146,7 +149,7 @@ export default function SessionsPage() {
         </Card>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
-          {sessions.map((session) => (
+          {sessions.map((session, i) => (
             <SessionCard
               key={session.session_id}
               session={session}
@@ -156,6 +159,7 @@ export default function SessionsPage() {
               onEdit={handleEdit}
               onEndSession={(id) => setEndConfirmId(id)}
               onDeleteConfirm={(id) => setDeleteConfirmId(id)}
+              delay={i * 0.03}
             />
           ))}
         </div>

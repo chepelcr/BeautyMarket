@@ -3,11 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Input, Button, Drawer, EmptyState, Pagination } from "@/components/ui";
+import { Icon, Input, Button, Drawer, EmptyState, Pagination, Spinner } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BranchCard } from "@/components/puestos/BranchCard";
 import { BranchForm } from "@/components/puestos/BranchForm";
 import { TerminalForm } from "@/components/puestos/TerminalForm";
+import { BranchSkeletonCard } from "@/components/puestos/BranchSkeletonCard";
 import type {
   Branch, BranchListResponse, CreateBranchRequest, CreateTerminalRequest, BranchType, BranchStatus,
 } from "@/types";
@@ -137,9 +138,7 @@ export default function PuestosPage() {
       {/* Content */}
       {isLoading ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={{ height: 140, borderRadius: 12, background: "hsl(var(--muted) / 0.5)", animation: "pulse 1.5s ease-in-out infinite" }} />
-          ))}
+          {Array.from({ length: pageSize }).map((_, i) => <BranchSkeletonCard key={i} />)}
         </div>
       ) : branches.length === 0 ? (
         <EmptyState
@@ -154,7 +153,7 @@ export default function PuestosPage() {
         />
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
-          {branches.map((branch) => (
+          {branches.map((branch, i) => (
             <BranchCard
               key={branch.branch_id}
               branch={branch}
@@ -162,6 +161,7 @@ export default function PuestosPage() {
               onEdit={(b) => { setEditingBranch(b); setBranchDrawer(true); }}
               onStatusChange={(b, s) => statusMutation.mutate({ id: b.branch_id, status: s })}
               onAddTerminal={(b) => { setAddTermBranch(b); setTermDrawer(true); }}
+              delay={i * 0.03}
             />
           ))}
         </div>

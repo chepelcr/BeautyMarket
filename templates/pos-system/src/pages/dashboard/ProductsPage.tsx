@@ -7,12 +7,13 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import type { Product, Category } from "@/types";
-import { Icon, Card, Button, EmptyState, Pagination } from "@/components/ui";
+import { Icon, Card, Button, EmptyState, Pagination, Spinner } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductGridView } from "@/components/products/ProductGridView";
 import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductBulkBar } from "@/components/products/ProductBulkBar";
 import { ProductDrawerForm, EMPTY_FORM, type ProductFormState } from "@/components/products/ProductDrawerForm";
+import { ProductSkeletonCard } from "@/components/products/ProductSkeletonCard";
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -317,7 +318,9 @@ export default function ProductsPage() {
       </Card>
 
       {isLoading ? (
-        <div className="t-body" style={{ color: "hsl(var(--muted-foreground))", padding: 24 }}>{t("products.loading")}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+          {Array.from({ length: pageSize }).map((_, i) => <ProductSkeletonCard key={i} />)}
+        </div>
       ) : filtered.length === 0 ? (
         <EmptyState icon="package" title={t("products.noProducts")} description={t("products.noResults")} />
       ) : (

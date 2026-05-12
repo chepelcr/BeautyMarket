@@ -1,4 +1,5 @@
 import { Card, Badge, Button } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { ProductPriceEditor } from "./ProductPriceEditor";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -62,62 +63,63 @@ export function ProductTableView({
           </thead>
           <tbody>
             {products.map((p, i) => (
-              <tr
-                key={p.product_id}
-                style={{ 
-                  borderBottom: i < products.length - 1 ? "1px solid hsl(var(--border))" : "none",
-                  cursor: onNavigate ? "pointer" : "default",
-                }}
-                onClick={() => onNavigate?.(p.product_id)}
-              >
-                <td className="pp-td">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(p.product_id)}
-                    onChange={() => onToggleSelect(p.product_id)}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ accentColor: "hsl(var(--primary))" }}
-                  />
-                </td>
-                <td className="pp-td">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <ProductImage imageUrl={p.image_url} name={p.name} size={36} />
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>{p.name}</div>
-                  </div>
-                </td>
-                <td className="pp-td">
-                  <Badge variant="outline">{p.category?.name ?? "—"}</Badge>
-                </td>
-                <td className="pp-td t-num" style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                  <ProductPriceEditor
-                    productId={p.product_id}
-                    price={p.price}
-                    editing={editingPrice === p.product_id}
-                    inputValue={priceInput}
-                    align="right"
-                    onStartEdit={onStartEditPrice}
-                    onInputChange={onPriceInputChange}
-                    onSave={onSavePrice}
-                    onCancel={onCancelEditPrice}
-                  />
-                </td>
-                <td className="pp-td" style={{ textAlign: "center" }}>
-                  <Badge variant={p.status === 1 ? "success" : "secondary"}>
-                    {p.status === 1 ? t("products.activeLabel") : t("products.inactiveLabel")}
-                  </Badge>
-                </td>
-                <td className="pp-td">
-                  <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="xs" icon="edit" onClick={() => onEdit(p)} />
-                    <Button
-                      variant="ghost"
-                      size="xs"
-                      icon={p.status === 1 ? "eyeOff" : "eye"}
-                      onClick={() => onToggleActive(p.product_id, p.status === 1 ? 2 : 1)}
+              <FadeIn key={p.product_id} delay={i * 0.02} duration={0.3}>
+                <tr
+                  style={{ 
+                    borderBottom: i < products.length - 1 ? "1px solid hsl(var(--border))" : "none",
+                    cursor: onNavigate ? "pointer" : "default",
+                  }}
+                  onClick={() => onNavigate?.(p.product_id)}
+                >
+                  <td className="pp-td">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(p.product_id)}
+                      onChange={() => onToggleSelect(p.product_id)}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ accentColor: "hsl(var(--primary))" }}
                     />
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                  <td className="pp-td">
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <ProductImage imageUrl={p.image_url} name={p.name} size={36} />
+                      <div style={{ fontSize: 13, fontWeight: 700 }}>{p.name}</div>
+                    </div>
+                  </td>
+                  <td className="pp-td">
+                    <Badge variant="outline">{p.category?.name ?? "—"}</Badge>
+                  </td>
+                  <td className="pp-td t-num" style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+                    <ProductPriceEditor
+                      productId={p.product_id}
+                      price={p.price}
+                      editing={editingPrice === p.product_id}
+                      inputValue={priceInput}
+                      align="right"
+                      onStartEdit={onStartEditPrice}
+                      onInputChange={onPriceInputChange}
+                      onSave={onSavePrice}
+                      onCancel={onCancelEditPrice}
+                    />
+                  </td>
+                  <td className="pp-td" style={{ textAlign: "center" }}>
+                    <Badge variant={p.status === 1 ? "success" : "secondary"}>
+                      {p.status === 1 ? t("products.activeLabel") : t("products.inactiveLabel")}
+                    </Badge>
+                  </td>
+                  <td className="pp-td">
+                    <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="xs" icon="edit" onClick={() => onEdit(p)} />
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        icon={p.status === 1 ? "eyeOff" : "eye"}
+                        onClick={() => onToggleActive(p.product_id, p.status === 1 ? 2 : 1)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              </FadeIn>
             ))}
           </tbody>
         </table>

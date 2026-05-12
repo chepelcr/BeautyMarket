@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { Icon, Card, Badge, Menu } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { TerminalRow } from "./TerminalRow";
 import type { Branch, TerminalListResponse, BranchType, BranchStatus } from "@/types";
@@ -16,9 +17,10 @@ interface BranchCardProps {
   onEdit: (b: Branch) => void;
   onStatusChange: (b: Branch, status: BranchStatus) => void;
   onAddTerminal: (b: Branch) => void;
+  delay?: number;
 }
 
-export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTerminal }: BranchCardProps) {
+export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTerminal, delay = 0 }: BranchCardProps) {
   const { t } = useLanguage();
   const TYPE_LABEL: Record<BranchType, string> = { stand: t("puestos.stand"), restaurant: t("puestos.restaurant") };
   const STATUS_LABEL: Record<BranchStatus, string> = { 1: t("common.active"), 2: t("common.inactive"), 3: t("common.delete") };
@@ -41,7 +43,8 @@ export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTermina
   ];
 
   return (
-    <Card className="fade-up" style={{ borderLeft: `3px solid ${isActive ? typeColor : "hsl(var(--border))"}`, padding: 0, overflow: "hidden", opacity: branch.status === 3 ? 0.55 : 1 }}>
+    <FadeIn delay={delay} duration={0.4}>
+      <Card className="fade-up" style={{ borderLeft: `3px solid ${isActive ? typeColor : "hsl(var(--border))"}`, padding: 0, overflow: "hidden", opacity: branch.status === 3 ? 0.55 : 1 }}>
       {/* Header */}
       <div style={{ padding: "18px 20px 14px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
@@ -128,5 +131,6 @@ export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTermina
         </div>
       )}
     </Card>
+    </FadeIn>
   );
 }
