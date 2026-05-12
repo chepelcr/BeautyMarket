@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DocumentVersionProvider } from "@/contexts/DocumentVersionContext";
 import { CountryISO } from "@/lib/enums";
 import { ROUTES } from "@/routePaths";
+import { PageTransition } from "@/components/ui/PageTransition";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import Login from "@/pages/Login";
 import SelectOrganization from "@/pages/SelectOrganization";
@@ -56,7 +57,9 @@ function DashboardPage({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth roles={DASHBOARD_ROLES}>
       <DocumentVersionProvider isoCode={CountryISO.COSTA_RICA}>
-        <DashboardLayout>{children}</DashboardLayout>
+        <DashboardLayout>
+          <PageTransition>{children}</PageTransition>
+        </DashboardLayout>
       </DocumentVersionProvider>
     </RequireAuth>
   );

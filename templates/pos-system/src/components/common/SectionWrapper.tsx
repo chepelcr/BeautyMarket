@@ -1,4 +1,5 @@
 import { type LucideIcon, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SectionWrapperProps {
   title: string;
@@ -27,6 +28,8 @@ export function SectionWrapper({
   error,
   className,
 }: SectionWrapperProps) {
+  const { t } = useLanguage();
+  
   if (!visible) return null;
 
   return (
@@ -91,7 +94,7 @@ export function SectionWrapper({
 
         {disabled && (
           <span style={{ fontSize: 10, color: "hsl(var(--muted-foreground))", fontStyle: "italic" }}>
-            bloqueado
+            {t("form.locked")}
           </span>
         )}
 
@@ -113,7 +116,7 @@ export function SectionWrapper({
         <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
           {loading && (
             <div style={{ textAlign: "center", padding: "8px 0", fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
-              Cargando…
+              {t("common.loading")}
             </div>
           )}
           {error && (

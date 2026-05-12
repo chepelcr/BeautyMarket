@@ -1,6 +1,7 @@
 import { useOrganization } from '@/hooks/useOrganization';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useDocumentStore } from '@/store/documentStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { DocumentsHeader } from '@/components/documents/DocumentsHeader';
 import { DocumentTabsView } from '@/components/documents/DocumentTabsView';
 import { DocumentsListView } from '@/components/documents/DocumentsListView';
@@ -10,11 +11,12 @@ export default function DocumentsPage() {
   const { useDefaultOrganization } = useOrganization();
   const { data: org, isLoading } = useDefaultOrganization(user?.userId);
   const { view_mode } = useDocumentStore();
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <span className="text-muted-foreground text-sm">Cargando…</span>
+        <span className="text-muted-foreground text-sm">{t("common.loading")}</span>
       </div>
     );
   }
@@ -22,7 +24,7 @@ export default function DocumentsPage() {
   if (!org) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <span className="text-muted-foreground text-sm">Sin organización activa.</span>
+        <span className="text-muted-foreground text-sm">{t("empty.noOrganization")}</span>
       </div>
     );
   }

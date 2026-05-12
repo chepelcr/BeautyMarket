@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useSessionContext } from "@/store/sessionContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Organization } from "@/types/organization";
 import type { Branch, Terminal, CreateTerminalRequest } from "@/types/branch";
 import { Icon, Drawer, Button, Input } from "@/components/ui";
@@ -29,6 +30,7 @@ const selectStyle = (active: boolean, enabled: boolean): React.CSSProperties => 
 
 export default function SessionSetupScreen({ org }: Props) {
   const { setSession } = useSessionContext();
+  const { t } = useLanguage();
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
@@ -199,7 +201,7 @@ export default function SessionSetupScreen({ org }: Props) {
                   fontFamily: POS.fontUI,
                 }}
               >
-                Punto de Venta
+                {t("setup.pointOfSale")}
               </div>
               <div
                 style={{
@@ -215,7 +217,7 @@ export default function SessionSetupScreen({ org }: Props) {
             </div>
           </div>
           <p style={{ fontSize: 13, color: POS.muted, lineHeight: 1.5, margin: 0 }}>
-            Selecciona el puesto y terminal para comenzar tu turno.
+            {t("setup.selectStationTerminal")}
           </p>
         </div>
 
@@ -225,7 +227,7 @@ export default function SessionSetupScreen({ org }: Props) {
           {/* Station selector */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: POS.muted, marginBottom: 8 }}>
-              Puesto
+              {t("setup.station")}
             </label>
             <div style={{ position: "relative" }}>
               <select
@@ -235,7 +237,7 @@ export default function SessionSetupScreen({ org }: Props) {
                 disabled={loadingBranches}
                 style={selectStyle(!!selectedBranch, true)}
               >
-                <option value="">{loadingBranches ? "Cargando..." : "Seleccionar puesto"}</option>
+                <option value="">{loadingBranches ? t("common.loading") : t("setup.selectStation")}</option>
                 {branches.map((b) => (
                   <option key={b.branch_id} value={b.code}>
                     #{b.code} — {b.name}
@@ -253,7 +255,7 @@ export default function SessionSetupScreen({ org }: Props) {
           {/* Terminal selector */}
           <div style={{ marginBottom: 28 }}>
             <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: selectedBranch ? POS.muted : "rgba(142,142,147,0.4)", marginBottom: 8 }}>
-              Terminal
+              {t("setup.terminal")}
             </label>
 
             {hasNoTerminals ? (
@@ -282,7 +284,7 @@ export default function SessionSetupScreen({ org }: Props) {
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 <Icon name="plus" size={14} />
-                Agregar terminal a este puesto
+                {t("setup.addTerminalToStation")}
               </button>
             ) : (
               <div style={{ position: "relative" }}>
@@ -292,7 +294,7 @@ export default function SessionSetupScreen({ org }: Props) {
                   disabled={!selectedBranch}
                   style={selectStyle(!!selectedTerminal, !!selectedBranch)}
                 >
-                  <option value="">{!selectedBranch ? "Primero elige un puesto" : "Seleccionar terminal"}</option>
+                  <option value="">{!selectedBranch ? t("setup.selectStationFirst") : t("setup.selectTerminal")}</option>
                   {terminals.map((t) => (
                     <option key={t.terminal_id} value={t.code}>
                       #{t.code} — {t.name}
@@ -342,15 +344,15 @@ export default function SessionSetupScreen({ org }: Props) {
               }}
             >
               {[
-                { label: "Puesto", value: selectedBranch.name, code: selectedBranch.code },
-                { label: "Terminal", value: selectedTerminal.name, code: selectedTerminal.code },
+                { label: t("setup.station"), value: selectedBranch.name, code: selectedBranch.code },
+                { label: t("setup.terminal"), value: selectedTerminal.name, code: selectedTerminal.code },
               ].map((item) => (
                 <div key={item.label} style={{ flex: 1 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: POS.rose, marginBottom: 2 }}>
                     {item.label}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: POS.text }}>{item.value}</div>
-                  <div style={{ fontSize: 11, color: POS.muted }}>Código #{item.code}</div>
+                  <div style={{ fontSize: 11, color: POS.muted }}>{t("setup.codeLabel")}{item.code}</div>
                 </div>
               ))}
             </div>
@@ -383,9 +385,9 @@ export default function SessionSetupScreen({ org }: Props) {
             }}
           >
             {saving ? (
-              <><Icon name="refresh" size={16} style={{ animation: "spin 1s linear infinite" }} />Iniciando...</>
+              <><Icon name="refresh" size={16} style={{ animation: "spin 1s linear infinite" }} />{t("setup.starting")}</>
             ) : (
-              <><Icon name="checkCircle" size={16} />Comenzar turno</>
+              <><Icon name="checkCircle" size={16} />{t("setup.startShift")}</>
             )}
           </button>
         </div>
@@ -395,8 +397,8 @@ export default function SessionSetupScreen({ org }: Props) {
       <Drawer
         open={addTermOpen}
         onClose={() => { setAddTermOpen(false); setTermError(null); }}
-        title="Nueva terminal"
-        subtitle={selectedBranch ? `Puesto: ${selectedBranch.name}` : undefined}
+        title={t("setup.newTerminal")}
+        subtitle={selectedBranch ? `${t("setup.stationLabel")}${selectedBranch.name}` : undefined}
         icon="sliders"
         iconBg="rgba(212,168,116,0.12)"
         iconColor={POS.rose}
@@ -430,6 +432,7 @@ interface TerminalFormProps {
 }
 
 function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFormProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [code, setCode] = useState<number | "">("");
   const [deviceId, setDeviceId] = useState("");
@@ -443,13 +446,13 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
     <form onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
         <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-          Nombre <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+          {t("products.name")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
         </label>
-        <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="ej. Caja 1" />
+        <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("terminal.namePlaceholder")} />
       </div>
       <div>
         <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-          Código <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+          {t("setup.codeLabel").replace(" #", "")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
         </label>
         <Input
           required
@@ -457,20 +460,20 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
           min={1}
           value={code}
           onChange={(e) => setCode(e.target.value === "" ? "" : Number(e.target.value))}
-          placeholder="ej. 1"
+          placeholder={t("terminal.codePlaceholder")}
           style={{ fontFamily: "var(--font-mono)" }}
         />
       </div>
       <div>
-        <label className="t-label" style={{ display: "block", marginBottom: 6 }}>ID de dispositivo</label>
+        <label className="t-label" style={{ display: "block", marginBottom: 6 }}>{t("setup.deviceId")}</label>
         <Input
           value={deviceId}
           onChange={(e) => setDeviceId(e.target.value)}
-          placeholder="ej. tablet-01 (opcional)"
+          placeholder={t("terminal.devicePlaceholder")}
           style={{ fontFamily: "var(--font-mono)" }}
         />
         <p className="t-xs" style={{ marginTop: 4, color: "hsl(var(--muted-foreground))" }}>
-          Identificador del dispositivo físico. Opcional.
+          {t("setup.deviceIdHint")}
         </p>
       </div>
 
@@ -481,9 +484,9 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
       )}
 
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 4 }}>
-        <Button variant="outline" size="sm" type="button" onClick={onClose} disabled={isSaving}>Cancelar</Button>
+        <Button variant="outline" size="sm" type="button" onClick={onClose} disabled={isSaving}>{t("common.cancel")}</Button>
         <Button variant="primary" size="sm" type="submit" disabled={isSaving || !name.trim() || !code}>
-          {isSaving ? "Guardando…" : "Crear terminal"}
+          {isSaving ? t("setup.creating") : t("setup.createTerminal")}
         </Button>
       </div>
     </form>

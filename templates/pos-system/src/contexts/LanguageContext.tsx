@@ -511,6 +511,114 @@ const translations: Record<Language, Record<string, string>> = {
     "analytics.statusClosed": "Cerrado",
     "analytics.statusActive": "Activo",
     "analytics.salesCount": "{n} ventas",
+
+    // NEW ADDITIONS - Status labels
+    "status.online": "En línea",
+    "status.syncing": "Sincronizando",
+    "status.offline": "Sin conexión",
+
+    // NEW ADDITIONS - Empty states
+    "empty.noOrganization": "Sin organización activa.",
+    "empty.tryAgain": "Prueba con otro término de búsqueda.",
+    "empty.addFirst": "Agrega tu primer elemento con el botón de arriba.",
+
+    // NEW ADDITIONS - Placeholders
+    "placeholder.searchByName": "Buscar por nombre…",
+    "placeholder.searchByNameId": "Buscar por nombre, cédula…",
+    "placeholder.searchByNumber": "Buscar por número, nombre…",
+    "placeholder.selectOption": "Seleccionar…",
+    "placeholder.email": "correo@ejemplo.com",
+    "placeholder.phone": "8888-8888",
+    "placeholder.address": "Dirección completa",
+    "placeholder.notes": "Notas para el gerente…",
+
+    // NEW ADDITIONS - Form labels
+    "form.required": "Requerido",
+    "form.optional": "Opcional",
+    "form.locked": "bloqueado",
+    "form.idType": "Tipo de identificación",
+    "form.idNumber": "Número de identificación",
+    "form.businessName": "Razón social",
+    "form.businessNamePlaceholder": "Nombre de la empresa",
+    "form.glnCode": "GLN / Código comercial",
+    "form.glnPlaceholder": "Código GLN (opcional)",
+    "form.contact": "Contacto",
+    "form.emailLabel": "Correo electrónico",
+    "form.phoneCountry": "País (teléfono)",
+    "form.phoneNumber": "Número de teléfono",
+    "form.addressLabel": "Dirección",
+    "form.addressDetails": "Sector norte, fila 3, frente a la entrada principal",
+
+    // NEW ADDITIONS - Location selects
+    "location.province": "Provincia",
+    "location.canton": "Cantón",
+    "location.district": "Distrito",
+    "location.neighborhood": "Barrio",
+
+    // NEW ADDITIONS - Clients
+    "clients.title": "Clientes",
+    "clients.registered": "clientes registrados",
+    "clients.directory": "Directorio de clientes",
+    "clients.newClient": "Nuevo cliente",
+    "clients.addClient": "Agregar cliente",
+    "clients.noClients": "Sin clientes aún",
+    "clients.noResultsFor": "Sin resultados para \"{query}\"",
+    "clients.tryOtherSearch": "Prueba con otro nombre o número de cédula.",
+    "clients.activateClient": "Activar cliente",
+    "clients.deactivateClient": "Desactivar cliente",
+    "clients.confirmActivate": "¿Activar \"{name}\"?",
+    "clients.confirmDeactivate": "¿Desactivar \"{name}\"?",
+
+    // NEW ADDITIONS - Session setup
+    "setup.pointOfSale": "Punto de Venta",
+    "setup.selectStationTerminal": "Selecciona el puesto y terminal para comenzar tu turno.",
+    "setup.station": "Puesto",
+    "setup.terminal": "Terminal",
+    "setup.selectStation": "Seleccionar puesto",
+    "setup.selectTerminal": "Seleccionar terminal",
+    "setup.selectStationFirst": "Primero elige un puesto",
+    "setup.addTerminalToStation": "Agregar terminal a este puesto",
+    "setup.codeLabel": "Código #",
+    "setup.starting": "Iniciando...",
+    "setup.startShift": "Comenzar turno",
+    "setup.newTerminal": "Nueva terminal",
+    "setup.stationLabel": "Puesto: ",
+    "setup.deviceId": "ID de dispositivo",
+    "setup.deviceIdHint": "Identificador del dispositivo físico. Opcional.",
+    "setup.creating": "Guardando…",
+    "setup.createTerminal": "Crear terminal",
+
+    // NEW ADDITIONS - Puestos/Branches
+    "branch.namePlaceholder": "ej. Puesto Principal, Sector Norte…",
+    "branch.codePlaceholder": "ej. 1",
+    "branch.phoneLabel": "Teléfono",
+    "branch.phonePlaceholder": "ej. 2222-3333",
+
+    // NEW ADDITIONS - Terminal
+    "terminal.namePlaceholder": "ej. Caja 1",
+    "terminal.codePlaceholder": "ej. 1",
+    "terminal.devicePlaceholder": "ej. tablet-01 (opcional)",
+
+    // NEW ADDITIONS - Documents
+    "documents.searchPlaceholder": "Buscar por número, nombre…",
+    "documents.validation": "Validación",
+    "documents.validationHacienda": "Validación Hacienda",
+    "documents.validationReceiver": "Validación receptor",
+    "documents.viewPdf": "Ver PDF",
+    "documents.download": "Descargar",
+    "documents.resend": "Reenviar",
+    "documents.acceptReject": "Aceptar/Rechazar",
+
+    // NEW ADDITIONS - Tabs
+    "tabs.products": "Productos",
+    "tabs.cart": "Carrito",
+    "tabs.clients": "Clientes",
+
+    // NEW ADDITIONS - Time ago
+    "time.secondsAgo": "hace {n}s",
+    "time.minutesAgo": "hace {n}m",
+    "time.hoursAgo": "hace {n}h",
+    "time.daysAgo": "hace {n}d",
   },
 
   en: {
@@ -1010,6 +1118,114 @@ const translations: Record<Language, Record<string, string>> = {
     "analytics.statusClosed": "Closed",
     "analytics.statusActive": "Active",
     "analytics.salesCount": "{n} sales",
+
+    // NEW ADDITIONS - Status labels
+    "status.online": "Online",
+    "status.syncing": "Syncing",
+    "status.offline": "Offline",
+
+    // NEW ADDITIONS - Empty states
+    "empty.noOrganization": "No active organization.",
+    "empty.tryAgain": "Try another search term.",
+    "empty.addFirst": "Add your first item with the button above.",
+
+    // NEW ADDITIONS - Placeholders
+    "placeholder.searchByName": "Search by name…",
+    "placeholder.searchByNameId": "Search by name, ID…",
+    "placeholder.searchByNumber": "Search by number, name…",
+    "placeholder.selectOption": "Select…",
+    "placeholder.email": "email@example.com",
+    "placeholder.phone": "8888-8888",
+    "placeholder.address": "Full address",
+    "placeholder.notes": "Notes for the manager…",
+
+    // NEW ADDITIONS - Form labels
+    "form.required": "Required",
+    "form.optional": "Optional",
+    "form.locked": "locked",
+    "form.idType": "ID type",
+    "form.idNumber": "ID number",
+    "form.businessName": "Business name",
+    "form.businessNamePlaceholder": "Company name",
+    "form.glnCode": "GLN / Commercial code",
+    "form.glnPlaceholder": "GLN code (optional)",
+    "form.contact": "Contact",
+    "form.emailLabel": "Email address",
+    "form.phoneCountry": "Country (phone)",
+    "form.phoneNumber": "Phone number",
+    "form.addressLabel": "Address",
+    "form.addressDetails": "North sector, row 3, in front of main entrance",
+
+    // NEW ADDITIONS - Location selects
+    "location.province": "Province",
+    "location.canton": "Canton",
+    "location.district": "District",
+    "location.neighborhood": "Neighborhood",
+
+    // NEW ADDITIONS - Clients
+    "clients.title": "Clients",
+    "clients.registered": "registered clients",
+    "clients.directory": "Client directory",
+    "clients.newClient": "New client",
+    "clients.addClient": "Add client",
+    "clients.noClients": "No clients yet",
+    "clients.noResultsFor": "No results for \"{query}\"",
+    "clients.tryOtherSearch": "Try another name or ID number.",
+    "clients.activateClient": "Activate client",
+    "clients.deactivateClient": "Deactivate client",
+    "clients.confirmActivate": "Activate \"{name}\"?",
+    "clients.confirmDeactivate": "Deactivate \"{name}\"?",
+
+    // NEW ADDITIONS - Session setup
+    "setup.pointOfSale": "Point of Sale",
+    "setup.selectStationTerminal": "Select the station and terminal to start your shift.",
+    "setup.station": "Station",
+    "setup.terminal": "Terminal",
+    "setup.selectStation": "Select station",
+    "setup.selectTerminal": "Select terminal",
+    "setup.selectStationFirst": "First choose a station",
+    "setup.addTerminalToStation": "Add terminal to this station",
+    "setup.codeLabel": "Code #",
+    "setup.starting": "Starting...",
+    "setup.startShift": "Start shift",
+    "setup.newTerminal": "New terminal",
+    "setup.stationLabel": "Station: ",
+    "setup.deviceId": "Device ID",
+    "setup.deviceIdHint": "Physical device identifier. Optional.",
+    "setup.creating": "Saving…",
+    "setup.createTerminal": "Create terminal",
+
+    // NEW ADDITIONS - Puestos/Branches
+    "branch.namePlaceholder": "e.g. Main Station, North Sector…",
+    "branch.codePlaceholder": "e.g. 1",
+    "branch.phoneLabel": "Phone",
+    "branch.phonePlaceholder": "e.g. 2222-3333",
+
+    // NEW ADDITIONS - Terminal
+    "terminal.namePlaceholder": "e.g. Register 1",
+    "terminal.codePlaceholder": "e.g. 1",
+    "terminal.devicePlaceholder": "e.g. tablet-01 (optional)",
+
+    // NEW ADDITIONS - Documents
+    "documents.searchPlaceholder": "Search by number, name…",
+    "documents.validation": "Validation",
+    "documents.validationHacienda": "Tax Authority Validation",
+    "documents.validationReceiver": "Receiver validation",
+    "documents.viewPdf": "View PDF",
+    "documents.download": "Download",
+    "documents.resend": "Resend",
+    "documents.acceptReject": "Accept/Reject",
+
+    // NEW ADDITIONS - Tabs
+    "tabs.products": "Products",
+    "tabs.cart": "Cart",
+    "tabs.clients": "Clients",
+
+    // NEW ADDITIONS - Time ago
+    "time.secondsAgo": "{n}s ago",
+    "time.minutesAgo": "{n}m ago",
+    "time.hoursAgo": "{n}h ago",
+    "time.daysAgo": "{n}d ago",
   },
 };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { ROUTES } from "@/routePaths";
 import { useOrgContext } from "@/contexts/OrgContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useClients, useUpdateClientStatus, clientDisplayName, type Client } from "@/hooks/useClients";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { ClientCard } from "@/components/clients/ClientCard";
@@ -13,6 +14,7 @@ export default function ClientsPage() {
   const { orgId } = useOrgContext();
   const [, navigate] = useLocation();
   const { confirm, ConfirmModal } = useConfirmModal();
+  const { t } = useLanguage();
   const statusMutation = useUpdateClientStatus(orgId);
 
   const [search, setSearch] = useState("");
@@ -36,13 +38,13 @@ export default function ClientsPage() {
   const handleToggleActive = (client: Client, newStatus: number) => {
     const isActivating = newStatus === 1;
     confirm({
-      title: isActivating ? "Activar cliente" : "Desactivar cliente",
+      title: isActivating ? t("clients.activateClient") : t("clients.deactivateClient"),
       message: isActivating
-        ? `¿Activar "${clientDisplayName(client)}"?`
-        : `¿Desactivar "${clientDisplayName(client)}"?`,
+        ? t("clients.confirmActivate", { name: clientDisplayName(client) })
+        : t("clients.confirmDeactivate", { name: clientDisplayName(client) }),
       variant: isActivating ? "success" : "warning",
-      confirmLabel: "Confirmar",
-      cancelLabel: "Cancelar",
+      confirmLabel: t("common.confirm"),
+      cancelLabel: t("common.cancel"),
       onConfirm: async () => {
         await statusMutation.mutateAsync({ clientId: client.client_id, status: newStatus });
       },
@@ -54,12 +56,12 @@ export default function ClientsPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 6 }}>Clientes</h1>
+          <h1 className="t-h1" style={{ marginBottom: 6 }}>{t("clients.title")}</h1>
           <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {pagination ? `${pagination.total_elements} clientes registrados` : "Directorio de clientes"}
+            {pagination ? `${pagination.total_elements} ${t("clients.registered")}` : t("clients.directory")}
           </p>
         </div>
-        <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>Nuevo cliente</Button>
+        <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>{t("clients.newClient")}</Button>
       </div>
 
       {/* Search */}
@@ -69,7 +71,7 @@ export default function ClientsPage() {
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Buscar por nombre, razón social, cédula…"
+          placeholder={t("placeholder.searchByNameId")}
           className="pp-input"
           style={{ width: "100%", paddingLeft: 36 }}
         />
@@ -86,12 +88,12 @@ export default function ClientsPage() {
             <Icon name="users" size={28} style={{ color: "#D4A874" }} />
           </div>
           <div className="t-h2" style={{ marginBottom: 6 }}>
-            {search ? `Sin resultados para "${search}"` : "Sin clientes aún"}
+            {search ? t("clients.noResultsFor", { query: search }) : t("clients.noClients")}
           </div>
           <div className="t-body" style={{ color: "hsl(var(--muted-foreground))", marginBottom: search ? 0 : 20 }}>
-            {search ? "Prueba con otro nombre o número de cédula." : "Agrega tu primer cliente con el botón de arriba."}
+            {search ? t("clients.tryOtherSearch") : t("empty.addFirst")}
           </div>
-          {!search && <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>Agregar cliente</Button>}
+          {!search && <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>{t("clients.addClient")}</Button>}
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))", gap: 14 }}>

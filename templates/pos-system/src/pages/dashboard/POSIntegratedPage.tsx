@@ -13,6 +13,7 @@ import { PosHeader } from "@/components/pos/PosHeader";
 import { PosLeftPane } from "@/components/pos/PosLeftPane";
 import { CartSidebar } from "@/components/pos/CartSidebar";
 import { CheckoutModal } from "@/components/pos/checkout/CheckoutModal";
+import { POSPageSkeleton } from "@/components/pos/POSPageSkeleton";
 import SessionSetupScreen from "@/pages/pos/SessionSetupScreen";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
 
@@ -58,17 +59,13 @@ export default function POSIntegratedPage() {
   };
 
   if (orgLoading || assignmentLoading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh] bg-background">
-        <span className="text-muted-foreground text-sm">{t("common.loading")}</span>
-      </div>
-    );
+    return <POSPageSkeleton />;
   }
 
   if (!org) {
     return (
       <div className="flex items-center justify-center h-[60vh] bg-background">
-        <span className="text-muted-foreground text-sm">Sin organización activa.</span>
+        <span className="text-muted-foreground text-sm">{t("empty.noOrganization")}</span>
       </div>
     );
   }
@@ -148,7 +145,7 @@ export default function POSIntegratedPage() {
                 : "bg-muted text-muted-foreground border-border"
             )}>
               <span className={cn("w-[7px] h-[7px] rounded-full", syncStatus === "online" ? "bg-success" : "bg-muted-foreground")} />
-              {syncStatus === "online" ? "En línea" : syncStatus === "syncing" ? "Sincronizando" : "Sin conexión"}
+              {syncStatus === "online" ? t("status.online") : syncStatus === "syncing" ? t("status.syncing") : t("status.offline")}
             </span>
           </div>
 
@@ -160,9 +157,9 @@ export default function POSIntegratedPage() {
           <div className="flex bg-card border-t border-border shrink-0">
             {(
               [
-                { id: "products" as const, label: "Productos" },
-                { id: "cart" as const, label: "Carrito", badge: flow.cartCount },
-                { id: "clients" as const, label: "Clientes" },
+                { id: "products" as const, label: t("tabs.products") },
+                { id: "cart" as const, label: t("tabs.cart"), badge: flow.cartCount },
+                { id: "clients" as const, label: t("tabs.clients") },
               ] as const
             ).map(({ id, label, badge }) => (
               <button

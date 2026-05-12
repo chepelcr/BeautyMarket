@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { useOrganization } from "@/hooks/useOrganization";
-import { Icon, Logo, Badge, Button } from "@/components/ui";
-import { useDarkMode } from "@/hooks/useDarkMode";
-import { useLanguageSwitch } from "@/hooks/useLanguageSwitch";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useState, useEffect, useRef } from "react";
+import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardHeader } from "./DashboardHeader";
+import { DashboardMobileDrawer } from "./DashboardMobileDrawer";
+import { DashboardToggleButton } from "./DashboardToggleButton";
 
 type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "clients";
 
@@ -16,133 +14,6 @@ interface DashboardShellProps {
   sessionLocation?: string;
 }
 
-function Sidebar({
-  active,
-  onNav,
-  onClose,
-}: {
-  active: NavId;
-  onNav: (id: NavId) => void;
-  onClose?: () => void;
-}) {
-  const { user, logout } = useAuthContext();
-  const { useDefaultOrganization } = useOrganization();
-  const { data: org } = useDefaultOrganization(user?.userId);
-  const { t } = useLanguage();
-
-  const NAV_ITEMS: { id: NavId; icon: string; label: string }[] = [
-    { id: "dashboard", icon: "chart", label: t("shell.panel") },
-    { id: "config", icon: "settings", label: t("shell.sessions") },
-    { id: "puestos", icon: "store", label: t("shell.stations") },
-    { id: "productos", icon: "package", label: t("shell.products") },
-    { id: "clients", icon: "user", label: t("shell.clients") },
-    { id: "reporte", icon: "trending", label: t("shell.reports") },
-    { id: "pos", icon: "smartphone", label: "POS" },
-  ];
-
-  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.name || "";
-  const initials = fullName
-    ? fullName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
-    : "U";
-  const displayName = fullName || user?.email || "Usuario";
-
-  return (
-    <aside
-      className="sidebar"
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        padding: 16,
-        overflowY: "auto",
-        overflowX: "hidden",
-      }}
-    >
-      {/* Logo */}
-      <div
-        style={{
-          padding: "4px 8px 20px",
-          borderBottom: "1px solid hsl(var(--sidebar-border))",
-          marginBottom: 14,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Logo orgName={org?.name} />
-        {onClose && (
-          <button
-            className="btn btn-ghost btn-sm btn-icon"
-            onClick={onClose}
-            style={{ marginLeft: 8 }}
-          >
-            <Icon name="close" size={16} />
-          </button>
-        )}
-      </div>
-
-      {/* Nav label */}
-      <div className="t-label" style={{ padding: "8px 10px 6px" }}>
-        {t("shell.navigation")}
-      </div>
-
-      {/* Nav items */}
-      <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.id}
-            className={`sidebar-item ${active === item.id ? "active" : ""}`}
-            onClick={() => {
-              onNav(item.id);
-              onClose?.();
-            }}
-          >
-            <Icon name={item.icon} size={16} />
-            {item.label}
-          </button>
-        ))}
-      </nav>
-
-      <div style={{ flex: 1 }} />
-      <div className="separator" style={{ margin: "12px 0" }} />
-
-      {/* User + logout */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", marginBottom: 4 }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 999,
-            background: "hsl(var(--primary))",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            fontSize: 11,
-            flexShrink: 0,
-          }}
-        >
-          {initials}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {displayName}
-          </div>
-          <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {user?.role ?? ""}
-          </div>
-        </div>
-      </div>
-      <button className="sidebar-item" onClick={logout}>
-        <Icon name="logOut" size={16} /> {t("shell.logout")}
-      </button>
-    </aside>
-  );
-}
-
 export default function DashboardShell({
   children,
   active = "dashboard",
@@ -151,30 +22,47 @@ export default function DashboardShell({
   sessionLocation,
 }: DashboardShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { dark, toggle: toggleDark } = useDarkMode();
-  const { language, toggle: toggleLanguage } = useLanguageSwitch();
-  const { t } = useLanguage();
+  const pendingNavRef = useRef<NavId | null>(null);
 
-  // Lock body scroll when mobile drawer is open
+  // Handle drawer open/close with animation - 450ms to match Drawer.tsx
   useEffect(() => {
     if (drawerOpen) {
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.overflow = "hidden";
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
+      setShouldRender(true);
+      setIsClosing(false);
+    } else if (shouldRender) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+        
+        // Execute pending navigation after animation completes
+        if (pendingNavRef.current) {
+          onNav?.(pendingNavRef.current);
+          pendingNavRef.current = null;
+        }
+      }, 450); // Match animation duration
+      return () => clearTimeout(timer);
     }
-    
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
-    };
-  }, [drawerOpen]);
+  }, [drawerOpen, shouldRender, onNav]);
 
   const handleNav = (id: NavId) => {
-    onNav?.(id);
+    // If drawer is open (mobile), close it first and defer navigation
+    if (drawerOpen && !isClosing) {
+      pendingNavRef.current = id;
+      setDrawerOpen(false);
+    } else {
+      // Desktop or drawer already closed - navigate immediately
+      onNav?.(id);
+    }
+  };
+
+  const handleCloseDrawer = () => {
+    if (!isClosing) {
+      setDrawerOpen(false);
+    }
   };
 
   return (
@@ -193,157 +81,33 @@ export default function DashboardShell({
         }}
         className="dashboard-sidebar-full"
       >
-        <Sidebar active={active} onNav={handleNav} />
+        <DashboardSidebar active={active} onNav={handleNav} />
       </div>
 
-      {/* Desktop sidebar toggle button - semi-hidden tab that appears on hover */}
-      <button
-        className="dashboard-sidebar-toggle"
+      {/* Desktop sidebar toggle button */}
+      <DashboardToggleButton
+        collapsed={sidebarCollapsed}
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        style={{
-          position: "fixed",
-          left: sidebarCollapsed ? -20 : 220,
-          top: "50%",
-          transform: "translateY(-50%)",
-          width: 28,
-          height: 80,
-          background: "hsl(var(--card))",
-          border: "1px solid hsl(var(--border))",
-          borderLeft: "none",
-          borderRadius: "0 12px 12px 0",
-          display: "none",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          zIndex: 50,
-          transition: "left 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s",
-          boxShadow: "2px 0 12px rgba(0,0,0,0.06)",
-          opacity: 0.3,
-        }}
-        aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-      >
-        <Icon 
-          name={sidebarCollapsed ? "chevronRight" : "chevronLeft"} 
-          size={16} 
-          style={{ color: "hsl(var(--muted-foreground))" }}
-        />
-      </button>
+      />
 
-      {/* Mobile drawer overlay */}
-      {drawerOpen && (
-        <div
-          style={{ 
-            position: "fixed", 
-            inset: 0, 
-            zIndex: 100,
-            display: "flex",
-          }}
-        >
-          <div
-            style={{ 
-              position: "absolute", 
-              inset: 0, 
-              background: "rgba(0,0,0,0.5)",
-              backdropFilter: "blur(1px)",
-              animation: "fadeIn 0.2s ease-out",
-            }}
-            onClick={() => setDrawerOpen(false)}
-          />
-          <div
-            style={{
-              position: "relative",
-              width: 260,
-              height: "100dvh", // Dynamic viewport height for mobile (fallback to 100vh in older browsers)
-              zIndex: 101,
-              background: "hsl(var(--card))",
-              boxShadow: "4px 0 24px rgba(0,0,0,0.12)",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              animation: "slideInLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
-            <Sidebar
-              active={active}
-              onNav={handleNav}
-              onClose={() => setDrawerOpen(false)}
-            />
-          </div>
-        </div>
-      )}
+      {/* Mobile drawer */}
+      <DashboardMobileDrawer
+        open={drawerOpen}
+        isClosing={isClosing}
+        shouldRender={shouldRender}
+        active={active}
+        onNav={handleNav}
+        onClose={handleCloseDrawer}
+      />
 
       {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {/* Header */}
-        <header
-          className="nav-bar"
-          style={{
-            padding: "12px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {/* Mobile hamburger */}
-            <button
-              className="btn btn-ghost btn-sm btn-icon dashboard-hamburger"
-              onClick={() => setDrawerOpen(true)}
-            >
-              <Icon name="menu" size={18} />
-            </button>
-
-            {sessionName && (
-              <>
-                <Badge variant="success" style={{ gap: 6 }}>
-                  <span
-                    className="status-dot status-dot-live"
-                    style={{ width: 6, height: 6 }}
-                  />
-                  {t("shell.liveLabel")}
-                </Badge>
-                <div>
-                  <div className="t-label" style={{ fontSize: 10 }}>
-                    {t("shell.activeSession")}
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>
-                    {sessionName}
-                    {sessionLocation && ` · ${sessionLocation}`}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* Language toggle */}
-            <button
-              className="btn btn-ghost btn-sm btn-icon"
-              onClick={toggleLanguage}
-              aria-label="Toggle language"
-            >
-              <img
-                src={language === "es" ? "https://flagcdn.com/w20/cr.png" : "https://flagcdn.com/w20/us.png"}
-                alt={language === "es" ? "Costa Rica" : "United States"}
-                style={{ width: 20, height: "auto", borderRadius: 2 }}
-              />
-            </button>
-
-            {/* Dark mode toggle */}
-            <button
-              className="btn btn-ghost btn-sm btn-icon"
-              onClick={toggleDark}
-              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              <Icon name={dark ? "sun" : "moon"} size={16} />
-            </button>
-
-            <Button variant="outline" size="sm" icon="refresh">
-              {t("shell.sync")}
-            </Button>
-          </div>
-        </header>
+        <DashboardHeader
+          onMenuClick={() => setDrawerOpen(true)}
+          sessionName={sessionName}
+          sessionLocation={sessionLocation}
+        />
 
         {/* Page content */}
         <main style={{ flex: 1 }}>{children}</main>
@@ -359,39 +123,6 @@ export default function DashboardShell({
           .dashboard-sidebar-full { display: none !important; }
           .dashboard-hamburger { display: flex !important; }
           .dashboard-sidebar-toggle { display: none !important; }
-        }
-        
-        /* Semi-hidden tab that reveals on hover */
-        .dashboard-sidebar-toggle:hover {
-          left: ${sidebarCollapsed ? '0' : '240'}px !important;
-          opacity: 1 !important;
-          background: hsl(var(--accent));
-        }
-        
-        /* Also reveal when hovering near the edge */
-        .dashboard-sidebar-toggle:before {
-          content: '';
-          position: absolute;
-          left: -20px;
-          top: 0;
-          width: 20px;
-          height: 100%;
-        }
-        
-        @keyframes slideInLeft {
-          from { 
-            transform: translateX(-100%); 
-            opacity: 0; 
-          }
-          to { 
-            transform: translateX(0); 
-            opacity: 1; 
-          }
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
         }
       `}</style>
     </div>
