@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 
 interface DrawerProps {
@@ -26,9 +26,29 @@ export function Drawer({
   footer,
   width = 440,
 }: DrawerProps) {
-  // Lock body scroll when drawer is open
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(open);
+
+  // Handle open/close with animation
   useEffect(() => {
     if (open) {
+      // Opening
+      setShouldRender(true);
+      setIsClosing(false);
+    } else if (shouldRender) {
+      // Closing - start animation
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+      }, 450); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [open, shouldRender]);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (open && shouldRender) {
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
       document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -41,13 +61,20 @@ export function Drawer({
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
     };
-  }, [open]);
+  }, [open, shouldRender]);
 
-  if (!open) return null;
+  const handleClose = () => {
+    if (!isClosing) {
+      onClose();
+    }
+  };
+
+  if (!shouldRender) return null;
 
   return (
     <>
       <div
+        className={isClosing ? "drawer-overlay-exit" : "drawer-overlay-enter"}
         style={{
           position: "fixed",
           inset: 0,
@@ -55,11 +82,11 @@ export function Drawer({
           zIndex: 200,
           backdropFilter: "blur(1px)",
         }}
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       <div
-        className="drawer-panel"
+        className={isClosing ? "drawer-panel-exit" : "drawer-panel-enter"}
         style={{
           position: "fixed",
           top: 0,
@@ -83,6 +110,8 @@ export function Drawer({
             alignItems: "center",
             gap: 12,
             flexShrink: 0,
+            opacity: isClosing ? 0 : 1,
+            transition: "opacity 0.1s ease-out",
           }}
         >
           {icon && (
@@ -117,7 +146,7 @@ export function Drawer({
           </div>
           <button
             className="btn btn-ghost btn-sm btn-icon"
-            onClick={onClose}
+            onClick={handleClose}
             type="button"
           >
             <Icon name="close" size={16} />
@@ -125,23 +154,59 @@ export function Drawer({
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto" }}>{children}</div>
+        <div style={{ flex: 1, overflowY: "auto", opacity: isClosing ? 0 : 1, transition: "opacity 0.1s ease-out" }}>
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (
-          <div style={{ borderTop: "1px solid hsl(var(--border))", flexShrink: 0 }}>
+          <div style={{ borderTop: "1px solid hsl(var(--border))", flexShrink: 0, opacity: isClosing ? 0 : 1, transition: "opacity 0.1s ease-out" }}>
             {footer}
           </div>
         )}
       </div>
 
       <style>{`
-        .drawer-panel {
-          animation: drawerSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        /* Enter animations */
+        .drawer-overlay-enter {
+          animation: overlayFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .drawer-panel-enter {
+          animation: drawerSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Exit animations */
+        .drawer-overlay-exit {
+          animation: overlayFadeOut 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .drawer-panel-exit {
+          animation: drawerSlideOut 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes overlayFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes overlayFadeOut {
+          from { opacity: 1; }
+          to   { opacity: 0; }
         }
         @keyframes drawerSlideIn {
           from { transform: translateX(100%); opacity: 0; }
           to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes drawerSlideOut {
+          from { transform: translateX(0);    opacity: 1; }
+          to   { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Mobile full-screen */
+        @media (max-width: 768px) {
+          .drawer-panel-enter,
+          .drawer-panel-exit {
+            width: 100vw !important;
+            border-left: none;
+          }
         }
       `}</style>
     </>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useConfig } from '@/hooks/useConfig';
 import { LangToggle, Collapsible, TextAreaField } from './components';
+import { TickerSection } from './meta/TickerSection';
 import type { LangKey, TranslationMap } from '@/types';
 
 type Lang = LangKey;
@@ -52,8 +53,31 @@ function Section({ title, obj, prefix, lang }: { title: string; obj: Record<stri
 
   if (entries.length === 0) return null;
 
+  // Map section keys to Spanish titles
+  const titleMap: Record<string, string> = {
+    nav: 'Navegación',
+    hero: 'Hero / Portada',
+    ticker: 'Barra Deslizante',
+    demo: 'Demo',
+    products: 'Productos',
+    features: 'Características',
+    pricing: 'Precios',
+    vsCompetition: 'VS Competencia',
+    howItWorks: 'Cómo Funciona',
+    hacienda: 'Hacienda',
+    testimonials: 'Testimonios',
+    faq: 'Preguntas Frecuentes',
+    cta: 'Llamado a la Acción',
+    footer: 'Pie de Página',
+  };
+
+  const displayTitle = titleMap[title] || title
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, str => str.toUpperCase())
+    .trim();
+
   return (
-    <Collapsible title={title} defaultOpen={false}>
+    <Collapsible title={displayTitle} defaultOpen={false}>
       <div className="space-y-3">
         {entries.map(([k, v]) => (
           <Field key={k} path={[...prefix, k]} value={v} lang={lang} />
@@ -70,11 +94,20 @@ export function TranslationsTab() {
   const translations = config.translations[lang] as Partial<TranslationMap> | undefined;
   if (!translations) return <div className="text-sm text-muted-foreground">No translations for {lang}</div>;
 
+  const hero = translations.hero;
+  const ticker = hero?.ticker ?? [];
+
   return (
     <div className="space-y-3">
+      {/* Language Toggle - First */}
       <LangToggle value={lang} onChange={setLang} />
 
-      {/* Sections */}
+      {/* Ticker Section - Collapsible */}
+      <Collapsible title={`Barra Deslizante / Ticker (${ticker.length})`} defaultOpen={false}>
+        <TickerSection lang={lang} />
+      </Collapsible>
+
+      {/* Other Translation Sections */}
       {Object.entries(translations).map(([key, val]) => {
         if (typeof val !== 'object' || Array.isArray(val)) return null;
         return (

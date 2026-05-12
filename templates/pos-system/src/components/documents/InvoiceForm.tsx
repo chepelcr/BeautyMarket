@@ -1,4 +1,5 @@
 import { useDocumentStore } from '@/store/documentStore';
+import { FadeIn } from '@/components/ui/FadeIn';
 import type { DocumentTab } from '@/store/documentStore';
 import type { InvoiceFormData } from '@/types/invoice';
 import { DOCUMENT_TYPES } from '@/types/invoice';
@@ -23,15 +24,18 @@ export function InvoiceForm({ orgId, tab }: InvoiceFormProps) {
   return (
     <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
       {/* Document type badge */}
-      <div className="flex items-center gap-3">
-        <span className={`text-[13px] font-bold px-3 py-1 rounded-full border ${docInfo?.color ?? 'text-muted-foreground'} bg-muted/40 border-current`}>
-          {docInfo?.short ?? '?'}
-        </span>
-        <span className="text-[15px] font-semibold">{docInfo?.label ?? 'Documento'}</span>
-      </div>
+      <FadeIn duration={0.3}>
+        <div className="flex items-center gap-3">
+          <span className={`text-[13px] font-bold px-3 py-1 rounded-full border ${docInfo?.color ?? 'text-muted-foreground'} bg-muted/40 border-current`}>
+            {docInfo?.short ?? '?'}
+          </span>
+          <span className="text-[15px] font-semibold">{docInfo?.label ?? 'Documento'}</span>
+        </div>
+      </FadeIn>
 
       {/* Section: Información del documento */}
-      <section className="rounded-lg border border-border p-5 space-y-4">
+      <FadeIn delay={0.05} duration={0.3}>
+        <section className="rounded-lg border border-border p-5 space-y-4">
         <h3 className="text-[13px] font-display font-bold uppercase tracking-wider text-muted-foreground">
           Información del documento
         </h3>
@@ -70,9 +74,11 @@ export function InvoiceForm({ orgId, tab }: InvoiceFormProps) {
           />
         </div>
       </section>
+      </FadeIn>
 
       {/* Section: Receptor */}
-      <section className="rounded-lg border border-border p-5 space-y-3">
+      <FadeIn delay={0.1} duration={0.3}>
+        <section className="rounded-lg border border-border p-5 space-y-3">
         <h3 className="text-[13px] font-display font-bold uppercase tracking-wider text-muted-foreground">
           Receptor
         </h3>
@@ -107,9 +113,11 @@ export function InvoiceForm({ orgId, tab }: InvoiceFormProps) {
           </div>
         </div>
       </section>
+      </FadeIn>
 
       {/* Section: Líneas de detalle */}
-      <section className="rounded-lg border border-border p-5 space-y-3">
+      <FadeIn delay={0.15} duration={0.3}>
+        <section className="rounded-lg border border-border p-5 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-[13px] font-display font-bold uppercase tracking-wider text-muted-foreground">
             Líneas de detalle
@@ -139,10 +147,12 @@ export function InvoiceForm({ orgId, tab }: InvoiceFormProps) {
           </div>
         )}
       </section>
+      </FadeIn>
 
       {/* Section: Totales */}
       {data?.details && data.details.length > 0 && (
-        <section className="rounded-lg border border-border p-5 space-y-2">
+        <FadeIn delay={0.2} duration={0.3}>
+          <section className="rounded-lg border border-border p-5 space-y-2">
           <h3 className="text-[13px] font-display font-bold uppercase tracking-wider text-muted-foreground">
             Totales
           </h3>
@@ -168,6 +178,7 @@ export function InvoiceForm({ orgId, tab }: InvoiceFormProps) {
             Finalizar documento
           </button>
         </section>
+        </FadeIn>
       )}
     </div>
   );

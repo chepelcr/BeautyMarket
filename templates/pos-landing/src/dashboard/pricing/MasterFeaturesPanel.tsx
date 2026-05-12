@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
+import { AddButton } from '../components/AddButton';
 import { cn } from '@/lib/cn';
 import type { FeatureDef } from './types';
 
@@ -56,81 +57,89 @@ export function MasterFeaturesPanel({ features, onChange }: MasterFeaturesPanelP
   };
 
   return (
-    <div className="card p-5 space-y-3">
-      <div>
-        <h3 className="font-display font-bold text-base">Características Maestras</h3>
-        <p className="text-xs text-muted-foreground mt-1">
-          Catálogo de conceptos de características. Úsalas como sugerencias al agregar características a los planes 
-          (cada plan tiene sus propias etiquetas y toggles).
-        </p>
+    <div className="card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-display font-bold text-sm uppercase tracking-wider text-muted-foreground">
+            Características Maestras ({features.length})
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Catálogo de conceptos. Úsalas como sugerencias al agregar características a los planes.
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-1.5">
-        {features.map((f, i) => (
-          <div 
-            key={i} 
-            className={cn(
-              "flex gap-2 items-center transition-opacity",
-              draggedIndex === i && "opacity-50"
-            )}
-            draggable
-            onDragStart={() => handleDragStart(i)}
-            onDragOver={(e) => handleDragOver(e, i)}
-            onDragEnd={handleDragEnd}
-          >
-            <button
-              className="w-6 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing shrink-0"
-              title="Arrastrar para reordenar"
-            >
-              <Icon name="GripVertical" size={14} />
-            </button>
-            <input
-              type="text"
-              value={f.id}
-              onChange={e => updateFeature(i, 'id', e.target.value)}
-              className="w-32 h-8 rounded border border-border bg-background px-2 text-xs font-mono focus:outline-none focus:border-primary"
-              placeholder="id"
-            />
-            <input
-              type="text"
-              value={f.label}
-              onChange={e => updateFeature(i, 'label', e.target.value)}
-              className="flex-1 h-8 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:border-primary"
-              placeholder="Etiqueta por defecto"
-            />
-            <button
-              onClick={() => removeFeature(i)}
-              className="w-8 h-8 rounded hover:bg-muted text-muted-foreground hover:text-destructive flex items-center justify-center"
-              title="Eliminar de la lista maestra"
-            >
-              <Icon name="Trash" size={13} />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex gap-2 pt-2 border-t border-border">
+      {/* Add new feature form */}
+      <div className="flex gap-2 p-3 rounded-md border border-dashed border-border bg-muted/30">
         <input
           type="text"
           value={newId}
           onChange={e => setNewId(e.target.value)}
           placeholder="nuevo-id"
-          className="w-32 h-8 rounded border border-border bg-background px-2 text-xs font-mono focus:outline-none focus:border-primary"
+          className="w-32 h-9 rounded border border-border bg-background px-2 text-sm font-mono focus:outline-none focus:border-primary"
         />
         <input
           type="text"
           value={newLabel}
           onChange={e => setNewLabel(e.target.value)}
           placeholder="Etiqueta por defecto"
-          className="flex-1 h-8 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:border-primary"
+          className="flex-1 h-9 rounded border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
           onKeyDown={e => e.key === 'Enter' && addFeature()}
         />
         <button
           onClick={addFeature}
-          className="h-8 px-3 rounded bg-muted text-foreground text-xs font-semibold hover:bg-muted/70 flex items-center gap-1"
+          disabled={!newId.trim() || !newLabel.trim()}
+          className="h-9 px-4 rounded bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Icon name="Plus" size={12} />Agregar
+          <Icon name="Plus" size={14} />Agregar
         </button>
+      </div>
+
+      {/* Features list */}
+      <div className="space-y-2">
+        {features.map((f, i) => (
+          <div 
+            key={i} 
+            draggable
+            onDragStart={() => handleDragStart(i)}
+            onDragOver={(e) => handleDragOver(e, i)}
+            onDragEnd={handleDragEnd}
+            className={cn(
+              "flex gap-2 items-center p-3 rounded-md border transition",
+              draggedIndex === i 
+                ? "border-primary bg-primary/5 opacity-50" 
+                : "border-border bg-background"
+            )}
+          >
+            <button
+              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+              title="Arrastrar para reordenar"
+            >
+              <Icon name="Menu" size={16} />
+            </button>
+            <input
+              type="text"
+              value={f.id}
+              onChange={e => updateFeature(i, 'id', e.target.value)}
+              className="w-32 h-9 rounded border border-border bg-background px-2 text-sm font-mono focus:outline-none focus:border-primary"
+              placeholder="id"
+            />
+            <input
+              type="text"
+              value={f.label}
+              onChange={e => updateFeature(i, 'label', e.target.value)}
+              className="flex-1 h-9 rounded border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
+              placeholder="Etiqueta por defecto"
+            />
+            <button
+              onClick={() => removeFeature(i)}
+              className="w-9 h-9 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center"
+              title="Eliminar"
+            >
+              <Icon name="Trash" size={15} />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

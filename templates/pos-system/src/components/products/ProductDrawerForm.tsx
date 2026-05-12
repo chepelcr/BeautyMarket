@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Drawer, Button, Spinner } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAllProductTypes, useAllMeasurementUnits, useAllTaxes, useAllTaxRates } from "@/hooks/useDataApi";
 import { TaxCalculationService } from "@/services/taxCalculationService";
@@ -363,116 +364,118 @@ export function ProductDrawerForm({
 
       {/* Form content — only rendered once data is ready */}
       {drawerReady && (
-        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+        <FadeIn duration={0.3}>
+          <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
 
-          {/* 1. General Information */}
-          <GeneralInfoSection
-            form={form}
-            categories={categories}
-            isExpanded={expanded.general}
-            onToggle={() => toggle("general")}
-            onChange={handleGeneralInfoChange}
-          />
+            {/* 1. General Information */}
+            <GeneralInfoSection
+              form={form}
+              categories={categories}
+              isExpanded={expanded.general}
+              onToggle={() => toggle("general")}
+              onChange={handleGeneralInfoChange}
+            />
 
-          {/* 2. Image Upload */}
-          <ImageUploadSection
-            currentUrl={!isNew && drawerProduct ? ((drawerProduct as Product).image_url ?? undefined) : undefined}
-            isExpanded={expanded.image}
-            onToggle={() => toggle("image")}
-            onFileChange={onImageChange}
-          />
+            {/* 2. Image Upload */}
+            <ImageUploadSection
+              currentUrl={!isNew && drawerProduct ? ((drawerProduct as Product).image_url ?? undefined) : undefined}
+              isExpanded={expanded.image}
+              onToggle={() => toggle("image")}
+              onFileChange={onImageChange}
+            />
 
-          {/* 3. Codes */}
-          <CodesSection
-            codes={form.codes}
-            isExpanded={expanded.codes}
-            onToggle={() => toggle("codes")}
-            disabled={!generalStarted}
-            onAdd={addCode}
-            onRemove={removeCode}
-            onUpdate={updateCode}
-          />
+            {/* 3. Codes */}
+            <CodesSection
+              codes={form.codes}
+              isExpanded={expanded.codes}
+              onToggle={() => toggle("codes")}
+              disabled={!generalStarted}
+              onAdd={addCode}
+              onRemove={removeCode}
+              onUpdate={updateCode}
+            />
 
-          {/* 4. Packaging */}
-          <PackagingSection
-            unitsPerBox={unitsPerBox}
-            isExpanded={expanded.packaging}
-            onToggle={() => toggle("packaging")}
-            disabled={!form.has_package_info}
-            onChange={onUnitsPerBoxChange}
-          />
+            {/* 4. Packaging */}
+            <PackagingSection
+              unitsPerBox={unitsPerBox}
+              isExpanded={expanded.packaging}
+              onToggle={() => toggle("packaging")}
+              disabled={!form.has_package_info}
+              onChange={onUnitsPerBoxChange}
+            />
 
-          {/* 5. Inventory */}
-          <InventorySection
-            form={form}
-            isExpanded={expanded.inventory}
-            onToggle={() => toggle("inventory")}
-            disabled={!form.track_inventory}
-            onChange={onFormChange}
-          />
+            {/* 5. Inventory */}
+            <InventorySection
+              form={form}
+              isExpanded={expanded.inventory}
+              onToggle={() => toggle("inventory")}
+              disabled={!form.track_inventory}
+              onChange={onFormChange}
+            />
 
-          {/* 6. Fiscal Information */}
-          <FiscalInformationSection
-            form={form}
-            isExpanded={expanded.fiscal}
-            onToggle={() => toggle("fiscal")}
-            disabled={!form.has_fiscal_info}
-            onChange={handleFormChange}
-            onCabysSelect={handleCabysSelect}
-          />
+            {/* 6. Fiscal Information */}
+            <FiscalInformationSection
+              form={form}
+              isExpanded={expanded.fiscal}
+              onToggle={() => toggle("fiscal")}
+              disabled={!form.has_fiscal_info}
+              onChange={handleFormChange}
+              onCabysSelect={handleCabysSelect}
+            />
 
-          {/* 7. Discounts */}
-          <DiscountsSection
-            discounts={form.discounts}
-            basePrice={price}
-            isExpanded={expanded.discounts}
-            onToggle={() => toggle("discounts")}
-            disabled={!generalStarted}
-            onAdd={addDiscount}
-            onRemove={removeDiscount}
-            onUpdate={updateDiscount}
-          />
+            {/* 7. Discounts */}
+            <DiscountsSection
+              discounts={form.discounts}
+              basePrice={price}
+              isExpanded={expanded.discounts}
+              onToggle={() => toggle("discounts")}
+              disabled={!generalStarted}
+              onAdd={addDiscount}
+              onRemove={removeDiscount}
+              onUpdate={updateDiscount}
+            />
 
-          {/* 8. Other Taxes */}
-          <OtherTaxSection
-            taxes={form.taxes}
-            cabys={form.cabys || undefined}
-            basePrice={price}
-            isExpanded={expanded.otherTax}
-            onToggle={() => toggle("otherTax")}
-            disabled={!fiscalAndCabys}
-            onAdd={addTax}
-            onRemove={removeTax}
-            onUpdate={updateTax}
-          />
+            {/* 8. Other Taxes */}
+            <OtherTaxSection
+              taxes={form.taxes}
+              cabys={form.cabys || undefined}
+              basePrice={price}
+              isExpanded={expanded.otherTax}
+              onToggle={() => toggle("otherTax")}
+              disabled={!fiscalAndCabys}
+              onAdd={addTax}
+              onRemove={removeTax}
+              onUpdate={updateTax}
+            />
 
-          {/* 9. IVA Tax */}
-          <IvaTaxSection
-            taxes={form.taxes}
-            factoryTaxChargeId={form.factoryTaxChargeId}
-            baseAmount={baseAmountForIva}
-            isExpanded={expanded.ivaTax}
-            onToggle={() => toggle("ivaTax")}
-            disabled={!fiscalAndCabys}
-            onAdd={addTax}
-            onRemove={removeTax}
-            onUpdate={updateTax}
-            onFactoryTaxChargeChange={handleFactoryTaxChange}
-          />
+            {/* 9. IVA Tax */}
+            <IvaTaxSection
+              taxes={form.taxes}
+              factoryTaxChargeId={form.factoryTaxChargeId}
+              baseAmount={baseAmountForIva}
+              isExpanded={expanded.ivaTax}
+              onToggle={() => toggle("ivaTax")}
+              disabled={!fiscalAndCabys}
+              onAdd={addTax}
+              onRemove={removeTax}
+              onUpdate={updateTax}
+              onFactoryTaxChargeChange={handleFactoryTaxChange}
+            />
 
-          {/* 10. Commercial Value — last, after taxes */}
-          <CommercialValueSection
-            form={form}
-            taxes={form.taxes}
-            discounts={form.discounts}
-            hasFactoryTax={form.hasFactoryTax}
-            isExpanded={expanded.commercial}
-            onToggle={() => toggle("commercial")}
-            disabled={!generalStarted}
-            onChange={onFormChange}
-          />
+            {/* 10. Commercial Value — last, after taxes */}
+            <CommercialValueSection
+              form={form}
+              taxes={form.taxes}
+              discounts={form.discounts}
+              hasFactoryTax={form.hasFactoryTax}
+              isExpanded={expanded.commercial}
+              onToggle={() => toggle("commercial")}
+              disabled={!generalStarted}
+              onChange={onFormChange}
+            />
 
-        </div>
+          </div>
+        </FadeIn>
       )}
     </Drawer>
   );

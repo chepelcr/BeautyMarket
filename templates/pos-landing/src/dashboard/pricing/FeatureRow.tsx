@@ -31,20 +31,22 @@ export function FeatureRow({
 }: FeatureRowProps) {
   return (
     <div 
-      className={cn(
-        "flex items-center gap-2 transition-opacity",
-        isDragging && "opacity-50"
-      )}
       draggable
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
+      className={cn(
+        "flex items-center gap-2 p-3 rounded-md border transition",
+        isDragging 
+          ? "border-primary bg-primary/5 opacity-50" 
+          : "border-border bg-background"
+      )}
     >
       <button
-        className="w-5 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing shrink-0"
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
         title="Arrastrar para reordenar"
       >
-        <Icon name="GripVertical" size={14} />
+        <Icon name="Menu" size={16} />
       </button>
       <input
         type="checkbox"
@@ -57,7 +59,7 @@ export function FeatureRow({
         type="text"
         value={feature.label}
         onChange={e => onChange({ ...feature, label: e.target.value })}
-        className="flex-1 h-8 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:border-primary"
+        className="flex-1 h-9 rounded border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
         placeholder="Etiqueta de característica"
       />
       <ColorPicker
@@ -66,10 +68,10 @@ export function FeatureRow({
       />
       <button
         onClick={onRemove}
-        className="w-7 h-7 rounded hover:bg-muted text-muted-foreground hover:text-destructive flex items-center justify-center shrink-0"
+        className="w-9 h-9 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center shrink-0"
         title="Eliminar del plan"
       >
-        <Icon name="X" size={13} />
+        <Icon name="Trash" size={15} />
       </button>
     </div>
   );

@@ -240,7 +240,7 @@ export function PlanCard({
       </div>
 
       {/* Features list */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Características ({plan.features.length})
@@ -253,7 +253,7 @@ export function PlanCard({
             isLastPlan={isLastPlan}
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {plan.features.map((f, i) => (
             <FeatureRow
               key={i}

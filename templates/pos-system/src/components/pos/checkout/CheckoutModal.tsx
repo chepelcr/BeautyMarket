@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { FadeIn } from '@/components/ui/FadeIn';
 import { useCart } from '@/store/cart';
 import { DOCUMENT_TYPES } from '@/types/invoice';
 import type { SalePayment, CurrencyCode, DocTypeCode } from '@/types/invoice';
@@ -175,23 +176,33 @@ export function CheckoutModal({
               {/* Tab content */}
               <div className="px-5 py-4">
                 {activeTab === 'pago' && (
-                  <PaymentTab cartTotal={cartTotal} payments={payments} onChange={setPayments} />
+                  <FadeIn key="pago" duration={0.3}>
+                    <PaymentTab cartTotal={cartTotal} payments={payments} onChange={setPayments} />
+                  </FadeIn>
                 )}
                 {activeTab === 'documento' && (
-                  <DocumentTab data={docData} onChange={(p) => setDocData((d) => ({ ...d, ...p }))} />
+                  <FadeIn key="documento" duration={0.3}>
+                    <DocumentTab data={docData} onChange={(p) => setDocData((d) => ({ ...d, ...p }))} />
+                  </FadeIn>
                 )}
                 {activeTab === 'receptor' && (
-                  <ReceiverTab
-                    receiver={receiver}
-                    selectedClient={selectedClient}
-                    onChange={(p) => setReceiver((r) => ({ ...r, ...p }))}
-                  />
+                  <FadeIn key="receptor" duration={0.3}>
+                    <ReceiverTab
+                      receiver={receiver}
+                      selectedClient={selectedClient}
+                      onChange={(p) => setReceiver((r) => ({ ...r, ...p }))}
+                    />
+                  </FadeIn>
                 )}
                 {activeTab === 'referencias' && (
-                  <ReferencesTab references={references} onChange={setReferences} />
+                  <FadeIn key="referencias" duration={0.3}>
+                    <ReferencesTab references={references} onChange={setReferences} />
+                  </FadeIn>
                 )}
                 {activeTab === 'copias' && (
-                  <CopiesTab emails={copyEmails} onChange={setCopyEmails} />
+                  <FadeIn key="copias" duration={0.3}>
+                    <CopiesTab emails={copyEmails} onChange={setCopyEmails} />
+                  </FadeIn>
                 )}
               </div>
             </div>

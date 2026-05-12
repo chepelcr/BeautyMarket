@@ -274,48 +274,50 @@ export default function ProductsPage() {
   return (
     <div style={{ padding: "24px 24px 40px", maxWidth: 1400, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 className="t-h1" style={{ marginBottom: 6 }}>{t("products.title")}</h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>{t("products.subtitle")}</p>
+          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+            {pagination ? `${pagination.total_elements} productos registrados` : t("products.subtitle")}
+          </p>
         </div>
-        <Button variant="primary" icon="plus" onClick={openNew}>{t("products.newProduct")}</Button>
+        <Button variant="primary" size="sm" icon="plus" onClick={openNew}>{t("products.newProduct")}</Button>
       </div>
 
-      {/* Toolbar */}
-      <Card style={{ padding: 14, marginBottom: 14 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <div style={{ position: "relative", flex: "1 1 280px" }}>
-            <Icon name="search" size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "hsl(var(--muted-foreground))" }} />
-            <input 
-              className="pp-input" 
-              style={{ paddingLeft: 36 }} 
-              placeholder={t("products.searchPlaceholder")} 
-              value={search} 
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
-            />
-          </div>
-          <select 
+      {/* Search and Filters */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ position: "relative", flex: "1 1 280px", maxWidth: 400 }}>
+          <Icon name="search" size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "hsl(var(--muted-foreground))", pointerEvents: "none" }} />
+          <input 
             className="pp-input" 
-            value={categoryFilter} 
-            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }} 
-            style={{ width: 180 }}
-          >
-            {categoryLabels.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <div className="tabs">
-            <button className="tab" aria-selected={view === "grid"} onClick={() => setView("grid")}>
-              <Icon name="grid" size={12} /> {t("products.cards")}
-            </button>
-            <button className="tab" aria-selected={view === "table"} onClick={() => setView("table")}>
-              <Icon name="sort" size={12} /> {t("products.table")}
-            </button>
-          </div>
+            style={{ paddingLeft: 36, width: "100%" }} 
+            placeholder={t("products.searchPlaceholder")} 
+            value={search} 
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
+          />
         </div>
-        {selected.length > 0 && (
-          <ProductBulkBar count={selected.length} onDelete={async () => { for (const id of selected) await deleteProduct.mutateAsync(id); }} />
-        )}
-      </Card>
+        <select 
+          className="pp-input" 
+          value={categoryFilter} 
+          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }} 
+          style={{ width: 180 }}
+        >
+          {categoryLabels.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <div className="tabs">
+          <button className="tab" aria-selected={view === "grid"} onClick={() => setView("grid")}>
+            <Icon name="grid" size={12} /> {t("products.cards")}
+          </button>
+          <button className="tab" aria-selected={view === "table"} onClick={() => setView("table")}>
+            <Icon name="sort" size={12} /> {t("products.table")}
+          </button>
+        </div>
+      </div>
+
+      {/* Bulk actions bar */}
+      {selected.length > 0 && (
+        <ProductBulkBar count={selected.length} onDelete={async () => { for (const id of selected) await deleteProduct.mutateAsync(id); }} />
+      )}
 
       {isLoading ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
@@ -374,7 +376,12 @@ export default function ProductsPage() {
         saving={saving}
         imageFile={imageFile}
         unitsPerBox={unitsPerBox}
-        onClose={() => setDrawerProduct(null)}
+        onClose={() => {
+          setDrawerProduct(null);
+          setForm({ ...EMPTY_FORM });
+          setImageFile(null);
+          setUnitsPerBox("");
+        }}
         onFormChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
         onImageChange={setImageFile}
         onUnitsPerBoxChange={setUnitsPerBox}

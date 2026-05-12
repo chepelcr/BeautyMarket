@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import { FadeIn } from '@/components/ui/FadeIn';
+import { ClientListSkeleton } from './ClientListSkeleton';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 
 const fmt_id = (c: ClientSearchResult) =>
@@ -36,34 +38,39 @@ export function CustomerPanel({
       {/* List */}
       <div className="flex-1 overflow-auto scroll-area px-3 py-2 space-y-1">
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">Cargando…</div>
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ClientListSkeleton key={i} />
+            ))}
+          </div>
         ) : clients.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
             {query ? `Sin resultados para "${query}"` : 'Busca un cliente arriba'}
           </div>
         ) : (
-          clients.map((c) => {
+          clients.map((c, i) => {
             const name = c.client_name || c.business_name || c.client_gln || 'Sin nombre';
             const isSelected = selected?.client_id === c.client_id;
             return (
-              <button
-                key={c.client_id}
-                onClick={() => onSelect(c)}
-                className={cn(
-                  'w-full rounded-md border px-3 py-2.5 text-left flex items-center justify-between hover:bg-muted transition-colors',
-                  isSelected
-                    ? 'border-primary bg-primary/5 text-primary'
-                    : 'border-border bg-card text-foreground'
-                )}
-              >
-                <div>
-                  <div className="text-[13px] font-semibold leading-tight">{name}</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">{fmt_id(c)}</div>
-                </div>
-                {isSelected && (
-                  <span className="text-[11px] font-bold text-primary shrink-0">Seleccionado</span>
-                )}
-              </button>
+              <FadeIn key={c.client_id} delay={i * 0.02} duration={0.3}>
+                <button
+                  onClick={() => onSelect(c)}
+                  className={cn(
+                    'w-full rounded-md border px-3 py-2.5 text-left flex items-center justify-between hover:bg-muted transition-colors',
+                    isSelected
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-border bg-card text-foreground'
+                  )}
+                >
+                  <div>
+                    <div className="text-[13px] font-semibold leading-tight">{name}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{fmt_id(c)}</div>
+                  </div>
+                  {isSelected && (
+                    <span className="text-[11px] font-bold text-primary shrink-0">Seleccionado</span>
+                  )}
+                </button>
+              </FadeIn>
             );
           })
         )}

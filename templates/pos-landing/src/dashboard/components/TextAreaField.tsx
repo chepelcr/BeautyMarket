@@ -1,7 +1,8 @@
+import { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 interface TextAreaFieldProps {
-  label?: string;
+  label?: string | ReactNode;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -49,7 +50,7 @@ export function TextAreaField({
     <div className={className}>
       {label && (
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-          {label}
+          {typeof label === 'string' ? label : <span>{label}</span>}
           {required && <span className="text-destructive ml-1">*</span>}
         </label>
       )}

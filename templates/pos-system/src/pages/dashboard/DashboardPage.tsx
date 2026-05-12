@@ -4,10 +4,13 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SalesChart } from "@/components/dashboard/SalesChart";
 import { LiveStationsPanel } from "@/components/dashboard/LiveStationsPanel";
 import { TopProductsPanel } from "@/components/dashboard/TopProductsPanel";
+import { DashboardStatSkeleton } from "@/components/dashboard/DashboardStatSkeleton";
+import { ChartSkeleton } from "@/components/dashboard/ChartSkeleton";
 import type { StandData, DashboardData } from "@/types";
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
@@ -107,26 +110,37 @@ export default function DashboardPage() {
       </Card>
 
       {/* Main 2-col */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14, marginBottom: 14 }}>
-        <Card style={{ padding: 22, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
-            <div>
-              <CardTitle>{t("dash.hourlyChart")}</CardTitle>
-              <CardDescription>{t("dash.currentSession")}</CardDescription>
-            </div>
-            <Badge variant="success">↗ +22% vs anterior</Badge>
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <div className="t-stat-xl" style={{ fontSize: 38 }}>{fmt(totalRevenue)}</div>
-            <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Pico entre 19:30 — 20:15</div>
-          </div>
-          <SalesChart />
-        </Card>
+      {isLoading ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14, marginBottom: 14 }}>
+          <ChartSkeleton />
+          <DashboardStatSkeleton />
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14, marginBottom: 14 }}>
+          <FadeIn duration={0.4}>
+            <Card style={{ padding: 22, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+                <div>
+                  <CardTitle>{t("dash.hourlyChart")}</CardTitle>
+                  <CardDescription>{t("dash.currentSession")}</CardDescription>
+                </div>
+                <Badge variant="success">↗ +22% vs anterior</Badge>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <div className="t-stat-xl" style={{ fontSize: 38 }}>{fmt(totalRevenue)}</div>
+                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Pico entre 19:30 — 20:15</div>
+              </div>
+              <SalesChart />
+            </Card>
+          </FadeIn>
 
-        <Card style={{ padding: 22, minWidth: 0 }}>
-          <LiveStationsPanel stands={stands} isLoading={isLoading} fmt={fmt} />
-        </Card>
-      </div>
+          <FadeIn delay={0.1} duration={0.4}>
+            <Card style={{ padding: 22, minWidth: 0 }}>
+              <LiveStationsPanel stands={stands} isLoading={false} fmt={fmt} />
+            </Card>
+          </FadeIn>
+        </div>
+      )}
 
       {/* Bottom row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>

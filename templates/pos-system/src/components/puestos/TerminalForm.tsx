@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Input, Button } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { CreateTerminalRequest } from "@/types";
 
@@ -22,7 +23,8 @@ export function TerminalForm({ branchId, onSave, isSaving, onClose }: TerminalFo
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+    <FadeIn duration={0.3}>
+      <form onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
         <label className="t-label" htmlFor="t-name" style={{ display: "block", marginBottom: 6 }}>
           Nombre <span style={{ color: "hsl(var(--destructive))" }}>*</span>
@@ -61,5 +63,6 @@ export function TerminalForm({ branchId, onSave, isSaving, onClose }: TerminalFo
         </Button>
       </div>
     </form>
+    </FadeIn>
   );
 }

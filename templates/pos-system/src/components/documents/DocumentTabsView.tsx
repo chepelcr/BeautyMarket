@@ -1,4 +1,5 @@
 import { useDocumentStore } from '@/store/documentStore';
+import { FadeIn } from '@/components/ui/FadeIn';
 import { DocumentTabBar } from './DocumentTabBar';
 import { InvoiceForm } from './InvoiceForm';
 
@@ -15,7 +16,9 @@ export function DocumentTabsView({ orgId }: DocumentTabsViewProps) {
       <DocumentTabBar tabs={open_documents} activeId={active_document_tab} />
       <div className="flex-1 overflow-auto">
         {activeDoc ? (
-          <InvoiceForm orgId={orgId} tab={activeDoc} />
+          <FadeIn key={activeDoc.id} duration={0.3}>
+            <InvoiceForm orgId={orgId} tab={activeDoc} />
+          </FadeIn>
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             Selecciona una pestaña para editar el documento.

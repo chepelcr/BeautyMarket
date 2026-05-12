@@ -1,4 +1,5 @@
 import { Drawer, Icon, Badge, Button } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { fmt, formatDate } from "@/utils/formatDate";
 import { SessionOverviewTab } from "./tabs/SessionOverviewTab";
@@ -111,10 +112,26 @@ export function SessionDetailDrawer({
 
         {/* Tab content */}
         <div style={{ flex: 1, overflowY: "auto" }}>
-          {activeTab === "overview" && <SessionOverviewTab dashboardData={dashboardData} isLoading={dashboardLoading} />}
-          {activeTab === "assignments" && <SessionAssignmentsTab assignments={assignments} isLoading={assignmentsLoading} />}
-          {activeTab === "sales" && <SessionSalesTab stands={dashboardData?.stands} isLoading={dashboardLoading} />}
-          {activeTab === "report" && <SessionReportTab sessionId={session.session_id} />}
+          {activeTab === "overview" && (
+            <FadeIn key="overview" duration={0.3}>
+              <SessionOverviewTab dashboardData={dashboardData} isLoading={dashboardLoading} />
+            </FadeIn>
+          )}
+          {activeTab === "assignments" && (
+            <FadeIn key="assignments" duration={0.3}>
+              <SessionAssignmentsTab assignments={assignments} isLoading={assignmentsLoading} />
+            </FadeIn>
+          )}
+          {activeTab === "sales" && (
+            <FadeIn key="sales" duration={0.3}>
+              <SessionSalesTab stands={dashboardData?.stands} isLoading={dashboardLoading} />
+            </FadeIn>
+          )}
+          {activeTab === "report" && (
+            <FadeIn key="report" duration={0.3}>
+              <SessionReportTab sessionId={session.session_id} />
+            </FadeIn>
+          )}
         </div>
       </div>
     </Drawer>

@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { ProductImage } from "@/components/ui/ProductImage";
+import { FadeIn } from "@/components/ui/FadeIn";
+import { ProductGridSkeleton } from "./ProductGridSkeleton";
 import { POS } from "@/theme/pos";
 import type { Product } from "@/types";
 
@@ -118,8 +120,16 @@ export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPa
       {/* Grid */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
         {isLoading ? (
-          <div style={{ textAlign: "center", paddingTop: 48, color: POS.muted, fontFamily: POS.fontUI }}>
-            Cargando...
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(160px, 1fr))" : "repeat(2, 1fr)",
+              gap: 12,
+            }}
+          >
+            {Array.from({ length: isDesktop ? 12 : 6 }).map((_, i) => (
+              <ProductGridSkeleton key={i} />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div style={{ textAlign: "center", paddingTop: 48, color: POS.muted, fontFamily: POS.fontUI }}>
@@ -133,56 +143,58 @@ export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPa
               gap: 12,
             }}
           >
-            {products.map((p) => {
+            {products.map((p, i) => {
               const lowStock = (p.stock_quantity ?? 0) > 0 && (p.stock_quantity ?? 0) <= 5;
               const inCart = cartItems.find((c) => c.id === p.product_id);
               return (
-                <button
-                  key={p.product_id}
-                  onClick={() => onAdd(p)}
-                  style={{
-                    padding: 0,
-                    textAlign: "left",
-                    display: "flex",
-                    flexDirection: "column",
-                    cursor: "pointer",
-                    font: "inherit",
-                    background: inCart ? POS.roseDim : POS.card,
-                    border: inCart ? `1.5px solid ${POS.rose}` : `1px solid ${POS.border}`,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    transition: "transform .1s, border-color .1s",
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "none"; }}
-                >
-                  <ProductImage
-                    imageUrl={p.image_url}
-                    name={p.name ?? ""}
-                    size={0}
-                    style={{ width: "100%", height: "auto", aspectRatio: "4/3", objectFit: "cover" }}
-                  />
-                  <div style={{ padding: "10px 12px 12px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 4 }}>
-                      <div style={{ fontFamily: POS.fontUI, fontWeight: 600, fontSize: 13, color: POS.text, lineHeight: 1.3 }}>
-                        {p.name}
+                <FadeIn key={p.product_id} delay={i * 0.02} duration={0.3}>
+                  <button
+                    onClick={() => onAdd(p)}
+                    style={{
+                      padding: 0,
+                      textAlign: "left",
+                      display: "flex",
+                      flexDirection: "column",
+                      cursor: "pointer",
+                      font: "inherit",
+                      background: inCart ? POS.roseDim : POS.card,
+                      border: inCart ? `1.5px solid ${POS.rose}` : `1px solid ${POS.border}`,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      transition: "transform .1s, border-color .1s",
+                      width: "100%",
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "none"; }}
+                  >
+                    <ProductImage
+                      imageUrl={p.image_url}
+                      name={p.name ?? ""}
+                      size={0}
+                      style={{ width: "100%", height: "auto", aspectRatio: "4/3", objectFit: "cover" }}
+                    />
+                    <div style={{ padding: "10px 12px 12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 4 }}>
+                        <div style={{ fontFamily: POS.fontUI, fontWeight: 600, fontSize: 13, color: POS.text, lineHeight: 1.3 }}>
+                          {p.name}
+                        </div>
+                        {lowStock && (
+                          <span style={{ background: "rgba(255,159,10,0.2)", color: "#FF9F0A", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 20, flexShrink: 0, fontFamily: POS.fontUI }}>
+                            {p.stock_quantity}
+                          </span>
+                        )}
                       </div>
-                      {lowStock && (
-                        <span style={{ background: "rgba(255,159,10,0.2)", color: "#FF9F0A", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 20, flexShrink: 0, fontFamily: POS.fontUI }}>
-                          {p.stock_quantity}
-                        </span>
+                      <div style={{ fontFamily: POS.fontDisplay, fontSize: 20, fontWeight: 600, color: POS.rose, marginTop: 4 }}>
+                        {fmt(p.price ?? 0)}
+                      </div>
+                      {inCart && (
+                        <div style={{ fontFamily: POS.fontUI, fontSize: 10, color: POS.rose, marginTop: 2 }}>
+                          × {inCart.qty} en carrito
+                        </div>
                       )}
                     </div>
-                    <div style={{ fontFamily: POS.fontDisplay, fontSize: 20, fontWeight: 600, color: POS.rose, marginTop: 4 }}>
-                      {fmt(p.price ?? 0)}
-                    </div>
-                    {inCart && (
-                      <div style={{ fontFamily: POS.fontUI, fontSize: 10, color: POS.rose, marginTop: 2 }}>
-                        × {inCart.qty} en carrito
-                      </div>
-                    )}
-                  </div>
-                </button>
+                  </button>
+                </FadeIn>
               );
             })}
           </div>

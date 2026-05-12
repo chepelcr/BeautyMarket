@@ -113,7 +113,15 @@ export default function ClientsPage() {
         />
       )}
 
-      <ClientDrawerForm open={drawerOpen} onClose={() => setDrawerOpen(false)} client={editingClient} orgId={orgId} />
+      <ClientDrawerForm 
+        open={drawerOpen} 
+        onClose={() => {
+          setDrawerOpen(false);
+          setEditingClient(null);
+        }} 
+        client={editingClient} 
+        orgId={orgId} 
+      />
       
       {/* Confirmation Modal */}
       <ConfirmModal />

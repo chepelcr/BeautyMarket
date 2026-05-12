@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Drawer, Button } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useCreateClient, useUpdateClient, clientDisplayName, type Client, type CreateClientDto } from "@/hooks/useClients";
 import ClientFormBody from "./ClientFormBody";
 
@@ -94,7 +95,9 @@ export function ClientDrawerForm({ open, client, orgId, onClose }: ClientDrawerF
         </div>
       }
     >
-      <ClientFormBody form={form} setForm={setForm} error={error} />
+      <FadeIn duration={0.3}>
+        <ClientFormBody form={form} setForm={setForm} error={error} />
+      </FadeIn>
     </Drawer>
   );
 }

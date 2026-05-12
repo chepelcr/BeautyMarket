@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { FadeIn } from '@/components/ui/FadeIn';
 import { DOCUMENT_TYPES } from '@/types/invoice';
 import type { DocumentListItem } from '@/types/document';
 
@@ -14,9 +15,10 @@ interface DocumentCardProps {
   doc: DocumentListItem;
   isReceived: boolean;
   onAction: (doc: DocumentListItem, action: string) => void;
+  delay?: number;
 }
 
-export function DocumentCard({ doc, isReceived, onAction }: DocumentCardProps) {
+export function DocumentCard({ doc, isReceived, onAction, delay = 0 }: DocumentCardProps) {
   const dt = DOCUMENT_TYPES.find((d) => d.code === doc.document_type);
   const status = doc.atv_validation?.validation_status;
   const statusInfo = status ? STATUS_LABELS[status] : null;
@@ -25,7 +27,8 @@ export function DocumentCard({ doc, isReceived, onAction }: DocumentCardProps) {
   });
 
   return (
-    <div className="rounded-md border border-border bg-card p-4 space-y-3">
+    <FadeIn delay={delay} duration={0.4}>
+      <div className="rounded-md border border-border bg-card p-4 space-y-3">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -63,6 +66,7 @@ export function DocumentCard({ doc, isReceived, onAction }: DocumentCardProps) {
         {isReceived && <ActionBtn label="Aceptar/Rechazar" onClick={() => onAction(doc, 'accept')} />}
       </div>
     </div>
+    </FadeIn>
   );
 }
 

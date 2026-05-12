@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon, Card, Input, Button, LocationSelect } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Branch, CreateBranchRequest, BranchType, BranchStatus, LocationData } from "@/types";
 
@@ -47,7 +48,8 @@ export function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormPro
   };
 
   return (
-    <form id="branch-form" onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+    <FadeIn duration={0.3}>
+      <form id="branch-form" onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Type toggle */}
       <div>
         <label className="t-label" style={{ display: "block", marginBottom: 8 }}>{t("session.sessionType")}</label>
@@ -127,5 +129,6 @@ export function BranchForm({ editing, onSave, isSaving, onClose }: BranchFormPro
         </Button>
       </div>
     </form>
+    </FadeIn>
   );
 }

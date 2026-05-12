@@ -8,7 +8,7 @@ interface FadeInProps {
   style?: React.CSSProperties;
 }
 
-export function FadeIn({ children, delay = 0, duration = 0.4, className, style }: FadeInProps) {
+export function FadeIn({ children, delay = 0, duration = 0.6, className, style }: FadeInProps) {
   return (
     <div
       className={className}

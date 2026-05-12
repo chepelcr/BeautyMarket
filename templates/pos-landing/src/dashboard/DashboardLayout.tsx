@@ -4,6 +4,7 @@ import { LogoIcon } from '@/components/ui/LogoIcon';
 import { Icon } from '@/components/ui/Icon';
 import { Spinner } from '@/components/ui/Spinner';
 import { useSaveConfig } from '@/hooks/useSaveConfig';
+import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/cn';
 
 const MetaTab           = lazy(() => import('./MetaTab').then(m => ({ default: m.MetaTab })));
@@ -42,6 +43,7 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { save, saving, saved, error } = useSaveConfig();
+  const { dark, setDark } = useTheme();
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Get active tab from URL
@@ -50,6 +52,10 @@ export function DashboardLayout() {
   const handleSave = async () => {
     await save();
     iframeRef.current?.contentWindow?.location.reload();
+  };
+
+  const toggleDarkMode = () => {
+    setDark(!dark);
   };
 
   return (
@@ -64,6 +70,13 @@ export function DashboardLayout() {
         <div className="flex items-center gap-3">
           {error && <span className="text-xs text-destructive">{error}</span>}
           {saved && <span className="text-xs text-success font-semibold">Guardado ✓</span>}
+          <button
+            onClick={toggleDarkMode}
+            className="h-9 w-9 rounded-md border border-border text-sm font-medium hover:bg-muted flex items-center justify-center"
+            title={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          >
+            <Icon name={dark ? 'Sun' : 'Moon'} size={16} />
+          </button>
           <Link to="/" target="_blank" className="h-9 px-3 rounded-md border border-border text-sm font-medium hover:bg-muted flex items-center gap-1.5">
             <Icon name="Eye" size={14} />Vista previa
           </Link>
