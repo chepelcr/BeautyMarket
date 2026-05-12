@@ -1,4 +1,5 @@
 import { useConfig } from '@/hooks/useConfig';
+import { TextField, TextAreaField, LangToggle } from './components';
 
 export function MetaTab() {
   const { config, setConfig } = useConfig();
@@ -9,78 +10,40 @@ export function MetaTab() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-          App URL (Login / Iniciar sesión)
-        </label>
-        <input
-          type="url"
-          value={meta.appUrl}
-          onChange={e => set('appUrl', e.target.value)}
-          className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm font-mono focus:outline-none focus:border-primary"
-          placeholder="https://pos-system.j-markets.jcampos.dev"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Where "Iniciar sesión" buttons link — both in the nav and the CTA section.
-        </p>
-      </div>
+      <TextField
+        label="App URL (Login / Iniciar sesión)"
+        type="url"
+        value={meta.appUrl}
+        onChange={val => set('appUrl', val)}
+        placeholder="https://pos-system.j-markets.jcampos.dev"
+        hint="Hacia dónde apuntan los botones 'Iniciar sesión' — tanto en el nav como en la sección CTA."
+      />
 
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-          Site URL
-        </label>
-        <input
-          type="url"
-          value={meta.siteUrl}
-          onChange={e => set('siteUrl', e.target.value)}
-          className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm font-mono focus:outline-none focus:border-primary"
-        />
-      </div>
+      <TextField
+        label="URL del Sitio"
+        type="url"
+        value={meta.siteUrl}
+        onChange={val => set('siteUrl', val)}
+      />
 
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-          Site Title
-        </label>
-        <input
-          type="text"
-          value={meta.siteTitle}
-          onChange={e => set('siteTitle', e.target.value)}
-          className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
-        />
-      </div>
+      <TextField
+        label="Título del Sitio"
+        value={meta.siteTitle}
+        onChange={val => set('siteTitle', val)}
+      />
 
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-          Site Description
-        </label>
-        <textarea
-          rows={2}
-          value={meta.siteDescription}
-          onChange={e => set('siteDescription', e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
-        />
-      </div>
+      <TextAreaField
+        label="Descripción del Sitio"
+        value={meta.siteDescription}
+        onChange={val => set('siteDescription', val)}
+        rows={2}
+      />
 
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Default Language
-        </label>
-        <div className="flex gap-2">
-          {(['es', 'en'] as const).map(l => (
-            <button
-              key={l}
-              onClick={() => set('lang', l)}
-              className={`h-9 px-5 rounded-md text-sm font-semibold border transition ${
-                meta.lang === l
-                  ? 'bg-primary border-primary text-primary-foreground'
-                  : 'border-border hover:border-primary/40'
-              }`}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
+      <LangToggle
+        label="Idioma por Defecto"
+        value={meta.lang}
+        onChange={val => set('lang', val)}
+      />
     </div>
   );
 }

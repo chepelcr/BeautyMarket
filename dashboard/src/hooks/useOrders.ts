@@ -25,7 +25,7 @@ async function fetchOrders(params: OrdersQueryParams): Promise<OrdersResponse> {
   const queryParams = new URLSearchParams();
   if (search) queryParams.append('search', search);
   queryParams.append('page', String(page));
-  queryParams.append('pageSize', String(pageSize));
+  queryParams.append('page_size', String(pageSize));
 
   const url = buildOrdersApiUrl(orgId, `/orders?${queryParams.toString()}`);
   const response = await apiRequest('GET', url);

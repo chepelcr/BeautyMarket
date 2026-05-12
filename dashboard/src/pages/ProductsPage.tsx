@@ -200,7 +200,7 @@ export default function ProductsPage() {
     try {
       await Promise.all(
         Array.from(selectedProductIds).map(id => 
-          updateProductStatus({ id, status: 0 })
+          updateProductStatus({ id, status: 2 }) // 2 = INACTIVE
         )
       );
       toast({

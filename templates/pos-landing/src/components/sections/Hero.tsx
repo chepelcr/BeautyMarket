@@ -8,6 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useConfig } from '@/hooks/useConfig';
 import { fmtCRC } from '@/lib/format';
 import { cn } from '@/lib/cn';
+import { parseTitle } from '@/lib/parseTitle';
 
 export function Hero() {
   const { config } = useConfig();
@@ -44,10 +45,9 @@ function HeroCentered() {
         <h1
           className="font-display font-extrabold mt-6 leading-[0.95] tracking-tight"
           style={{ fontSize: 'clamp(2.5rem,6.4vw,5.25rem)' }}
-          dangerouslySetInnerHTML={{
-            __html: t('hero.headline').replace('Hacienda', '<span class="text-primary">Hacienda</span>'),
-          }}
-        />
+        >
+          {parseTitle(t('hero.headline'))}
+        </h1>
 
         {/* Subheadline */}
         <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -56,13 +56,13 @@ function HeroCentered() {
 
         {/* CTAs */}
         <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href="#precios"
+          <Link
+            to="/precios"
             className="inline-flex h-12 px-6 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-lg shadow-primary/25"
           >
             {t('hero.ctaPrimary')}
             <Icon name="ArrowRight" size={16} />
-          </a>
+          </Link>
           <Link
             to="/demo"
             className="inline-flex h-12 px-6 items-center justify-center gap-2 rounded-md border border-border bg-card font-semibold hover:bg-muted"
@@ -109,19 +109,19 @@ function HeroSplit() {
           {t('hero.subheadline')}
         </p>
         <div className="mt-7 flex flex-col sm:flex-row gap-3">
-          <a
-            href="#precios"
+          <Link
+            to="/precios"
             className="inline-flex h-12 px-6 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-lg shadow-primary/25"
           >
             {t('hero.ctaPrimary')}
             <Icon name="ArrowRight" size={16} />
-          </a>
-          <a
-            href="#caracteristicas"
+          </Link>
+          <Link
+            to="/caracteristicas"
             className="inline-flex h-12 px-6 items-center justify-center gap-2 rounded-md border border-border font-semibold hover:bg-muted"
           >
             {t('nav.features')}
-          </a>
+          </Link>
         </div>
       </div>
       <div className="lg:col-span-6">

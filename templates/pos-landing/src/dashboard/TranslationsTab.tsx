@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useConfig } from '@/hooks/useConfig';
-import { cn } from '@/lib/cn';
+import { LangToggle, Collapsible, TextAreaField } from './components';
 import type { LangKey, TranslationMap } from '@/types';
 
 type Lang = LangKey;
@@ -15,9 +15,9 @@ function setNestedValue(obj: Record<string, unknown>, path: string[], value: str
 }
 
 interface FieldProps {
-  path:    string[];
-  value:   unknown;
-  lang:    Lang;
+  path: string[];
+  value: unknown;
+  lang: Lang;
 }
 
 function Field({ path, value, lang }: FieldProps) {
@@ -34,43 +34,32 @@ function Field({ path, value, lang }: FieldProps) {
 
   if (typeof value === 'string') {
     return (
-      <div className="space-y-1">
-        <label className="block text-[10px] font-mono text-muted-foreground">{path.join('.')}</label>
-        <textarea
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          rows={value.length > 80 ? 3 : 1}
-          className="w-full rounded border border-border bg-background px-2 py-1 text-xs focus:outline-none focus:border-primary resize-none"
-        />
-      </div>
+      <TextAreaField
+        label={<span className="font-mono text-[10px]">{path.join('.')}</span>}
+        value={value}
+        onChange={onChange}
+        rows={value.length > 80 ? 3 : 1}
+        className="space-y-1"
+        textareaClassName="text-xs resize-none"
+      />
     );
   }
   return null;
 }
 
 function Section({ title, obj, prefix, lang }: { title: string; obj: Record<string, unknown>; prefix: string[]; lang: Lang }) {
-  const [open, setOpen] = useState(false);
   const entries = Object.entries(obj).filter(([, v]) => typeof v === 'string');
 
   if (entries.length === 0) return null;
 
   return (
-    <div className="border border-border rounded-md overflow-hidden">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-muted/40 text-sm font-semibold hover:bg-muted/60 transition"
-      >
-        {title}
-        <span className={cn('transition-transform', open ? 'rotate-180' : '')}>▾</span>
-      </button>
-      {open && (
-        <div className="px-4 py-3 space-y-3">
-          {entries.map(([k, v]) => (
-            <Field key={k} path={[...prefix, k]} value={v} lang={lang} />
-          ))}
-        </div>
-      )}
-    </div>
+    <Collapsible title={title} defaultOpen={false}>
+      <div className="space-y-3">
+        {entries.map(([k, v]) => (
+          <Field key={k} path={[...prefix, k]} value={v} lang={lang} />
+        ))}
+      </div>
+    </Collapsible>
   );
 }
 
@@ -83,21 +72,7 @@ export function TranslationsTab() {
 
   return (
     <div className="space-y-3">
-      {/* Lang picker */}
-      <div className="flex gap-2">
-        {(['es', 'en'] as Lang[]).map(l => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={cn(
-              'h-9 px-4 rounded-md text-sm font-semibold border transition',
-              lang === l ? 'bg-primary border-primary text-primary-foreground' : 'border-border hover:border-primary/40',
-            )}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      <LangToggle value={lang} onChange={setLang} />
 
       {/* Sections */}
       {Object.entries(translations).map(([key, val]) => {

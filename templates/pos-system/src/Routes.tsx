@@ -15,6 +15,7 @@ import ReportePage from "@/pages/dashboard/ReportePage";
 import POSIntegratedPage from "@/pages/dashboard/POSIntegratedPage";
 import ClientsPage from "@/pages/dashboard/ClientsPage";
 import ClientDetailPage from "@/pages/dashboard/ClientDetailPage";
+import ProductDetailPage from "@/pages/dashboard/ProductDetailPage";
 
 const DASHBOARD_ROLES = ["gerente", "supervisor", "customer", "cajero"];
 
@@ -71,6 +72,16 @@ function ClientDetailRoute() {
   );
 }
 
+// Product detail route — reads :productId from Wouter params
+function ProductDetailRoute() {
+  const { productId } = useParams<{ productId: string }>();
+  return (
+    <DashboardPage>
+      <ProductDetailPage productId={productId ?? ""} />
+    </DashboardPage>
+  );
+}
+
 export default function Routes() {
   const { user } = useAuthContext();
 
@@ -96,10 +107,17 @@ export default function Routes() {
         path={ROUTES.DASHBOARD_STATIONS}
         component={() => <DashboardPage><PuestosPage /></DashboardPage>}
       />
+      
+      {/* Products — detail before list so :productId is matched first */}
+      <Route
+        path={`${ROUTES.DASHBOARD_PRODUCTS}/:productId`}
+        component={ProductDetailRoute}
+      />
       <Route
         path={ROUTES.DASHBOARD_PRODUCTS}
         component={() => <DashboardPage><ProductsPage /></DashboardPage>}
       />
+      
       <Route
         path={ROUTES.DASHBOARD_REPORTS}
         component={() => <DashboardPage><ReportePage /></DashboardPage>}

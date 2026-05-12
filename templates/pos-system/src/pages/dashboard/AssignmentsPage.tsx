@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
-import { Card, Badge, Button, Icon, Select, EmptyState } from "@/components/ui";
+import { Card, Badge, Button, Icon, Select, EmptyState, Pagination } from "@/components/ui";
 import type { BranchListResponse } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -53,6 +53,13 @@ export default function AssignmentsPage() {
   const { t } = useLanguage();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
   const ROLE_LABEL: Record<Role, string> = {
     cashier: t("assignments.cashier"),
@@ -65,25 +72,44 @@ export default function AssignmentsPage() {
   const [role, setRole] = useState<Role>("cashier");
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { data: assignments = [], isLoading } = useQuery({
-    queryKey: ["assignments", org?.id],
+  const { data: assignmentsData, isLoading } = useQuery({
+    queryKey: ["assignments", org?.id, page, pageSize],
     enabled: !!user && !!org,
-    queryFn: () =>
-      crossAppApi.get<Assignment[]>(crossAppOrgPath(org!.id, "/assignments?search=status:1")),
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+        search: "status:1",
+      });
+      return crossAppApi.get<{ data: Assignment[]; pagination: any }>(crossAppOrgPath(org!.id, `/assignments?${params}`));
+    },
   });
+
+  const assignments = assignmentsData?.data ?? [];
+  const pagination = assignmentsData?.pagination;
 
   const { data: sessions = [] } = useQuery({
     queryKey: ["sessions-active", org?.id],
     enabled: !!user && !!org && showForm,
-    queryFn: () =>
-      crossAppApi.get<Session[]>(crossAppOrgPath(org!.id, "/sessions?search=status:1")),
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page_size: "1000",
+        search: "status:1",
+      });
+      return crossAppApi.get<{ data: Session[] }>(crossAppOrgPath(org!.id, `/sessions?${params}`)).then(res => res.data);
+    },
   });
 
   const { data: branchesResponse } = useQuery({
     queryKey: ["branches", org?.id],
     enabled: !!user && !!org && showForm,
-    queryFn: () =>
-      crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, "/branches?search=status:1")),
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page_size: "1000",
+        search: "status:1",
+      });
+      return crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, `/branches?${params}`));
+    },
   });
   const branches: Branch[] = branchesResponse?.data ?? [];
 
@@ -313,6 +339,20 @@ export default function AssignmentsPage() {
           </Card>
         );
       })}
+
+      {/* Pagination */}
+      {pagination && pagination.total_pages > 1 && (
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.total_pages}
+          totalElements={pagination.total_elements}
+          pageSize={pagination.page_size}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          itemName="asignaciones"
+          pageSizeOptions={[12, 24, 48, 96]}
+        />
+      )}
 
       <style>{`
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }

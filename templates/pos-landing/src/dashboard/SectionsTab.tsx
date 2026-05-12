@@ -1,19 +1,20 @@
 import { useConfig } from '@/hooks/useConfig';
+import { Toggle } from './components';
 import { cn } from '@/lib/cn';
 import type { AppConfig } from '@/types';
 
 type SectionKey = keyof AppConfig['sections'];
 
-const SECTIONS: Array<{ key: SectionKey; label: string; variants?: string[] }> = [
-  { key: 'hero',          label: 'Hero',           variants: ['centered', 'split'] },
-  { key: 'vsCompetition', label: 'VS Competition' },
-  { key: 'features',      label: 'Features' },
-  { key: 'howItWorks',    label: 'How It Works' },
-  { key: 'hacienda',      label: 'Hacienda 4.4',   variants: ['default', 'compact'] },
-  { key: 'pricing',       label: 'Pricing',         variants: ['default', 'compact'] },
-  { key: 'testimonials',  label: 'Testimonials' },
-  { key: 'faq',           label: 'FAQ' },
-  { key: 'finalCta',      label: 'Final CTA' },
+const SECTIONS: Array<{ key: SectionKey; label: string; variants?: Array<{ value: string; label: string }> }> = [
+  { key: 'hero',          label: 'Hero',           variants: [{ value: 'centered', label: 'Centrado' }, { value: 'split', label: 'Dividido' }] },
+  { key: 'vsCompetition', label: 'VS Competencia' },
+  { key: 'features',      label: 'Características' },
+  { key: 'howItWorks',    label: 'Cómo Funciona' },
+  { key: 'hacienda',      label: 'Hacienda 4.4',   variants: [{ value: 'default', label: 'Por defecto' }, { value: 'compact', label: 'Compacto' }] },
+  { key: 'pricing',       label: 'Precios',        variants: [{ value: 'default', label: 'Por defecto' }, { value: 'compact', label: 'Compacto' }] },
+  { key: 'testimonials',  label: 'Testimonios' },
+  { key: 'faq',           label: 'Preguntas' },
+  { key: 'finalCta',      label: 'CTA Final' },
   { key: 'footer',        label: 'Footer' },
 ];
 
@@ -55,39 +56,28 @@ export function SectionsTab() {
                 <div className="font-semibold text-sm">{label}</div>
                 {variants && (
                   <div className="flex gap-1.5 mt-2">
-                    {variants.map(v => (
+                    {variants.map(({ value, label: variantLabel }) => (
                       <button
-                        key={v}
-                        onClick={() => setVariant(key, v)}
+                        key={value}
+                        onClick={() => setVariant(key, value)}
                         className={cn(
                           'h-6 px-2.5 rounded text-[11px] font-semibold border transition',
-                          sectionWithVariant.variant === v
+                          sectionWithVariant.variant === value
                             ? 'bg-primary border-primary text-primary-foreground'
                             : 'border-border text-muted-foreground hover:border-primary/40',
                         )}
                       >
-                        {v}
+                        {variantLabel}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Visibility toggle */}
-              <button
-                onClick={() => toggleVisible(key)}
-                className={cn(
-                  'relative w-11 h-6 rounded-full border-2 transition-colors shrink-0',
-                  section.visible ? 'bg-primary border-primary' : 'bg-muted border-border',
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform',
-                    section.visible ? 'translate-x-5' : 'translate-x-0.5',
-                  )}
-                />
-              </button>
+              <Toggle
+                checked={section.visible}
+                onChange={() => toggleVisible(key)}
+              />
             </div>
           </div>
         );

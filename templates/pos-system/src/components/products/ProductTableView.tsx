@@ -18,6 +18,7 @@ interface ProductTableViewProps {
   onPriceInputChange: (v: string) => void;
   onSavePrice: (id: string, price: number) => void;
   onCancelEditPrice: () => void;
+  onNavigate?: (id: string) => void;
 }
 
 export function ProductTableView({
@@ -34,6 +35,7 @@ export function ProductTableView({
   onPriceInputChange,
   onSavePrice,
   onCancelEditPrice,
+  onNavigate,
 }: ProductTableViewProps) {
   const { t } = useLanguage();
 
@@ -62,13 +64,18 @@ export function ProductTableView({
             {products.map((p, i) => (
               <tr
                 key={p.product_id}
-                style={{ borderBottom: i < products.length - 1 ? "1px solid hsl(var(--border))" : "none" }}
+                style={{ 
+                  borderBottom: i < products.length - 1 ? "1px solid hsl(var(--border))" : "none",
+                  cursor: onNavigate ? "pointer" : "default",
+                }}
+                onClick={() => onNavigate?.(p.product_id)}
               >
                 <td className="pp-td">
                   <input
                     type="checkbox"
                     checked={selected.includes(p.product_id)}
                     onChange={() => onToggleSelect(p.product_id)}
+                    onClick={(e) => e.stopPropagation()}
                     style={{ accentColor: "hsl(var(--primary))" }}
                   />
                 </td>
@@ -81,7 +88,7 @@ export function ProductTableView({
                 <td className="pp-td">
                   <Badge variant="outline">{p.category?.name ?? "—"}</Badge>
                 </td>
-                <td className="pp-td t-num" style={{ textAlign: "right" }}>
+                <td className="pp-td t-num" style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
                   <ProductPriceEditor
                     productId={p.product_id}
                     price={p.price}
@@ -100,13 +107,13 @@ export function ProductTableView({
                   </Badge>
                 </td>
                 <td className="pp-td">
-                  <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                  <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="xs" icon="edit" onClick={() => onEdit(p)} />
                     <Button
                       variant="ghost"
                       size="xs"
                       icon={p.status === 1 ? "eyeOff" : "eye"}
-                      onClick={() => onToggleActive(p.product_id, p.status === 1 ? 0 : 1)}
+                      onClick={() => onToggleActive(p.product_id, p.status === 1 ? 2 : 1)}
                     />
                   </div>
                 </td>

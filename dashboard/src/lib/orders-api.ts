@@ -74,7 +74,7 @@ export class OrdersApi {
     const q = new URLSearchParams();
     if (params.search) q.append('search', params.search);
     if (params.page) q.append('page', String(params.page));
-    if (params.pageSize) q.append('pageSize', String(params.pageSize));
+    if (params.pageSize) q.append('page_size', String(params.pageSize));
     const qs = q.toString() ? `?${q.toString()}` : '';
     return this.makeRequest(`/api/organizations/${this.organizationId}/clients/${clientId}/stores${qs}`);
   }
@@ -116,7 +116,7 @@ export class OrdersApi {
     const q = new URLSearchParams();
     if (params.search) q.append('search', params.search);
     if (params.page) q.append('page', String(params.page));
-    if (params.pageSize) q.append('pageSize', String(params.pageSize));
+    if (params.pageSize) q.append('page_size', String(params.pageSize));
     const qs = q.toString() ? `?${q.toString()}` : '';
     return this.makeRequest(`/api/organizations/${this.organizationId}/clients/${clientId}/departments${qs}`);
   }

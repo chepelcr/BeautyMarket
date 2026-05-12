@@ -31,6 +31,8 @@ const translations: Record<Language, Record<string, string>> = {
     "common.print": "Imprimir",
     "common.edit": "Editar",
     "common.view": "Ver",
+    "common.previous": "Anterior",
+    "common.next": "Siguiente",
 
     // auth
     "auth.email": "CORREO",
@@ -240,6 +242,13 @@ const translations: Record<Language, Record<string, string>> = {
     "products.minStockPlaceholder": "Ej. 5",
     "products.activeLabel": "Activo",
     "products.inactiveLabel": "Inactivo",
+    "products.activate": "Activar producto",
+    "products.deactivate": "Desactivar producto",
+    "products.confirmActivate": "¿Activar \"{name}\"?",
+    "products.confirmDeactivate": "¿Desactivar \"{name}\"?",
+    "products.delete": "Eliminar producto",
+    "products.confirmDelete": "¿Estás seguro de eliminar \"{name}\"? Esta acción no se puede deshacer.",
+    "products.pagination": "Página {page} de {totalPages} · {totalElements} productos",
     // Product form — sections common
     "products.loadingInfo": "Cargando información…",
     "products.generalInfo": "Información General",
@@ -526,6 +535,8 @@ const translations: Record<Language, Record<string, string>> = {
     "common.print": "Print",
     "common.edit": "Edit",
     "common.view": "View",
+    "common.previous": "Previous",
+    "common.next": "Next",
 
     // auth
     "auth.email": "EMAIL",
@@ -735,6 +746,13 @@ const translations: Record<Language, Record<string, string>> = {
     "products.minStockPlaceholder": "e.g. 5",
     "products.activeLabel": "Active",
     "products.inactiveLabel": "Inactive",
+    "products.activate": "Activate product",
+    "products.deactivate": "Deactivate product",
+    "products.confirmActivate": "Activate \"{name}\"?",
+    "products.confirmDeactivate": "Deactivate \"{name}\"?",
+    "products.delete": "Delete product",
+    "products.confirmDelete": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "products.pagination": "Page {page} of {totalPages} · {totalElements} products",
     // Product form — sections common
     "products.loadingInfo": "Loading information…",
     "products.generalInfo": "General Information",

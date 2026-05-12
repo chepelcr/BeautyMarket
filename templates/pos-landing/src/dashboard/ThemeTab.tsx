@@ -1,12 +1,13 @@
 import { useConfig } from '@/hooks/useConfig';
+import { TextField, Collapsible } from './components';
 import { cn } from '@/lib/cn';
 import type { AccentKey } from '@/types';
 
 const ACCENTS: Array<{ key: AccentKey; label: string; color: string }> = [
-  { key: 'orange', label: 'Orange', color: '#e0640a' },
-  { key: 'indigo', label: 'Indigo', color: '#4651cc' },
-  { key: 'teal',   label: 'Teal',   color: '#1a7a6d' },
-  { key: 'violet', label: 'Violet', color: '#6b3eb8' },
+  { key: 'orange', label: 'Naranja', color: '#e0640a' },
+  { key: 'indigo', label: 'Índigo', color: '#4651cc' },
+  { key: 'teal',   label: 'Verde azulado',   color: '#1a7a6d' },
+  { key: 'violet', label: 'Violeta', color: '#6b3eb8' },
 ];
 
 export function ThemeTab() {
@@ -26,7 +27,7 @@ export function ThemeTab() {
       {/* Accent */}
       <div>
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Accent Color
+          Color de Acento
         </label>
         <div className="grid grid-cols-2 gap-2">
           {ACCENTS.map(a => (
@@ -49,7 +50,7 @@ export function ThemeTab() {
       {/* Dark mode */}
       <div>
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Dark Mode
+          Modo Oscuro
         </label>
         <div className="grid grid-cols-2 gap-2">
           {[false, true].map(d => (
@@ -61,7 +62,7 @@ export function ThemeTab() {
                 dark === d ? 'border-foreground bg-muted' : 'border-border hover:border-foreground/40',
               )}
             >
-              {d ? '🌙 Dark' : '☀️ Light'}
+              {d ? '🌙 Oscuro' : '☀️ Claro'}
             </button>
           ))}
         </div>
@@ -70,7 +71,7 @@ export function ThemeTab() {
       {/* Border radius */}
       <div>
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Border Radius
+          Radio de Borde
         </label>
         <div className="flex items-center gap-3">
           <input
@@ -87,30 +88,29 @@ export function ThemeTab() {
       </div>
 
       {/* Custom palette per accent */}
-      <div>
-        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Active Palette ({accent}) — Advanced
-        </label>
+      <Collapsible
+        title={`Paleta Activa (${accent}) — Avanzado`}
+        defaultOpen={false}
+      >
         <div className="space-y-2">
           {Object.entries(tokens.accentPalettes[accent]).map(([key, val]) => (
             <div key={key} className="flex items-center gap-3">
               <span className="text-xs font-mono text-muted-foreground w-36 shrink-0">{key}</span>
-              <input
-                type="text"
+              <TextField
                 value={val}
-                onChange={e => {
+                onChange={newVal => {
                   const newPalettes = {
                     ...tokens.accentPalettes,
-                    [accent]: { ...tokens.accentPalettes[accent], [key]: e.target.value },
+                    [accent]: { ...tokens.accentPalettes[accent], [key]: newVal },
                   };
                   setConfig({ ...config, tokens: { ...tokens, accentPalettes: newPalettes } });
                 }}
-                className="flex-1 h-8 rounded border border-border bg-background px-2 text-xs font-mono focus:outline-none focus:border-primary"
+                inputClassName="h-8 text-xs font-mono"
               />
             </div>
           ))}
         </div>
-      </div>
+      </Collapsible>
     </div>
   );
 }

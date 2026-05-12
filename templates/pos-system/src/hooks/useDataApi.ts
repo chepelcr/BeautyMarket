@@ -143,6 +143,35 @@ import type {
   GetAllTaxRatesParams,
 } from '../services/data-api';
 
+// Wrapper hook for backward compatibility with components expecting a single useDataApi hook
+export function useDataApi() {
+  const { data: measurementUnits } = useAllMeasurementUnits();
+  const { data: saleConditions } = useAllSaleConditions({ iso_code: 'CR' });
+  const { data: identificationTypes } = useAllIdentifications({ iso_code: 'CR' });
+  const { data: discountTypes } = useAllDiscountTypes({ iso_code: 'CR' });
+  const { data: taxTypes } = useAllTaxes({ iso_code: 'CR' });
+  const { data: taxRates } = useAllTaxRates({ iso_code: 'CR' });
+  const { data: taxFactors } = useAllTaxFactors({ iso_code: 'CR' });
+  const { data: taxAmounts } = useAllTaxAmounts({ iso_code: 'CR', tax_id: 0 }); // Will need proper tax_id
+  const { data: factoryTaxCharges } = useAllFactoryTaxCharges({ iso_code: 'CR' });
+  const { data: referenceTypes } = useAllReferences({ iso_code: 'CR' });
+  const { data: referenceCodes } = useAllReferenceCodes({ iso_code: 'CR' });
+
+  return {
+    measurementUnits: measurementUnits?.items ?? [],
+    saleConditions: saleConditions?.items ?? [],
+    identificationTypes: identificationTypes?.items ?? [],
+    discountTypes: discountTypes?.items ?? [],
+    taxTypes: taxTypes?.items ?? [],
+    taxRates: taxRates?.items ?? [],
+    taxFactors: taxFactors?.items ?? [],
+    taxAmounts: taxAmounts?.items ?? [],
+    factoryTaxCharges: factoryTaxCharges?.items ?? [],
+    referenceTypes: referenceTypes?.items ?? [],
+    referenceCodes: referenceCodes?.items ?? [],
+  };
+}
+
 // Document Versions
 export function useDocumentVersion(
   params: GetDocumentVersionParams,

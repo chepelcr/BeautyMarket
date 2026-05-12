@@ -1,0 +1,73 @@
+import { cn } from '@/lib/utils';
+import type { ClientSearchResult } from '@/hooks/useClientSearch';
+
+const fmt_id = (c: ClientSearchResult) =>
+  c.identification?.number ? `· ${c.identification.number}` : '';
+
+interface CustomerPanelProps {
+  clients: ClientSearchResult[];
+  isLoading: boolean;
+  query: string;
+  selected: ClientSearchResult | null;
+  onQueryChange: (v: string) => void;
+  onSelect: (c: ClientSearchResult) => void;
+}
+
+export function CustomerPanel({
+  clients,
+  isLoading,
+  query,
+  selected,
+  onQueryChange,
+  onSelect,
+}: CustomerPanelProps) {
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Search */}
+      <div className="p-3 shrink-0 border-b border-border">
+        <input
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="Buscar cliente por nombre o cédula…"
+          className="w-full h-10 rounded-md border border-border bg-card px-3 text-sm outline-none focus:border-primary"
+        />
+      </div>
+
+      {/* List */}
+      <div className="flex-1 overflow-auto scroll-area px-3 py-2 space-y-1">
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">Cargando…</div>
+        ) : clients.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            {query ? `Sin resultados para "${query}"` : 'Busca un cliente arriba'}
+          </div>
+        ) : (
+          clients.map((c) => {
+            const name = c.client_name || c.business_name || c.client_gln || 'Sin nombre';
+            const isSelected = selected?.client_id === c.client_id;
+            return (
+              <button
+                key={c.client_id}
+                onClick={() => onSelect(c)}
+                className={cn(
+                  'w-full rounded-md border px-3 py-2.5 text-left flex items-center justify-between hover:bg-muted transition-colors',
+                  isSelected
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-border bg-card text-foreground'
+                )}
+              >
+                <div>
+                  <div className="text-[13px] font-semibold leading-tight">{name}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">{fmt_id(c)}</div>
+                </div>
+                {isSelected && (
+                  <span className="text-[11px] font-bold text-primary shrink-0">Seleccionado</span>
+                )}
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}

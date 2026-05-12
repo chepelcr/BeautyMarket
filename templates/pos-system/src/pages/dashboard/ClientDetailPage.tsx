@@ -188,13 +188,14 @@ export default function ClientDetailPage({ clientId }: Props) {
   }
 
   return (
-    <div style={{ padding: "24px 24px 48px", maxWidth: 800, margin: "0 auto", fontFamily: T.fontUI }}>
+    <div style={{ padding: "24px 24px 48px", maxWidth: 800, margin: "0 auto" }}>
       {/* Back button */}
       <button
         onClick={() => navigate(ROUTES.DASHBOARD_CLIENTS)}
-        style={{ display: "inline-flex", alignItems: "center", gap: 6, color: T.muted, background: "none", border: "none", cursor: "pointer", fontSize: 13, fontFamily: T.fontUI, marginBottom: 20, padding: "6px 0" }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = T.text)}
-        onMouseLeave={(e) => (e.currentTarget.style.color = T.muted)}
+        className="t-body"
+        style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "hsl(var(--muted-foreground))", background: "none", border: "none", cursor: "pointer", marginBottom: 20, padding: "6px 0" }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(var(--foreground))")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(var(--muted-foreground))")}
       >
         <Icon name="arrowLeft" size={14} /> Clientes
       </button>
@@ -203,13 +204,13 @@ export default function ClientDetailPage({ clientId }: Props) {
       <Card style={{ padding: "28px 28px 24px", marginBottom: 14, background: `linear-gradient(135deg, ${T.roseLight} 0%, transparent 60%)`, borderColor: T.roseBorder }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
           {/* Avatar */}
-          <div style={{ width: 72, height: 72, borderRadius: 20, background: bg, color: fg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, fontFamily: T.fontDisplay, flexShrink: 0, boxShadow: `0 4px 16px ${bg}66` }}>
+          <div className="t-h1" style={{ width: 72, height: 72, borderRadius: 20, background: bg, color: fg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 16px ${bg}66` }}>
             {initials(displayName)}
           </div>
 
           {/* Name + meta */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, fontFamily: T.fontDisplay, color: T.text, margin: "0 0 6px", lineHeight: 1.2 }}>
+            <h1 className="t-h1" style={{ margin: "0 0 6px", lineHeight: 1.2 }}>
               {displayName}
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -273,10 +274,10 @@ export default function ClientDetailPage({ clientId }: Props) {
             <div style={{ width: 44, height: 44, borderRadius: 12, background: T.roseLight, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
               <Icon name="user" size={20} style={{ color: T.rose }} />
             </div>
-            <div style={{ fontSize: 14, color: T.muted, fontFamily: T.fontUI }}>
+            <div className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
               Sin información adicional registrada.
             </div>
-            <button onClick={() => setEditOpen(true)} style={{ marginTop: 10, color: T.rose, background: "none", border: "none", cursor: "pointer", fontSize: 13, fontFamily: T.fontUI, fontWeight: 600 }}>
+            <button onClick={() => setEditOpen(true)} className="t-body" style={{ marginTop: 10, color: T.rose, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
               Agregar información →
             </button>
           </Card>

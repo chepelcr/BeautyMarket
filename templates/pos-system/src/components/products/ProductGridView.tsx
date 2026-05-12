@@ -16,6 +16,7 @@ interface ProductGridViewProps {
   onPriceInputChange: (v: string) => void;
   onSavePrice: (id: string, price: number) => void;
   onCancelEditPrice: () => void;
+  onNavigate?: (id: string) => void;
 }
 
 const lowStock = (p: Product) => (p.stock_quantity ?? 0) > 0 && (p.stock_quantity ?? 0) <= 5;
@@ -32,6 +33,7 @@ export function ProductGridView({
   onPriceInputChange,
   onSavePrice,
   onCancelEditPrice,
+  onNavigate,
 }: ProductGridViewProps) {
   const { t } = useLanguage();
 
@@ -44,7 +46,12 @@ export function ProductGridView({
       }}
     >
       {products.map((p) => (
-        <Card key={p.product_id} hoverable style={{ padding: 0, overflow: "hidden", opacity: p.status !== 0 ? 1 : 0.6 }}>
+        <Card 
+          key={p.product_id} 
+          hoverable 
+          style={{ padding: 0, overflow: "hidden", opacity: p.status !== 0 ? 1 : 0.6, cursor: onNavigate ? "pointer" : "default" }}
+          onClick={() => onNavigate?.(p.product_id)}
+        >
           <div style={{ position: "relative" }}>
             <ProductImage
               imageUrl={p.image_url}
@@ -57,6 +64,7 @@ export function ProductGridView({
                 type="checkbox"
                 checked={selected.includes(p.product_id)}
                 onChange={() => onToggleSelect(p.product_id)}
+                onClick={(e) => e.stopPropagation()}
                 style={{ width: 18, height: 18, accentColor: "hsl(var(--primary))", cursor: "pointer" }}
               />
             </div>
@@ -82,13 +90,13 @@ export function ProductGridView({
                 onSave={onSavePrice}
                 onCancel={onCancelEditPrice}
               />
-              <div style={{ display: "flex", gap: 4 }}>
+              <div style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="xs" icon="edit" onClick={() => onEdit(p)} />
                 <Button
                   variant="ghost"
                   size="xs"
                   icon={p.status === 1 ? "eye" : "eyeOff"}
-                  onClick={() => onToggleActive(p.product_id, p.status === 1 ? 0 : 1)}
+                  onClick={() => onToggleActive(p.product_id, p.status === 1 ? 2 : 1)}
                 />
               </div>
             </div>

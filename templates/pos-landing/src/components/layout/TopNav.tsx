@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Icon } from '@/components/ui/Icon';
 import { LogoIcon } from '@/components/ui/LogoIcon';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -8,20 +8,20 @@ import { useConfig } from '@/hooks/useConfig';
 import { cn } from '@/lib/cn';
 
 const NAV_LINKS = [
-  { href: '/#caracteristicas', key: 'features' },
-  { href: '/#hacienda',        key: 'hacienda' },
-  { href: '/#precios',         key: 'pricing'  },
-  { href: '/#preguntas',       key: 'faq'      },
+  { href: '/caracteristicas', key: 'features' },
+  { href: '/hacienda',        key: 'hacienda' },
+  { href: '/precios',         key: 'pricing'  },
+  { href: '/preguntas',       key: 'faq'      },
 ] as const;
 
 export function TopNav() {
   const { t, lang, setLang } = useTranslation();
   const { dark, setDark }     = useTheme();
   const { config }            = useConfig();
+  const location              = useLocation();
   const appUrl                = config.meta.appUrl;
   const [open, setOpen]       = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const navigate              = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -31,16 +31,20 @@ export function TopNav() {
 
   const handleNavClick = (href: string) => {
     setOpen(false);
-    if (href.startsWith('/#')) {
-      const id = href.slice(2);
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        navigate('/');
-        setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 100);
+    
+    // Update URL first
+    window.history.pushState({}, '', href);
+    
+    // Extract section ID from href
+    const sectionId = href === '/' ? 'top' : href.substring(1); // Remove leading /
+    
+    // Find and scroll to element
+    setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }
+    }, 100);
   };
 
   return (
@@ -52,7 +56,14 @@ export function TopNav() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 font-display font-extrabold text-lg">
+        <Link 
+          to="/" 
+          className="flex items-center gap-2.5 font-display font-extrabold text-lg"
+          onClick={() => {
+            // Scroll to top when clicking logo
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
           <LogoIcon size={32} />
           <span className="leading-none">JMARKETS<span className="text-primary">·</span>POS</span>
         </Link>
@@ -63,7 +74,10 @@ export function TopNav() {
             <button
               key={key}
               onClick={() => handleNavClick(href)}
-              className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md transition"
+              className={cn(
+                'px-3 py-2 text-sm font-medium rounded-md transition',
+                location.pathname === href ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-foreground'
+              )}
             >
               {t(`nav.${key}`)}
             </button>
@@ -111,13 +125,13 @@ export function TopNav() {
           </a>
 
           {/* CTA */}
-          <button
-            onClick={() => handleNavClick('/#precios')}
+          <Link
+            to="/precios"
             className="inline-flex h-9 px-4 items-center gap-1.5 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 shadow-sm shadow-primary/20"
           >
             {t('nav.cta')}
             <Icon name="ArrowRight" size={14} />
-          </button>
+          </Link>
 
           {/* Mobile hamburger */}
           <button
@@ -136,7 +150,10 @@ export function TopNav() {
             <button
               key={key}
               onClick={() => handleNavClick(href)}
-              className="px-3 py-2.5 rounded-md text-sm font-medium hover:bg-muted text-left"
+              className={cn(
+                'px-3 py-2.5 rounded-md text-sm font-medium text-left',
+                location.pathname === href ? 'text-primary font-semibold' : 'hover:bg-muted'
+              )}
             >
               {t(`nav.${key}`)}
             </button>

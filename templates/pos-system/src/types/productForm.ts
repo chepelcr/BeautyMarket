@@ -35,7 +35,6 @@ export interface ProductFormState {
   name: string;
   description: string;
   category_id: string;
-  sku: string;
   track_inventory: boolean;
   has_fiscal_info: boolean;
 
@@ -72,7 +71,6 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   name: "",
   description: "",
   category_id: "",
-  sku: "",
   track_inventory: false,
   has_fiscal_info: false,
   has_package_info: false,

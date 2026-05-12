@@ -12,28 +12,33 @@ export interface FeatureDef {
 }
 
 export interface PlanFeature {
+  id?:     string;  // Optional reference to master feature ID
   label:   string;
   enabled: boolean;
   color?:  FeatureColor;
 }
 
 export interface Plan {
-  id:               string;
-  name:             string;
-  tagline:          string;
-  priceCRC:         number;
-  priceMin:         number;
-  priceMax:         number;
-  priceSuffix:      string;
-  showPriceSlider:  boolean;
-  ctaLabel:         string;
-  ctaHref:          string;
-  badge?:           string;
-  highlighted:      boolean;
-  subline?:         string;
-  showAmortization: boolean;
-  showMoneyBack:    boolean;
-  features:         PlanFeature[];
+  id:                  string;
+  name:                string;
+  tagline:             string;
+  priceMonthly?:       number;  // Monthly subscription price
+  priceAnnual?:        number;  // Annual subscription price
+  priceCRC:            number;  // Legacy: one-time price
+  priceMin:            number;
+  priceMax:            number;
+  priceSuffix:         string;  // Legacy: single suffix
+  priceSuffixMonthly?: string;  // Suffix for monthly billing (e.g., "/ mes")
+  priceSuffixAnnual?:  string;  // Suffix for annual billing (e.g., "/ año")
+  showPriceSlider:     boolean;
+  ctaLabel:            string;
+  ctaHref:             string;
+  badge?:              string;
+  highlighted:         boolean;
+  subline?:            string;
+  showAmortization:    boolean;
+  showMoneyBack:       boolean;
+  features:            PlanFeature[];
 }
 
 export interface AccentPalette {
@@ -275,13 +280,15 @@ export interface AppConfig {
     footer:        SectionConfig;
   };
   pricing: {
-    currency:           CurrencyKey;
-    usdRateCRC:         number;
-    freeDocs:           number;
-    amortizationMonths: number;
-    moneyBackDays:      number;
-    features:           FeatureDef[];
-    plans:              Plan[];
+    currency:             CurrencyKey;
+    usdRateCRC:           number;
+    freeDocs:             number;
+    amortizationMonths:   number;  // Legacy: for one-time payment amortization
+    moneyBackDays:        number;
+    annualDiscountMonths?: number;  // Number of free months for annual plan (e.g., 2 = pay 10, get 12)
+    defaultBillingCycle?: 'monthly' | 'annual';  // Default billing cycle to display
+    features:             FeatureDef[];
+    plans:                Plan[];
   };
   demo: {
     products:   DemoProduct[];

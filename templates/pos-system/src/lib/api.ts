@@ -1,7 +1,9 @@
 import { fetchAuthSession } from "aws-amplify/auth";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://markets-api.jcampos.dev";
+const API_BASE           = import.meta.env.VITE_API_URL        || "https://markets-api.jcampos.dev";
 const CROSS_APP_API_BASE = import.meta.env.VITE_ORDERS_API_URL || "https://orders-api.jcampos.dev";
+// Single sales API — separate Lambdas are all behind one API Gateway domain
+const SALES_API_BASE     = import.meta.env.VITE_SALES_API_URL  || "https://sales-api.jcampos.dev";
 
 async function getToken(): Promise<string> {
   const session = await fetchAuthSession();
@@ -106,4 +108,28 @@ export function crossAppOrgPath(orgId: string, endpoint: string) {
 export function ordersOrgPath(orgId: string, endpoint: string) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `/api/organizations/${orgId}${cleanEndpoint}`;
+}
+
+// ─── Sales API (single client — all invoice Lambdas share one API Gateway) ─
+
+export const salesApi = createClient(SALES_API_BASE);
+
+/** /api/organizations/{org}/sales[suffix] */
+export function salesOrgPath(orgId: string, suffix: string = '') {
+  return `/api/organizations/${orgId}/sales${suffix}`;
+}
+
+/** /api/organizations/{org}/sales/{id}/invoice-validation[suffix] */
+export function validationPath(orgId: string, saleId: string, suffix: string = '') {
+  return `/api/organizations/${orgId}/sales/${saleId}/invoice-validation${suffix}`;
+}
+
+/** /api/organizations/{org}/sales/{id}/xml[suffix] */
+export function xmlPath(orgId: string, saleId: string, suffix: string = '') {
+  return `/api/organizations/${orgId}/sales/${saleId}/xml${suffix}`;
+}
+
+/** /api/organizations/{org}/sales/{id}/notifications[suffix] */
+export function notifyPath(orgId: string, saleId: string, suffix: string = '') {
+  return `/api/organizations/${orgId}/sales/${saleId}/notifications${suffix}`;
 }

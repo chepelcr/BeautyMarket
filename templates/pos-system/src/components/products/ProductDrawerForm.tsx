@@ -25,7 +25,6 @@ export const EMPTY_FORM: ProductFormState = {
   name: "",
   description: "",
   category_id: "",
-  sku: "",
   track_inventory: false,
   has_fiscal_info: false,
   has_package_info: false,
@@ -50,9 +49,11 @@ interface ProductDrawerFormProps {
   categories: Category[];
   saving: boolean;
   imageFile: File | null;
+  unitsPerBox: string;
   onClose: () => void;
   onFormChange: (patch: Partial<ProductFormState>) => void;
   onImageChange: (file: File | null) => void;
+  onUnitsPerBoxChange: (value: string) => void;
   onSave: () => void;
   onDelete: () => void;
 }
@@ -76,9 +77,11 @@ export function ProductDrawerForm({
   form,
   categories,
   saving,
+  unitsPerBox,
   onClose,
   onFormChange,
   onImageChange,
+  onUnitsPerBoxChange,
   onSave,
   onDelete,
 }: ProductDrawerFormProps) {
@@ -107,10 +110,6 @@ export function ProductDrawerForm({
       setDrawerReady(true);
     }
   }, [open, dataReady]);
-
-
-  // Packaging units local state
-  const [unitsPerBox, setUnitsPerBox] = useState("");
 
   const [expanded, setExpanded] = useState<SectionExpanded>({
     general: true,
@@ -245,7 +244,7 @@ export function ProductDrawerForm({
     }
 
     if ("has_package_info" in patch && !patch.has_package_info) {
-      setUnitsPerBox("");
+      onUnitsPerBoxChange("");
       expandPatch.packaging = false;
     }
 
@@ -400,7 +399,7 @@ export function ProductDrawerForm({
             isExpanded={expanded.packaging}
             onToggle={() => toggle("packaging")}
             disabled={!form.has_package_info}
-            onChange={setUnitsPerBox}
+            onChange={onUnitsPerBoxChange}
           />
 
           {/* 5. Inventory */}

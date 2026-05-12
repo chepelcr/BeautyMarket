@@ -1,8 +1,10 @@
+import * as React from 'react';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useConfig } from '@/hooks/useConfig';
 import { fmtCRC, fmtUSD } from '@/lib/format';
 import { cn } from '@/lib/cn';
+import { parseTitle } from '@/lib/parseTitle';
 import type { Plan, PlanFeature, FeatureColor } from '@/types';
 
 interface Addon {
@@ -21,15 +23,26 @@ const COLOR_CLASS: Record<FeatureColor, string> = {
 
 export function Pricing() {
   const { config } = useConfig();
-  const { t, tRaw } = useTranslation();
-  const { currency, usdRateCRC, freeDocs, amortizationMonths, moneyBackDays, plans } = config.pricing;
+  const { t, tRaw, lang } = useTranslation();
+  const { currency, usdRateCRC, freeDocs, amortizationMonths, moneyBackDays, annualDiscountMonths = 2, defaultBillingCycle = 'annual' } = config.pricing;
+  const plans = config.translations[lang]?.pricing?.plans ?? [];
   const addons = tRaw<Addon[]>('pricing.addons') ?? [];
+
+  // State for billing cycle toggle
+  const [billingCycle, setBillingCycle] = React.useState<'monthly' | 'annual'>(defaultBillingCycle);
 
   const fmt = (n: number) => currency === 'USD' ? fmtUSD(n, usdRateCRC) : fmtCRC(n);
 
   // Auto-fit grid: 1 col on mobile, up to 4 cols on large screens
   const gridStyle = {
     gridTemplateColumns: `repeat(auto-fit, minmax(min(280px, 100%), 1fr))`,
+  };
+
+  // Get billing toggle labels from translations
+  const billingToggle = tRaw<{ monthly: string; annual: string; badge: string }>('pricing.billingToggle') ?? {
+    monthly: 'Mensual',
+    annual: 'Anual',
+    badge: 'Ahorrá 2 meses'
   };
 
   return (
@@ -44,12 +57,43 @@ export function Pricing() {
           <h2
             className="font-display font-extrabold mt-2"
             style={{ fontSize: 'clamp(2rem,3.6vw,3rem)' }}
-            dangerouslySetInnerHTML={{
-              __html: t('pricing.headline')
-                .replace('Crecé sin atarte.', '<span class="text-primary">Crecé sin atarte.</span>'),
-            }}
-          />
+          >
+            {parseTitle(t('pricing.headline'))}
+          </h2>
           <p className="mt-3 text-muted-foreground">{t('pricing.subheadline')}</p>
+        </div>
+
+        {/* Billing Cycle Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex items-center gap-3 p-1.5 rounded-full bg-muted border border-border">
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              className={cn(
+                'px-5 py-2.5 rounded-full text-sm font-semibold transition-all',
+                billingCycle === 'monthly'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {billingToggle.monthly}
+            </button>
+            <button
+              onClick={() => setBillingCycle('annual')}
+              className={cn(
+                'px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2',
+                billingCycle === 'annual'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {billingToggle.annual}
+              {annualDiscountMonths > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                  {billingToggle.badge}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Plan grid */}
@@ -62,6 +106,9 @@ export function Pricing() {
               freeDocs={freeDocs}
               amortizationMonths={amortizationMonths}
               moneyBackDays={moneyBackDays}
+              billingCycle={billingCycle}
+              annualDiscountMonths={annualDiscountMonths}
+              lang={lang}
             />
           ))}
         </div>
@@ -88,15 +135,45 @@ export function Pricing() {
 }
 
 interface PlanCardProps {
-  plan:               Plan;
-  fmt:                (n: number) => string;
-  freeDocs:           number;
-  amortizationMonths: number;
-  moneyBackDays:      number;
+  plan:                 Plan;
+  fmt:                  (n: number) => string;
+  freeDocs:             number;
+  amortizationMonths:   number;
+  moneyBackDays:        number;
+  billingCycle:         'monthly' | 'annual';
+  annualDiscountMonths: number;
+  lang:                 'es' | 'en';
 }
 
-function PlanCard({ plan, fmt, freeDocs, amortizationMonths, moneyBackDays }: PlanCardProps) {
-  const { t } = useTranslation();
+function PlanCard({ plan, fmt, freeDocs, amortizationMonths, moneyBackDays, billingCycle, annualDiscountMonths, lang }: PlanCardProps) {
+  const { t, tRaw } = useTranslation();
+  
+  // Determine which price to show based on billing cycle
+  const isSubscription = plan.priceMonthly !== undefined || plan.priceAnnual !== undefined;
+  const displayPrice = isSubscription
+    ? (billingCycle === 'monthly' ? (plan.priceMonthly ?? 0) : (plan.priceAnnual ?? 0))
+    : plan.priceCRC;
+
+  // Calculate savings for annual plan
+  const monthlySavings = isSubscription && billingCycle === 'annual' && plan.priceMonthly && plan.priceAnnual
+    ? (plan.priceMonthly * 12) - plan.priceAnnual
+    : 0;
+
+  // Get plan labels from translations
+  const planLabels = tRaw<{ monthlyPrice: string; annualPrice: string; savingsNote: string }>('pricing.planLabels') ?? {
+    monthlyPrice: '/ mes',
+    annualPrice: '/ año',
+    savingsNote: 'Pagás 10 meses y te regalamos 2'
+  };
+
+  // Determine price suffix - use plan-specific suffixes if available, otherwise fall back to translation defaults
+  const priceSuffix = isSubscription
+    ? (billingCycle === 'monthly' 
+        ? (plan.priceSuffixMonthly ?? planLabels.monthlyPrice)
+        : (plan.priceSuffixAnnual ?? planLabels.annualPrice))
+    : plan.priceSuffix;
+
+  // Legacy amortization calculation (for one-time payment plans)
   const monthly  = fmt(Math.round(plan.priceCRC / amortizationMonths));
   const nextYear = Math.floor(amortizationMonths / 12) + 1;
 
@@ -142,22 +219,40 @@ function PlanCard({ plan, fmt, freeDocs, amortizationMonths, moneyBackDays }: Pl
           'font-display font-extrabold text-5xl t-num',
           plan.highlighted && 'text-primary',
         )}>
-          {fmt(plan.priceCRC)}
+          {fmt(displayPrice)}
         </span>
-        <span className="text-muted-foreground">{plan.priceSuffix}</span>
+        <span className="text-muted-foreground">{priceSuffix}</span>
       </div>
 
-      {/* Subline / amortization */}
-      {plan.showAmortization
-        ? <p className="text-xs text-muted-foreground mb-2">{amort}</p>
-        : plan.subline && <p className="text-xs text-muted-foreground mb-2">{plan.subline}</p>
-      }
+      {/* Savings badge for annual subscription - reserve space to prevent layout shift */}
+      <div className="h-6 mb-2">
+        {isSubscription && billingCycle === 'annual' && monthlySavings > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-success flex items-center gap-1">
+              <Icon name="TrendingDown" size={14} />
+              {lang === 'es' ? `Ahorrás ${fmt(monthlySavings)}` : `Save ${fmt(monthlySavings)}`}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Subline / amortization / savings note - show appropriate text based on context */}
+      {/* Priority: 1) subline (always show if exists), 2) savings note for annual with discount, 3) amortization for legacy plans */}
+      {plan.subline ? (
+        <p className="text-xs text-muted-foreground mb-2">{plan.subline}</p>
+      ) : isSubscription && billingCycle === 'annual' && annualDiscountMonths > 0 ? (
+        <p className="text-xs text-muted-foreground mb-2">{planLabels.savingsNote}</p>
+      ) : plan.showAmortization ? (
+        <p className="text-xs text-muted-foreground mb-2">{amort}</p>
+      ) : (
+        <div className="mb-2" /> // Maintain spacing even when no text
+      )}
 
       {/* CTA */}
       <a
         href={plan.ctaHref}
         className={cn(
-          'mt-4 h-11 rounded-md font-semibold flex items-center justify-center gap-2 mb-6',
+          'mt-4 h-11 rounded-md font-semibold flex items-center justify-center gap-2 mb-6 transition-colors',
           plan.highlighted
             ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/30'
             : 'border border-border bg-background hover:bg-muted',
@@ -168,7 +263,7 @@ function PlanCard({ plan, fmt, freeDocs, amortizationMonths, moneyBackDays }: Pl
       </a>
 
       {/* Features */}
-      <ul className="space-y-2.5 text-sm">
+      <ul className="space-y-2.5 text-sm flex-1">
         {plan.features.map((f, i) => (
           <FeatureRow key={i} feature={f} freeDocs={freeDocs} />
         ))}

@@ -25,7 +25,7 @@ async function fetchConfirmations(params: ConfirmationsQueryParams): Promise<Con
 
   const queryParams = new URLSearchParams();
   queryParams.append('page', String(page));
-  queryParams.append('pageSize', String(pageSize));
+  queryParams.append('page_size', String(pageSize));
 
   const response = await apiRequest('GET', `${baseUrl(orgId)}?${queryParams.toString()}`);
   const data = await response.json();

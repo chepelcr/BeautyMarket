@@ -24,7 +24,7 @@ async function fetchClients(params: ClientsQueryParams): Promise<ClientsResponse
   const queryParams = new URLSearchParams();
   if (search) queryParams.append('search', search);
   queryParams.append('page', String(page));
-  queryParams.append('pageSize', String(pageSize));
+  queryParams.append('page_size', String(pageSize));
 
   const url = buildOrdersApiUrl(orgId, `/clients?${queryParams.toString()}`);
   const response = await apiRequest('GET', url);

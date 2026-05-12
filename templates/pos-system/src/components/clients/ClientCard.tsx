@@ -9,15 +9,26 @@ interface ClientCardProps {
   orgId: string;
   onNavigate: () => void;
   onEdit: (c: Client) => void;
+  onToggleActive?: (client: Client, newStatus: number) => void;
 }
 
-export function ClientCard({ client, orgId, onNavigate, onEdit }: ClientCardProps) {
+export function ClientCard({ client, orgId, onNavigate, onEdit, onToggleActive }: ClientCardProps) {
   const statusMutation = useUpdateClientStatus(orgId);
   const displayName = clientDisplayName(client);
   const [bg, fg] = avatarColor(displayName);
   const idShort = client.identification?.code ? ID_TYPE_SHORT[client.identification.code] : undefined;
   const phone = formatPhone(client.phone);
   const isActive = client.status === 1;
+
+  const handleToggleStatus = () => {
+    const newStatus = isActive ? 2 : 1;
+    if (onToggleActive) {
+      onToggleActive(client, newStatus);
+    } else {
+      // Fallback to direct call if no handler provided
+      statusMutation.mutate({ clientId: client.client_id, status: newStatus });
+    }
+  };
 
   return (
     <Card
@@ -56,7 +67,7 @@ export function ClientCard({ client, orgId, onNavigate, onEdit }: ClientCardProp
               {
                 label: isActive ? "Desactivar" : "Activar",
                 icon: isActive ? "xCircle" : "checkCircle",
-                action: () => statusMutation.mutate({ clientId: client.client_id, status: isActive ? 2 : 1 }),
+                action: handleToggleStatus,
               },
             ]}
           />

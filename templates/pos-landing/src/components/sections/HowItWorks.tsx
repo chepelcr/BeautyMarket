@@ -1,5 +1,6 @@
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useTranslation } from '@/hooks/useTranslation';
+import { parseTitle } from '@/lib/parseTitle';
 
 interface Step {
   icon:  string;
@@ -19,12 +20,9 @@ export function HowItWorks() {
           <h2
             className="font-display font-extrabold mt-2"
             style={{ fontSize: 'clamp(2rem,3.6vw,3rem)' }}
-            dangerouslySetInnerHTML={{
-              __html: t('howItWorks.headline')
-                .replace('5 minutos', '<span class="text-primary">5 minutos</span>')
-                .replace('5 minutes', '<span class="text-primary">5 minutes</span>'),
-            }}
-          />
+          >
+            {parseTitle(t('howItWorks.headline'))}
+          </h2>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {steps.map((step, i) => (
@@ -32,11 +30,13 @@ export function HowItWorks() {
               <div className="absolute top-4 right-4 font-display font-extrabold text-5xl text-primary/15 leading-none t-num">
                 0{i + 1}
               </div>
-              <div className="w-11 h-11 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
-                <Icon name={step.icon as IconName} size={20} />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-md bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                  <Icon name={step.icon as IconName} size={20} />
+                </div>
+                <h4 className="font-display font-bold text-xl">{step.title}</h4>
               </div>
-              <h4 className="font-display font-bold text-xl mt-4">{step.title}</h4>
-              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{step.desc}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>

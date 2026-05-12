@@ -6,19 +6,17 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { useCartFlow } from "@/hooks/useCartFlow";
 import { useClientSearch } from "@/hooks/useClientSearch";
-import { SyncPill } from "@/components/ui";
 import { useSync } from "@/hooks/useSync";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { POS } from "@/theme/pos";
-import { ProductsPanel } from "@/components/pos/ProductsPanel";
+import { cn } from "@/lib/utils";
+import { PosHeader } from "@/components/pos/PosHeader";
+import { PosLeftPane } from "@/components/pos/PosLeftPane";
 import { CartSidebar } from "@/components/pos/CartSidebar";
-import { ClientSelector } from "@/components/pos/ClientSelector";
-import { SaleSuccessOverlay } from "@/components/pos/SaleSuccessOverlay";
+import { CheckoutModal } from "@/components/pos/checkout/CheckoutModal";
 import SessionSetupScreen from "@/pages/pos/SessionSetupScreen";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
-import { Icon } from "@/components/ui";
 
-type ActiveTab = "products" | "cart" | "clients";
+type LeftTab = "products" | "clients";
 
 export default function POSIntegratedPage() {
   const syncStatus = useSync();
@@ -28,17 +26,19 @@ export default function POSIntegratedPage() {
   const { data: assignment, isLoading: assignmentLoading } = useAssignment();
   const sessionCtx = useSessionContext();
   const { t } = useLanguage();
-  const isDesktop = useIsDesktop(1024);
+  const isDesktop = useIsDesktop(768);
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>("products");
+  const [leftTab, setLeftTab] = useState<LeftTab>("products");
   const [selectedClient, setSelectedClient] = useState<ClientSearchResult | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
 
-  const clientsEnabled = activeTab === "clients" || false;
-  const { query: clientQuery, setQuery: setClientQuery, clients, isLoading: clientsLoading } = useClientSearch(org?.id, clientsEnabled);
+  const clientsEnabled = leftTab === "clients";
+  const { query: clientQuery, setQuery: setClientQuery, clients, isLoading: clientsLoading } =
+    useClientSearch(org?.id, clientsEnabled);
 
   const flow = useCartFlow();
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (invoiceData: any) => {
     if (!assignment || !org || !user) return;
     const branchCode = sessionCtx.branch_code;
     const terminalCode = sessionCtx.terminal_code;
@@ -51,40 +51,30 @@ export default function POSIntegratedPage() {
       branchCode,
       terminalCode,
       selectedClient,
+      invoiceData,
     });
     setSelectedClient(null);
+    setShowCheckout(false);
   };
 
   if (orgLoading || assignmentLoading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", background: POS.bg }}>
-        <div style={{ color: POS.muted, fontFamily: POS.fontUI, fontSize: 14 }}>{t("common.loading")}</div>
+      <div className="flex items-center justify-center h-[60vh] bg-background">
+        <span className="text-muted-foreground text-sm">{t("common.loading")}</span>
       </div>
     );
   }
 
   if (!org) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", background: POS.bg }}>
-        <div style={{ color: POS.muted, fontFamily: POS.fontUI, fontSize: 14 }}>Sin organización activa.</div>
+      <div className="flex items-center justify-center h-[60vh] bg-background">
+        <span className="text-muted-foreground text-sm">Sin organización activa.</span>
       </div>
     );
   }
 
   if (!sessionCtx.branch_code || !sessionCtx.terminal_code) {
     return <SessionSetupScreen org={org} />;
-  }
-
-  if (flow.showSuccess) {
-    return (
-      <SaleSuccessOverlay
-        total={flow.lastTotal}
-        change={flow.lastChange}
-        method={flow.lastMethod}
-        orderNum={flow.orderNum}
-        onNewSale={flow.resetPayment}
-      />
-    );
   }
 
   const cartSidebar = (
@@ -95,224 +85,122 @@ export default function POSIntegratedPage() {
       taxAmount={flow.taxAmount}
       items={flow.items}
       selectedClient={selectedClient}
-      showPayment={flow.showPayment}
-      payMethod={flow.payMethod}
-      cashGiven={flow.cashGiven}
-      sinpeCode={flow.sinpeCode}
-      given={flow.given}
-      change={flow.change}
-      canConfirm={flow.canConfirm}
       onAdd={flow.add}
       onRemove={flow.remove}
       onUpdateLine={flow.updateLine}
-      onShowPayment={() => flow.setShowPayment(true)}
-      onHidePayment={() => flow.setShowPayment(false)}
-      onSelectClient={() => {
-        setActiveTab("clients");
-        if (!isDesktop) flow.setShowPayment(false);
-      }}
+      onCheckout={() => setShowCheckout(true)}
+      onSelectClient={() => setLeftTab("clients")}
       onClearClient={() => setSelectedClient(null)}
-      onPayMethodChange={flow.setPayMethod}
-      onCashGivenChange={flow.setCashGiven}
-      onSinpeCodeChange={flow.setSinpeCode}
-      onConfirmPayment={handleConfirm}
     />
   );
 
-  const productsPanel = (
-    <ProductsPanel
+  const leftPane = (
+    <PosLeftPane
       orgId={org.id}
+      activeTab={leftTab}
+      onTabChange={(tab) => {
+        setLeftTab(tab);
+        if (tab === "clients") setClientQuery("");
+      }}
       cartItems={flow.cartItems}
-      isDesktop={isDesktop}
-      onAdd={flow.add}
-    />
-  );
-
-  const clientsPanel = (
-    <ClientSelector
+      onAddProduct={flow.add}
       clients={clients}
-      isLoading={clientsLoading}
-      query={clientQuery}
-      selected={selectedClient}
-      onQueryChange={setClientQuery}
-      onSelect={(c) => {
+      clientsLoading={clientsLoading}
+      clientQuery={clientQuery}
+      selectedClient={selectedClient}
+      onClientQueryChange={setClientQuery}
+      onSelectClient={(c) => {
         setSelectedClient(c);
-        if (!isDesktop) setActiveTab("cart");
+        setLeftTab("products");
       }}
     />
   );
 
-  if (isDesktop) {
-    return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 420px",
-          gridTemplateRows: "52px 1fr",
-          height: "calc(100vh - 56px)",
-          background: POS.bg,
-          overflow: "hidden",
-          fontFamily: POS.fontUI,
-        }}
-      >
-        {/* Header bar */}
-        <div
-          style={{
-            gridColumn: "1 / -1",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 20px",
-            height: 52,
-            background: POS.surface,
-            borderBottom: `1px solid ${POS.border}`,
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontFamily: POS.fontDisplay, fontSize: 20, fontWeight: 600, color: POS.text }}>Punto de venta</div>
-            <span style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted }}>·</span>
-            <span style={{ fontFamily: POS.fontUI, fontSize: 13, color: POS.muted }}>
-              {sessionCtx.branch_name} · Terminal {sessionCtx.terminal_code}
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted }}>
-              {user?.firstName ?? user?.name ?? "Cajero"}
-            </span>
-            <SyncPill state={syncStatus === "online" ? "online" : syncStatus === "syncing" ? "syncing" : "offline"} />
+  return (
+    <>
+      {/* Desktop layout */}
+      {isDesktop ? (
+        <div className="flex flex-col bg-background overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
+          <PosHeader
+            branchName={sessionCtx.branch_name ?? ""}
+            terminalCode={sessionCtx.terminal_code ?? 0}
+            userName={user?.firstName ?? user?.name ?? "Cajero"}
+            syncStatus={syncStatus}
+          />
+          <div className="flex-1 grid overflow-hidden" style={{ gridTemplateColumns: "1fr 360px" }}>
+            <div className="flex flex-col border-r border-border overflow-hidden">
+              {leftPane}
+            </div>
+            {cartSidebar}
           </div>
         </div>
+      ) : (
+        /* Mobile layout */
+        <div className="flex flex-col bg-background overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
+          <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
+            <span className="font-display font-bold text-[18px]">
+              {sessionCtx.branch_name ?? "POS"}
+            </span>
+            <span className={cn(
+              "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border",
+              syncStatus === "online"
+                ? "bg-success/12 text-success border-success/30"
+                : "bg-muted text-muted-foreground border-border"
+            )}>
+              <span className={cn("w-[7px] h-[7px] rounded-full", syncStatus === "online" ? "bg-success" : "bg-muted-foreground")} />
+              {syncStatus === "online" ? "En línea" : syncStatus === "syncing" ? "Sincronizando" : "Sin conexión"}
+            </span>
+          </div>
 
-        {/* Left: products/clients with tab bar */}
-        <div style={{ overflow: "hidden", display: "flex", flexDirection: "column", background: POS.bg }}>
-          <div style={{ display: "flex", borderBottom: `1px solid ${POS.border}`, background: POS.surface }}>
-            {(["products", "clients"] as const).map((tab) => (
+          <div className="flex-1 overflow-hidden">
+            {leftTab === "products" || leftTab === "clients" ? leftPane : cartSidebar}
+          </div>
+
+          {/* Mobile bottom tab bar */}
+          <div className="flex bg-card border-t border-border shrink-0">
+            {(
+              [
+                { id: "products" as const, label: "Productos" },
+                { id: "cart" as const, label: "Carrito", badge: flow.cartCount },
+                { id: "clients" as const, label: "Clientes" },
+              ] as const
+            ).map(({ id, label, badge }) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  flex: 1,
-                  padding: "12px 0",
-                  border: "none",
-                  background: "transparent",
-                  color: activeTab === tab ? POS.rose : POS.muted,
-                  fontFamily: POS.fontUI,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  borderBottom: activeTab === tab ? `2px solid ${POS.rose}` : "2px solid transparent",
+                key={id}
+                onClick={() => {
+                  if (id === "cart") setShowCheckout(false);
+                  setLeftTab(id === "cart" ? "products" : id);
                 }}
+                className={cn(
+                  "flex-1 flex flex-col items-center gap-1 py-2.5 relative",
+                  (id === "cart" ? false : leftTab === id)
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                )}
               >
-                {tab === "products" ? "Productos" : "Clientes"}
+                <span className="text-[10px] font-semibold">{label}</span>
+                {badge != null && badge > 0 && (
+                  <span className="absolute top-1.5 right-[calc(50%-14px)] min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                    {badge}
+                  </span>
+                )}
               </button>
             ))}
           </div>
-          <div style={{ flex: 1, overflow: "hidden" }}>
-            {activeTab === "clients" ? clientsPanel : productsPanel}
-          </div>
         </div>
+      )}
 
-        {/* Right: cart */}
-        {cartSidebar}
-      </div>
-    );
-  }
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "calc(100vh - 56px)",
-        background: POS.bg,
-        fontFamily: POS.fontUI,
-        overflow: "hidden",
-      }}
-    >
-      {/* Mobile header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 16px",
-          height: 48,
-          background: POS.surface,
-          borderBottom: `1px solid ${POS.border}`,
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ fontFamily: POS.fontDisplay, fontSize: 18, fontWeight: 600, color: POS.text }}>
-          {sessionCtx.branch_name ?? "POS"}
-        </div>
-        <SyncPill state={syncStatus === "online" ? "online" : syncStatus === "syncing" ? "syncing" : "offline"} />
-      </div>
-
-      {/* Tab content */}
-      <div style={{ flex: 1, overflow: "hidden" }}>
-        {activeTab === "products" && productsPanel}
-        {activeTab === "cart" && (
-          <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-            {cartSidebar}
-          </div>
-        )}
-        {activeTab === "clients" && clientsPanel}
-      </div>
-
-      {/* Bottom tab bar */}
-      <div style={{ display: "flex", background: POS.surface, borderTop: `1px solid ${POS.border}`, flexShrink: 0 }}>
-        {(
-          [
-            { id: "products" as const, icon: "grid", label: "Productos" },
-            { id: "cart" as const, icon: "cart", label: "Carrito", badge: flow.cartCount },
-            { id: "clients" as const, icon: "users", label: "Clientes" },
-          ]
-        ).map(({ id, icon, label, badge }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            style={{
-              flex: 1,
-              padding: "10px 0 12px",
-              border: "none",
-              background: "transparent",
-              color: activeTab === id ? POS.rose : POS.muted,
-              cursor: "pointer",
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 3,
-            }}
-          >
-            <Icon name={icon} size={22} style={{ color: activeTab === id ? POS.rose : POS.muted }} />
-            <span style={{ fontFamily: POS.fontUI, fontSize: 10, fontWeight: 600 }}>{label}</span>
-            {badge != null && badge > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: 6,
-                  right: "calc(50% - 18px)",
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  background: POS.rose,
-                  color: "#1C1C1E",
-                  fontSize: 10,
-                  fontWeight: 800,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: POS.fontUI,
-                }}
-              >
-                {badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-    </div>
+      {showCheckout && (
+        <CheckoutModal
+          cartItems={flow.cartItems}
+          cartTotal={flow.cartTotal}
+          subtotal={flow.subtotal}
+          taxAmount={flow.taxAmount}
+          selectedClient={selectedClient}
+          onClose={() => setShowCheckout(false)}
+          onConfirm={handleConfirm}
+        />
+      )}
+    </>
   );
 }

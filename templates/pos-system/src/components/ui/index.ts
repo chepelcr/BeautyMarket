@@ -12,3 +12,4 @@ export { EmptyState } from "./EmptyState";
 export { Modal } from "./Modal";
 export { LocationSelect } from "./LocationSelect";
 export { Spinner } from "./Spinner";
+export { Pagination } from "./Pagination";

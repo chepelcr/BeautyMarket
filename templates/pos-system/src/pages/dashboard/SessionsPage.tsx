@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useSearch } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Card, Button, Drawer, Modal } from "@/components/ui";
+import { Icon, Card, Button, Drawer, Modal, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionDetailDrawer } from "@/components/sessions/SessionDetailDrawer";
@@ -30,6 +30,13 @@ export default function SessionsPage() {
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("overview");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [endConfirmId, setEndConfirmId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
   const filter = (new URLSearchParams(searchParams).get("filter") as SessionFilter) || "all";
 
@@ -38,21 +45,25 @@ export default function SessionsPage() {
     if (f === "all") params.delete("filter");
     else params.set("filter", f);
     setLocation(`?${params.toString()}`, { replace: true });
+    setPage(1); // Reset to first page when filter changes
   };
 
   const { data: sessionsData, isLoading } = useQuery({
-    queryKey: ["sessions", org?.id, filter],
+    queryKey: ["sessions", org?.id, filter, page, pageSize],
     enabled: !!org,
     queryFn: () => {
-      const qs = new URLSearchParams();
+      const qs = new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+      });
       if (filter === "active") qs.set("search", "status:1");
       if (filter === "closed") qs.set("search", "status:2");
-      const query = qs.size ? `?${qs}` : "";
-      return crossAppApi.get<{ data: Session[] }>(crossAppOrgPath(org!.id, `/sessions${query}`));
+      return crossAppApi.get<{ data: Session[]; pagination: any }>(crossAppOrgPath(org!.id, `/sessions?${qs}`));
     },
   });
 
   const sessions = sessionsData?.data ?? [];
+  const pagination = sessionsData?.pagination;
 
   const { data: assignmentsData, isLoading: assignmentsLoading } = useQuery({
     queryKey: ["session-assignments", org?.id, selectedSession?.session_id],
@@ -148,6 +159,20 @@ export default function SessionsPage() {
             />
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.total_pages > 1 && (
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.total_pages}
+          totalElements={pagination.total_elements}
+          pageSize={pagination.page_size}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          itemName="sesiones"
+          pageSizeOptions={[12, 24, 48, 96]}
+        />
       )}
 
       {/* Create/Edit Session Drawer */}

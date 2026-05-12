@@ -1,6 +1,7 @@
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useConfig } from '@/hooks/useConfig';
+import { parseTitle } from '@/lib/parseTitle';
 
 interface HaciendaCard {
   icon:  string;
@@ -27,11 +28,9 @@ export function Hacienda() {
           <h2
             className="font-display font-extrabold mt-3"
             style={{ fontSize: 'clamp(2rem,3.6vw,3rem)' }}
-            dangerouslySetInnerHTML={{
-              __html: t('hacienda.headline')
-                .replace('Lista hoy.', '<span class="text-primary">Lista hoy.</span>'),
-            }}
-          />
+          >
+            {parseTitle(t('hacienda.headline'))}
+          </h2>
           <p className="mt-3 text-muted-foreground">{t('hacienda.subheadline')}</p>
         </div>
 

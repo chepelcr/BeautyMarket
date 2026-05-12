@@ -117,7 +117,7 @@ async function fetchProducts(params: ProductsQueryParams): Promise<ProductsRespo
 
   if (searchString) queryParams.append('search', searchString);
   queryParams.append('page', String(page));
-  queryParams.append('pageSize', String(pageSize));
+  queryParams.append('page_size', String(pageSize));
 
   const url = buildOrdersApiUrl(orgId, `/products?${queryParams.toString()}`);
   const response = await apiRequest('GET', url);
@@ -175,7 +175,7 @@ export function useProducts(params: ProductsQueryParams) {
   // Mutation for update product status
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: number }) => {
-      const url = buildOrdersApiUrl(params.orgId, `/products/${id}`);
+      const url = buildOrdersApiUrl(params.orgId, `/products/${id}/status`);
       const response = await apiRequest('PATCH', url, { status });
       return response.json();
     },

@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Input, Button, Drawer, EmptyState } from "@/components/ui";
+import { Icon, Input, Button, Drawer, EmptyState, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BranchCard } from "@/components/puestos/BranchCard";
 import { BranchForm } from "@/components/puestos/BranchForm";
@@ -22,16 +22,30 @@ export default function PuestosPage() {
   const [filter, setFilter] = useState<"all" | BranchType>("all");
   const [showOnlyActive, setShowOnlyActive] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
   const [branchDrawer, setBranchDrawer] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [termDrawer, setTermDrawer] = useState(false);
   const [addTermBranch, setAddTermBranch] = useState<Branch | null>(null);
 
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
+
   const searchParam = showOnlyActive ? "status:1" : "";
   const { data: branchesData, isLoading } = useQuery({
-    queryKey: ["branches", org?.id, searchParam],
+    queryKey: ["branches", org?.id, searchParam, page, pageSize],
     enabled: !!org,
-    queryFn: () => crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, `/branches${searchParam ? `?search=${searchParam}` : ""}`)),
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+        ...(searchParam && { search: searchParam }),
+      });
+      return crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, `/branches?${params}`));
+    },
   });
 
   const branches = (branchesData?.data ?? []).filter((b) => {
@@ -39,6 +53,8 @@ export default function PuestosPage() {
     if (search && !b.name.toLowerCase().includes(search.toLowerCase()) && !String(b.code).includes(search)) return false;
     return true;
   });
+
+  const pagination = branchesData?.pagination;
 
   const createMutation = useMutation({
     mutationFn: (data: CreateBranchRequest) => crossAppApi.post(crossAppOrgPath(org!.id, "/branches"), data),
@@ -73,7 +89,7 @@ export default function PuestosPage() {
   };
 
   const isSaving = createMutation.isPending || updateMutation.isPending || statusMutation.isPending;
-  const total = branchesData?.data?.length ?? 0;
+  const total = pagination?.total_elements ?? 0;
   const activeCount = branchesData?.data?.filter((b) => b.status === 1).length ?? 0;
 
   return (
@@ -102,17 +118,17 @@ export default function PuestosPage() {
             style={{ paddingLeft: 36 }}
             placeholder="Buscar por nombre o código…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {(["all", "stand", "restaurant"] as const).map((f) => (
-            <button key={f} type="button" onClick={() => setFilter(f)} className={`btn btn-sm ${filter === f ? "btn-primary" : "btn-outline"}`}>
+            <button key={f} type="button" onClick={() => { setFilter(f); setPage(1); }} className={`btn btn-sm ${filter === f ? "btn-primary" : "btn-outline"}`}>
               {f === "all" ? t("puestos.all") : f === "stand" ? t("puestos.stand") : t("puestos.restaurant")}
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => setShowOnlyActive((v) => !v)} className={`btn btn-sm ${showOnlyActive ? "btn-success" : "btn-outline"}`} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <button type="button" onClick={() => { setShowOnlyActive((v) => !v); setPage(1); }} className={`btn btn-sm ${showOnlyActive ? "btn-success" : "btn-outline"}`} style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Icon name={showOnlyActive ? "checkCircle" : "eye"} size={14} />
           {t("puestos.onlyActive")}
         </button>
@@ -149,6 +165,20 @@ export default function PuestosPage() {
             />
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.total_pages > 1 && (
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.total_pages}
+          totalElements={pagination.total_elements}
+          pageSize={pagination.page_size}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          itemName="puestos"
+          pageSizeOptions={[12, 24, 48, 96]}
+        />
       )}
 
       {/* Branch drawer */}

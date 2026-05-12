@@ -1,6 +1,7 @@
 import { Icon } from '@/components/ui/Icon';
 import { LogoIcon } from '@/components/ui/LogoIcon';
 import { useTranslation } from '@/hooks/useTranslation';
+import { parseTitle } from '@/lib/parseTitle';
 
 interface VsRow {
   feature: string;
@@ -22,12 +23,9 @@ export function VsCompetition() {
           <h2
             className="font-display font-extrabold mt-2"
             style={{ fontSize: 'clamp(2rem,3.6vw,3rem)' }}
-            dangerouslySetInnerHTML={{
-              __html: t('vs.headline')
-                .replace('una vez', '<span class="text-primary">una vez</span>')
-                .replace('para siempre', '<span class="text-primary">para siempre</span>'),
-            }}
-          />
+          >
+            {parseTitle(t('vs.headline'))}
+          </h2>
           <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">{t('vs.subheadline')}</p>
         </div>
 

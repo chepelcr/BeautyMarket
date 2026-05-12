@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Product } from "../types";
+import type { DocTypeCode } from "../types/invoice";
 
 interface CartItem {
   product: Product;
@@ -10,16 +11,21 @@ interface CartItem {
 
 interface CartStore {
   items: Record<string, CartItem>;
+  doc_type: DocTypeCode;
   add: (product: Product) => void;
   remove: (productId: string) => void;
   updateLine: (productId: string, patch: { qty?: number; lineDiscount?: number; lineNote?: string }) => void;
   clear: () => void;
   total: () => number;
   count: () => number;
+  setDocType: (code: DocTypeCode) => void;
 }
 
 export const useCart = create<CartStore>((set, get) => ({
   items: {},
+  doc_type: 4, // default: Tiquete Electrónico
+
+  setDocType: (code) => set({ doc_type: code }),
 
   add: (product) => {
     const pid = product.product_id;

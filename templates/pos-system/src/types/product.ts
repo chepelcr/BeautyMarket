@@ -38,7 +38,14 @@ export interface Product {
   sku?: string | null;
   stock_quantity?: number;
   track_inventory?: boolean;
+  low_stock_threshold?: number;
+  units_per_box?: number;
   cabys?: string | null;
+  codes?: Array<{
+    code_type_id: string;
+    number: string;
+    description?: string;
+  }>;
   taxes?: ProductTax[];
   discounts?: ProductDiscount[];
   created_on?: Date;

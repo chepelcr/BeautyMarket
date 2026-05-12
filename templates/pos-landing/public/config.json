@@ -9,7 +9,7 @@
   },
   "theme": {
     "accent": "orange",
-    "dark": false
+    "dark": true
   },
   "tokens": {
     "accentPalettes": {
@@ -119,82 +119,12 @@
     }
   },
   "pricing": {
-    "currency": "USD",
+    "currency": "CRC",
     "usdRateCRC": 600,
     "freeDocs": 30,
-    "amortizationMonths": 36,
     "moneyBackDays": 30,
-    "features": [
-      { "id": "products",       "label": "Productos" },
-      { "id": "customers",      "label": "Clientes" },
-      { "id": "docs",           "label": "Documentos electrónicos" },
-      { "id": "branches",       "label": "Sucursales y terminales" },
-      { "id": "docTypes",       "label": "Tipos de documento" },
-      { "id": "contingency",    "label": "Modo contingencia" },
-      { "id": "reports",        "label": "Reportes" },
-      { "id": "acceptDocs",     "label": "Aceptación de documentos recibidos" },
-      { "id": "futureFeatures", "label": "Próximas funciones de cumplimiento" },
-      { "id": "support",        "label": "Soporte" }
-    ],
-    "plans": [
-      {
-        "id": "free",
-        "name": "Free",
-        "tagline": "Para empezar tu negocio sin gastar.",
-        "priceCRC": 0,
-        "priceMin": 0,
-        "priceMax": 0,
-        "priceSuffix": "/ Para siempre",
-        "showPriceSlider": false,
-        "ctaLabel": "Crear cuenta gratis",
-        "ctaHref": "#",
-        "badge": "Para siempre",
-        "highlighted": false,
-        "subline": "Sin tarjeta. Sin trial. Sin caducidad.",
-        "showAmortization": false,
-        "showMoneyBack": false,
-        "features": [
-          { "label": "Hasta 50 productos",                         "enabled": true,  "color": "success" },
-          { "label": "Hasta 30 clientes",                          "enabled": true,  "color": "success" },
-          { "label": "{{freeDocs}} documentos electrónicos / mes", "enabled": true,  "color": "success" },
-          { "label": "1 sucursal · 1 terminal",                    "enabled": true,  "color": "success" },
-          { "label": "Tiquete y factura electrónica",              "enabled": true,  "color": "success" },
-          { "label": "Reportes básicos de ventas",                 "enabled": true,  "color": "success" },
-          { "label": "Soporte por correo",                         "enabled": true,  "color": "success" },
-          { "label": "Multi-sucursal",                             "enabled": false },
-          { "label": "Modo contingencia",                          "enabled": false },
-          { "label": "Notas de crédito y débito",                  "enabled": false }
-        ]
-      },
-      {
-        "id": "pro",
-        "name": "Pago Único Pro",
-        "tagline": "Pagás una vez. Nunca más.",
-        "priceCRC": 199000,
-        "priceMin": 99000,
-        "priceMax": 399000,
-        "priceSuffix": "una vez",
-        "showPriceSlider": true,
-        "ctaLabel": "Desbloquear todo",
-        "ctaHref": "#",
-        "badge": "Recomendado",
-        "highlighted": true,
-        "showAmortization": true,
-        "showMoneyBack": true,
-        "features": [
-          { "label": "Productos ilimitados",                                  "enabled": true, "color": "primary" },
-          { "label": "Clientes ilimitados",                                   "enabled": true, "color": "primary" },
-          { "label": "Documentos electrónicos ilimitados",                    "enabled": true, "color": "primary" },
-          { "label": "Multi-sucursal y multi-terminal",                       "enabled": true, "color": "primary" },
-          { "label": "Todos los tipos de documento (FE, TE, NC, ND, FC, FEX)","enabled": true, "color": "primary" },
-          { "label": "Modo contingencia ATV",                                 "enabled": true, "color": "primary" },
-          { "label": "Reportes avanzados y exportación",                      "enabled": true, "color": "primary" },
-          { "label": "Aceptación de documentos recibidos",                    "enabled": true, "color": "primary" },
-          { "label": "Próximas funciones de cumplimiento incluidas",          "enabled": true, "color": "primary" },
-          { "label": "Soporte prioritario por WhatsApp",                      "enabled": true, "color": "primary" }
-        ]
-      }
-    ]
+    "annualDiscountMonths": 2,
+    "defaultBillingCycle": "annual"
   },
   "demo": {
     "categories": [
@@ -357,8 +287,8 @@
       "hero": {
         "badge": "Versión 4.4 Hacienda",
         "badgeSub": "· vigente sep/2025",
-        "headline": "El POS que cumple con Hacienda sin cobrarte mensualidad.",
-        "subheadline": "Vendé, facturá electrónicamente y manejá tu inventario. Empezá gratis y desbloqueá todo con un único pago — sin suscripciones, sin sorpresas a fin de mes.",
+        "headline": "El POS que cumple con {{Hacienda}} con precios justos.",
+        "subheadline": "Vendé, facturá electrónicamente y manejá tu inventario. Empezá gratis y crecé con planes mensuales o anuales — sin sorpresas, sin letra chica.",
         "ctaPrimary": "Empezar gratis",
         "ctaSecondary": "Ver demo en vivo",
         "trustBadges": [
@@ -384,8 +314,8 @@
       },
       "vs": {
         "eyebrow": "Por qué cambiar",
-        "headline": "Pagás una vez. Vendés para siempre.",
-        "subheadline": "Mientras otros sistemas te cobran por bloque de documentos o mes a mes, JMarkets POS es tuyo con un solo pago.",
+        "headline": "Precios {{claros}}. Sin {{trucos}}.",
+        "subheadline": "Mientras otros te cobran por bloque de documentos o te atan con contratos largos, JMarkets POS te da flexibilidad mensual o anual con descuento.",
         "cols": [
           "Característica",
           "JMarkets POS",
@@ -396,9 +326,9 @@
         "rows": [
           {
             "feature": "Modelo de pago",
-            "jm": "Pago único de por vida",
+            "jm": "Suscripción mensual o anual (10+2)",
             "alt1": "Pago por bloque de documentos",
-            "alt2": "Suscripción mensual recurrente"
+            "alt2": "Suscripción mensual sin descuento"
           },
           {
             "feature": "Productos",
@@ -426,15 +356,15 @@
           },
           {
             "feature": "Costo a 3 años",
-            "jm": "Pago único",
-            "alt1": "Acumulado por bloques",
-            "alt2": "Acumulado por mes"
+            "jm": "₡600,000 (con plan anual)",
+            "alt1": "Variable según consumo",
+            "alt2": "₡720,000+ (sin descuento)"
           }
         ]
       },
       "features": {
         "eyebrow": "Lo que tenés desde el día uno",
-        "headline": "Todo lo que un negocio necesita. Nada que no usés.",
+        "headline": "Todo lo que un negocio necesita.\\n{{Nada que no usés.}}",
         "groups": [
           {
             "eyebrow": "Punto de venta",
@@ -544,7 +474,7 @@
       },
       "howItWorks": {
         "eyebrow": "Cómo empezar",
-        "headline": "De cero a vendiendo en 5 minutos.",
+        "headline": "De cero a vendiendo en {{5 minutos}}.",
         "steps": [
           {
             "icon": "Plus",
@@ -570,7 +500,7 @@
       },
       "hacienda": {
         "eyebrow": "Cumplimiento Ministerio de Hacienda",
-        "headline": "Versión 4.4. Lista hoy.",
+        "headline": "Versión 4.4. {{Lista hoy}}.",
         "subheadline": "Toda la complejidad técnica de la facturación electrónica costarricense, resuelta. Vos solo te dedicás a vender.",
         "cards": [
           {
@@ -605,39 +535,219 @@
           }
         ],
         "promoTitle": "Próximamente: asistente IIBI y obligaciones automáticas",
-        "promoDesc": "Recordatorios de declaración IVA, libros automáticos de compras y ventas, conciliación bancaria con SINPE — todo dentro del Pago Único.",
+        "promoDesc": "Recordatorios de declaración IVA, libros automáticos de compras y ventas, conciliación bancaria con SINPE — incluido en tu suscripción Pro.",
         "promoBadge": "En camino"
       },
       "pricing": {
         "eyebrow": "Precios honestos",
-        "headline": "Empezá gratis. Crecé sin atarte.",
+        "headline": "Empezá gratis. {{Crecé a tu ritmo}}.",
         "subheadline": "Dos opciones. Sin trucos. Sin \"desde\", sin asteriscos, sin upgrade obligatorio para descargar tus datos.",
         "moneyBackLabel": "Garantía de devolución de {{days}} días si no es lo que esperabas.",
-        "amortizationLabel": "Equivalente a {{monthly}}/mes si lo amortizás a {{months}} años — y a partir del año {{nextYear}} seguís pagando ₡0.",
+        "annualSavingsLabel": "Con el plan anual pagás 10 meses y te regalamos 2 — ahorrás {{savings}} al año.",
+        "billingToggle": {
+          "monthly": "Mensual",
+          "annual": "Anual",
+          "badge": "Ahorrá 2 meses",
+          "savingsNote": "Pagás 10 meses y te regalamos 2"
+        },
+        "planLabels": {
+          "monthlyPrice": "/ mes",
+          "annualPrice": "/ año",
+          "monthlyTotal": "Total mensual",
+          "annualTotal": "Total anual"
+        },
         "addons": [
           {
             "icon": "Building2",
             "title": "Sucursal extra",
-            "description": "Pagás una pequeña tarifa única por cada sucursal adicional."
+            "description": "Agregá sucursales adicionales por una tarifa mensual accesible."
           },
           {
             "icon": "Smartphone",
             "title": "Terminal extra",
-            "description": "Activá nuevas terminales sin cambiarte de plan."
+            "description": "Activá nuevas terminales sin costo adicional en el plan Pro."
           },
           {
             "icon": "Cloud",
             "title": "Migración asistida",
             "description": "Te ayudamos a traer tus datos desde tu sistema actual o desde Excel."
           }
+        ],
+        "features": [
+          {
+            "id": "products",
+            "label": "Productos"
+          },
+          {
+            "id": "customers",
+            "label": "Clientes"
+          },
+          {
+            "id": "docs",
+            "label": "Documentos electrónicos"
+          },
+          {
+            "id": "branches",
+            "label": "Sucursales y terminales"
+          },
+          {
+            "id": "docTypes",
+            "label": "Tipos de documento"
+          },
+          {
+            "id": "contingency",
+            "label": "Modo contingencia"
+          },
+          {
+            "id": "reports",
+            "label": "Reportes"
+          },
+          {
+            "id": "acceptDocs",
+            "label": "Aceptación de documentos recibidos"
+          },
+          {
+            "id": "futureFeatures",
+            "label": "Próximas funciones de cumplimiento"
+          },
+          {
+            "id": "support",
+            "label": "Soporte"
+          }
+        ],
+        "plans": [
+          {
+            "id": "free",
+            "name": "Free",
+            "tagline": "Para empezar tu negocio sin gastar.",
+            "priceMonthly": 0,
+            "priceAnnual": 0,
+            "priceCRC": 0,
+            "priceMin": 0,
+            "priceMax": 0,
+            "priceSuffix": "/ Para siempre",
+            "priceSuffixMonthly": "/ Para siempre",
+            "priceSuffixAnnual": "/ Para siempre",
+            "showPriceSlider": false,
+            "ctaLabel": "Crear cuenta gratis",
+            "ctaHref": "https://admin.j-markets.jcampos.dev",
+            "badge": "Para siempre",
+            "highlighted": false,
+            "subline": "Sin tarjeta. Sin trial. Sin caducidad.",
+            "showAmortization": false,
+            "showMoneyBack": false,
+            "features": [
+              {
+                "label": "Hasta 50 productos",
+                "enabled": true
+              },
+              {
+                "label": "Hasta 30 clientes",
+                "enabled": true
+              },
+              {
+                "label": "{{freeDocs}} documentos electrónicos / mes",
+                "enabled": true
+              },
+              {
+                "label": "1 sucursal · 1 terminal",
+                "enabled": true
+              },
+              {
+                "label": "Tiquete y factura electrónica",
+                "enabled": true
+              },
+              {
+                "label": "Notas de crédito y débito",
+                "enabled": true
+              },
+              {
+                "label": "Reportes básicos de ventas",
+                "enabled": true
+              },
+              {
+                "label": "Soporte por correo",
+                "enabled": true
+              },
+              {
+                "label": "Multi-sucursal",
+                "enabled": false,
+                "color": "destructive"
+              },
+              {
+                "label": "Modo contingencia",
+                "enabled": false,
+                "color": "destructive"
+              }
+            ]
+          },
+          {
+            "id": "pro",
+            "name": "Pro",
+            "tagline": "Todo lo que necesitás para crecer.",
+            "priceMonthly": 20000,
+            "priceAnnual": 200000,
+            "priceCRC": 200000,
+            "priceMin": 200000,
+            "priceMax": 200000,
+            "priceSuffix": "/ año",
+            "priceSuffixMonthly": "/ mes",
+            "priceSuffixAnnual": "/ año",
+            "showPriceSlider": false,
+            "ctaLabel": "Suscribirse a Pro",
+            "ctaHref": "https://admin.j-markets.jcampos.dev",
+            "badge": "Recomendado",
+            "highlighted": true,
+            "subline": "Pagás 10 meses, te regalamos 2",
+            "showAmortization": false,
+            "showMoneyBack": false,
+            "features": [
+              {
+                "label": "Productos ilimitados",
+                "enabled": true
+              },
+              {
+                "label": "Clientes ilimitados",
+                "enabled": true
+              },
+              {
+                "label": "Documentos electrónicos ilimitados",
+                "enabled": true
+              },
+              {
+                "label": "Multi-sucursal y multi-terminal",
+                "enabled": true
+              },
+              {
+                "label": "Todos los tipos de documento (FE, TE, NC, ND, FC, FEX)",
+                "enabled": true
+              },
+              {
+                "label": "Modo contingencia ATV",
+                "enabled": true
+              },
+              {
+                "label": "Reportes avanzados y exportación",
+                "enabled": true
+              },
+              {
+                "label": "Aceptación de documentos recibidos",
+                "enabled": true
+              },
+              {
+                "label": "Soporte prioritario por WhatsApp",
+                "enabled": true
+              }
+            ]
+          }
         ]
       },
       "testimonials": {
         "eyebrow": "Quien ya cambió",
-        "headline": "Negocios costarricenses que ya no pagan mensualidad.",
+        "headline": "Negocios costarricenses que confían en JMarkets POS.",
         "items": [
           {
-            "quote": "Pasamos de pagar mensualidades a tener un sistema que es nuestro. La diferencia se siente cada fin de mes.",
+            "quote": "El plan anual con 2 meses gratis fue la mejor decisión. Ahorramos y tenemos todo lo que necesitamos.",
             "author": "Carolina M.",
             "role": "Dueña, Beauty Studio Heredia"
           },
@@ -662,8 +772,16 @@
             "a": "No. El plan Free es gratuito para siempre dentro de los límites mensuales (productos, clientes y documentos). Solo pagás cuando necesitás más."
           },
           {
-            "q": "¿Qué incluye exactamente el \"Pago Único\"?",
+            "q": "¿Qué incluye el plan Pro?",
             "a": "Productos y clientes ilimitados, facturación electrónica sin tope mensual, multi-sucursal, multi-terminal, reportes avanzados, modo contingencia y todas las nuevas funciones de cumplimiento Hacienda que liberemos."
+          },
+          {
+            "q": "¿Cuál es la diferencia entre el plan mensual y anual?",
+            "a": "El plan mensual te da flexibilidad total (cancelás cuando querás). El plan anual te da 2 meses gratis — pagás 10 meses y recibís 12 meses de servicio, ahorrando un 16.67%."
+          },
+          {
+            "q": "¿Puedo cambiar de plan mensual a anual?",
+            "a": "Sí, en cualquier momento. Si cambiás a anual, te acreditamos lo que ya pagaste del mes actual y aplicamos el descuento."
           },
           {
             "q": "¿Necesito mi propia llave criptográfica?",
@@ -686,7 +804,7 @@
       "finalCta": {
         "eyebrow": "Tu próximo punto de venta",
         "headline": "Vendé hoy. Cumplí con Hacienda mañana.",
-        "subheadline": "Empezá gratis sin tarjeta. Cuando estés listo, desbloqueá todo con un solo pago.",
+        "subheadline": "Empezá gratis sin tarjeta. Cuando estés listo, elegí el plan que mejor te funcione — mensual o anual con descuento.",
         "ctaPrimary": "Crear mi cuenta gratis",
         "ctaSecondary": "Ver demo",
         "loginTitle": "¿Ya tenés cuenta?",
@@ -700,7 +818,7 @@
         "loginCreate": "Crear cuenta"
       },
       "footer": {
-        "tagline": "El punto de venta costarricense con facturación electrónica 4.4 — sin renta mensual.",
+        "tagline": "El punto de venta costarricense con facturación electrónica 4.4 — precios justos, sin letra chica.",
         "madeIn": "Hecho en Costa Rica · 🇨🇷",
         "columns": [
           {
@@ -840,8 +958,8 @@
       "hero": {
         "badge": "Version 4.4 Hacienda",
         "badgeSub": "· effective Sep/2025",
-        "headline": "The POS that complies with Hacienda without monthly fees.",
-        "subheadline": "Sell, issue electronic invoices, and manage your inventory. Start free and unlock everything with a one-time payment — no subscriptions, no end-of-month surprises.",
+        "headline": "The POS that complies with Hacienda with fair pricing.",
+        "subheadline": "Sell, issue electronic invoices, and manage your inventory. Start free and grow with monthly or annual plans — no surprises, no fine print.",
         "ctaPrimary": "Start free",
         "ctaSecondary": "See live demo",
         "trustBadges": [
@@ -867,8 +985,8 @@
       },
       "vs": {
         "eyebrow": "Why switch",
-        "headline": "Pay once. Sell forever.",
-        "subheadline": "While other systems charge you per document block or monthly, JMarkets POS is yours with a single payment.",
+        "headline": "Clear pricing. No tricks.",
+        "subheadline": "While others charge you per document block or lock you into long contracts, JMarkets POS gives you monthly or annual flexibility with discounts.",
         "cols": [
           "Feature",
           "JMarkets POS",
@@ -879,9 +997,9 @@
         "rows": [
           {
             "feature": "Payment model",
-            "jm": "One-time lifetime payment",
+            "jm": "Monthly or annual subscription (10+2)",
             "alt1": "Pay-per-document-block",
-            "alt2": "Recurring monthly subscription"
+            "alt2": "Monthly subscription without discount"
           },
           {
             "feature": "Products",
@@ -909,16 +1027,455 @@
           },
           {
             "feature": "Cost over 3 years",
-            "jm": "One-time payment",
-            "alt1": "Accumulated by blocks",
-            "alt2": "Accumulated monthly"
+            "jm": "₡600,000 (with annual plan)",
+            "alt1": "Variable by consumption",
+            "alt2": "₡720,000+ (no discount)"
+          }
+        ]
+      },
+      "features": {
+        "eyebrow": "What you get from day one",
+        "headline": "Everything a business needs.\\n{{Nothing you won't use.}}",
+        "groups": [
+          {
+            "eyebrow": "Point of sale",
+            "title": "Sell your way",
+            "items": [
+              {
+                "icon": "ShoppingCart",
+                "title": "Quick cart and checkout",
+                "desc": "Barcode search or by name, keyboard shortcuts, favorite products in grid."
+              },
+              {
+                "icon": "Scan",
+                "title": "Barcode reader and scale",
+                "desc": "Compatible with USB scanners and scales with variable weight calculation."
+              },
+              {
+                "icon": "Wallet",
+                "title": "Multiple payment methods",
+                "desc": "Cash, card, SINPE Móvil and others — combine several in a single sale."
+              },
+              {
+                "icon": "Receipt",
+                "title": "Document tabs",
+                "desc": "Keep multiple documents open (invoice, receipt, NC/ND) without losing the cart."
+              }
+            ]
+          },
+          {
+            "eyebrow": "Catalog and inventory",
+            "title": "Your inventory, organized",
+            "items": [
+              {
+                "icon": "Package",
+                "title": "Products and services",
+                "desc": "Variants, photos, prices per branch, automatic cost and margin."
+              },
+              {
+                "icon": "Boxes",
+                "title": "Multi-branch stock",
+                "desc": "Movements, transfers, adjustments and minimum alerts in real time."
+              },
+              {
+                "icon": "Tag",
+                "title": "Official CABYS",
+                "desc": "Integrated search of the Catalog of Goods and Services of the Ministry of Finance."
+              },
+              {
+                "icon": "Users",
+                "title": "Customers and suppliers",
+                "desc": "Import your base by CSV, purchase history and credit per customer."
+              }
+            ]
+          },
+          {
+            "eyebrow": "Electronic invoicing",
+            "title": "Hacienda, painless",
+            "items": [
+              {
+                "icon": "FileSignature",
+                "title": "Automatic signature and sending",
+                "desc": "You sign with your cryptographic key, JMarkets sends and retries until validated."
+              },
+              {
+                "icon": "FileText",
+                "title": "All 4.4 documents",
+                "desc": "Invoice, receipt, export, purchase, credit and debit notes."
+              },
+              {
+                "icon": "ShieldCheck",
+                "title": "Contingency mode",
+                "desc": "If Hacienda goes down, you keep invoicing. Automatic resend when it comes back."
+              },
+              {
+                "icon": "BadgeCheck",
+                "title": "Received and acceptance",
+                "desc": "Accept or reject received documents directly from the POS."
+              }
+            ]
+          },
+          {
+            "eyebrow": "Operation",
+            "title": "Designed for your day",
+            "items": [
+              {
+                "icon": "Building2",
+                "title": "Multi-branch and terminal",
+                "desc": "Each cashier with their session, cash counts per terminal and reports per branch."
+              },
+              {
+                "icon": "BarChart2",
+                "title": "Live reports",
+                "desc": "Sales by hour, top products, average ticket, margins — without waiting for month end."
+              },
+              {
+                "icon": "Cloud",
+                "title": "Your data, your cloud",
+                "desc": "Automatic backups, export to Excel/CSV, without holding your information hostage."
+              },
+              {
+                "icon": "Smartphone",
+                "title": "Mobile and tablet",
+                "desc": "Works on any device — open the browser and sell."
+              }
+            ]
+          }
+        ]
+      },
+      "howItWorks": {
+        "eyebrow": "How to start",
+        "headline": "From zero to selling in {{5 minutes}}.",
+        "steps": [
+          {
+            "icon": "Plus",
+            "title": "Create your account",
+            "desc": "Register your business and your first branch in less than 2 minutes. We don't ask for a card."
+          },
+          {
+            "icon": "Package",
+            "title": "Load your catalog",
+            "desc": "Import CSV or create products by hand. We automatically search for the CABYS code."
+          },
+          {
+            "icon": "FileSignature",
+            "title": "Upload your Hacienda key",
+            "desc": "Cryptographic key + ATV user. JMarkets takes care of the rest of the technical process."
+          },
+          {
+            "icon": "ShoppingCart",
+            "title": "Start selling",
+            "desc": "Open the POS, scan, charge. The electronic invoice comes out signed and validated."
+          }
+        ]
+      },
+      "hacienda": {
+        "eyebrow": "Ministry of Finance Compliance",
+        "headline": "Version 4.4. {{Ready today}}.",
+        "subheadline": "All the technical complexity of Costa Rican electronic invoicing, solved. You just focus on selling.",
+        "cards": [
+          {
+            "icon": "FileSignature",
+            "title": "Cryptographic signature",
+            "desc": "Upload your key once. We sign each XML according to official 4.4 schemas."
+          },
+          {
+            "icon": "BadgeCheck",
+            "title": "ATV validation",
+            "desc": "We send to the Ministry of Finance and monitor until final status. We retry automatically."
+          },
+          {
+            "icon": "ShieldCheck",
+            "title": "Contingency plan",
+            "desc": "If ATV is down, you keep invoicing. JMarkets resends when the service returns."
+          },
+          {
+            "icon": "FileText",
+            "title": "Acceptance of received",
+            "desc": "Accept, partially or totally reject received documents without leaving the system."
+          },
+          {
+            "icon": "Tag",
+            "title": "Up-to-date CABYS",
+            "desc": "Catalog synchronized with Hacienda. New VAT rates applied automatically."
+          },
+          {
+            "icon": "Layers",
+            "title": "Reports for your accountant",
+            "desc": "Export sales and purchase books in the exact format your accountant asks for."
+          }
+        ],
+        "promoTitle": "Coming soon: IIBI assistant and automatic obligations",
+        "promoDesc": "VAT declaration reminders, automatic purchase and sales books, bank reconciliation with SINPE — included in your Pro subscription.",
+        "promoBadge": "On the way"
+      },
+      "testimonials": {
+        "eyebrow": "Who already switched",
+        "headline": "Costa Rican businesses that trust JMarkets POS.",
+        "items": [
+          {
+            "quote": "The annual plan with 2 free months was the best decision. We save money and have everything we need.",
+            "author": "Carolina M.",
+            "role": "Owner, Beauty Studio Heredia"
+          },
+          {
+            "quote": "Contingency mode saved two full days of sales when ATV was down. No customer left without a receipt.",
+            "author": "Andrés R.",
+            "role": "Mini-market Tres Ríos"
+          },
+          {
+            "quote": "We migrated in an afternoon. We imported products by CSV and the next day we were already invoicing.",
+            "author": "María Fernanda",
+            "role": "Boutique Curridabat"
+          }
+        ]
+      },
+      "faq": {
+        "eyebrow": "Frequently asked questions",
+        "headline": "What people ask us.",
+        "items": [
+          {
+            "q": "Does the free plan have an expiration date?",
+            "a": "No. The Free plan is free forever within the monthly limits (products, customers and documents). You only pay when you need more."
+          },
+          {
+            "q": "What does the Pro plan include?",
+            "a": "Unlimited products and customers, electronic invoicing without monthly cap, multi-branch, multi-terminal, advanced reports, contingency mode and all new Hacienda compliance features we release."
+          },
+          {
+            "q": "What's the difference between monthly and annual plans?",
+            "a": "The monthly plan gives you total flexibility (cancel anytime). The annual plan gives you 2 free months — pay 10 months and receive 12 months of service, saving 16.67%."
+          },
+          {
+            "q": "Can I switch from monthly to annual?",
+            "a": "Yes, at any time. If you switch to annual, we credit what you've already paid for the current month and apply the discount."
+          },
+          {
+            "q": "Do I need my own cryptographic key?",
+            "a": "Yes — it's a Hacienda requirement. If you don't have it, we guide you step by step to get it on the ATV portal (it's free)."
+          },
+          {
+            "q": "Does it work if my internet or ATV goes down?",
+            "a": "The POS keeps working offline. Documents are queued and signed/sent as soon as the connection returns, without you doing anything."
+          },
+          {
+            "q": "Can I migrate from another system or from Excel?",
+            "a": "Yes. You import products and customers by CSV. For tax history, we help you in the initial migration at no cost."
+          },
+          {
+            "q": "Do I have support in Spanish?",
+            "a": "Human support by WhatsApp and email, in Costa Rican hours. The team is here, not on another continent."
+          }
+        ]
+      },
+      "pricing": {
+        "eyebrow": "Honest pricing",
+        "headline": "Start free. {{Grow at your pace}}.",
+        "subheadline": "Two options. No tricks. No \"from\", no asterisks, no mandatory upgrade to download your data.",
+        "moneyBackLabel": "{{days}}-day money-back guarantee if it's not what you expected.",
+        "annualSavingsLabel": "With the annual plan you pay 10 months and get 2 free — save {{savings}} per year.",
+        "billingToggle": {
+          "monthly": "Monthly",
+          "annual": "Annual",
+          "badge": "Save 2 months",
+          "savingsNote": "Pay 10 months and get 2 free"
+        },
+        "planLabels": {
+          "monthlyPrice": "/ month",
+          "annualPrice": "/ year",
+          "monthlyTotal": "Monthly total",
+          "annualTotal": "Annual total"
+        },
+        "addons": [
+          {
+            "icon": "Building2",
+            "title": "Extra branch",
+            "description": "Add additional branches for an accessible monthly fee."
+          },
+          {
+            "icon": "Smartphone",
+            "title": "Extra terminal",
+            "description": "Activate new terminals at no additional cost on the Pro plan."
+          },
+          {
+            "icon": "Cloud",
+            "title": "Assisted migration",
+            "description": "We help you bring your data from your current system or from Excel."
+          }
+        ],
+        "features": [
+          {
+            "id": "products",
+            "label": "Products"
+          },
+          {
+            "id": "customers",
+            "label": "Customers"
+          },
+          {
+            "id": "docs",
+            "label": "Electronic documents"
+          },
+          {
+            "id": "branches",
+            "label": "Branches and terminals"
+          },
+          {
+            "id": "docTypes",
+            "label": "Document types"
+          },
+          {
+            "id": "contingency",
+            "label": "Contingency mode"
+          },
+          {
+            "id": "reports",
+            "label": "Reports"
+          },
+          {
+            "id": "acceptDocs",
+            "label": "Acceptance of received documents"
+          },
+          {
+            "id": "futureFeatures",
+            "label": "Upcoming compliance features"
+          },
+          {
+            "id": "support",
+            "label": "Support"
+          }
+        ],
+        "plans": [
+          {
+            "id": "free",
+            "name": "Free",
+            "tagline": "To start your business without spending.",
+            "priceMonthly": 0,
+            "priceAnnual": 0,
+            "priceCRC": 0,
+            "priceMin": 0,
+            "priceMax": 0,
+            "priceSuffix": "/ Forever",
+            "priceSuffixMonthly": "/ Forever",
+            "priceSuffixAnnual": "/ Forever",
+            "showPriceSlider": false,
+            "ctaLabel": "Create free account",
+            "ctaHref": "https://admin.j-markets.jcampos.dev",
+            "badge": "Forever",
+            "highlighted": false,
+            "subline": "No credit card. No trial. No expiration.",
+            "showAmortization": false,
+            "showMoneyBack": false,
+            "features": [
+              {
+                "label": "Up to 50 products",
+                "enabled": true
+              },
+              {
+                "label": "Up to 30 customers",
+                "enabled": true
+              },
+              {
+                "label": "{{freeDocs}} electronic documents / month",
+                "enabled": true
+              },
+              {
+                "label": "1 branch · 1 terminal",
+                "enabled": true
+              },
+              {
+                "label": "Electronic receipt and invoice",
+                "enabled": true
+              },
+              {
+                "label": "Credit and debit notes",
+                "enabled": true
+              },
+              {
+                "label": "Basic sales reports",
+                "enabled": true
+              },
+              {
+                "label": "Email support",
+                "enabled": true
+              },
+              {
+                "label": "Multi-branch",
+                "enabled": false,
+                "color": "destructive"
+              },
+              {
+                "label": "Contingency mode",
+                "enabled": false,
+                "color": "destructive"
+              }
+            ]
+          },
+          {
+            "id": "pro",
+            "name": "Pro",
+            "tagline": "Everything you need to grow.",
+            "priceMonthly": 20000,
+            "priceAnnual": 200000,
+            "priceCRC": 200000,
+            "priceMin": 200000,
+            "priceMax": 200000,
+            "priceSuffix": "/ year",
+            "priceSuffixMonthly": "/ month",
+            "priceSuffixAnnual": "/ year",
+            "showPriceSlider": false,
+            "ctaLabel": "Subscribe to Pro",
+            "ctaHref": "https://admin.j-markets.jcampos.dev",
+            "badge": "Recommended",
+            "highlighted": true,
+            "subline": "Pay 10 months, get 2 free",
+            "showAmortization": false,
+            "showMoneyBack": false,
+            "features": [
+              {
+                "label": "Unlimited products",
+                "enabled": true
+              },
+              {
+                "label": "Unlimited customers",
+                "enabled": true
+              },
+              {
+                "label": "Unlimited electronic documents",
+                "enabled": true
+              },
+              {
+                "label": "Multi-branch and multi-terminal",
+                "enabled": true
+              },
+              {
+                "label": "All document types (FE, TE, NC, ND, FC, FEX)",
+                "enabled": true
+              },
+              {
+                "label": "ATV contingency mode",
+                "enabled": true
+              },
+              {
+                "label": "Advanced reports and export",
+                "enabled": true
+              },
+              {
+                "label": "Acceptance of received documents",
+                "enabled": true
+              },
+              {
+                "label": "Priority WhatsApp support",
+                "enabled": true
+              }
+            ]
           }
         ]
       },
       "finalCta": {
         "eyebrow": "Your next point of sale",
         "headline": "Sell today. Comply with Hacienda tomorrow.",
-        "subheadline": "Start free without a credit card. When you're ready, unlock everything with a single payment.",
+        "subheadline": "Start free without a credit card. When you're ready, choose the plan that works best for you — monthly or annual with discount.",
         "ctaPrimary": "Create my free account",
         "ctaSecondary": "See demo",
         "loginTitle": "Already have an account?",
@@ -932,7 +1489,7 @@
         "loginCreate": "Create account"
       },
       "footer": {
-        "tagline": "The Costa Rican POS with electronic invoicing 4.4 — no monthly fee.",
+        "tagline": "The Costa Rican POS with electronic invoicing 4.4 — fair pricing, no fine print.",
         "madeIn": "Made in Costa Rica · 🇨🇷",
         "columns": [
           {

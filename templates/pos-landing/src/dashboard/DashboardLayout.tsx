@@ -1,33 +1,51 @@
-import { lazy, Suspense, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { lazy, Suspense, useRef } from 'react';
+import { Link, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { LogoIcon } from '@/components/ui/LogoIcon';
 import { Icon } from '@/components/ui/Icon';
 import { Spinner } from '@/components/ui/Spinner';
 import { useSaveConfig } from '@/hooks/useSaveConfig';
 import { cn } from '@/lib/cn';
 
-const MetaTab         = lazy(() => import('./MetaTab').then(m => ({ default: m.MetaTab })));
-const ThemeTab        = lazy(() => import('./ThemeTab').then(m => ({ default: m.ThemeTab })));
-const TranslationsTab = lazy(() => import('./TranslationsTab').then(m => ({ default: m.TranslationsTab })));
-const PricingTab      = lazy(() => import('./PricingTab').then(m => ({ default: m.PricingTab })));
-const ProductsTab     = lazy(() => import('./ProductsTab').then(m => ({ default: m.ProductsTab })));
-const SectionsTab     = lazy(() => import('./SectionsTab').then(m => ({ default: m.SectionsTab })));
+const MetaTab           = lazy(() => import('./MetaTab').then(m => ({ default: m.MetaTab })));
+const ThemeTab          = lazy(() => import('./ThemeTab').then(m => ({ default: m.ThemeTab })));
+const TranslationsTab   = lazy(() => import('./TranslationsTab').then(m => ({ default: m.TranslationsTab })));
+const PricingTab        = lazy(() => import('./PricingTab').then(m => ({ default: m.PricingTab })));
+const PricingAddonsTab  = lazy(() => import('./PricingAddonsTab').then(m => ({ default: m.PricingAddonsTab })));
+const ProductsTab       = lazy(() => import('./ProductsTab').then(m => ({ default: m.ProductsTab })));
+const SectionsTab       = lazy(() => import('./SectionsTab').then(m => ({ default: m.SectionsTab })));
+const FeaturesTab       = lazy(() => import('./FeaturesTab').then(m => ({ default: m.FeaturesTab })));
+const VSCompetitionTab  = lazy(() => import('./VSCompetitionTab').then(m => ({ default: m.VSCompetitionTab })));
+const HowItWorksTab     = lazy(() => import('./HowItWorksTab').then(m => ({ default: m.HowItWorksTab })));
+const HaciendaTab       = lazy(() => import('./HaciendaTab').then(m => ({ default: m.HaciendaTab })));
+const TestimonialsTab   = lazy(() => import('./TestimonialsTab').then(m => ({ default: m.TestimonialsTab })));
+const FAQTab            = lazy(() => import('./FAQTab').then(m => ({ default: m.FAQTab })));
 
-type TabId = 'meta' | 'theme' | 'sections' | 'pricing' | 'products' | 'translations';
+type TabId = 'meta' | 'theme' | 'sections' | 'pricing' | 'pricing-addons' | 'products' | 'translations' | 'features' | 'vs' | 'how-it-works' | 'hacienda' | 'testimonials' | 'faq';
 
-const TABS: Array<{ id: TabId; label: string; icon: 'Settings' | 'Palette' | 'LayoutDashboard' | 'DollarSign' | 'Package' | 'Languages' }> = [
-  { id: 'meta',         label: 'Meta / URLs',  icon: 'Settings'        },
-  { id: 'theme',        label: 'Theme',        icon: 'Palette'         },
-  { id: 'sections',     label: 'Sections',     icon: 'LayoutDashboard' },
-  { id: 'pricing',      label: 'Pricing',      icon: 'DollarSign'      },
-  { id: 'products',     label: 'Products',     icon: 'Package'         },
-  { id: 'translations', label: 'Translations', icon: 'Languages'       },
+const TABS: Array<{ id: TabId; label: string; icon: 'Settings' | 'Palette' | 'LayoutDashboard' | 'DollarSign' | 'Package' | 'Languages' | 'Sparkles' | 'GitCompare' | 'ListOrdered' | 'ShieldCheck' | 'Quote' | 'HelpCircle' | 'Grid3x3' }> = [
+  { id: 'meta',           label: 'Meta / URLs',      icon: 'Settings'        },
+  { id: 'theme',          label: 'Tema',             icon: 'Palette'         },
+  { id: 'sections',       label: 'Secciones',        icon: 'LayoutDashboard' },
+  { id: 'pricing',        label: 'Precios',          icon: 'DollarSign'      },
+  { id: 'pricing-addons', label: 'Addons Precios',   icon: 'Grid3x3'         },
+  { id: 'products',       label: 'Productos',        icon: 'Package'         },
+  { id: 'features',       label: 'Características',  icon: 'Sparkles'        },
+  { id: 'vs',             label: 'VS Competencia',   icon: 'GitCompare'      },
+  { id: 'how-it-works',   label: 'Cómo Funciona',    icon: 'ListOrdered'     },
+  { id: 'hacienda',       label: 'Hacienda',         icon: 'ShieldCheck'     },
+  { id: 'testimonials',   label: 'Testimonios',      icon: 'Quote'           },
+  { id: 'faq',            label: 'Preguntas',        icon: 'HelpCircle'      },
+  { id: 'translations',   label: 'Traducciones',     icon: 'Languages'       },
 ];
 
 export function DashboardLayout() {
-  const [activeTab, setActiveTab] = useState<TabId>('meta');
+  const location = useLocation();
+  const navigate = useNavigate();
   const { save, saving, saved, error } = useSaveConfig();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Get active tab from URL
+  const activeTab = location.pathname.split('/').pop() as TabId || 'meta';
 
   const handleSave = async () => {
     await save();
@@ -35,19 +53,19 @@ export function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
-      {/* Top bar */}
+    <div className="h-screen flex flex-col bg-muted/30 overflow-hidden">
+      {/* Top bar - Fixed */}
       <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-3">
           <LogoIcon size={28} />
-          <span className="font-display font-bold">Local Dashboard</span>
-          <span className="px-2 py-0.5 rounded bg-warning/20 text-warning text-[10px] font-display font-bold uppercase tracking-wider">localhost only</span>
+          <span className="font-display font-bold">Dashboard Local</span>
+          <span className="px-2 py-0.5 rounded bg-warning/20 text-warning text-[10px] font-display font-bold uppercase tracking-wider">solo localhost</span>
         </div>
         <div className="flex items-center gap-3">
           {error && <span className="text-xs text-destructive">{error}</span>}
-          {saved && <span className="text-xs text-success font-semibold">Saved ✓</span>}
+          {saved && <span className="text-xs text-success font-semibold">Guardado ✓</span>}
           <Link to="/" target="_blank" className="h-9 px-3 rounded-md border border-border text-sm font-medium hover:bg-muted flex items-center gap-1.5">
-            <Icon name="Eye" size={14} />Preview
+            <Icon name="Eye" size={14} />Vista previa
           </Link>
           <button
             onClick={handleSave}
@@ -55,19 +73,19 @@ export function DashboardLayout() {
             className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 disabled:opacity-60"
           >
             {saving ? <Spinner size={16} /> : <Icon name="Save" size={14} />}
-            {saving ? 'Saving…' : 'Save to disk'}
+            {saving ? 'Guardando…' : 'Guardar en disco'}
           </button>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-52 shrink-0 bg-card border-r border-border flex flex-col">
-          <nav className="p-2 space-y-1">
+      <div className="flex flex-1 overflow-hidden min-h-0">
+        {/* Sidebar - Fixed */}
+        <aside className="w-52 shrink-0 bg-card border-r border-border flex flex-col overflow-hidden">
+          <nav className="p-2 space-y-1 overflow-y-auto">
             {TABS.map(tab => (
-              <button
+              <Link
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                to={`/dashboard/${tab.id}`}
                 className={cn(
                   'w-full flex items-center gap-2.5 h-10 px-3 rounded-md text-sm font-medium transition',
                   activeTab === tab.id
@@ -77,36 +95,48 @@ export function DashboardLayout() {
               >
                 <Icon name={tab.icon} size={16} />
                 {tab.label}
-              </button>
+              </Link>
             ))}
           </nav>
         </aside>
 
-        {/* Tab content */}
-        <main className="flex-1 overflow-auto p-6">
-          <h2 className="font-display font-bold text-xl mb-4">
-            {TABS.find(t => t.id === activeTab)?.label}
-          </h2>
-          <Suspense fallback={<Spinner size={32} className="mx-auto mt-8" />}>
-            {activeTab === 'meta'         && <MetaTab />}
-            {activeTab === 'theme'        && <ThemeTab />}
-            {activeTab === 'sections'     && <SectionsTab />}
-            {activeTab === 'pricing'      && <PricingTab />}
-            {activeTab === 'products'     && <ProductsTab />}
-            {activeTab === 'translations' && <TranslationsTab />}
-          </Suspense>
+        {/* Tab content - Scrollable */}
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <div className="p-6">
+            <h2 className="font-display font-bold text-xl mb-4">
+              {TABS.find(t => t.id === activeTab)?.label}
+            </h2>
+            <Suspense fallback={<Spinner size={32} className="mx-auto mt-8" />}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard/meta" replace />} />
+                <Route path="/meta" element={<MetaTab />} />
+                <Route path="/theme" element={<ThemeTab />} />
+                <Route path="/sections" element={<SectionsTab />} />
+                <Route path="/pricing" element={<PricingTab />} />
+                <Route path="/pricing-addons" element={<PricingAddonsTab />} />
+                <Route path="/products" element={<ProductsTab />} />
+                <Route path="/features" element={<FeaturesTab />} />
+                <Route path="/vs" element={<VSCompetitionTab />} />
+                <Route path="/how-it-works" element={<HowItWorksTab />} />
+                <Route path="/hacienda" element={<HaciendaTab />} />
+                <Route path="/testimonials" element={<TestimonialsTab />} />
+                <Route path="/faq" element={<FAQTab />} />
+                <Route path="/translations" element={<TranslationsTab />} />
+              </Routes>
+            </Suspense>
+          </div>
         </main>
 
-        {/* Live preview iframe */}
-        <aside className="hidden xl:flex flex-col w-[480px] shrink-0 border-l border-border bg-background">
-          <div className="h-10 border-b border-border flex items-center px-4 text-xs font-semibold text-muted-foreground">
-            Live Preview
+        {/* Live preview iframe - Fixed */}
+        <aside className="hidden xl:flex flex-col w-[480px] shrink-0 border-l border-border bg-background overflow-hidden">
+          <div className="h-10 border-b border-border flex items-center px-4 text-xs font-semibold text-muted-foreground shrink-0">
+            Vista Previa en Vivo
           </div>
           <iframe
             ref={iframeRef}
             src="/"
             className="flex-1 w-full"
-            title="Landing preview"
+            title="Vista previa landing"
           />
         </aside>
       </div>

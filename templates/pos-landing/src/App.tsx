@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from '@/context/ConfigContext';
 import { ThemeApplicator } from '@/context/ThemeContext';
 import { AppShell } from '@/components/layout/AppShell';
@@ -25,6 +25,63 @@ export default function App() {
                 </Suspense>
               }
             />
+            {/* Section routes - all render the same LandingPage but scroll to section */}
+            <Route
+              path="/vs"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="vs" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/caracteristicas"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="caracteristicas" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/como"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="como" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/hacienda"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="hacienda" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/precios"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="precios" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/preguntas"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="preguntas" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/testimonios"
+              element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <LandingPage scrollTo="testimonios" />
+                </Suspense>
+              }
+            />
           </Route>
 
           {/* Demo — full-screen, no nav or footer (matches wireframe) */}
@@ -37,9 +94,9 @@ export default function App() {
             }
           />
 
-          {/* Dashboard — localhost-only config editor */}
+          {/* Dashboard — localhost-only config editor with nested routes */}
           <Route
-            path="/dashboard"
+            path="/dashboard/*"
             element={
               <Suspense fallback={<PageSkeleton />}>
                 <DashboardPage />
