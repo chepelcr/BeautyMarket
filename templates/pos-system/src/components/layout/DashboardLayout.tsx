@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     enabled: !!org,
     staleTime: 60_000,
     queryFn: () =>
-      crossAppApi.get<{ data: Session[] }>(crossAppOrgPath(org!.id, "/sessions?page_size=1000&search=status:1")),
+      crossAppApi.get<{ data: Session[] }>(crossAppOrgPath(org!.id, "/sessions?page_size=100&search=status:1")),
   });
   const activeSession = sessionsData?.data?.[0];
 

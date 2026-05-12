@@ -31,7 +31,7 @@ export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTermina
   const { data: terminalsData } = useQuery({
     queryKey: ["terminals", orgId, branch.branch_id],
     enabled: expanded,
-    queryFn: () => crossAppApi.get<TerminalListResponse>(crossAppOrgPath(orgId, `/branches/${branch.branch_id}/terminals?page_size=1000`)),
+    queryFn: () => crossAppApi.get<TerminalListResponse>(crossAppOrgPath(orgId, `/branches/${branch.branch_id}/terminals?page_size=100`)),
   });
   const terminals = terminalsData?.data ?? [];
 

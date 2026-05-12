@@ -99,7 +99,7 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
     queryKey: ["branches", org?.id],
     enabled: !!user && !!org,
     queryFn: () =>
-      crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, "/branches?page_size=1000&search=status:1")),
+      crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, "/branches?page_size=100&search=status:1")),
   });
 
   const allBranches: Branch[] = branchesResponse?.data ?? [];
