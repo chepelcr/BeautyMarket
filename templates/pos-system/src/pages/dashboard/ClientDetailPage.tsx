@@ -68,8 +68,14 @@ function EditDrawer({ open, onClose, client }: { open: boolean; onClose: () => v
   }, [open, client]);
 
   async function handleSave() {
-    if (!form.client_name?.trim() && !form.business_name?.trim()) {
-      setError("Se requiere al menos nombre o razón social."); return;
+    if (!form.business_name?.trim() && !form.client_gln?.trim()) {
+      setError("Se requiere al menos razón social o código GLN."); return;
+    }
+    if (!form.identification?.number?.trim()) {
+      setError("El número de identificación es requerido."); return;
+    }
+    if (!form.email?.trim()) {
+      setError("El correo electrónico es requerido."); return;
     }
     setError(null);
     const dto: CreateClientDto = {
@@ -78,7 +84,7 @@ function EditDrawer({ open, onClose, client }: { open: boolean; onClose: () => v
       ...(form.client_name?.trim() && { client_name: form.client_name.trim() }),
       ...(form.business_name?.trim() && { business_name: form.business_name.trim() }),
       ...(form.client_gln?.trim() && { client_gln: form.client_gln.trim() }),
-      ...(form.email?.trim() && { email: form.email.trim() }),
+      email: form.email.trim(), // Always include email since it's required
       ...((form.identification?.code || form.identification?.number) && { identification: { code: form.identification.code || undefined, number: form.identification.number || undefined } }),
       ...((form.phone?.country_code || form.phone?.number) && { phone: { country_code: form.phone.country_code || undefined, area_code: form.phone.area_code || undefined, number: form.phone.number || undefined } }),
       ...((form.residence?.state_id || form.residence?.address) && { residence: { state_id: form.residence.state_id || undefined, county_id: form.residence.county_id || undefined, district_id: form.residence.district_id || undefined, neighborhood_id: form.residence.neighborhood_id || undefined, address: form.residence.address || undefined } }),
@@ -109,7 +115,7 @@ function EditDrawer({ open, onClose, client }: { open: boolean; onClose: () => v
         </div>
       }
     >
-      <ClientFormBody form={form} setForm={setForm} error={error} />
+      <ClientFormBody form={form} setForm={setForm} error={error} isEditing={true} />
     </Drawer>
   );
 }

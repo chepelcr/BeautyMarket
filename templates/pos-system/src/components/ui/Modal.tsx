@@ -65,7 +65,7 @@ export function Modal({
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 200,
+          zIndex: 300, // Higher than Drawer (200)
           background: "rgba(0,0,0,0.45)",
           backdropFilter: "blur(2px)",
           display: "flex",

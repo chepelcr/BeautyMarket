@@ -4,6 +4,7 @@ export interface TaxSpecialFields {
   volume_consumption?: number;
   tax_amount_id?: number;
   tax_amount?: { id: number };
+  amount?: number; // Store the tax amount value for calculation
 }
 
 export interface LineTax {
@@ -19,6 +20,7 @@ export interface LineTax {
 
 export interface LineDiscount {
   discount_type_id: number;
+  discount_code?: string; // Add code for proper type matching
   percentage: number;
   amount?: number;
   reason?: string;

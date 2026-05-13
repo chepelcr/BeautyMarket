@@ -1,12 +1,14 @@
 import { create } from "zustand";
 import type { Product } from "../types";
 import type { DocTypeCode } from "../types/invoice";
+import type { LineDetail } from "../types/lineDetail";
 
 interface CartItem {
   product: Product;
   qty: number;
   lineDiscount?: number; // percentage override for this line (e.g. 10 = 10%)
   lineNote?: string;     // description override for this line
+  lineDetail?: Partial<LineDetail>; // Full line detail with taxes, discounts, fiscal info
 }
 
 interface CartStore {
@@ -14,7 +16,12 @@ interface CartStore {
   doc_type: DocTypeCode;
   add: (product: Product) => void;
   remove: (productId: string) => void;
-  updateLine: (productId: string, patch: { qty?: number; lineDiscount?: number; lineNote?: string }) => void;
+  updateLine: (productId: string, patch: { 
+    qty?: number; 
+    lineDiscount?: number; 
+    lineNote?: string;
+    lineDetail?: Partial<LineDetail>;
+  }) => void;
   clear: () => void;
   total: () => number;
   count: () => number;
@@ -46,10 +53,14 @@ export const useCart = create<CartStore>((set, get) => ({
     set((state) => {
       const item = state.items[productId];
       if (!item) return state;
+      
+      // If quantity is 1 or less, remove the item completely
       if (item.qty <= 1) {
         const { [productId]: _, ...rest } = state.items;
         return { items: rest };
       }
+      
+      // Otherwise, decrement quantity
       return {
         items: {
           ...state.items,
@@ -63,10 +74,18 @@ export const useCart = create<CartStore>((set, get) => ({
     set((state) => {
       const item = state.items[productId];
       if (!item) return state;
+      
+      // Handle qty: 0 as delete
+      if (patch.qty !== undefined && patch.qty === 0) {
+        const { [productId]: _, ...rest } = state.items;
+        return { items: rest };
+      }
+      
       const updated = { ...item };
       if (patch.qty !== undefined && patch.qty > 0) updated.qty = patch.qty;
       if (patch.lineDiscount !== undefined) updated.lineDiscount = patch.lineDiscount;
       if (patch.lineNote !== undefined) updated.lineNote = patch.lineNote;
+      if (patch.lineDetail !== undefined) updated.lineDetail = patch.lineDetail;
       return { items: { ...state.items, [productId]: updated } };
     });
   },

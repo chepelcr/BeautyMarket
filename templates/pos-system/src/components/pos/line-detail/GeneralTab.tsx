@@ -1,129 +1,152 @@
+import { Package } from 'lucide-react';
+import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useAllMeasurementUnits } from '@/hooks/useDataApi';
 import type { LineDetail } from '@/types/lineDetail';
 
 interface GeneralTabProps {
   detail: LineDetail;
   onChange: (patch: Partial<LineDetail>) => void;
-  hasIvace: boolean;
-  hasFactoryTax: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
+  isExportInvoice?: boolean;
 }
 
-export function GeneralTab({ detail, onChange, hasIvace, hasFactoryTax }: GeneralTabProps) {
+export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInvoice = false }: GeneralTabProps) {
   const { data: measurementUnits } = useAllMeasurementUnits();
-  const baseAmountEditable = hasIvace || hasFactoryTax;
+  
+  // Find the selected unit
+  const selectedUnit = (measurementUnits ?? []).find((u: any) => u.id === detail.unit_id);
+  const selectedUnitCode = selectedUnit?.code;
+  
+  // Show commercial unit field only if unit code is "Otros"
+  const showCommercialUnit = selectedUnitCode === 'Otros';
+  
+  // Handle unit change - auto-set commercial_unit_measure to unit code if not "Otros"
+  const handleUnitChange = (unitId: number | undefined) => {
+    const unit = (measurementUnits ?? []).find((u: any) => u.id === unitId);
+    const unitCode = unit?.code;
+    
+    if (unitCode === 'Otros') {
+      // Keep existing commercial_unit_measure or clear it
+      onChange({ unit_id: unitId });
+    } else {
+      // Auto-set commercial_unit_measure to unit code
+      onChange({ 
+        unit_id: unitId, 
+        commercial_unit_measure: unitCode || undefined 
+      });
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Description */}
-      <div className="space-y-1">
-        <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
-          Descripción *
-        </label>
-        <input
-          value={detail.description}
-          onChange={(e) => onChange({ description: e.target.value })}
-          className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
-          placeholder="Descripción del producto o servicio"
-          maxLength={200}
-        />
-      </div>
-
-      {/* Quantity + Price + Unit */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="space-y-1">
-          <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
-            Cantidad *
+    <SectionWrapper
+      title="General"
+      icon={Package}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Description */}
+        <div>
+          <label className="pp-label">
+            Descripción <span style={{ color: "hsl(var(--destructive))" }}>*</span>
           </label>
           <input
-            type="number"
-            value={detail.quantity}
-            onChange={(e) => onChange({ quantity: parseFloat(e.target.value) || 0 })}
-            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono"
-            min={0.001}
-            step={0.001}
+            className="pp-input"
+            value={detail.description}
+            onChange={(e) => onChange({ description: e.target.value })}
+            placeholder="Descripción del producto o servicio"
+            maxLength={200}
           />
         </div>
-        <div className="space-y-1">
-          <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
-            Precio neto *
-          </label>
-          <input
-            type="number"
-            value={detail.net_price}
-            onChange={(e) => onChange({ net_price: parseFloat(e.target.value) || 0 })}
-            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono"
-            min={0}
-            step={0.01}
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
-            Unidad *
-          </label>
-          <select
-            value={detail.unit_id ?? ''}
-            onChange={(e) => onChange({ unit_id: Number(e.target.value) || undefined })}
-            className="w-full h-10 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
-          >
-            <option value="">—</option>
-            {(measurementUnits ?? []).map((u: any) => (
-              <option key={u.unit_id} value={u.unit_id}>{u.code} — {u.description}</option>
-            ))}
-          </select>
-        </div>
-      </div>
 
-      {/* Optional fields */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
-            Unidad comercial
-          </label>
-          <input
-            value={detail.commercial_unit_measure || ''}
-            onChange={(e) => onChange({ commercial_unit_measure: e.target.value })}
-            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
-            maxLength={20}
-            placeholder="Ej: Caja"
-          />
+        {/* Quantity + Price + Unit */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          <div>
+            <label className="pp-label">
+              Cantidad <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+            </label>
+            <input
+              className="pp-input"
+              type="number"
+              value={detail.quantity}
+              onChange={(e) => onChange({ quantity: parseFloat(e.target.value) || 0 })}
+              min={0.001}
+              step={0.001}
+            />
+          </div>
+          <div>
+            <label className="pp-label">
+              Precio neto <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+            </label>
+            <input
+              className="pp-input"
+              type="number"
+              value={detail.net_price}
+              onChange={(e) => onChange({ net_price: parseFloat(e.target.value) || 0 })}
+              min={0}
+              step={0.01}
+            />
+          </div>
+          <div>
+            <label className="pp-label">
+              Unidad <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+            </label>
+            <select
+              className="pp-input"
+              value={detail.unit_id ?? ''}
+              onChange={(e) => handleUnitChange(Number(e.target.value) || undefined)}
+            >
+              <option value="">—</option>
+              {(measurementUnits ?? []).map((u: any) => (
+                <option key={u.id} value={u.id}>{u.code} — {u.description}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="space-y-1">
-          <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
-            Partida arancelaria
-          </label>
-          <input
-            value={detail.customs_part || ''}
-            onChange={(e) => onChange({ customs_part: e.target.value })}
-            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono"
-            maxLength={12}
-            placeholder="123456789012"
-          />
+
+        {/* Optional fields - conditional layout based on unit and document type */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: showCommercialUnit && isExportInvoice ? '1fr 1fr' : '1fr', 
+          gap: 8 
+        }}>
+          {showCommercialUnit && (
+            <div>
+              <label className="pp-label">
+                Unidad comercial <span style={{ color: "hsl(var(--destructive))" }}>*</span>
+              </label>
+              <input
+                className="pp-input"
+                value={detail.commercial_unit_measure || ''}
+                onChange={(e) => onChange({ commercial_unit_measure: e.target.value })}
+                maxLength={20}
+                placeholder="Ej: Caja, Paquete, etc."
+              />
+            </div>
+          )}
+          {isExportInvoice && (
+            <div>
+              <label className="pp-label">Partida arancelaria</label>
+              <input
+                className="pp-input"
+                value={detail.customs_part || ''}
+                onChange={(e) => onChange({ customs_part: e.target.value })}
+                maxLength={12}
+                placeholder="123456789012"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Subtotal display */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid hsl(var(--border))' }}>
+          <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>Subtotal línea</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+            ₡{(detail.quantity * detail.net_price).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+          </span>
         </div>
       </div>
-
-      {/* Base amount — only editable when IVACE or factory tax */}
-      <div className="space-y-1">
-        <label className={`text-[11px] font-display font-bold uppercase tracking-wider ${baseAmountEditable ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>
-          Monto base {!baseAmountEditable && '(solo editable con IVACE o cargo de fábrica)'}
-        </label>
-        <input
-          type="number"
-          value={detail.base_amount ?? ''}
-          onChange={(e) => onChange({ base_amount: parseFloat(e.target.value) || undefined })}
-          disabled={!baseAmountEditable}
-          className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono disabled:opacity-40 disabled:cursor-not-allowed"
-          min={0}
-          step={0.01}
-        />
-      </div>
-
-      {/* Subtotal display */}
-      <div className="flex justify-between items-center py-2 border-t border-border">
-        <span className="text-[12px] text-muted-foreground">Subtotal línea</span>
-        <span className="font-mono font-semibold t-num">
-          ₡{(detail.quantity * detail.net_price).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
-        </span>
-      </div>
-    </div>
+    </SectionWrapper>
   );
 }

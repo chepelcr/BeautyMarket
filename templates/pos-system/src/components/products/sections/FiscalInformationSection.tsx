@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Landmark, X, Search, AlertTriangle } from "lucide-react";
 import { Spinner } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
@@ -33,6 +34,8 @@ export function FiscalInformationSection({
   const [isSearching, setIsSearching] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingProductTypeId, setPendingProductTypeId] = useState<number | undefined>();
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data: productTypesData } = useAllProductTypes();
@@ -51,9 +54,24 @@ export function FiscalInformationSection({
     { enabled: false }
   );
 
+  // Update dropdown position when showing results
+  useEffect(() => {
+    if (showResults && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [showResults]);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        inputRef.current && !inputRef.current.contains(e.target as Node) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node)
+      ) {
         setShowResults(false);
       }
     };
@@ -193,7 +211,7 @@ export function FiscalInformationSection({
           </div>
         ) : (
           /* Search state — no code input, just description search */
-          <div ref={dropdownRef} style={{ position: "relative" }}>
+          <div style={{ position: "relative" }}>
             <label className="pp-label">
               {t("products.searchCabys")}{" "}
               <span style={{ color: "hsl(var(--destructive))" }}>*</span>
@@ -212,6 +230,7 @@ export function FiscalInformationSection({
                   }}
                 />
                 <input
+                  ref={inputRef}
                   className="pp-input"
                   placeholder={
                     !form.productTypeId
@@ -241,88 +260,80 @@ export function FiscalInformationSection({
               </button>
             </div>
 
-            {/* Results dropdown */}
-            {showResults && searchResults.length > 0 && (
+            {/* Results dropdown - rendered via portal */}
+            {showResults && (searchResults.length > 0 || (!loading && searchResults.length === 0)) && createPortal(
               <div
+                ref={dropdownRef}
                 style={{
                   position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  zIndex: 50,
+                  top: dropdownPosition.top,
+                  left: dropdownPosition.left,
+                  width: dropdownPosition.width,
+                  zIndex: 9999,
                   background: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: 8,
-                  marginTop: 4,
                   boxShadow: "0 8px 24px hsl(var(--foreground) / 0.12)",
                   overflow: "hidden",
                   maxHeight: 260,
                   overflowY: "auto",
                 }}
               >
-                {searchResults.map((item) => (
-                  <button
-                    key={item.code}
-                    type="button"
-                    onClick={() => selectCabys(item)}
-                    style={{
-                      width: "100%",
-                      padding: "10px 14px",
-                      textAlign: "left",
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      borderBottom: "1px solid hsl(var(--border) / 0.5)",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--muted) / 0.5)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <span
+                {searchResults.length > 0 ? (
+                  searchResults.map((item) => (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => selectCabys(item)}
                       style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 11,
-                        color: "hsl(var(--primary))",
-                        fontWeight: 700,
+                        width: "100%",
+                        padding: "10px 14px",
+                        textAlign: "left",
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        borderBottom: "1px solid hsl(var(--border) / 0.5)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
                       }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--muted) / 0.5)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      {item.code}
-                    </span>
-                    <span style={{ fontSize: 12, color: "hsl(var(--foreground))" }}>
-                      {item.description}
-                    </span>
-                    {item.tax_rate && (
-                      <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
-                        {t("products.suggestedIva", { pct: String(item.tax_rate.percentage) })}
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 11,
+                          color: "hsl(var(--primary))",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {item.code}
                       </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {showResults && searchResults.length === 0 && !loading && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  zIndex: 50,
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 8,
-                  marginTop: 4,
-                  padding: "12px 16px",
-                  fontSize: 12,
-                  color: "hsl(var(--muted-foreground))",
-                  textAlign: "center",
-                }}
-              >
-                {t("products.noResultsFor", { query: searchTerm })}
-              </div>
+                      <span style={{ fontSize: 12, color: "hsl(var(--foreground))" }}>
+                        {item.description}
+                      </span>
+                      {item.tax_rate && (
+                        <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
+                          {t("products.suggestedIva", { pct: String(item.tax_rate.percentage) })}
+                        </span>
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      padding: "12px 16px",
+                      fontSize: 12,
+                      color: "hsl(var(--muted-foreground))",
+                      textAlign: "center",
+                    }}
+                  >
+                    {t("products.noResultsFor", { query: searchTerm })}
+                  </div>
+                )}
+              </div>,
+              document.body
             )}
           </div>
         )}

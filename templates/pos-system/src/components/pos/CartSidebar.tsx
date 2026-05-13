@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/store/cart';
-import { LineDetailModal } from './line-detail/LineDetailModal';
+import { LineDetailDrawer } from './line-detail/LineDetailDrawer';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { DOCUMENT_TYPES } from '@/types/invoice';
 import type { DocTypeCode } from '@/types/invoice';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
@@ -29,7 +30,12 @@ interface CartSidebarProps {
   selectedClient: ClientSearchResult | null;
   onAdd: (product: Product) => void;
   onRemove: (id: string) => void;
-  onUpdateLine: (id: string, patch: { qty?: number; lineDiscount?: number; lineNote?: string }) => void;
+  onUpdateLine: (id: string, patch: { 
+    qty?: number; 
+    lineDiscount?: number; 
+    lineNote?: string;
+    lineDetail?: any;
+  }) => void;
   onCheckout: () => void;
   onSelectClient: () => void;
   onClearClient: () => void;
@@ -51,11 +57,48 @@ export function CartSidebar({
 }: CartSidebarProps) {
   const { doc_type, setDocType } = useCart();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { confirm, ConfirmModal } = useConfirmModal();
   const editingItem = editingId ? items[editingId] : null;
+
+  const handleRemove = (itemId: string) => {
+    const item = items[itemId];
+    if (!item) return;
+    
+    // If quantity is 1, confirm before removing
+    if (item.qty <= 1) {
+      confirm({
+        title: "Eliminar producto",
+        message: `¿Eliminar "${item.product.name}" del carrito?`,
+        variant: "destructive",
+        confirmLabel: "Eliminar",
+        cancelLabel: "Cancelar",
+        icon: "trash",
+        onConfirm: () => onRemove(itemId),
+      });
+    } else {
+      // Just decrement
+      onRemove(itemId);
+    }
+  };
+
+  const handleDelete = (itemId: string) => {
+    const item = items[itemId];
+    if (!item) return;
+    
+    confirm({
+      title: "Eliminar producto",
+      message: `¿Eliminar "${item.product.name}" del carrito?`,
+      variant: "destructive",
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar",
+      icon: "trash",
+      onConfirm: () => onUpdateLine(itemId, { qty: 0 }),
+    });
+  };
 
   return (
     <>
-      <aside className="flex flex-col bg-card overflow-hidden border-l border-border">
+      <aside className="flex flex-col bg-card overflow-hidden border-l border-border h-full">
         {/* Header */}
         <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
@@ -165,7 +208,7 @@ export function CartSidebar({
                   </button>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => onRemove(item.id)}
+                      onClick={() => handleRemove(item.id)}
                       className="w-6 h-6 rounded border border-border bg-card flex items-center justify-center text-muted-foreground hover:border-primary/40 text-xs"
                     >
                       −
@@ -178,7 +221,7 @@ export function CartSidebar({
                       +
                     </button>
                     <button
-                      onClick={() => onUpdateLine(item.id, { qty: 0 })}
+                      onClick={() => handleDelete(item.id)}
                       className="w-6 h-6 rounded border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive/40 ml-1 text-xs"
                     >
                       🗑
@@ -215,17 +258,32 @@ export function CartSidebar({
         </div>
       </aside>
 
-      {/* Line detail modal */}
-      {editingItem && (
-        <LineDetailModal
-          product={editingItem.product}
-          qty={editingItem.qty}
-          lineDiscount={editingItem.lineDiscount}
-          lineNote={editingItem.lineNote}
-          onSave={(patch) => { onUpdateLine(editingId!, patch); setEditingId(null); }}
-          onClose={() => setEditingId(null)}
-        />
-      )}
+      {/* Line detail drawer */}
+      <LineDetailDrawer
+        open={editingId !== null}
+        product={editingItem?.product ?? null}
+        qty={editingItem?.qty ?? 1}
+        lineDiscount={editingItem?.lineDiscount}
+        lineNote={editingItem?.lineNote}
+        lineDetail={editingItem?.lineDetail}
+        documentType={doc_type}
+        onSave={(patch) => { 
+          if (editingId) {
+            onUpdateLine(editingId, patch); 
+            setEditingId(null); 
+          }
+        }}
+        onDelete={() => {
+          if (editingId) {
+            onUpdateLine(editingId, { qty: 0 });
+            setEditingId(null);
+          }
+        }}
+        onClose={() => setEditingId(null)}
+      />
+      
+      {/* Confirmation Modal */}
+      <ConfirmModal />
     </>
   );
 }

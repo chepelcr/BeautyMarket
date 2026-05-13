@@ -1,4 +1,6 @@
-import { useAllTaxes, useAllTaxRates, useAllTaxFactors } from '@/hooks/useDataApi';
+import { Percent } from 'lucide-react';
+import { SectionWrapper } from '@/components/common/SectionWrapper';
+import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
 import type { LineTax } from '@/types/lineDetail';
 
@@ -7,6 +9,10 @@ interface TaxesTabProps {
   onChange: (taxes: LineTax[]) => void;
   factoryAssumedTax: number;
   totalTaxes: number;
+  factoryTaxChargeId?: number;
+  onFactoryTaxChargeChange: (chargeId: number | undefined) => void;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 const IVA_CODES = ['01', '07', '08'];
@@ -14,37 +20,51 @@ const IVA_NEEDS_FACTOR = ['08']; // IVARBU
 
 const OTHER_TAX_TYPES_CODES = ['02', '03', '04', '05', '06', '12', '99'];
 
-export function TaxesTab({ taxes, onChange, factoryAssumedTax, totalTaxes }: TaxesTabProps) {
+export function TaxesTab({ 
+  taxes, 
+  onChange, 
+  factoryAssumedTax, 
+  totalTaxes, 
+  factoryTaxChargeId,
+  onFactoryTaxChargeChange,
+  isExpanded, 
+  onToggle 
+}: TaxesTabProps) {
   const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
   const { data: taxRates } = useAllTaxRates({ iso_code: CountryISO.COSTA_RICA });
   const { data: taxFactors } = useAllTaxFactors({ iso_code: CountryISO.COSTA_RICA });
+  const { data: factoryTaxCharges } = useAllFactoryTaxCharges({ iso_code: CountryISO.COSTA_RICA, document_version_id: 1 });
 
   const ivaTax = taxes.find((t) => {
-    const tt = (taxTypes ?? []).find((x: any) => x.tax_id === t.tax_type_id);
+    const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
     return IVA_CODES.includes(tt?.code ?? '');
   });
 
   const otherTaxes = taxes.filter((t) => {
-    const tt = (taxTypes ?? []).find((x: any) => x.tax_id === t.tax_type_id);
+    const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
     return !IVA_CODES.includes(tt?.code ?? '');
   });
 
   const setIva = (patch: Partial<LineTax>) => {
     const withoutIva = taxes.filter((t) => {
-      const tt = (taxTypes ?? []).find((x: any) => x.tax_id === t.tax_type_id);
+      const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
       return !IVA_CODES.includes(tt?.code ?? '');
     });
-    if (patch.tax_type_id) {
-      onChange([...withoutIva, { ...(ivaTax ?? {}), ...patch } as LineTax]);
-    } else {
-      onChange(withoutIva);
+    if (patch.tax_type_id !== undefined || ivaTax) {
+      // Merge with existing IVA tax to preserve all fields
+      const updatedIva = { ...(ivaTax ?? { tax_type_id: undefined, rate: 0, special_fields: {} }), ...patch };
+      if (updatedIva.tax_type_id) {
+        onChange([...withoutIva, updatedIva as LineTax]);
+      } else {
+        onChange(withoutIva);
+      }
     }
   };
 
   const addOther = () => {
     const firstOtherType = (taxTypes ?? []).find((tt: any) => OTHER_TAX_TYPES_CODES.includes(tt.code));
     if (!firstOtherType) return;
-    onChange([...taxes, { tax_type_id: firstOtherType.tax_id, rate: 0, special_fields: {} }]);
+    onChange([...taxes, { tax_type_id: firstOtherType.id, rate: 0, special_fields: {} }]);
   };
 
   const removeOther = (idx: number) => {
@@ -60,135 +80,185 @@ export function TaxesTab({ taxes, onChange, factoryAssumedTax, totalTaxes }: Tax
   };
 
   const ivaTypeCode = ivaTax
-    ? (taxTypes ?? []).find((tt: any) => tt.tax_id === ivaTax.tax_type_id)?.code
+    ? (taxTypes ?? []).find((tt: any) => tt.id === ivaTax.tax_type_id)?.code
     : null;
 
   return (
-    <div className="space-y-4">
-      {/* IVA Section (required) */}
-      <div className="rounded-md border border-border p-3 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] font-semibold">IVA (requerido)</span>
-          <span className="text-[10px] text-destructive">*</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo IVA *</label>
-            <select
-              value={ivaTax?.tax_type_id ?? ''}
-              onChange={(e) => setIva({ tax_type_id: Number(e.target.value) || undefined })}
-              className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
-            >
-              <option value="">Seleccionar…</option>
-              {(taxTypes ?? [])
-                .filter((tt: any) => IVA_CODES.includes(tt.code))
-                .map((tt: any) => (
-                  <option key={tt.tax_id} value={tt.tax_id}>{tt.code} — {tt.description}</option>
-                ))}
-            </select>
+    <SectionWrapper
+      title="Impuestos"
+      icon={Percent}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+      badge={taxes.length > 0 ? taxes.length : undefined}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* IVA Section (required) */}
+        <div style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 600 }}>IVA (requerido)</span>
+            <span style={{ fontSize: 10, color: 'hsl(var(--destructive))' }}>*</span>
           </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Tarifa *</label>
-            <select
-              value={ivaTax?.tax_rate_id ?? ''}
-              onChange={(e) => {
-                const rate = (taxRates ?? []).find((r: any) => r.rate_id === Number(e.target.value));
-                setIva({ tax_rate_id: Number(e.target.value) || undefined, rate: rate?.percentage });
-              }}
-              className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
-            >
-              <option value="">—</option>
-              {(taxRates ?? []).map((r: any) => (
-                <option key={r.rate_id} value={r.rate_id}>{r.percentage}%</option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        {ivaTypeCode && IVA_NEEDS_FACTOR.includes(ivaTypeCode) && (
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold uppercase text-muted-foreground">Factor (IVARBU) *</label>
-            <select
-              value={ivaTax?.tax_factor_id ?? ''}
-              onChange={(e) => setIva({ tax_factor_id: Number(e.target.value) || undefined })}
-              className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
-            >
-              <option value="">Seleccionar…</option>
-              {(taxFactors ?? []).map((f: any) => (
-                <option key={f.factor_id} value={f.factor_id}>{f.description}</option>
-              ))}
-            </select>
-          </div>
-        )}
-      </div>
-
-      {/* Other taxes */}
-      <div className="space-y-2">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Otros impuestos
-        </div>
-        {otherTaxes.map((tax, idx) => {
-          const tt = (taxTypes ?? []).find((x: any) => x.tax_id === tax.tax_type_id);
-          return (
-            <div key={idx} className="rounded-md border border-border p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold">{tt?.code ?? '?'} — {tt?.description ?? 'Impuesto'}</span>
-                <button onClick={() => removeOther(idx)} className="text-[11px] text-muted-foreground hover:text-destructive">Quitar</button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo</label>
-                  <select
-                    value={tax.tax_type_id}
-                    onChange={(e) => updateOther(idx, { tax_type_id: Number(e.target.value) })}
-                    className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
-                  >
-                    {(taxTypes ?? [])
-                      .filter((x: any) => OTHER_TAX_TYPES_CODES.includes(x.code))
-                      .map((x: any) => (
-                        <option key={x.tax_id} value={x.tax_id}>{x.code} — {x.description}</option>
-                      ))}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">Tarifa %</label>
-                  <input
-                    type="number"
-                    value={tax.rate ?? ''}
-                    onChange={(e) => updateOther(idx, { rate: parseFloat(e.target.value) || 0 })}
-                    className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary font-mono"
-                    min={0}
-                    max={100}
-                    step={0.01}
-                  />
-                </div>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+            <div>
+              <label className="pp-label">Tipo IVA *</label>
+              <select
+                className="pp-input"
+                value={ivaTax?.tax_type_id ?? ''}
+                onChange={(e) => setIva({ tax_type_id: Number(e.target.value) || undefined })}
+              >
+                <option value="">Seleccionar…</option>
+                {(taxTypes ?? [])
+                  .filter((tt: any) => IVA_CODES.includes(tt.code))
+                  .map((tt: any) => (
+                    <option key={tt.id} value={tt.id}>{tt.code} — {tt.description}</option>
+                  ))}
+              </select>
             </div>
-          );
-        })}
-
-        <button
-          onClick={addOther}
-          className="w-full h-9 rounded-md border border-dashed border-border text-[12px] text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-        >
-          + Agregar impuesto
-        </button>
-      </div>
-
-      {/* Totals */}
-      <div className="border-t border-border pt-3 space-y-1 text-[12px]">
-        {factoryAssumedTax > 0 && (
-          <div className="flex justify-between text-muted-foreground">
-            <span>Asumido por fábrica</span>
-            <span className="font-mono t-num">₡{factoryAssumedTax.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+            <div>
+              <label className="pp-label">Tarifa *</label>
+              <select
+                className="pp-input"
+                value={ivaTax?.tax_rate_id ?? ''}
+                onChange={(e) => {
+                  const rate = (taxRates ?? []).find((r: any) => r.id === Number(e.target.value));
+                  setIva({ tax_rate_id: Number(e.target.value) || undefined, rate: rate?.percentage });
+                }}
+              >
+                <option value="">—</option>
+                {(taxRates ?? []).map((r: any) => (
+                  <option key={r.id} value={r.id}>{r.percentage}%</option>
+                ))}
+              </select>
+            </div>
           </div>
-        )}
-        <div className="flex justify-between font-semibold">
-          <span>Total impuestos</span>
-          <span className="font-mono t-num">₡{totalTaxes.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+
+          {ivaTypeCode && IVA_NEEDS_FACTOR.includes(ivaTypeCode) && (
+            <div style={{ marginBottom: 8 }}>
+              <label className="pp-label">Factor (IVARBU) *</label>
+              <select
+                className="pp-input"
+                value={ivaTax?.tax_factor_id ?? ''}
+                onChange={(e) => setIva({ tax_factor_id: Number(e.target.value) || undefined })}
+              >
+                <option value="">Seleccionar…</option>
+                {(taxFactors ?? []).map((f: any) => (
+                  <option key={f.id} value={f.id}>{f.description}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Factory Tax Charge */}
+          <div>
+            <label className="pp-label">Cargo por fábrica</label>
+            <select
+              className="pp-input"
+              value={factoryTaxChargeId ?? ''}
+              onChange={(e) => onFactoryTaxChargeChange(Number(e.target.value) || undefined)}
+            >
+              <option value="">Sin cargo de fábrica</option>
+              {(factoryTaxCharges ?? []).map((f: any) => (
+                <option key={f.id} value={f.id}>
+                  {f.description}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Other taxes */}
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>
+            Otros impuestos
+          </div>
+          {otherTaxes.map((tax, idx) => {
+            const tt = (taxTypes ?? []).find((x: any) => x.id === tax.tax_type_id);
+            return (
+              <div key={idx} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>{tt?.code ?? '?'} — {tt?.description ?? 'Impuesto'}</span>
+                  <button 
+                    onClick={() => removeOther(idx)} 
+                    style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', background: 'none', border: 'none', cursor: 'pointer' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'hsl(var(--destructive))'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'hsl(var(--muted-foreground))'}
+                  >
+                    Quitar
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div>
+                    <label className="pp-label">Tipo</label>
+                    <select
+                      className="pp-input"
+                      value={tax.tax_type_id}
+                      onChange={(e) => updateOther(idx, { tax_type_id: Number(e.target.value) })}
+                    >
+                      {(taxTypes ?? [])
+                        .filter((x: any) => OTHER_TAX_TYPES_CODES.includes(x.code))
+                        .map((x: any) => (
+                          <option key={x.id} value={x.id}>{x.code} — {x.description}</option>
+                        ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="pp-label">Tarifa %</label>
+                    <input
+                      className="pp-input"
+                      type="number"
+                      value={tax.rate ?? ''}
+                      onChange={(e) => updateOther(idx, { rate: parseFloat(e.target.value) || 0 })}
+                      min={0}
+                      max={100}
+                      step={0.01}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <button
+            onClick={addOther}
+            style={{
+              width: '100%',
+              height: 36,
+              borderRadius: 6,
+              border: '1px dashed hsl(var(--border))',
+              fontSize: 12,
+              color: 'hsl(var(--muted-foreground))',
+              background: 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'hsl(var(--primary))';
+              e.currentTarget.style.color = 'hsl(var(--primary))';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'hsl(var(--border))';
+              e.currentTarget.style.color = 'hsl(var(--muted-foreground))';
+            }}
+          >
+            + Agregar impuesto
+          </button>
+        </div>
+
+        {/* Totals */}
+        <div style={{ borderTop: '1px solid hsl(var(--border))', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
+          {factoryAssumedTax > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'hsl(var(--muted-foreground))' }}>
+              <span>Asumido por fábrica</span>
+              <span style={{ fontFamily: 'var(--font-mono)' }}>₡{factoryAssumedTax.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+            <span>Total impuestos</span>
+            <span style={{ fontFamily: 'var(--font-mono)' }}>₡{totalTaxes.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </SectionWrapper>
   );
 }

@@ -1,0 +1,451 @@
+import { useState, useMemo, useEffect } from 'react';
+import { Drawer, Button } from '@/components/ui';
+import { FadeIn } from '@/components/ui/FadeIn';
+import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges, useAllDiscountTypes } from '@/hooks/useDataApi';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
+import { CountryISO } from '@/lib/enums';
+import type { GetAllFactoryTaxChargesParams } from '@/services/data-api/dtos';
+import { TaxCalculationService } from '@/services/taxCalculationService';
+import { DiscountCalculationService } from '@/services/discountCalculationService';
+import { GeneralTab } from './GeneralTab';
+import { IvaTaxSection } from './IvaTaxSection';
+import { OtherTaxSection } from './OtherTaxSection';
+import { DiscountsTab } from './DiscountsTab';
+import { FiscalInfoSection } from './FiscalInfoSection';
+import { CommercialValueSection } from './CommercialValueSection';
+import type { LineDetail, LineTax, LineDiscount } from '@/types/lineDetail';
+import type { Product } from '@/types';
+
+const fmt = (n: number) => '₡' + n.toLocaleString('es-CR', { minimumFractionDigits: 2 });
+
+interface SectionExpanded {
+  general: boolean;
+  fiscal: boolean;
+  discounts: boolean;
+  otherTaxes: boolean;
+  ivaTax: boolean;
+  commercial: boolean;
+}
+
+interface LineDetailDrawerProps {
+  open: boolean;
+  product: Product | null;
+  qty: number;
+  lineDiscount?: number;
+  lineNote?: string;
+  documentType?: number | string;
+  lineDetail?: Partial<LineDetail>; // Existing line detail from cart
+  onSave: (patch: { 
+    qty?: number; 
+    lineDiscount?: number; 
+    lineNote?: string;
+    lineDetail?: Partial<LineDetail>;
+  }) => void;
+  onDelete?: () => void;
+  onClose: () => void;
+}
+
+export function LineDetailDrawer({
+  open,
+  product,
+  qty,
+  lineDiscount,
+  lineNote,
+  documentType,
+  lineDetail: existingLineDetail,
+  onSave,
+  onDelete,
+  onClose,
+}: LineDetailDrawerProps) {
+  const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
+  const { data: taxRates } = useAllTaxRates({ iso_code: CountryISO.COSTA_RICA });
+  const { data: taxFactors } = useAllTaxFactors({ iso_code: CountryISO.COSTA_RICA });
+  const { data: factoryTaxCharges } = useAllFactoryTaxCharges({ iso_code: CountryISO.COSTA_RICA } as GetAllFactoryTaxChargesParams);
+  const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
+  // Note: taxAmounts requires tax_id, so we don't fetch it here - it's fetched per-tax when needed
+  const { confirm, ConfirmModal } = useConfirmModal();
+  
+  const [expanded, setExpanded] = useState<SectionExpanded>({
+    general: true,
+    fiscal: false,
+    discounts: false,
+    otherTaxes: false,
+    ivaTax: false,
+    commercial: true,
+  });
+
+  // Build initial LineDetail from product - reset when product changes
+  const [detail, setDetail] = useState<LineDetail>(() => {
+    if (!product) {
+      return {
+        product_id: '',
+        description: '',
+        quantity: 1,
+        net_price: 0,
+        base_amount: undefined,
+        unit_id: undefined,
+        commercial_unit_measure: undefined,
+        customs_part: undefined,
+        factory_tax_charge_id: undefined,
+        cabys: undefined,
+        taxes: [],
+        discounts: [],
+      };
+    }
+    
+    // If we have existing line detail, use it
+    if (existingLineDetail) {
+      return {
+        product_id: product.product_id,
+        description: existingLineDetail.description ?? lineNote ?? product.name,
+        quantity: existingLineDetail.quantity ?? qty,
+        net_price: existingLineDetail.net_price ?? product.price ?? 0,
+        base_amount: existingLineDetail.base_amount,
+        unit_id: existingLineDetail.unit_id,
+        commercial_unit_measure: existingLineDetail.commercial_unit_measure,
+        customs_part: existingLineDetail.customs_part,
+        factory_tax_charge_id: existingLineDetail.factory_tax_charge_id,
+        cabys: existingLineDetail.cabys ?? product.cabys ?? undefined,
+        taxes: existingLineDetail.taxes ?? [],
+        discounts: existingLineDetail.discounts ?? [],
+      };
+    }
+    
+    // Otherwise, build from product defaults
+    return {
+      product_id: product.product_id,
+      description: lineNote || product.name,
+      quantity: qty,
+      net_price: product.price ?? 0,
+      base_amount: undefined,
+      unit_id: undefined,
+      commercial_unit_measure: undefined,
+      customs_part: undefined,
+      factory_tax_charge_id: undefined,
+      cabys: product.cabys ?? undefined,
+      taxes: (product.taxes ?? []).map((t: any) => ({
+        tax_type_id: t.tax_type_id ?? t.taxId,
+        rate: t.rate,
+        special_fields: t.special_fields ?? t.specialFields,
+      })) as LineTax[],
+      discounts: lineDiscount
+        ? [{ 
+            discount_type_id: 1, 
+            discount_code: '01', // Regalía code
+            percentage: lineDiscount 
+          }]
+        : ((product.discounts ?? []).map((d: any) => {
+            const dt = (discountTypes ?? []).find((dt: any) => dt.id === (d.discount_type_id ?? d.discountTypeId));
+            return {
+              discount_type_id: d.discount_type_id ?? d.discountTypeId,
+              discount_code: dt?.code ?? d.discount_code,
+              percentage: d.rate ?? d.percentage ?? 0,
+            };
+          }) as LineDiscount[]),
+    };
+  });
+
+  // Reset detail when product changes (but NOT when data loads)
+  useEffect(() => {
+    if (!product) return;
+    
+    // If we have existing line detail, use it
+    if (existingLineDetail) {
+      setDetail({
+        product_id: product.product_id,
+        description: existingLineDetail.description ?? lineNote ?? product.name,
+        quantity: existingLineDetail.quantity ?? qty,
+        net_price: existingLineDetail.net_price ?? product.price ?? 0,
+        base_amount: existingLineDetail.base_amount,
+        unit_id: existingLineDetail.unit_id,
+        commercial_unit_measure: existingLineDetail.commercial_unit_measure,
+        customs_part: existingLineDetail.customs_part,
+        factory_tax_charge_id: existingLineDetail.factory_tax_charge_id,
+        cabys: existingLineDetail.cabys ?? product.cabys ?? undefined,
+        taxes: existingLineDetail.taxes ?? [],
+        discounts: existingLineDetail.discounts ?? [],
+      });
+      return;
+    }
+    
+    // Otherwise, build from product defaults
+    setDetail({
+      product_id: product.product_id,
+      description: lineNote || product.name,
+      quantity: qty,
+      net_price: product.price ?? 0,
+      base_amount: undefined,
+      unit_id: undefined,
+      commercial_unit_measure: undefined,
+      customs_part: undefined,
+      factory_tax_charge_id: undefined,
+      cabys: product.cabys ?? undefined,
+      taxes: (product.taxes ?? []).map((t: any) => ({
+        tax_type_id: t.tax_type_id ?? t.taxId,
+        rate: t.rate,
+        special_fields: t.special_fields ?? t.specialFields,
+      })) as LineTax[],
+      discounts: lineDiscount
+        ? [{ 
+            discount_type_id: 1, 
+            discount_code: '01', // Regalía code
+            percentage: lineDiscount 
+          }]
+        : ((product.discounts ?? []).map((d: any) => {
+            const dt = (discountTypes ?? []).find((dt: any) => dt.id === (d.discount_type_id ?? d.discountTypeId));
+            return {
+              discount_type_id: d.discount_type_id ?? d.discountTypeId,
+              discount_code: dt?.code ?? d.discount_code,
+              percentage: d.rate ?? d.percentage ?? 0,
+            };
+          }) as LineDiscount[]),
+    });
+  }, [product?.product_id, qty, lineDiscount, lineNote, existingLineDetail]); // Only reset when these specific values change
+  
+  // Auto-expand sections based on content (separate effect)
+  useEffect(() => {
+    if (!taxTypes) return;
+    
+    const ivaTaxes = detail.taxes.filter((t) => {
+      const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
+      return ['01', '07', '08'].includes(tt?.code ?? '');
+    });
+    const otherTaxes = detail.taxes.filter((t) => {
+      const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
+      return !['01', '07', '08'].includes(tt?.code ?? '');
+    });
+    
+    setExpanded((prev) => ({
+      ...prev,
+      // fiscal section always stays open (don't collapse when CABYS is cleared)
+      discounts: detail.discounts.length > 0,
+      otherTaxes: otherTaxes.length > 0,
+      ivaTax: ivaTaxes.length > 0,
+    }));
+  }, [detail.taxes.length, detail.discounts.length, taxTypes]);
+
+  const toggle = (key: keyof SectionExpanded) =>
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const patch = (p: Partial<LineDetail>) => setDetail((d) => ({ ...d, ...p }));
+
+  // Live calculation
+  const hasFactoryTax = !!detail.factory_tax_charge_id;
+  
+  // Get the selected factory charge to check its code
+  const selectedFactoryCharge = (factoryTaxCharges ?? []).find(
+    (c: any) => c.id === detail.factory_tax_charge_id
+  );
+  const hasFactoryTaxAssumed = selectedFactoryCharge?.code === '01';
+  
+  console.log('Factory Charge Debug:', {
+    factory_tax_charge_id: detail.factory_tax_charge_id,
+    selectedFactoryCharge,
+    hasFactoryTaxAssumed,
+    allFactoryCharges: factoryTaxCharges,
+  });
+
+  const subtotalAfterDiscount = useMemo(
+    () =>
+      DiscountCalculationService.calculateSubtotal(
+        detail.net_price * detail.quantity,
+        detail.discounts
+      ),
+    [detail.net_price, detail.quantity, detail.discounts]
+  );
+
+  const lineAmounts = useMemo(
+    () => {
+      const result = TaxCalculationService.getLineAmounts({
+        subtotal: subtotalAfterDiscount,
+        base_amount: detail.base_amount,
+        taxes: detail.taxes,
+        tax_types: (taxTypes ?? []).map((tt: any) => ({
+          tax_id: tt.id, // API returns 'id' from HaciendaBase
+          code: tt.code,
+          description: tt.description,
+        })),
+        discounts: detail.discounts,
+        detail_quantity: detail.quantity,
+        cabys: detail.cabys,
+        tax_amounts: {}, // Tax amounts not available here - calculated in OtherTaxSection
+        has_factory_tax: hasFactoryTaxAssumed,
+      });
+      
+      const hasBonusGiftDiscount = detail.discounts.some(
+        (d) => d.discount_code === '01' || d.discount_code === '03'
+      );
+      
+      console.log('LineDetailDrawer - Tax Calculation:', {
+        subtotal: subtotalAfterDiscount,
+        taxes: detail.taxes,
+        discounts: detail.discounts,
+        hasFactoryTaxAssumed,
+        selectedFactoryCharge,
+        factory_tax_charge_id: detail.factory_tax_charge_id,
+        hasBonusGiftDiscount,
+        discountCodes: detail.discounts.map(d => ({ id: d.discount_type_id, code: d.discount_code })),
+        taxCodes: detail.taxes.map(t => {
+          const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
+          return { id: t.tax_type_id, code: tt?.code, description: tt?.description, special_fields: t.special_fields };
+        }),
+        result,
+      });
+      
+      return result;
+    },
+    [subtotalAfterDiscount, detail, taxTypes, hasFactoryTaxAssumed, factoryTaxCharges, selectedFactoryCharge]
+  );
+
+  const handleDelete = () => {
+    confirm({
+      title: "Eliminar línea",
+      message: "¿Estás seguro de que deseas eliminar esta línea del carrito?",
+      variant: "destructive",
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar",
+      icon: "trash",
+      onConfirm: () => {
+        onDelete?.();
+        onClose();
+      },
+    });
+  };
+
+  const handleSave = () => {
+    if (!product) return;
+    
+    // Save full line detail
+    onSave({
+      qty: detail.quantity,
+      lineDiscount: detail.discounts.reduce((s, d) => s + (d.percentage || 0), 0) || undefined,
+      lineNote: detail.description !== product.name ? detail.description : undefined,
+      lineDetail: detail, // Save the complete detail
+    });
+  };
+
+  // Data ready check
+  const dataReady = !!(taxTypes && taxRates && taxFactors);
+
+  if (!product) return null;
+
+  return (
+    <>
+      <Drawer
+        open={open}
+        onClose={onClose}
+        title="Detalle de línea"
+        subtitle={product?.name}
+        icon="edit"
+        width="min(500px, 100vw)"
+        footer={
+          <div style={{ padding: "16px 24px", display: "flex", gap: 8, alignItems: "center" }}>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon="trash"
+                onClick={handleDelete}
+                style={{ color: "hsl(var(--destructive))" }}
+              >
+                Eliminar
+              </Button>
+            )}
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "hsl(var(--muted-foreground))" }}>
+                Total línea
+              </span>
+              <span style={{ fontSize: 18, fontWeight: 700, fontFamily: "var(--font-mono)", color: "hsl(var(--primary))" }}>
+                {fmt(lineAmounts.total_amount_line)}
+              </span>
+            </div>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSave}
+            >
+              Guardar
+            </Button>
+          </div>
+        }
+      >
+      {!dataReady ? (
+        <div style={{ padding: 40, textAlign: "center", color: "hsl(var(--muted-foreground))" }}>
+          Cargando...
+        </div>
+      ) : (
+        <FadeIn duration={0.3}>
+          <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* 1. General */}
+            <GeneralTab
+              detail={detail}
+              onChange={patch}
+              isExpanded={expanded.general}
+              onToggle={() => toggle('general')}
+              isExportInvoice={documentType === 9 || documentType === '09' || String(documentType) === '9'}
+            />
+
+            {/* 2. Fiscal Info */}
+            <FiscalInfoSection
+              detail={detail}
+              isExpanded={expanded.fiscal}
+              onToggle={() => toggle('fiscal')}
+              onChange={patch}
+            />
+
+            {/* 3. Discounts */}
+            <DiscountsTab
+              discounts={detail.discounts}
+              netPrice={detail.net_price}
+              quantity={detail.quantity}
+              onChange={(discounts) => patch({ discounts })}
+              isExpanded={expanded.discounts}
+              onToggle={() => toggle('discounts')}
+            />
+
+            {/* 4. Other Taxes */}
+            <OtherTaxSection
+              taxes={detail.taxes}
+              onChange={(taxes) => patch({ taxes })}
+              basePrice={detail.net_price * detail.quantity}
+              cabys={detail.cabys}
+              detailQuantity={detail.quantity}
+              isExpanded={expanded.otherTaxes}
+              onToggle={() => toggle('otherTaxes')}
+            />
+
+            {/* 5. IVA Tax */}
+            <IvaTaxSection
+              taxes={detail.taxes}
+              onChange={(taxes) => patch({ taxes })}
+              factoryTaxChargeId={detail.factory_tax_charge_id}
+              onFactoryTaxChargeChange={(chargeId) => patch({ factory_tax_charge_id: chargeId })}
+              baseAmount={lineAmounts.base_amount}
+              factoryAssumedTax={lineAmounts.factory_assumed_tax}
+              isExpanded={expanded.ivaTax}
+              onToggle={() => toggle('ivaTax')}
+              detail={detail}
+              onDetailChange={patch}
+            />
+
+            {/* 6. Commercial Value */}
+            <CommercialValueSection
+              detail={detail}
+              subtotalAfterDiscount={subtotalAfterDiscount}
+              lineAmounts={lineAmounts}
+              isExpanded={expanded.commercial}
+              onToggle={() => toggle('commercial')}
+            />
+          </div>
+        </FadeIn>
+      )}
+    </Drawer>
+    
+    {/* Confirmation Modal */}
+    <ConfirmModal />
+  </>
+  );
+}

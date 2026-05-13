@@ -26,6 +26,7 @@ export interface TaxSpecialFields {
   volume_consumption?: number;
   tax_amount_id?: number;
   tax_amount?: { id: number };
+  amount?: number; // Store the tax amount value for calculation
 }
 
 export interface LineTax {
@@ -40,6 +41,7 @@ export interface LineTax {
 
 export interface LineDiscount {
   discount_type_id: number;
+  discount_code?: string; // Add code for proper type matching
   percentage: number;
   reason?: string;
 }
@@ -108,9 +110,10 @@ export class TaxCalculationService {
     let iva_tax_total = 0;
     let other_tax_total = 0;
 
-    // Check for bonus/gift discounts (types 01 and 03)
+    // Check for bonus/gift discounts (codes '01' and '03' OR type IDs 1 and 3)
     const has_discounts_bonus_or_gifts = discounts.some(
-      (d) => d.discount_type_id === 1 || d.discount_type_id === 3
+      (d) => d.discount_type_id === 1 || d.discount_type_id === 3 ||
+             d.discount_code === '01' || d.discount_code === '03'
     );
 
     const is_purchase_or_export_bill =
@@ -258,7 +261,8 @@ export class TaxCalculationService {
     if (taxType.code === '07' || taxType.code === '01') {
       // IVACE / IVA — use total_amount when bonus/gift discounts present or export bill
       const use_total_amount =
-        discounts.some((d) => d.discount_type_id === 1 || d.discount_type_id === 3) ||
+        discounts.some((d) => d.discount_type_id === 1 || d.discount_type_id === 3 ||
+                              d.discount_code === '01' || d.discount_code === '03') ||
         document_type === 'EXPORT_BILL';
 
       amount = use_total_amount
@@ -278,33 +282,36 @@ export class TaxCalculationService {
     if (!taxType) return 0;
 
     let amount = 0;
+    
+    // Get tax amount value - use from taxAmount parameter or fallback to stored value in special_fields
+    const taxAmountValue = taxAmount?.amount || tax.special_fields?.amount || 0;
 
     if (taxType.code === TAX_CODE.IUC) {
-      // Quantity of measurement unit × tax per unit
-      amount = (taxAmount?.amount || 0) * (tax.special_fields?.quantity || 0);
+      // IUC: quantity × tax per unit (quantity from special_fields)
+      amount = (tax.special_fields?.quantity || 0) * taxAmountValue;
     } else if (taxType.code === TAX_CODE.ISEBA) {
       // Proportion: (quantity × percentage/100) × detail_quantity × tax per unit
       const proportion =
         (tax.special_fields?.quantity || 0) * (tax.special_fields?.percentage || 0) / 100;
-      amount = detail_quantity * proportion * (taxAmount?.amount || 0);
+      amount = detail_quantity * proportion * taxAmountValue;
     } else if (taxType.code === TAX_CODE.IPT) {
       // detail_quantity × quantity × tax per unit
       amount =
-        detail_quantity * (tax.special_fields?.quantity || 0) * (taxAmount?.amount || 0);
+        detail_quantity * (tax.special_fields?.quantity || 0) * taxAmountValue;
     } else if (taxType.code === TAX_CODE.ISEBEC) {
       const is_non_alcoholic_beverage = cabys?.startsWith('2202');
 
       if (is_non_alcoholic_beverage) {
         // tax per unit / volume_consumption — then × detail_quantity × quantity
         const alt_amount =
-          (taxAmount?.amount || 0) / (tax.special_fields?.volume_consumption || 1);
+          taxAmountValue / (tax.special_fields?.volume_consumption || 1);
         amount = detail_quantity * (tax.special_fields?.quantity || 0) * alt_amount;
       } else {
         // quantity × volume_consumption × tax per unit
         amount =
           (tax.special_fields?.quantity || 0) *
           (tax.special_fields?.volume_consumption || 0) *
-          (taxAmount?.amount || 0);
+          taxAmountValue;
       }
     } else if (taxType.code === TAX_CODE.OTHERS) {
       amount = base_amount * (tax.rate || 0) / 100;

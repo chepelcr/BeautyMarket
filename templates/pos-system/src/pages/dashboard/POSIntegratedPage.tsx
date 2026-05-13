@@ -17,7 +17,7 @@ import { POSPageSkeleton } from "@/components/pos/POSPageSkeleton";
 import SessionSetupScreen from "@/pages/pos/SessionSetupScreen";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
 
-type LeftTab = "products" | "clients";
+type LeftTab = "products" | "clients" | "cart";
 
 export default function POSIntegratedPage() {
   const syncStatus = useSync();
@@ -150,7 +150,7 @@ export default function POSIntegratedPage() {
           </div>
 
           <div className="flex-1 overflow-hidden">
-            {leftTab === "products" || leftTab === "clients" ? leftPane : cartSidebar}
+            {leftTab === "cart" ? cartSidebar : leftPane}
           </div>
 
           {/* Mobile bottom tab bar */}
@@ -159,18 +159,20 @@ export default function POSIntegratedPage() {
               [
                 { id: "products" as const, label: t("tabs.products") },
                 { id: "cart" as const, label: t("tabs.cart"), badge: flow.cartCount },
-                { id: "clients" as const, label: t("tabs.clients") },
               ] as const
             ).map(({ id, label, badge }) => (
               <button
                 key={id}
                 onClick={() => {
-                  if (id === "cart") setShowCheckout(false);
-                  setLeftTab(id === "cart" ? "products" : id);
+                  if (id === "cart") {
+                    setLeftTab("cart");
+                  } else {
+                    setLeftTab(id);
+                  }
                 }}
                 className={cn(
                   "flex-1 flex flex-col items-center gap-1 py-2.5 relative",
-                  (id === "cart" ? false : leftTab === id)
+                  leftTab === id
                     ? "text-primary"
                     : "text-muted-foreground"
                 )}

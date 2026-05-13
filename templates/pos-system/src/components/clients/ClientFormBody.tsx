@@ -50,9 +50,10 @@ interface Props {
   form: CreateClientDto;
   setForm: React.Dispatch<React.SetStateAction<CreateClientDto>>;
   error: string | null;
+  isEditing?: boolean;
 }
 
-export default function ClientFormBody({ form, setForm, error }: Props) {
+export default function ClientFormBody({ form, setForm, error, isEditing }: Props) {
   const nationality  = form.nationality  ?? CountryISO.COSTA_RICA;
   const customerType = form.customer_type ?? CustomerType.PERSONA_FISICA;
   const isCR         = nationality === CountryISO.COSTA_RICA;
@@ -97,12 +98,14 @@ export default function ClientFormBody({ form, setForm, error }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCR]);
 
+  const canEditCriticalFields = !isEditing;
+
   return (
     <div style={{ padding: "20px 24px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
 
       {/* Customer type */}
       <SectionLabel>Tipo de cliente</SectionLabel>
-      <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: canEditCriticalFields ? 24 : 8 }}>
         {loadingCT ? (
           <div style={{ fontSize: 12, color: T.muted, fontFamily: T.fontUI }}>Cargando…</div>
         ) : (
@@ -112,13 +115,15 @@ export default function ClientFormBody({ form, setForm, error }: Props) {
               <button
                 key={ct.id}
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, customer_type: ct.id }))}
+                onClick={canEditCriticalFields ? () => setForm((f) => ({ ...f, customer_type: ct.id })) : undefined}
+                disabled={!canEditCriticalFields}
                 style={{
                   flex: 1, padding: "10px 12px", borderRadius: 8, fontSize: 13, fontFamily: T.fontUI, fontWeight: 600,
-                  cursor: "pointer", transition: "all 0.15s",
+                  cursor: canEditCriticalFields ? "pointer" : "not-allowed", transition: "all 0.15s",
                   border: `1.5px solid ${selected ? T.rose : T.border}`,
                   background: selected ? T.roseLight : "hsl(var(--muted) / 0.3)",
                   color: selected ? T.rose : T.muted,
+                  opacity: canEditCriticalFields ? 1 : 0.5,
                   display: "flex", alignItems: "center", gap: 8,
                 }}
               >
@@ -136,6 +141,11 @@ export default function ClientFormBody({ form, setForm, error }: Props) {
           })
         )}
       </div>
+      {!canEditCriticalFields && (
+        <div style={{ fontSize: 11, color: T.muted, marginBottom: 24, fontStyle: "italic", fontFamily: T.fontUI }}>
+          No se puede cambiar el tipo de cliente durante la edición
+        </div>
+      )}
 
       {/* Identity */}
       <SectionLabel>Identidad</SectionLabel>
@@ -144,10 +154,10 @@ export default function ClientFormBody({ form, setForm, error }: Props) {
         {/* Nationality */}
         <Field label="Nacionalidad">
           <select
-            style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
+            style={{ ...inputStyle, appearance: "none", cursor: canEditCriticalFields ? "pointer" : "not-allowed", opacity: canEditCriticalFields ? 1 : 0.6 }}
             value={nationality}
-            onChange={(e) => setForm((f) => ({ ...f, nationality: e.target.value }))}
-            disabled={loadingCountries}
+            onChange={canEditCriticalFields ? (e) => setForm((f) => ({ ...f, nationality: e.target.value })) : undefined}
+            disabled={loadingCountries || !canEditCriticalFields}
           >
             {loadingCountries && <option value="">Cargando países…</option>}
             {countries.map((c) => (
@@ -161,10 +171,10 @@ export default function ClientFormBody({ form, setForm, error }: Props) {
         {/* ID type */}
         <Field label="Tipo de identificación" half>
           <select
-            style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
+            style={{ ...inputStyle, appearance: "none", cursor: canEditCriticalFields ? "pointer" : "not-allowed", opacity: canEditCriticalFields ? 1 : 0.6 }}
             value={form.identification?.code ?? DEFAULT_ID_TYPE}
-            onChange={(e) => setForm((f) => ({ ...f, identification: { ...f.identification, code: e.target.value, number: "" } }))}
-            disabled={loadingID}
+            onChange={canEditCriticalFields ? (e) => setForm((f) => ({ ...f, identification: { ...f.identification, code: e.target.value, number: "" } })) : undefined}
+            disabled={loadingID || !canEditCriticalFields}
           >
             {loadingID && <option value="">Cargando…</option>}
             {filteredIdTypes.map((t) => (

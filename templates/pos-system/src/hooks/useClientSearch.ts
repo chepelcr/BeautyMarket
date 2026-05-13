@@ -16,10 +16,15 @@ export function useClientSearch(orgId: string | undefined, enabled: boolean) {
   const [query, setQuery] = useState("");
   const [clients, setClients] = useState<ClientSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!orgId || !enabled) return;
+    
+    // If we already have clients loaded and no query, don't refetch
+    if (hasLoaded && !query && clients.length > 0) return;
+    
     if (timer.current) clearTimeout(timer.current);
 
     timer.current = setTimeout(async () => {
@@ -30,12 +35,13 @@ export function useClientSearch(orgId: string | undefined, enabled: boolean) {
           crossAppOrgPath(orgId, `/clients?search=status:1${q}`)
         );
         setClients(res.data ?? []);
+        setHasLoaded(true);
       } catch { /* silent */ }
       finally { setIsLoading(false); }
     }, 300);
 
     return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [query, orgId, enabled]);
+  }, [query, orgId, enabled, hasLoaded, clients.length]);
 
   return { query, setQuery, clients, isLoading };
 }
