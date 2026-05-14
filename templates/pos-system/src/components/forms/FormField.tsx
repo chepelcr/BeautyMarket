@@ -1,3 +1,5 @@
+import { FormLabel } from "@/components/ui";
+
 interface FormFieldProps {
   label: string;
   required?: boolean;
@@ -9,10 +11,9 @@ interface FormFieldProps {
 export function FormField({ label, required, error, children, style }: FormFieldProps) {
   return (
     <div style={style}>
-      <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+      <FormLabel required={required}>
         {label}
-        {required && <span style={{ color: "hsl(var(--destructive))", marginLeft: 3 }}>*</span>}
-      </label>
+      </FormLabel>
       {children}
       {error && (
         <span style={{ fontSize: 12, color: "hsl(var(--destructive))", marginTop: 4, display: "block" }}>

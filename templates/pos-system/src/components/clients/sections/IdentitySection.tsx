@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, X, Loader2 } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { FormLabel } from "@/components/ui";
 import { useAllCustomerTypes, useAllIdentifications, useAllCountries } from "@/hooks/useDataApi";
 import { dataApiClient } from "@/services/data-api";
 import { CountryISO, CustomerType, IdTypeCode, allowedIdCodes } from "@/lib/enums";
@@ -129,9 +130,7 @@ export function IdentitySection({
     >
       {/* Customer Type Pills */}
       <div>
-        <label className="pp-label">
-          Tipo de cliente <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>Tipo de cliente</FormLabel>
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
           {loadingCT ? (
             <div style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}>Cargando…</div>
@@ -191,9 +190,7 @@ export function IdentitySection({
 
       {/* Nationality */}
       <div>
-        <label className="pp-label">
-          Nacionalidad <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>Nacionalidad</FormLabel>
         <select
           className="pp-input"
           value={nationality}
@@ -213,9 +210,7 @@ export function IdentitySection({
       {/* ID Type & Number */}
       <div style={{ display: "flex", gap: 10 }}>
         <div style={{ flex: "0 0 calc(50% - 5px)" }}>
-          <label className="pp-label">
-            Tipo de identificación <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-          </label>
+          <FormLabel required>Tipo de identificación</FormLabel>
           <select
             className="pp-input"
             value={idCode}
@@ -233,9 +228,7 @@ export function IdentitySection({
         </div>
 
         <div style={{ flex: "0 0 calc(50% - 5px)" }}>
-          <label className="pp-label">
-            Número de identificación <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-          </label>
+          <FormLabel required>Número de identificación</FormLabel>
           <div style={{ position: "relative" }}>
             <input
               className="pp-input"
@@ -297,9 +290,7 @@ export function IdentitySection({
 
       {/* Business Name (Legal Name from Hacienda) */}
       <div>
-        <label className="pp-label">
-          Razón social <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>Razón social</FormLabel>
         <input
           className="pp-input"
           value={form.business_name ?? ""}
@@ -320,7 +311,7 @@ export function IdentitySection({
 
       {/* Client Name (Fantasy/Trade Name) - Always editable */}
       <div>
-        <label className="pp-label">Nombre comercial / Fantasía</label>
+        <FormLabel>Nombre comercial / Fantasía</FormLabel>
         <input
           className="pp-input"
           value={form.client_name ?? ""}
@@ -334,7 +325,7 @@ export function IdentitySection({
 
       {/* GLN */}
       <div>
-        <label className="pp-label">GLN / Código comercial</label>
+        <FormLabel>GLN / Código comercial</FormLabel>
         <input
           className="pp-input"
           value={form.client_gln ?? ""}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon, Card, Button, Input } from "@/components/ui";
+import { Icon, Card, Button, Input, FormLabel } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type PaymentMethod = "Efectivo" | "SINPE" | "Tarjeta";
@@ -107,9 +107,9 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
       {/* Efectivo */}
       {method === "Efectivo" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <label className="t-label" style={{ letterSpacing: "0.06em" }}>
+          <FormLabel style={{ letterSpacing: "0.06em" }}>
             {t("payment.receivedLabel")}
-          </label>
+          </FormLabel>
           <Input
             type="number"
             placeholder="₡0"

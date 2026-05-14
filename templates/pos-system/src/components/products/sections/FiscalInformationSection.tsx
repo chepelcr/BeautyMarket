@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Landmark, X, Search, AlertTriangle } from "lucide-react";
-import { Spinner } from "@/components/ui";
+import { Spinner, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCabysSearch, useAllProductTypes } from "@/hooks/useDataApi";
@@ -142,7 +142,7 @@ export function FiscalInformationSection({
         {/* 1. Product type — radio pills */}
         {productTypes.length > 0 && (
           <div>
-            <label className="pp-label">{t("products.productType")}</label>
+            <FormLabel>{t("products.productType")}</FormLabel>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
               {productTypes.map((pt: { id: number; description: string }) => {
                 const selected = form.productTypeId === pt.id;
@@ -212,10 +212,7 @@ export function FiscalInformationSection({
         ) : (
           /* Search state — no code input, just description search */
           <div style={{ position: "relative" }}>
-            <label className="pp-label">
-              {t("products.searchCabys")}{" "}
-              <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-            </label>
+            <FormLabel required>{t("products.searchCabys")}</FormLabel>
             <div style={{ display: "flex", gap: 6 }}>
               <div style={{ flex: 1, position: "relative" }}>
                 <Search

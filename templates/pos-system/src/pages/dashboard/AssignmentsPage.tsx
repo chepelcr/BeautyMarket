@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tantml:react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, orgPath, crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
-import { Card, Badge, Button, Icon, Select, EmptyState, Pagination } from "@/components/ui";
+import { Card, Badge, Button, Icon, Select, EmptyState, Pagination, FormLabel } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
 import type { BranchListResponse } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -189,9 +189,9 @@ export default function AssignmentsPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {/* Session */}
             <div>
-              <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+              <FormLabel>
                 {t("assignments.session")}
-              </label>
+              </FormLabel>
               <Select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
                 <option value="">{t("session.select")}</option>
                 {sessions.map((s) => (
@@ -204,9 +204,9 @@ export default function AssignmentsPage() {
 
             {/* Member */}
             <div>
-              <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+              <FormLabel>
                 {t("assignments.seller")}
-              </label>
+              </FormLabel>
               <Select value={userId} onChange={(e) => setUserId(e.target.value)}>
                 <option value="">{t("session.select")}</option>
                 {members.map((m) => (
@@ -220,9 +220,9 @@ export default function AssignmentsPage() {
             {/* Branch + Role row */}
             <div className="grid-form" style={{ gap: 12 }}>
               <div>
-                <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+                <FormLabel>
                   {t("puestos.title")}
-                </label>
+                </FormLabel>
                 <Select value={branchId} onChange={(e) => setBranchId(e.target.value)}>
                   <option value="">{t("session.select")}</option>
                   {branches.map((b) => (
@@ -231,9 +231,9 @@ export default function AssignmentsPage() {
                 </Select>
               </div>
               <div>
-                <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
+                <FormLabel>
                   {t("assignments.role")}
-                </label>
+                </FormLabel>
                 <Select value={role} onChange={(e) => setRole(e.target.value as Role)}>
                   <option value="cashier">{t("assignments.cashier")}</option>
                   <option value="supervisor">{t("assignments.supervisor")}</option>

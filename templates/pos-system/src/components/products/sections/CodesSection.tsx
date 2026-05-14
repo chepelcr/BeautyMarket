@@ -1,5 +1,5 @@
 import { Barcode } from "lucide-react";
-import { Icon } from "@/components/ui";
+import { Icon, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllCodes } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -97,9 +97,7 @@ export function CodesSection({
               {/* Row 3: reason input for "Otros" (code 99) */}
               {isOtros && (
                 <div style={{ marginTop: 6 }}>
-                  <label className="pp-label" style={{ fontSize: 11 }}>
-                    {t("products.specifyType")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-                  </label>
+                  <FormLabel required style={{ fontSize: 11 }}>{t("products.specifyType")}</FormLabel>
                   <input
                     type="text"
                     className="pp-input"

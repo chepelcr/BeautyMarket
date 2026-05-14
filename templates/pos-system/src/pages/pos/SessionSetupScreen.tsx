@@ -4,7 +4,7 @@ import { useSessionContext } from "@/store/sessionContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Organization } from "@/types/organization";
 import type { Branch, Terminal, CreateTerminalRequest } from "@/types/branch";
-import { Icon, Drawer, Button, Input } from "@/components/ui";
+import { Icon, Drawer, Button, Input, FormLabel } from "@/components/ui";
 import { POS } from "@/theme/pos";
 
 interface Props {
@@ -445,15 +445,11 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
   return (
     <form onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-          {t("products.name")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>{t("products.name")}</FormLabel>
         <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("terminal.namePlaceholder")} />
       </div>
       <div>
-        <label className="t-label" style={{ display: "block", marginBottom: 6 }}>
-          {t("setup.codeLabel").replace(" #", "")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>{t("setup.codeLabel").replace(" #", "")}</FormLabel>
         <Input
           required
           type="number"
@@ -465,7 +461,7 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
         />
       </div>
       <div>
-        <label className="t-label" style={{ display: "block", marginBottom: 6 }}>{t("setup.deviceId")}</label>
+        <FormLabel>{t("setup.deviceId")}</FormLabel>
         <Input
           value={deviceId}
           onChange={(e) => setDeviceId(e.target.value)}

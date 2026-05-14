@@ -1,5 +1,6 @@
 import { Package } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
+import { FormLabel } from '@/components/ui';
 import { useAllMeasurementUnits } from '@/hooks/useDataApi';
 import type { LineDetail } from '@/types/lineDetail';
 
@@ -48,9 +49,9 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Description */}
         <div>
-          <label className="pp-label">
-            Descripción <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-          </label>
+          <FormLabel required>
+            Descripción
+          </FormLabel>
           <input
             className="pp-input"
             value={detail.description}
@@ -63,9 +64,9 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         {/* Quantity + Price + Unit */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           <div>
-            <label className="pp-label">
-              Cantidad <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-            </label>
+            <FormLabel required>
+              Cantidad
+            </FormLabel>
             <input
               className="pp-input"
               type="number"
@@ -76,9 +77,9 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
             />
           </div>
           <div>
-            <label className="pp-label">
-              Precio neto <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-            </label>
+            <FormLabel required>
+              Precio neto
+            </FormLabel>
             <input
               className="pp-input"
               type="number"
@@ -89,9 +90,9 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
             />
           </div>
           <div>
-            <label className="pp-label">
-              Unidad <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-            </label>
+            <FormLabel required>
+              Unidad
+            </FormLabel>
             <select
               className="pp-input"
               value={detail.unit_id ?? ''}
@@ -113,9 +114,9 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         }}>
           {showCommercialUnit && (
             <div>
-              <label className="pp-label">
-                Unidad comercial <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-              </label>
+              <FormLabel required>
+                Unidad comercial
+              </FormLabel>
               <input
                 className="pp-input"
                 value={detail.commercial_unit_measure || ''}
@@ -127,7 +128,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
           )}
           {isExportInvoice && (
             <div>
-              <label className="pp-label">Partida arancelaria</label>
+              <FormLabel>Partida arancelaria</FormLabel>
               <input
                 className="pp-input"
                 value={detail.customs_part || ''}

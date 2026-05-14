@@ -1,5 +1,5 @@
 import { Tag } from "lucide-react";
-import { Icon } from "@/components/ui";
+import { Icon, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllDiscountTypes } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -137,9 +137,7 @@ export function DiscountsSection({
                       {/* Reason field for Otros (code 99) */}
                       {isOtros && (
                         <div style={{ marginTop: 6 }}>
-                          <label className="pp-label" style={{ fontSize: 11 }}>
-                            {t("products.discountReason")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-                          </label>
+                          <FormLabel required style={{ fontSize: 11 }}>{t("products.discountReason")}</FormLabel>
                           <input
                             type="text"
                             className="pp-input"

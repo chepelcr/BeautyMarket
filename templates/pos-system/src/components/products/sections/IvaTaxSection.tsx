@@ -1,5 +1,5 @@
 import { Percent } from "lucide-react";
-import { Icon } from "@/components/ui";
+import { Icon, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -132,7 +132,7 @@ export function IvaTaxSection({
 
               {isIvarbu && (
                 <div>
-                  <label className="pp-label" style={{ fontSize: 11 }}>{t("products.ivarbuFactor")}</label>
+                  <FormLabel style={{ fontSize: 11 }}>{t("products.ivarbuFactor")}</FormLabel>
                   <select
                     className="pp-input"
                     style={{ fontSize: 13 }}
@@ -191,9 +191,7 @@ export function IvaTaxSection({
               border: "1px dashed hsl(var(--border))",
             }}
           >
-            <label className="pp-label" style={{ marginBottom: 6 }}>
-              {t("products.factoryTaxCharge")}
-            </label>
+            <FormLabel>{t("products.factoryTaxCharge")}</FormLabel>
             <select
               className="pp-input"
               value={factoryTaxChargeId ?? ""}

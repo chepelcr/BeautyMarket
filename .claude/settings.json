@@ -5,7 +5,8 @@
       "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\biller-apps\\\\data-services\\\\app\\\\tax-amounts\\\\\" -Force)",
       "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\BeautyMarket\\\\templates\\\\pos-landing\\\\\" -Recurse -Force | Select-Object FullName | Sort-Object FullName)",
       "Bash(cd /E:/dev/cross-app-be && find app/dtos -name \"*.py\" -type f | grep -v __pycache__ | sort)",
-      "Read(//E:/dev/**)"
+      "Read(//E:/dev/**)",
+      "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\BeautyMarket\\\\templates\\\\pos-system\\\\src\\\\components\\\\documents\\\\\" -File | Select-Object Name)"
     ],
     "additionalDirectories": [
       "C:\\Users\\chepe\\.claude\\skills\\be-builder"

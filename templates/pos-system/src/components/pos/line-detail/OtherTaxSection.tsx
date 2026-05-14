@@ -1,5 +1,5 @@
 import { Receipt } from 'lucide-react';
-import { Icon } from '@/components/ui';
+import { Icon, FormLabel } from '@/components/ui';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useAllTaxes, useAllTaxAmounts } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
@@ -316,7 +316,7 @@ function TaxCard({
             {/* Tax Amount dropdown - shown for all special field taxes */}
           {taxAmounts.length > 0 && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Monto impuesto</label>
+              <FormLabel>Monto impuesto</FormLabel>
               <select
                 className="pp-input"
                 style={{ fontSize: 12 }}
@@ -346,9 +346,9 @@ function TaxCard({
           {/* Quantity field — IUC, ISEBA, ISEBEC, IPT */}
           {['03', '04', '05', '06'].includes(code) && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>
+              <FormLabel>
                 Cantidad UdM
-              </label>
+              </FormLabel>
               <input
                 type="number"
                 className="pp-input"
@@ -368,7 +368,7 @@ function TaxCard({
           {/* ISEBA percentage - manual input, no auto-select */}
           {code === '04' && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Porcentaje</label>
+              <FormLabel>Porcentaje</FormLabel>
               <input
                 type="number"
                 className="pp-input"
@@ -390,7 +390,7 @@ function TaxCard({
           {/* ISEBEC volume per unit */}
           {code === '05' && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Volumen/unidad</label>
+              <FormLabel>Volumen/unidad</FormLabel>
               <input
                 type="number"
                 className="pp-input"

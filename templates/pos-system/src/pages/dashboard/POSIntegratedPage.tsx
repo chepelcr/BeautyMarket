@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAssignment } from "@/hooks/useAssignment";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useSessionContext } from "@/store/sessionContext";
@@ -8,6 +8,8 @@ import { useCartFlow } from "@/hooks/useCartFlow";
 import { useClientSearch } from "@/hooks/useClientSearch";
 import { useSync } from "@/hooks/useSync";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCart } from "@/store/cart";
+import { useDocumentStore } from "@/store/documentStore";
 import { cn } from "@/lib/utils";
 import { PosHeader } from "@/components/pos/PosHeader";
 import { PosLeftPane } from "@/components/pos/PosLeftPane";
@@ -15,23 +17,108 @@ import { CartSidebar } from "@/components/pos/CartSidebar";
 import { CheckoutModal } from "@/components/pos/checkout/CheckoutModal";
 import { POSPageSkeleton } from "@/components/pos/POSPageSkeleton";
 import SessionSetupScreen from "@/pages/pos/SessionSetupScreen";
+import type { DocTypeCode } from "@/types/invoice";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
 
 type LeftTab = "products" | "clients" | "cart";
 
-export default function POSIntegratedPage() {
+interface POSIntegratedPageProps {
+  /** When rendered inside DocumentEditor: drives the doc-type badge in CartSidebar */
+  docType?: DocTypeCode;
+  /** Active document tab id — drives per-tab state hydration */
+  tabId?: string;
+}
+
+export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageProps = {}) {
+  console.log('[POSIntegratedPage] Component rendering with docType:', docType, 'tabId:', tabId);
+  
   const syncStatus = useSync();
   const { user } = useAuthContext();
+  console.log('[POSIntegratedPage] User:', user?.userId);
+  
   const { useDefaultOrganization } = useOrganization();
   const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
+  console.log('[POSIntegratedPage] Org loading:', orgLoading, 'org:', org?.id);
+  
   const { data: assignment, isLoading: assignmentLoading } = useAssignment();
+  console.log('[POSIntegratedPage] Assignment loading:', assignmentLoading, 'assignment:', assignment?.id);
+  
   const sessionCtx = useSessionContext();
+  console.log('[POSIntegratedPage] Session context:', sessionCtx);
+  
   const { t } = useLanguage();
   const isDesktop = useIsDesktop(768);
 
   const [leftTab, setLeftTab] = useState<LeftTab>("products");
-  const [selectedClient, setSelectedClient] = useState<ClientSearchResult | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
+
+  // selected_client is per-tab — read from active tab, write via updateDocumentTab.
+  // Falls back to local state only when launched without a tabId (legacy /dashboard/pos route).
+  const activeTab = useDocumentStore((s) =>
+    tabId ? s.open_documents.find((d) => d.id === tabId) ?? null : null
+  );
+  const updateDocumentTab = useDocumentStore((s) => s.updateDocumentTab);
+  const [localSelectedClient, setLocalSelectedClient] = useState<ClientSearchResult | null>(null);
+  const selectedClient = tabId ? activeTab?.selected_client ?? null : localSelectedClient;
+  const setSelectedClient = (c: ClientSearchResult | null) => {
+    if (tabId) {
+      updateDocumentTab(tabId, { selected_client: c });
+    } else {
+      setLocalSelectedClient(c);
+    }
+  };
+
+  // Get cart actions
+  const cartItems = useCart((s) => s.items);
+  const setDocType = useCart((s) => s.setDocType);
+  const setCartItems = useCart((s) => s.setItems);
+  const clearCart = useCart((s) => s.clear);
+
+  // Sync cart store's doc_type when launched from a document tab
+  useEffect(() => {
+    if (docType) setDocType(docType);
+  }, [docType, setDocType]);
+
+  // Restore cart when tab changes (or component mounts).
+  // Always runs unconditionally — clears the cart when there's no active tab
+  // OR when the tab has no saved items. This prevents stale residue across
+  // tab close → new tab cycles.
+  //
+  // `setCartItems` and `clearCart` update the Zustand cart store SYNCHRONOUSLY,
+  // so any effect that runs later in the same commit cycle (like the save effect
+  // below) will read the fresh value via `useCart.getState()`.
+  useEffect(() => {
+    if (!tabId) {
+      clearCart();
+      return;
+    }
+
+    const currentTab = useDocumentStore.getState().open_documents.find((d) => d.id === tabId);
+
+    if (currentTab?.cart_items && Object.keys(currentTab.cart_items).length > 0) {
+      setCartItems(currentTab.cart_items);
+    } else {
+      clearCart();
+    }
+  }, [tabId, setCartItems, clearCart]);
+
+  // Save cart to the active tab whenever cart items change.
+  //
+  // Reads `useCart.getState().items` directly instead of relying on the
+  // `cartItems` closure. This is critical because:
+  //  1. Under React StrictMode (dev), effects double-fire on mount. The closure
+  //     captures the value at render time, but `getState()` always returns the
+  //     freshest store value — including any updates from the restore effect
+  //     that just ran in the same commit cycle.
+  //  2. On tab switch with `key={tabId}` remount, the new component starts with
+  //     stale cart-store contents from the previous tab. Restore clears those,
+  //     and the save then sees the cleared state via getState() rather than the
+  //     stale closure.
+  useEffect(() => {
+    if (!tabId) return;
+    const freshItems = useCart.getState().items;
+    useDocumentStore.getState().updateDocumentTab(tabId, { cart_items: freshItems });
+  }, [cartItems, tabId]);
 
   const clientsEnabled = leftTab === "clients";
   const { query: clientQuery, setQuery: setClientQuery, clients, isLoading: clientsLoading } =
@@ -39,13 +126,14 @@ export default function POSIntegratedPage() {
 
   const flow = useCartFlow();
 
+  // Called by CheckoutModal — throws on error so the modal can show the error state
   const handleConfirm = async (invoiceData: any) => {
-    if (!assignment || !org || !user) return;
+    if (!assignment || !org || !user) throw new Error("Sesión incompleta.");
     const branchCode = sessionCtx.branch_code;
     const terminalCode = sessionCtx.terminal_code;
-    if (!branchCode || !terminalCode) return;
+    if (!branchCode || !terminalCode) throw new Error("Selecciona sucursal y terminal.");
 
-    await flow.handleConfirmPayment({
+    const result = await flow.handleConfirmPayment({
       assignmentId: assignment.assignment_id,
       orgId: org.id,
       userId: user.userId,
@@ -54,15 +142,24 @@ export default function POSIntegratedPage() {
       selectedClient,
       invoiceData,
     });
-    setSelectedClient(null);
-    setShowCheckout(false);
+
+    // On success, close the document tab so the dirty flag clears.
+    // The Receipt step shows briefly via the modal; closing the tab routes the user
+    // back to the list (via DocumentsPage's stale-tab redirect) when they tap "Nueva venta".
+    if (tabId) {
+      useDocumentStore.getState().removeDocumentTab(tabId);
+    }
+
+    return result;
   };
 
   if (orgLoading || assignmentLoading) {
+    console.log('[POSIntegratedPage] Loading state - showing skeleton');
     return <POSPageSkeleton />;
   }
 
   if (!org) {
+    console.log('[POSIntegratedPage] No organization - showing error');
     return (
       <div className="flex items-center justify-center h-[60vh] bg-background">
         <span className="text-muted-foreground text-sm">{t("empty.noOrganization")}</span>
@@ -71,8 +168,11 @@ export default function POSIntegratedPage() {
   }
 
   if (!sessionCtx.branch_code || !sessionCtx.terminal_code) {
+    console.log('[POSIntegratedPage] No session setup - showing SessionSetupScreen');
     return <SessionSetupScreen org={org} />;
   }
+
+  console.log('[POSIntegratedPage] Rendering POS interface');
 
   const cartSidebar = (
     <CartSidebar
@@ -138,15 +238,17 @@ export default function POSIntegratedPage() {
             <span className="font-display font-bold text-[18px]">
               {sessionCtx.branch_name ?? "POS"}
             </span>
-            <span className={cn(
-              "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border",
-              syncStatus === "online"
-                ? "bg-success/12 text-success border-success/30"
-                : "bg-muted text-muted-foreground border-border"
-            )}>
-              <span className={cn("w-[7px] h-[7px] rounded-full", syncStatus === "online" ? "bg-success" : "bg-muted-foreground")} />
-              {syncStatus === "online" ? t("status.online") : syncStatus === "syncing" ? t("status.syncing") : t("status.offline")}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border",
+                syncStatus === "online"
+                  ? "bg-success/12 text-success border-success/30"
+                  : "bg-muted text-muted-foreground border-border"
+              )}>
+                <span className={cn("w-[7px] h-[7px] rounded-full", syncStatus === "online" ? "bg-success" : "bg-muted-foreground")} />
+                {syncStatus === "online" ? t("status.online") : syncStatus === "syncing" ? t("status.syncing") : t("status.offline")}
+              </span>
+            </div>
           </div>
 
           <div className="flex-1 overflow-hidden">
@@ -196,6 +298,7 @@ export default function POSIntegratedPage() {
           subtotal={flow.subtotal}
           taxAmount={flow.taxAmount}
           selectedClient={selectedClient}
+          tabId={tabId}
           onClose={() => setShowCheckout(false)}
           onConfirm={handleConfirm}
         />

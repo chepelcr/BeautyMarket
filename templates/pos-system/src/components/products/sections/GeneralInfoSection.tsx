@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Package } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { FormLabel } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAllMeasurementUnits } from "@/hooks/useDataApi";
 import type { Category } from "@/types";
@@ -36,10 +37,7 @@ export function GeneralInfoSection({
     >
       {/* Name */}
       <div>
-        <label className="pp-label">
-          {t("products.name")}{" "}
-          <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>{t("products.name")}</FormLabel>
         <input
           className="pp-input"
           placeholder={t("products.namePlaceholder")}
@@ -50,7 +48,7 @@ export function GeneralInfoSection({
 
       {/* Description */}
       <div>
-        <label className="pp-label">{t("products.description")}</label>
+        <FormLabel>{t("products.description")}</FormLabel>
         <textarea
           className="pp-input"
           rows={2}
@@ -63,10 +61,7 @@ export function GeneralInfoSection({
 
       {/* Category */}
       <div>
-        <label className="pp-label">
-          {t("products.categoryLabel")}{" "}
-          <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>{t("products.categoryLabel")}</FormLabel>
         <select
           className="pp-input"
           value={form.category_id}
@@ -84,7 +79,7 @@ export function GeneralInfoSection({
       {/* Unit of Measure */}
       {units.length > 0 && (
         <div>
-          <label className="pp-label">{t("products.unitOfMeasure")}</label>
+          <FormLabel>{t("products.unitOfMeasure")}</FormLabel>
           {!customUnit ? (
             <select
               className="pp-input"

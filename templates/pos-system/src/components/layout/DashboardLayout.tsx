@@ -7,7 +7,7 @@ import { OrgProvider } from "@/contexts/OrgContext";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import DashboardShell from "@/components/layout/DashboardShell";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "clients";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients";
 
 interface Session {
   name: string;
@@ -16,11 +16,15 @@ interface Session {
 }
 
 function getActiveNav(location: string): NavId {
+  console.log('[DashboardLayout] getActiveNav called with location:', location);
   if (location.startsWith(ROUTES.DASHBOARD_SESSIONS)) return "config";
   if (location.startsWith(ROUTES.DASHBOARD_STATIONS)) return "puestos";
   if (location.startsWith(ROUTES.DASHBOARD_PRODUCTS)) return "productos";
   if (location.startsWith(ROUTES.DASHBOARD_REPORTS))  return "reporte";
-  if (location.startsWith(ROUTES.DASHBOARD_POS))      return "pos";
+  // Document editor and list both highlight the "documents" sidebar item
+  if (location.startsWith(ROUTES.DASHBOARD_DOCUMENTS)) return "documents";
+  // Legacy /dashboard/pos route also maps to documents (POS is now an editor view)
+  if (location.startsWith(ROUTES.DASHBOARD_POS))      return "documents";
   if (location.startsWith(ROUTES.DASHBOARD_CLIENTS))  return "clients";
   return "dashboard";
 }
@@ -32,6 +36,7 @@ const NAV_PATHS: Record<NavId, string> = {
   productos: ROUTES.DASHBOARD_PRODUCTS,
   reporte:   ROUTES.DASHBOARD_REPORTS,
   pos:       ROUTES.DASHBOARD_POS,
+  documents: ROUTES.DASHBOARD_DOCUMENTS,
   clients:   ROUTES.DASHBOARD_CLIENTS,
 };
 
@@ -42,6 +47,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [location, navigate] = useLocation();
 
   const active = getActiveNav(location);
+
+  const handleNav = (id: NavId) => {
+    navigate(NAV_PATHS[id]);
+  };
 
   const { data: sessionsData } = useQuery({
     queryKey: ["active-session", org?.id],
@@ -55,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!org) {
     // Org still loading — shell renders with empty content
     return (
-      <DashboardShell active={active} onNav={(id) => navigate(NAV_PATHS[id])}>
+      <DashboardShell active={active} onNav={handleNav}>
         {null}
       </DashboardShell>
     );
@@ -65,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <OrgProvider orgId={org.id} orgName={org.name ?? ""}>
       <DashboardShell
         active={active}
-        onNav={(id) => navigate(NAV_PATHS[id])}
+        onNav={handleNav}
         sessionName={activeSession?.name}
         sessionLocation={activeSession?.context}
       >

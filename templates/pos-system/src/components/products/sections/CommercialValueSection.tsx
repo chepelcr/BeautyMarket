@@ -1,5 +1,6 @@
 import { DollarSign } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { FormLabel } from "@/components/ui";
 import { TaxCalculationService } from "@/services/taxCalculationService";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TaxFormEntry, DiscountFormEntry, ProductFormState } from "@/types/productForm";
@@ -97,10 +98,7 @@ export function CommercialValueSection({
     >
       {/* Base price input */}
       <div>
-        <label className="pp-label">
-          {t("products.basePriceNoTax")}{" "}
-          <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>{t("products.basePriceNoTax")}</FormLabel>
         <div style={{ position: "relative" }}>
           <span
             style={{
@@ -146,7 +144,7 @@ export function CommercialValueSection({
               marginBottom: 12,
             }}
           >
-            <span className="t-label" style={{ color: "hsl(var(--primary))" }}>
+            <span className="t-label" style={{ color: "hsl(var(--primary))", display: "block", marginBottom: 0 }}>
               {t("products.estimatedSalePrice")}
             </span>
             <span

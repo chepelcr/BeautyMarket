@@ -1,5 +1,5 @@
 import { Receipt } from "lucide-react";
-import { Icon } from "@/components/ui";
+import { Icon, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllTaxes, useAllTaxAmounts } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -140,9 +140,7 @@ function SpecialTaxRow({
               {/* Alcohol percentage — auto-selects tax amount */}
               {isAlcoholic && (
                 <div>
-                  <label className="pp-label" style={{ fontSize: 11 }}>
-                    {t("products.alcoholPercentage")}
-                  </label>
+                  <FormLabel style={{ fontSize: 11 }}>{t("products.alcoholPercentage")}</FormLabel>
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <input
                       type="number"
@@ -173,7 +171,7 @@ function SpecialTaxRow({
               {/* Manual tax amount select for non-alcoholic */}
               {isNonAlcoholic && taxAmounts.length > 0 && (
                 <div>
-                  <label className="pp-label" style={{ fontSize: 11 }}>{t("products.taxAmountLabel")}</label>
+                  <FormLabel style={{ fontSize: 11 }}>{t("products.taxAmountLabel")}</FormLabel>
                   <select
                     className="pp-input"
                     style={{ fontSize: 12 }}
@@ -199,7 +197,7 @@ function SpecialTaxRow({
           {/* Non-beverage ISEBEC or other special codes: manual tax amount select */}
           {(!isIsebec || !isBeverage) && taxAmounts.length > 0 && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>Monto de impuesto</label>
+              <FormLabel style={{ fontSize: 11 }}>Monto de impuesto</FormLabel>
               <select
                 className="pp-input"
                 style={{ fontSize: 12 }}
@@ -223,7 +221,7 @@ function SpecialTaxRow({
           {/* Quantity field — all special codes */}
           {["03", "04", "05", "06"].includes(tax.taxCode) && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>{t("products.quantityUdm")}</label>
+              <FormLabel style={{ fontSize: 11 }}>{t("products.quantityUdm")}</FormLabel>
               <input
                 type="number"
                 className="pp-input"
@@ -243,7 +241,7 @@ function SpecialTaxRow({
           {/* ISEBA (04) percentage */}
           {tax.taxCode === "04" && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>{t("products.percentage")}</label>
+              <FormLabel style={{ fontSize: 11 }}>{t("products.percentage")}</FormLabel>
               <input
                 type="number"
                 className="pp-input"
@@ -264,7 +262,7 @@ function SpecialTaxRow({
           {/* ISEBEC (05) volume per unit */}
           {tax.taxCode === "05" && (
             <div>
-              <label className="pp-label" style={{ fontSize: 11 }}>{t("products.volumePerUnit")}</label>
+              <FormLabel style={{ fontSize: 11 }}>{t("products.volumePerUnit")}</FormLabel>
               <input
                 type="number"
                 className="pp-input"

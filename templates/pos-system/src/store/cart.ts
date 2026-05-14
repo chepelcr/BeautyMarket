@@ -23,6 +23,7 @@ interface CartStore {
     lineDetail?: Partial<LineDetail>;
   }) => void;
   clear: () => void;
+  setItems: (items: Record<string, CartItem>) => void; // New method
   total: () => number;
   count: () => number;
   setDocType: (code: DocTypeCode) => void;
@@ -33,6 +34,8 @@ export const useCart = create<CartStore>((set, get) => ({
   doc_type: 4, // default: Tiquete Electrónico
 
   setDocType: (code) => set({ doc_type: code }),
+
+  setItems: (items) => set({ items }), // New method to set items directly
 
   add: (product) => {
     const pid = product.product_id;

@@ -1,5 +1,6 @@
 import { Package2 } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { FormLabel } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PackagingSectionProps {
@@ -28,9 +29,7 @@ export function PackagingSection({
       disabled={disabled}
     >
       <div>
-        <label className="pp-label">
-          {t("products.unitsPerBox")} <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>{t("products.unitsPerBox")}</FormLabel>
         <input
           type="number"
           className="pp-input"

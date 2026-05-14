@@ -14,17 +14,28 @@ export interface SalePayment {
   amount: number;
 }
 
-// Document types per Hacienda codes
+/**
+ * Document types per Hacienda codes.
+ * Color palette mirrors JCampos-Biller DocumentCreationDropdown:
+ * - tabGradient: full-bleed background for active tab chips
+ * - color: text color for inactive/light contexts (badges, links)
+ * - dotColor: solid color for indicator dots (hex; safe inside style attributes)
+ */
 export const DOCUMENT_TYPES = [
-  { code: 1,  label: 'Factura Electrónica',  short: 'FE',  color: 'text-green-600' },
-  { code: 4,  label: 'Tiquete Electrónico',   short: 'TE',  color: 'text-blue-600'  },
-  { code: 3,  label: 'Nota de Crédito',       short: 'NC',  color: 'text-red-600'   },
-  { code: 2,  label: 'Nota de Débito',        short: 'ND',  color: 'text-yellow-600'},
-  { code: 8,  label: 'Factura de Compra',     short: 'FC',  color: 'text-purple-600'},
-  { code: 9,  label: 'Factura Exportación',   short: 'FExp',color: 'text-indigo-600'},
+  { code: 1, label: 'Factura Electrónica', short: 'FE',   color: 'text-green-600',  tabGradient: 'from-green-600 to-green-700',   dotColor: '#16a34a' },
+  { code: 4, label: 'Tiquete Electrónico',  short: 'TE',   color: 'text-blue-600',   tabGradient: 'from-blue-500 to-blue-600',     dotColor: '#3b82f6' },
+  { code: 3, label: 'Nota de Crédito',      short: 'NC',   color: 'text-red-600',    tabGradient: 'from-red-500 to-red-600',       dotColor: '#ef4444' },
+  { code: 2, label: 'Nota de Débito',       short: 'ND',   color: 'text-yellow-600', tabGradient: 'from-yellow-500 to-yellow-600', dotColor: '#eab308' },
+  { code: 8, label: 'Factura de Compra',    short: 'FC',   color: 'text-purple-600', tabGradient: 'from-purple-500 to-purple-600', dotColor: '#a855f7' },
+  { code: 9, label: 'Factura Exportación',  short: 'FExp', color: 'text-indigo-600', tabGradient: 'from-indigo-500 to-indigo-600', dotColor: '#6366f1' },
 ] as const;
 
 export type DocTypeCode = 1 | 2 | 3 | 4 | 8 | 9;
+
+/** Lookup helper for tab/badge rendering */
+export function getDocumentTypeInfo(code: number) {
+  return DOCUMENT_TYPES.find((d) => d.code === code);
+}
 
 /** Request DTO sent to POST /sales */
 export interface InvoiceRequest {

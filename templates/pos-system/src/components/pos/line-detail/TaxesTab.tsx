@@ -1,5 +1,6 @@
 import { Percent } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
+import { FormLabel } from '@/components/ui';
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
 import type { LineTax } from '@/types/lineDetail';
@@ -101,7 +102,7 @@ export function TaxesTab({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
             <div>
-              <label className="pp-label">Tipo IVA *</label>
+              <FormLabel required>Tipo IVA</FormLabel>
               <select
                 className="pp-input"
                 value={ivaTax?.tax_type_id ?? ''}
@@ -116,7 +117,7 @@ export function TaxesTab({
               </select>
             </div>
             <div>
-              <label className="pp-label">Tarifa *</label>
+              <FormLabel required>Tarifa</FormLabel>
               <select
                 className="pp-input"
                 value={ivaTax?.tax_rate_id ?? ''}
@@ -135,7 +136,7 @@ export function TaxesTab({
 
           {ivaTypeCode && IVA_NEEDS_FACTOR.includes(ivaTypeCode) && (
             <div style={{ marginBottom: 8 }}>
-              <label className="pp-label">Factor (IVARBU) *</label>
+              <FormLabel required>Factor (IVARBU)</FormLabel>
               <select
                 className="pp-input"
                 value={ivaTax?.tax_factor_id ?? ''}
@@ -151,7 +152,7 @@ export function TaxesTab({
 
           {/* Factory Tax Charge */}
           <div>
-            <label className="pp-label">Cargo por fábrica</label>
+            <FormLabel>Cargo por fábrica</FormLabel>
             <select
               className="pp-input"
               value={factoryTaxChargeId ?? ''}
@@ -189,7 +190,7 @@ export function TaxesTab({
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <div>
-                    <label className="pp-label">Tipo</label>
+                    <FormLabel>Tipo</FormLabel>
                     <select
                       className="pp-input"
                       value={tax.tax_type_id}
@@ -203,7 +204,7 @@ export function TaxesTab({
                     </select>
                   </div>
                   <div>
-                    <label className="pp-label">Tarifa %</label>
+                    <FormLabel>Tarifa %</FormLabel>
                     <input
                       className="pp-input"
                       type="number"

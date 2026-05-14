@@ -14,6 +14,7 @@ import PuestosPage from "@/pages/dashboard/PuestosPage";
 import ProductsPage from "@/pages/dashboard/ProductsPage";
 import ReportePage from "@/pages/dashboard/ReportePage";
 import POSIntegratedPage from "@/pages/dashboard/POSIntegratedPage";
+import DocumentsPage from "@/pages/dashboard/DocumentsPage";
 import ClientsPage from "@/pages/dashboard/ClientsPage";
 import ClientDetailPage from "@/pages/dashboard/ClientDetailPage";
 import ProductDetailPage from "@/pages/dashboard/ProductDetailPage";
@@ -85,8 +86,32 @@ function ProductDetailRoute() {
   );
 }
 
+// Single documents route — handles both list (/dashboard/documents)
+// and editor (/dashboard/documents/new/:tabId) under one mounted component
+// so the nav stays persistent and content can animate internally.
+function DocumentsRoute() {
+  console.log('[DocumentsRoute] Route component rendering');
+  try {
+    return (
+      <DashboardPage>
+        <DocumentsPage />
+      </DashboardPage>
+    );
+  } catch (error) {
+    console.error('[DocumentsRoute] Error rendering:', error);
+    return (
+      <div style={{ padding: 20, color: 'red' }}>
+        Error in DocumentsRoute: {error instanceof Error ? error.message : String(error)}
+      </div>
+    );
+  }
+}
+
 export default function Routes() {
   const { user } = useAuthContext();
+  const [location] = useLocation();
+  
+  console.log('[Routes] Rendering - location:', location, 'User:', user?.userId);
 
   return (
     <Switch>
@@ -129,6 +154,11 @@ export default function Routes() {
         path={ROUTES.DASHBOARD_POS}
         component={() => <DashboardPage><POSIntegratedPage /></DashboardPage>}
       />
+
+      {/* Documents — single wildcard route covers both list and editor sub-paths.
+          The DocumentsContainer reads useLocation directly and animates content swaps. */}
+      <Route path={ROUTES.DASHBOARD_DOCUMENTS} component={DocumentsRoute} />
+      <Route path="/dashboard/documents/new/:tabId" component={DocumentsRoute} />
 
       {/* Clients — detail before list so :clientId is matched first */}
       <Route

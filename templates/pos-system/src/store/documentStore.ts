@@ -1,49 +1,62 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { InvoiceFormData, DocTypeCode, DOCUMENT_TYPES } from '@/types/invoice';
+import type { InvoiceFormData, DocTypeCode } from '@/types/invoice';
+import type { ClientSearchResult } from '@/hooks/useClientSearch';
+
+// Cart item structure (matching cart store)
+interface CartItem {
+  product: any;
+  qty: number;
+  lineDiscount?: number;
+  lineNote?: string;
+  lineDetail?: any;
+}
 
 export interface DocumentTab {
   id: string;
   type: 'new' | 'existing';
   title: string;
   doc_type: DocTypeCode;
+  /** Invoice form state — receiver, references, payments, copy_emails, sale_condition_id, currency_code, etc. */
   data?: Partial<InvoiceFormData>;
   is_dirty?: boolean;
+  opened_at?: number;
+  /** Cart state per tab — hydrated/saved by POSIntegratedPage on tab activation */
+  cart_items?: Record<string, CartItem>;
+  /** Selected client for this tab — drives CartSidebar pill and ReceiverTab pre-fill */
+  selected_client?: ClientSearchResult | null;
 }
 
-type ViewMode = 'tabs' | 'list';
-
 interface DocumentStore {
+  /** Open document tabs (drafts being edited) */
   open_documents: DocumentTab[];
+  /** Active tab id — mirrors the URL when on /dashboard/documents/new/:tabId */
   active_document_tab: string | null;
-  view_mode: ViewMode;
+  /** List filter: Emitidos (false) vs Recibidos (true) */
   is_received: boolean;
 
   // Tab actions
   addDocumentTab: (tab: DocumentTab) => void;
   removeDocumentTab: (id: string) => void;
-  setActiveDocumentTab: (id: string) => void;
+  setActiveDocumentTab: (id: string | null) => void;
   updateDocumentTab: (id: string, patch: Partial<DocumentTab>) => void;
   closeAllTabs: () => void;
 
-  // View actions
-  setViewMode: (mode: ViewMode) => void;
+  // List filter
   setIsReceived: (received: boolean) => void;
 }
 
 export const useDocumentStore = create<DocumentStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       open_documents: [],
       active_document_tab: null,
-      view_mode: 'list',
       is_received: false,
 
       addDocumentTab: (tab) => {
         set((state) => ({
-          open_documents: [...state.open_documents, tab],
+          open_documents: [...state.open_documents, { ...tab, cart_items: {} }],
           active_document_tab: tab.id,
-          view_mode: 'tabs',
         }));
       },
 
@@ -56,11 +69,9 @@ export const useDocumentStore = create<DocumentStore>()(
               ? remaining[remaining.length - 1].id
               : null
             : state.active_document_tab;
-
           return {
             open_documents: remaining,
             active_document_tab: new_active,
-            view_mode: remaining.length === 0 ? 'list' : state.view_mode,
           };
         });
       },
@@ -76,9 +87,7 @@ export const useDocumentStore = create<DocumentStore>()(
       },
 
       closeAllTabs: () =>
-        set({ open_documents: [], active_document_tab: null, view_mode: 'list' }),
-
-      setViewMode: (mode) => set({ view_mode: mode }),
+        set({ open_documents: [], active_document_tab: null }),
 
       setIsReceived: (received) => set({ is_received: received }),
     }),
@@ -87,7 +96,6 @@ export const useDocumentStore = create<DocumentStore>()(
       partialize: (state) => ({
         open_documents: state.open_documents,
         active_document_tab: state.active_document_tab,
-        view_mode: state.view_mode,
         is_received: state.is_received,
       }),
     }

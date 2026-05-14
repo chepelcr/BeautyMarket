@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FileCheck, Search, X, AlertTriangle } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
-import { Spinner } from '@/components/ui';
+import { Spinner, FormLabel } from '@/components/ui';
 import { useCabysSearch, useAllProductTypes, useAllTaxes } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
 import type { LineDetail } from '@/types/lineDetail';
@@ -202,7 +202,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
           {/* 1. Product type — radio pills */}
           {productTypes.length > 0 && (
             <div>
-              <label className="pp-label">Tipo de producto</label>
+              <FormLabel>Tipo de producto</FormLabel>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
                 {productTypes.map((pt: { id: number; description: string }) => {
                   const selected = productTypeId === pt.id;
@@ -241,7 +241,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
               <div style={{
                 animation: 'fadeIn 0.3s ease-in-out',
               }}>
-                <label className="pp-label">Código CABYS</label>
+                <FormLabel>Código CABYS</FormLabel>
                 <div
                   style={{
                     display: "flex",
@@ -288,7 +288,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                 position: "relative",
                 animation: 'fadeIn 0.3s ease-in-out',
               }}>
-                <label className="pp-label">Buscar código CABYS</label>
+                <FormLabel>Buscar código CABYS</FormLabel>
                 <div style={{ display: "flex", gap: 6 }}>
                   <div style={{ flex: 1, position: "relative" }}>
                     <Search

@@ -1,5 +1,6 @@
 import { Mail } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { FormLabel } from "@/components/ui";
 import { useAllCountries } from "@/hooks/useDataApi";
 import { CountryISO } from "@/lib/enums";
 import type { CreateClientDto } from "@/hooks/useClients";
@@ -31,9 +32,7 @@ export function ContactSection({
     >
       {/* Email */}
       <div>
-        <label className="pp-label">
-          Correo electrónico <span style={{ color: "hsl(var(--destructive))" }}>*</span>
-        </label>
+        <FormLabel required>Correo electrónico</FormLabel>
         <input
           type="email"
           className="pp-input"
@@ -46,7 +45,7 @@ export function ContactSection({
       {/* Phone Country & Number */}
       <div style={{ display: "flex", gap: 10 }}>
         <div style={{ flex: "0 0 calc(50% - 5px)" }}>
-          <label className="pp-label">País (teléfono)</label>
+          <FormLabel>País (teléfono)</FormLabel>
           <select
             className="pp-input"
             value={form.phone?.country_code ?? CountryISO.COSTA_RICA}
@@ -62,7 +61,7 @@ export function ContactSection({
         </div>
 
         <div style={{ flex: "0 0 calc(50% - 5px)" }}>
-          <label className="pp-label">Número de teléfono</label>
+          <FormLabel>Número de teléfono</FormLabel>
           <input
             className="pp-input"
             value={form.phone?.number ?? ""}

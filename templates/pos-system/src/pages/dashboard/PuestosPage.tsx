@@ -188,6 +188,27 @@ export default function PuestosPage() {
         title={editingBranch ? t("common.edit") + " " + t("puestos.title") : t("puestos.newStation")}
         subtitle={editingBranch ? String(editingBranch.code) : t("puestos.newStation")}
         icon="store"
+        footer={
+          <div style={{ display: "flex", gap: 10, padding: "16px 24px", justifyContent: "flex-end" }}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => { setBranchDrawer(false); setEditingBranch(null); }} 
+              disabled={isSaving}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              type="submit"
+              form="branch-form"
+              disabled={isSaving}
+            >
+              {isSaving ? t("common.saving") : editingBranch ? t("common.save") : t("puestos.newStation")}
+            </Button>
+          </div>
+        }
       >
         <BranchForm
           editing={editingBranch}
@@ -207,6 +228,27 @@ export default function PuestosPage() {
         iconBg="hsl(220 100% 60% / 0.12)"
         iconColor="hsl(220 100% 55%)"
         width={400}
+        footer={
+          <div style={{ display: "flex", gap: 10, padding: "16px 24px", justifyContent: "flex-end" }}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => { setTermDrawer(false); setAddTermBranch(null); }} 
+              disabled={addTerminalMutation.isPending}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              type="submit"
+              form="terminal-form"
+              disabled={addTerminalMutation.isPending}
+            >
+              {addTerminalMutation.isPending ? t("common.saving") : t("puestos.addTerminal")}
+            </Button>
+          </div>
+        }
       >
         {addTermBranch && (
           <TerminalForm

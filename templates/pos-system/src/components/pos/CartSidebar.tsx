@@ -3,8 +3,7 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/store/cart';
 import { LineDetailDrawer } from './line-detail/LineDetailDrawer';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
-import { DOCUMENT_TYPES } from '@/types/invoice';
-import type { DocTypeCode } from '@/types/invoice';
+import { getDocumentTypeInfo } from '@/types/invoice';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 import type { Product } from '@/types';
 
@@ -55,7 +54,8 @@ export function CartSidebar({
   onSelectClient,
   onClearClient,
 }: CartSidebarProps) {
-  const { doc_type, setDocType } = useCart();
+  const { doc_type } = useCart();
+  const docInfo = getDocumentTypeInfo(doc_type);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { confirm, ConfirmModal } = useConfirmModal();
   const editingItem = editingId ? items[editingId] : null;
@@ -99,60 +99,33 @@ export function CartSidebar({
   return (
     <>
       <aside className="flex flex-col bg-card overflow-hidden border-l border-border h-full">
-        {/* Header */}
+        {/* Header — title + doc-type badge (read-only; set from launch URL) */}
         <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <span className="font-display font-bold text-[15px]">Orden</span>
             <span className="px-1.5 h-5 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold t-num">
               {cartItems.length}
             </span>
+            {docInfo && (
+              <span
+                className={cn(
+                  'ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-display font-bold uppercase tracking-wider text-white bg-gradient-to-r',
+                  docInfo.tabGradient
+                )}
+                title={docInfo.label}
+              >
+                {docInfo.short}
+              </span>
+            )}
           </div>
           {cartItems.length > 0 && (
             <button
               onClick={() => useCart.getState().clear()}
-              className="text-[11px] text-muted-foreground hover:text-destructive flex items-center gap-1"
+              className="text-[11px] text-muted-foreground hover:text-destructive flex items-center gap-1 shrink-0"
             >
               Limpiar
             </button>
           )}
-        </div>
-
-        {/* Document type selector */}
-        <div className="px-3 py-2 border-b border-border shrink-0">
-          <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md bg-muted">
-            {DOCUMENT_TYPES.slice(0, 3).map((dt) => (
-              <button
-                key={dt.code}
-                onClick={() => setDocType(dt.code as DocTypeCode)}
-                title={dt.label}
-                className={cn(
-                  'h-7 rounded text-[11px] font-display font-bold uppercase tracking-wider transition-colors',
-                  doc_type === dt.code
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {dt.short}
-              </button>
-            ))}
-          </div>
-          <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md mt-1">
-            {DOCUMENT_TYPES.slice(3).map((dt) => (
-              <button
-                key={dt.code}
-                onClick={() => setDocType(dt.code as DocTypeCode)}
-                title={dt.label}
-                className={cn(
-                  'h-7 rounded text-[10px] font-display font-bold uppercase tracking-wider transition-colors',
-                  doc_type === dt.code
-                    ? 'bg-primary/10 text-primary border border-primary/30'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {dt.short}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Customer button */}

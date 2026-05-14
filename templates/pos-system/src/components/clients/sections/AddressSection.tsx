@@ -1,6 +1,7 @@
 import { MapPin } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { LocationSelect } from "@/components/ui/LocationSelect";
+import { FormLabel } from "@/components/ui";
 import { CountryISO } from "@/lib/enums";
 import type { CreateClientDto } from "@/hooks/useClients";
 
@@ -55,7 +56,7 @@ export function AddressSection({
         />
       ) : (
         <div>
-          <label className="pp-label">Dirección completa</label>
+          <FormLabel>Dirección completa</FormLabel>
           <textarea
             className="pp-input"
             rows={3}

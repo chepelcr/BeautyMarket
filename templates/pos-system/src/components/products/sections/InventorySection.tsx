@@ -1,5 +1,6 @@
 import { Boxes } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
+import { FormLabel } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ProductFormState } from "@/types/productForm";
 
@@ -29,7 +30,7 @@ export function InventorySection({
       disabled={disabled}
     >
       <div>
-        <label className="pp-label">{t("products.minStockLabel")}</label>
+        <FormLabel>{t("products.minStockLabel")}</FormLabel>
         <input
           type="number"
           className="pp-input"

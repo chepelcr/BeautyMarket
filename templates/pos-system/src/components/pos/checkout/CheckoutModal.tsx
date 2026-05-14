@@ -2,11 +2,16 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { FadeIn } from '@/components/ui/FadeIn';
 import { useCart } from '@/store/cart';
+import { useDocumentStore } from '@/store/documentStore';
 import { DOCUMENT_TYPES } from '@/types/invoice';
-import type { SalePayment, CurrencyCode, DocTypeCode } from '@/types/invoice';
+import type {
+  SalePayment,
+  CurrencyCode,
+  InvoiceFormData,
+  SaleResponse,
+} from '@/types/invoice';
 import type { SaleReceiver } from '@/types/receiver';
 import type { SaleReference } from '@/types/reference';
-import type { SaleResponse } from '@/types/invoice';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 import { PaymentTab } from './tabs/PaymentTab';
 import { DocumentTab } from './tabs/DocumentTab';
@@ -20,11 +25,11 @@ const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 type Step = 'payment' | 'processing' | 'done';
 
 const TABS = [
-  { id: 'pago',       label: 'Pago'       },
-  { id: 'documento',  label: 'Documento'  },
-  { id: 'receptor',   label: 'Receptor'   },
-  { id: 'referencias',label: 'Referencias'},
-  { id: 'copias',     label: 'Copias'     },
+  { id: 'pago',        label: 'Pago'        },
+  { id: 'documento',   label: 'Documento'   },
+  { id: 'receptor',    label: 'Receptor'    },
+  { id: 'referencias', label: 'Referencias' },
+  { id: 'copias',      label: 'Copias'      },
 ] as const;
 type TabId = typeof TABS[number]['id'];
 
@@ -36,9 +41,18 @@ interface CheckoutModalProps {
   subtotal: number;
   taxAmount: number;
   selectedClient: ClientSearchResult | null;
+  /** Active document tab id — when present, all form state is persisted per-tab */
+  tabId?: string;
   onClose: () => void;
   onConfirm: (invoiceData: any) => Promise<void>;
 }
+
+const DEFAULT_DOC_DATA = {
+  sale_condition_id: 1,
+  activity_code: '722000',
+  currency_code: { iso_code: 'CRC', exchange_rate: 1 } as CurrencyCode,
+  notes: '',
+};
 
 export function CheckoutModal({
   cartItems,
@@ -46,27 +60,46 @@ export function CheckoutModal({
   subtotal,
   taxAmount,
   selectedClient,
+  tabId,
   onClose,
   onConfirm,
 }: CheckoutModalProps) {
   const { doc_type } = useCart();
   const [step, setStep] = useState<Step>('payment');
   const [activeTab, setActiveTab] = useState<TabId>('pago');
-  const [sale, setSale] = useState<SaleResponse | undefined>();
+  const [sale] = useState<SaleResponse | undefined>();
   const [error, setError] = useState<string | null>(null);
 
-  // Invoice form state
-  const [payments, setPayments] = useState<SalePayment[]>([]);
-  const [docData, setDocData] = useState({
-    sale_condition_id: 1,
-    activity_code: '722000',
-    currency_code: { iso_code: 'CRC', exchange_rate: 1 } as CurrencyCode,
-    notes: '',
-  });
-  const [receiver, setReceiver] = useState<SaleReceiver>({});
-  const [references, setReferences] = useState<SaleReference[]>([]);
-  const [copyEmails, setCopyEmails] = useState<string[]>([]);
+  // ─── Per-tab form state (lifted from useState) ─────────────────────────
+  // Read directly from the active tab's `data`. Writes go through updateDocumentTab.
+  // When there's no tabId (legacy /dashboard/pos), fall back to local useState.
+  const tabData = useDocumentStore((s) =>
+    tabId ? s.open_documents.find((d) => d.id === tabId)?.data ?? null : null
+  );
+  const updateDocumentTab = useDocumentStore((s) => s.updateDocumentTab);
+  const [localData, setLocalData] = useState<Partial<InvoiceFormData>>({});
+  const data: Partial<InvoiceFormData> = tabId ? tabData ?? {} : localData;
 
+  const updateData = (patch: Partial<InvoiceFormData>) => {
+    if (tabId) {
+      updateDocumentTab(tabId, { data: { ...data, ...patch }, is_dirty: true });
+    } else {
+      setLocalData((prev) => ({ ...prev, ...patch }));
+    }
+  };
+
+  const payments: SalePayment[]     = data.payments ?? [];
+  const receiver: SaleReceiver      = data.receiver ?? {};
+  const references: SaleReference[] = data.references ?? [];
+  const copyEmails: string[]        = data.copy_emails ?? [];
+  const docData = {
+    sale_condition_id: data.sale_condition_id ?? DEFAULT_DOC_DATA.sale_condition_id,
+    activity_code:     data.activity_code     ?? DEFAULT_DOC_DATA.activity_code,
+    currency_code:     data.currency_code     ?? DEFAULT_DOC_DATA.currency_code,
+    notes:             data.notes             ?? DEFAULT_DOC_DATA.notes,
+  };
+
+  // ─── Doc-type derived flags ────────────────────────────────────────────
   const docInfo = DOCUMENT_TYPES.find((d) => d.code === doc_type);
   const docLabel = docInfo?.label ?? 'Documento';
   const needsReceiver = doc_type !== 4; // All except Tiquete
@@ -149,7 +182,7 @@ export function CheckoutModal({
                 </div>
               </div>
 
-              {/* Tab strip — only show for invoice types */}
+              {/* Tab strip */}
               <div className="flex border-b border-border bg-card overflow-x-auto shrink-0">
                 {TABS.map(({ id, label }) => (
                   <button
@@ -177,12 +210,19 @@ export function CheckoutModal({
               <div className="px-5 py-4">
                 {activeTab === 'pago' && (
                   <FadeIn key="pago" duration={0.3}>
-                    <PaymentTab cartTotal={cartTotal} payments={payments} onChange={setPayments} />
+                    <PaymentTab
+                      cartTotal={cartTotal}
+                      payments={payments}
+                      onChange={(next) => updateData({ payments: next })}
+                    />
                   </FadeIn>
                 )}
                 {activeTab === 'documento' && (
                   <FadeIn key="documento" duration={0.3}>
-                    <DocumentTab data={docData} onChange={(p) => setDocData((d) => ({ ...d, ...p }))} />
+                    <DocumentTab
+                      data={docData}
+                      onChange={(p) => updateData(p)}
+                    />
                   </FadeIn>
                 )}
                 {activeTab === 'receptor' && (
@@ -190,18 +230,24 @@ export function CheckoutModal({
                     <ReceiverTab
                       receiver={receiver}
                       selectedClient={selectedClient}
-                      onChange={(p) => setReceiver((r) => ({ ...r, ...p }))}
+                      onChange={(p) => updateData({ receiver: { ...receiver, ...p } })}
                     />
                   </FadeIn>
                 )}
                 {activeTab === 'referencias' && (
                   <FadeIn key="referencias" duration={0.3}>
-                    <ReferencesTab references={references} onChange={setReferences} />
+                    <ReferencesTab
+                      references={references}
+                      onChange={(next) => updateData({ references: next })}
+                    />
                   </FadeIn>
                 )}
                 {activeTab === 'copias' && (
                   <FadeIn key="copias" duration={0.3}>
-                    <CopiesTab emails={copyEmails} onChange={setCopyEmails} />
+                    <CopiesTab
+                      emails={copyEmails}
+                      onChange={(next) => updateData({ copy_emails: next })}
+                    />
                   </FadeIn>
                 )}
               </div>

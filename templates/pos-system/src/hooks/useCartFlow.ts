@@ -1,13 +1,28 @@
-import { useState } from "react";
 import { useCart } from "@/store/cart";
 import { useInventory } from "@/store/inventory";
-import { crossAppApi, crossAppOrgPath } from "@/lib/api";
+import { salesApi, salesOrgPath } from "@/lib/api";
 import { db } from "@/lib/db";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
+import type { SaleReceiver } from "@/types/receiver";
+import type { SaleReference } from "@/types/reference";
+import type { CurrencyCode } from "@/types/invoice";
 
-export type PayMethod = "cash" | "card" | "sinpe";
-
-const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
+interface InvoiceCheckoutData {
+  document_type: number;
+  sale_condition_id: number;
+  activity_code: string;
+  credit_term: string;
+  notes?: string;
+  currency_code: CurrencyCode;
+  receiver?: SaleReceiver | null;
+  references?: SaleReference[];
+  copy_emails?: string[];
+  payments: Array<{ payment_type_id: number; amount: number }>;
+  subtotal: number;
+  discount_amount: number;
+  tax_amount: number;
+  total_amount: number;
+}
 
 interface ConfirmPaymentArgs {
   assignmentId: string;
@@ -16,28 +31,19 @@ interface ConfirmPaymentArgs {
   branchCode: number;
   terminalCode: number;
   selectedClient: ClientSearchResult | null;
+  invoiceData: InvoiceCheckoutData;
 }
 
 export function useCartFlow() {
   const { items, add, remove, updateLine, clear, total, count } = useCart();
   const { decrement } = useInventory();
 
-  const [payMethod, setPayMethod] = useState<PayMethod>("cash");
-  const [cashGiven, setCashGiven] = useState("");
-  const [sinpeCode, setSinpeCode] = useState("");
-  const [showPayment, setShowPayment] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [lastTotal, setLastTotal] = useState(0);
-  const [lastChange, setLastChange] = useState(0);
-  const [lastMethod, setLastMethod] = useState<PayMethod>("cash");
-  const [orderNum, setOrderNum] = useState(0);
-
   // Enrich cart items with full product data for fiscal payload
   const cartItems = Object.values(items).map(({ product, qty, lineDiscount, lineNote }) => ({
     id: product.product_id,
     name: product.name,
-    price: product.sale_price ?? product.price,   // display price (post-tax)
-    netPrice: product.price,                       // pre-tax base price sent to BE
+    price: product.sale_price ?? product.price,
+    netPrice: product.price,
     image_url: product.image_url ?? null,
     qty,
     lineDiscount: lineDiscount ?? 0,
@@ -50,22 +56,11 @@ export function useCartFlow() {
 
   const cartTotal = total();
   const cartCount = count();
-
-  // Approximate display values — BE recalculates from detail data
-  const subtotal = cartItems.reduce((s, i) => s + i.netPrice * i.qty * (1 - i.lineDiscount / 100), 0);
+  const subtotal = cartItems.reduce(
+    (s, i) => s + i.netPrice * i.qty * (1 - i.lineDiscount / 100),
+    0
+  );
   const taxAmount = Math.max(0, cartTotal - subtotal);
-
-  const given = Number(cashGiven) || 0;
-  const change = Math.max(0, given - cartTotal);
-  const canConfirm = payMethod !== "cash" || given >= cartTotal;
-
-  const resetPayment = () => {
-    setCashGiven("");
-    setSinpeCode("");
-    setPayMethod("cash");
-    setShowPayment(false);
-    setShowSuccess(false);
-  };
 
   const handleConfirmPayment = async ({
     assignmentId,
@@ -74,47 +69,54 @@ export function useCartFlow() {
     branchCode,
     terminalCode,
     selectedClient,
+    invoiceData,
   }: ConfirmPaymentArgs) => {
-    const saleTotal = cartTotal;
-    const saleChange = payMethod === "cash" ? change : undefined;
     const localId = `sale-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const num = Math.floor(Math.random() * 9000) + 1000;
 
-    const payTypeMap: Record<PayMethod, number> = { cash: 1, card: 3, sinpe: 4 };
+    // Build receiver: prefer checkout form data, fall back to selected cart client
+    const receiver: SaleReceiver | null =
+      invoiceData.receiver ??
+      (selectedClient
+        ? {
+            id_type: selectedClient.identification?.code
+              ? parseInt(selectedClient.identification.code, 10)
+              : undefined,
+            id_number: selectedClient.identification?.number,
+            business_name:
+              selectedClient.business_name || selectedClient.client_name || undefined,
+            email: selectedClient.email ?? undefined,
+            state_id: selectedClient.residence?.state_id,
+            county_id: selectedClient.residence?.county_id,
+            district_id: selectedClient.residence?.district_id,
+            address: selectedClient.residence?.address,
+          }
+        : null);
 
     const payload = {
       assignment_id: assignmentId,
       branch_code: branchCode,
       terminal_code: terminalCode,
       client_id: selectedClient?.client_id ?? null,
-      document_type: 1,
+      // Invoice fields from CheckoutModal
+      document_type: invoiceData.document_type,
       version_id: 1,
-      activity_code: "722000",
-      sale_condition_id: 1,
-      credit_term: "0",
-      receiver: selectedClient
-        ? {
-            id_type: selectedClient.identification?.code ? parseInt(selectedClient.identification.code, 10) : undefined,
-            id_number: selectedClient.identification?.number ?? undefined,
-            business_name: selectedClient.business_name || selectedClient.client_name || undefined,
-            email: selectedClient.email ?? undefined,
-            state_id: selectedClient.residence?.state_id ?? undefined,
-            county_id: selectedClient.residence?.county_id ?? undefined,
-            district_id: selectedClient.residence?.district_id ?? undefined,
-            address: selectedClient.residence?.address ?? undefined,
-          }
-        : null,
+      activity_code: invoiceData.activity_code,
+      sale_condition_id: invoiceData.sale_condition_id,
+      credit_term: invoiceData.credit_term,
+      notes: invoiceData.notes ?? null,
+      copy_emails: invoiceData.copy_emails?.filter(Boolean) ?? [],
+      currency_code: invoiceData.currency_code,
+      receiver,
+      references: invoiceData.references ?? [],
+      // Line details from cart
       details: cartItems.map((item, index) => {
-        // Build discounts: product-level discounts + per-line discount override
-        const discounts = [
-          // Product-level discounts
-          ...item.discounts.map((d) => ({
-            discount_type_id: d.discount_type_id,
-            rate: d.rate ?? 0,
+        const lineDiscounts = [
+          ...item.discounts.map((d: any) => ({
+            discount_type_id: d.discount_type_id ?? d.discountTypeId,
+            percentage: d.rate ?? d.percentage ?? 0,
           })),
-          // Per-line discount override (type 1 = direct line discount)
           ...(item.lineDiscount > 0
-            ? [{ discount_type_id: 1, rate: item.lineDiscount }]
+            ? [{ discount_type_id: 1, percentage: item.lineDiscount }]
             : []),
         ];
 
@@ -123,27 +125,27 @@ export function useCartFlow() {
           product_id: item.id,
           description: item.lineNote || item.name,
           quantity: item.qty,
-          unit_id: 1,  // default: unit/unidad
+          unit_id: item.product.unit_id ?? 1,
           net_price: item.netPrice,
-          cabys: item.cabys ?? undefined,
-          taxes: item.taxes.map((t) => ({
-            tax_type_id: t.tax_type_id,
+          cabys: item.cabys,
+          taxes: item.taxes.map((t: any) => ({
+            tax_type_id: t.tax_type_id ?? t.taxId,
             rate: t.rate,
-            special_fields: t.special_fields ?? null,
+            special_fields: t.special_fields ?? t.specialFields ?? null,
           })),
-          discounts,
+          discounts: lineDiscounts,
         };
       }),
-      payments: [{ type: payTypeMap[payMethod], amount: saleTotal }],
-      // Totals are informational; BE recalculates from detail data
-      subtotal: Math.round(subtotal * 100) / 100,
-      discount_amount: 0,
-      tax_amount: Math.round(taxAmount * 100) / 100,
-      total_amount: saleTotal,
+      payments: invoiceData.payments,
+      subtotal: invoiceData.subtotal,
+      discount_amount: invoiceData.discount_amount,
+      tax_amount: invoiceData.tax_amount,
+      total_amount: invoiceData.total_amount,
     };
 
-    const syncUrl = crossAppOrgPath(orgId, "/sales");
+    const syncUrl = salesOrgPath(orgId);
 
+    // Persist to IndexedDB first for offline resilience
     await db.sales.add({
       localId,
       assignmentId,
@@ -155,10 +157,18 @@ export function useCartFlow() {
         price: c.price,
         qty: c.qty,
       })),
-      total: saleTotal,
-      paymentMethod: payMethod === "cash" ? "Efectivo" : payMethod === "card" ? "Tarjeta" : "SINPE",
-      receivedAmount: payMethod === "cash" ? given : undefined,
-      change: saleChange,
+      total: invoiceData.total_amount,
+      paymentMethod: invoiceData.payments
+        .map((p) =>
+          p.payment_type_id === 1
+            ? "Efectivo"
+            : p.payment_type_id === 3
+            ? "Tarjeta"
+            : p.payment_type_id === 4
+            ? "SINPE"
+            : "Otro"
+        )
+        .join(", "),
       timestamp: Date.now(),
       synced: false,
       syncUrl,
@@ -167,27 +177,24 @@ export function useCartFlow() {
 
     cartItems.forEach(({ id, qty }) => decrement(id, qty));
 
+    // POST to sales-api; on failure register background sync
     try {
-      await crossAppApi.post(syncUrl, payload);
+      const sale = await salesApi.post(syncUrl, payload);
       await db.sales.where({ localId }).modify({ synced: true });
-    } catch {
+      clear();
+      return sale;
+    } catch (err) {
       if ("serviceWorker" in navigator && "SyncManager" in window) {
         const reg = await navigator.serviceWorker.ready;
         await (reg as any).sync.register("sync-sales");
       }
+      clear();
+      throw err;
     }
-
-    setLastTotal(saleTotal);
-    setLastMethod(payMethod);
-    setLastChange(saleChange ?? 0);
-    setOrderNum(num);
-    clear();
-    setShowPayment(false);
-    setShowSuccess(true);
   };
 
   return {
-    // cart state
+    // Cart state
     items,
     add,
     remove,
@@ -197,27 +204,7 @@ export function useCartFlow() {
     cartCount,
     subtotal,
     taxAmount,
-    fmt,
-    // payment state
-    payMethod,
-    setPayMethod,
-    cashGiven,
-    setCashGiven,
-    sinpeCode,
-    setSinpeCode,
-    given,
-    change,
-    canConfirm,
-    showPayment,
-    setShowPayment,
-    // success state
-    showSuccess,
-    setShowSuccess,
-    lastTotal,
-    lastChange,
-    lastMethod,
-    orderNum,
-    resetPayment,
+    // Checkout
     handleConfirmPayment,
   };
 }

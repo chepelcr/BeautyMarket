@@ -22,6 +22,8 @@ export function useSales({
   size = 20,
   enabled = true,
 }: UseSalesParams) {
+  console.log('[useSales] Hook called with:', { orgId, document_types, issued, search, page, size, enabled });
+  
   const params = new URLSearchParams();
   if (document_types?.length) params.set('document_types', document_types.join(','));
   if (issued !== undefined) params.set('issued', String(issued));
@@ -33,10 +35,21 @@ export function useSales({
 
   const queryString = params.toString();
   const path = salesOrgPath(orgId, queryString ? `?${queryString}` : '');
+  console.log('[useSales] API path:', path);
 
   return useQuery<SaleListResponse>({
     queryKey: ['sales', orgId, document_types, issued, search, page, size],
-    queryFn: () => salesApi.get<SaleListResponse>(path),
+    queryFn: async () => {
+      console.log('[useSales] Fetching data from:', path);
+      try {
+        const result = await salesApi.get<SaleListResponse>(path);
+        console.log('[useSales] API response:', result);
+        return result;
+      } catch (error) {
+        console.error('[useSales] API error:', error);
+        throw error;
+      }
+    },
     enabled: enabled && !!orgId,
   });
 }

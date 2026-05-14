@@ -11,6 +11,7 @@ import { LiveStationsPanel } from "@/components/dashboard/LiveStationsPanel";
 import { TopProductsPanel } from "@/components/dashboard/TopProductsPanel";
 import { DashboardStatSkeleton } from "@/components/dashboard/DashboardStatSkeleton";
 import { ChartSkeleton } from "@/components/dashboard/ChartSkeleton";
+import { QuickDocActionsCard } from "@/components/dashboard/QuickDocActionsCard";
 import type { StandData, DashboardData } from "@/types";
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
@@ -68,9 +69,6 @@ export default function DashboardPage() {
         <Button variant="outline" size="sm" icon="refresh" onClick={() => void refetch()} disabled={isRefetching}>
           {isRefetching ? t("dash.refreshing") : t("dash.refresh")}
         </Button>
-        <Button variant="primary" size="sm" icon="store" onClick={() => (window.location.href = ROUTES.DASHBOARD_POS)}>
-          {t("dash.goToPOS")}
-        </Button>
       </div>
 
       {/* Hero stat card */}
@@ -108,6 +106,13 @@ export default function DashboardPage() {
           </div>
         </div>
       </Card>
+
+      {/* Quick document actions */}
+      <FadeIn duration={0.4}>
+        <div style={{ marginBottom: 16 }}>
+          <QuickDocActionsCard />
+        </div>
+      </FadeIn>
 
       {/* Main 2-col */}
       {isLoading ? (

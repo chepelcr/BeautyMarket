@@ -1,7 +1,7 @@
 import { useStates, useCounties, useDistricts, useNeighborhoods } from "@/hooks/useDataApi";
 import { CountryISO } from "@/lib/enums";
-import { Icon } from "./Icon";
 import { Select } from "./Input";
+import { FormLabel } from "./FormLabel";
 import type { LocationData } from "@/types/location";
 
 interface LocationSelectProps {
@@ -52,17 +52,9 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
-        <div className="icon-pill" style={{ width: 26, height: 26, background: "hsl(var(--muted))" }}>
-          <Icon name="mapPin" size={12} style={{ color: "hsl(var(--muted-foreground))" } as React.CSSProperties} />
-        </div>
-        <span className="t-label">Ubicación</span>
-        <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>(opcional)</span>
-      </div>
-
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div>
-          <label className="t-label" style={{ display: "block", marginBottom: 6 }}>Provincia</label>
+          <FormLabel>Provincia</FormLabel>
           <Select value={stateId?.toString() ?? ""} onChange={handleState} disabled={statesLoading}>
             <option value="">{statesLoading ? "Cargando…" : "Seleccionar…"}</option>
             {states.sort((a, b) => a.state_id - b.state_id).map((s) => (
@@ -72,7 +64,7 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
         </div>
 
         <div>
-          <label className="t-label" style={{ display: "block", marginBottom: 6 }}>Cantón</label>
+          <FormLabel>Cantón</FormLabel>
           <Select value={countyId?.toString() ?? ""} onChange={handleCounty} disabled={!stateId || countiesLoading}>
             <option value="">{countiesLoading ? "Cargando…" : "Seleccionar…"}</option>
             {counties.map((c) => (
@@ -82,7 +74,7 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
         </div>
 
         <div>
-          <label className="t-label" style={{ display: "block", marginBottom: 6 }}>Distrito</label>
+          <FormLabel>Distrito</FormLabel>
           <Select value={districtId?.toString() ?? ""} onChange={handleDistrict} disabled={!countyId || districtsLoading}>
             <option value="">{districtsLoading ? "Cargando…" : "Seleccionar…"}</option>
             {districts.map((d) => (
@@ -92,7 +84,7 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
         </div>
 
         <div>
-          <label className="t-label" style={{ display: "block", marginBottom: 6 }}>Barrio</label>
+          <FormLabel>Barrio</FormLabel>
           <Select value={value.neighborhood_id?.toString() ?? ""} onChange={handleNeighborhood} disabled={!districtId || nbLoading}>
             <option value="">{nbLoading ? "Cargando…" : "Seleccionar…"}</option>
             {neighborhoods.map((n) => (
@@ -103,7 +95,7 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
       </div>
 
       <div>
-        <label className="t-label" style={{ display: "block", marginBottom: 6 }}>Otras señas</label>
+        <FormLabel>Otras señas</FormLabel>
         <textarea
           className="input"
           rows={2}

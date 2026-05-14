@@ -5,6 +5,18 @@ const CROSS_APP_API_BASE = import.meta.env.VITE_ORDERS_API_URL || "https://order
 // Single sales API — separate Lambdas are all behind one API Gateway domain
 const SALES_API_BASE     = import.meta.env.VITE_SALES_API_URL  || "https://sales-api.jcampos.dev";
 
+console.log('[API Config] Environment variables:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  VITE_ORDERS_API_URL: import.meta.env.VITE_ORDERS_API_URL,
+  VITE_SALES_API_URL: import.meta.env.VITE_SALES_API_URL,
+});
+
+console.log('[API Config] Resolved base URLs:', {
+  API_BASE,
+  CROSS_APP_API_BASE,
+  SALES_API_BASE,
+});
+
 async function getToken(): Promise<string> {
   const session = await fetchAuthSession();
   return session.tokens?.idToken?.toString() ?? "";
@@ -16,6 +28,8 @@ async function request<T>(
   body?: unknown,
   baseUrl: string = API_BASE
 ): Promise<T> {
+  console.log('[API] Request:', { method, path, baseUrl });
+  
   const token = await getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -33,23 +47,32 @@ async function request<T>(
     }
   }
   
-  const res = await fetch(`${baseUrl}${path}`, {
+  const fullUrl = `${baseUrl}${path}`;
+  console.log('[API] Full URL:', fullUrl);
+  
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  console.log('[API] Response status:', res.status, res.statusText);
+
   if (res.status === 401) {
+    console.error('[API] Unauthorized - redirecting to login');
     window.location.href = "/login";
     throw new Error("Unauthorized");
   }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
+    console.error('[API] Request failed:', err);
     throw new Error(err.message || "Request failed");
   }
 
-  return res.json();
+  const result = await res.json();
+  console.log('[API] Response data:', result);
+  return result;
 }
 
 export function createClient(baseUrl: string) {

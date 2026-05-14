@@ -1,5 +1,6 @@
 import { Tag } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
+import { FormLabel } from '@/components/ui';
 import { useAllDiscountTypes } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
 import type { LineDiscount } from '@/types/lineDetail';
@@ -70,7 +71,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: needs_reason ? 8 : 0 }}>
                 <div>
-                  <label className="pp-label">Tipo *</label>
+                  <FormLabel required>Tipo</FormLabel>
                   <select
                     className="pp-input"
                     value={disc.discount_type_id}
@@ -82,7 +83,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
                   </select>
                 </div>
                 <div>
-                  <label className="pp-label">Porcentaje % *</label>
+                  <FormLabel required>Porcentaje %</FormLabel>
                   <input
                     className="pp-input"
                     type="number"
@@ -97,7 +98,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
 
               {needs_reason && (
                 <div>
-                  <label className="pp-label">Razón *</label>
+                  <FormLabel required>Razón</FormLabel>
                   <input
                     className="pp-input"
                     value={disc.reason || ''}

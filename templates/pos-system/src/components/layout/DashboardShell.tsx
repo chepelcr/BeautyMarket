@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardMobileDrawer } from "./DashboardMobileDrawer";
+import { DocumentsMobileDrawer } from "./DocumentsMobileDrawer";
 import { DashboardToggleButton } from "./DashboardToggleButton";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "clients";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -14,22 +15,17 @@ interface DashboardShellProps {
   sessionLocation?: string;
 }
 
-export default function DashboardShell({
-  children,
-  active = "dashboard",
-  onNav,
-  sessionName,
-  sessionLocation,
-}: DashboardShellProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+/**
+ * Shared open/close state pattern with 450ms slide animation.
+ * Returns `[open, isClosing, shouldRender, setOpen]` for a drawer.
+ */
+function useDrawerState() {
+  const [open, setOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const pendingNavRef = useRef<NavId | null>(null);
 
-  // Handle drawer open/close with animation - 450ms to match Drawer.tsx
   useEffect(() => {
-    if (drawerOpen) {
+    if (open) {
       setShouldRender(true);
       setIsClosing(false);
     } else if (shouldRender) {
@@ -37,37 +33,52 @@ export default function DashboardShell({
       const timer = setTimeout(() => {
         setShouldRender(false);
         setIsClosing(false);
-        
-        // Execute pending navigation after animation completes
-        if (pendingNavRef.current) {
-          onNav?.(pendingNavRef.current);
-          pendingNavRef.current = null;
-        }
-      }, 450); // Match animation duration
+      }, 450);
       return () => clearTimeout(timer);
     }
-  }, [drawerOpen, shouldRender, onNav]);
+  }, [open, shouldRender]);
+
+  return { open, isClosing, shouldRender, setOpen };
+}
+
+export default function DashboardShell({
+  children,
+  active = "dashboard",
+  onNav,
+  sessionName,
+  sessionLocation,
+}: DashboardShellProps) {
+  // Left (main nav) drawer
+  const left = useDrawerState();
+  // Right (documents) drawer
+  const right = useDrawerState();
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const pendingNavRef = useRef<NavId | null>(null);
+
+  // Defer left-drawer navigation until after the close animation completes
+  useEffect(() => {
+    if (!left.open && !left.shouldRender && pendingNavRef.current) {
+      onNav?.(pendingNavRef.current);
+      pendingNavRef.current = null;
+    }
+  }, [left.open, left.shouldRender, onNav]);
 
   const handleNav = (id: NavId) => {
-    // If drawer is open (mobile), close it first and defer navigation
-    if (drawerOpen && !isClosing) {
+    if (left.open && !left.isClosing) {
       pendingNavRef.current = id;
-      setDrawerOpen(false);
+      left.setOpen(false);
     } else {
-      // Desktop or drawer already closed - navigate immediately
       onNav?.(id);
-    }
-  };
-
-  const handleCloseDrawer = () => {
-    if (!isClosing) {
-      setDrawerOpen(false);
     }
   };
 
   return (
     <div style={{ minHeight: "100vh", display: "flex" }}>
-      {/* Desktop/tablet sidebar (≥769px) */}
+      {/* Desktop/tablet sidebar (≥769px).
+          z-index sits ABOVE the reveal-anchor toggle so the toggle hides
+          behind it when the sidebar is expanded — only the peek-out portion
+          beyond the sidebar's right edge stays visible. */}
       <div
         style={{
           width: sidebarCollapsed ? 0 : 240,
@@ -78,6 +89,8 @@ export default function DashboardShell({
           flexShrink: 0,
           transition: "width 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
           overflow: "hidden",
+          zIndex: 50,
+          background: "hsl(var(--card))",
         }}
         className="dashboard-sidebar-full"
       >
@@ -90,26 +103,32 @@ export default function DashboardShell({
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
-      {/* Mobile drawer */}
+      {/* Mobile LEFT drawer (main sidebar) */}
       <DashboardMobileDrawer
-        open={drawerOpen}
-        isClosing={isClosing}
-        shouldRender={shouldRender}
+        open={left.open}
+        isClosing={left.isClosing}
+        shouldRender={left.shouldRender}
         active={active}
         onNav={handleNav}
-        onClose={handleCloseDrawer}
+        onClose={() => left.setOpen(false)}
+      />
+
+      {/* Mobile RIGHT drawer (documents) */}
+      <DocumentsMobileDrawer
+        open={right.open}
+        isClosing={right.isClosing}
+        shouldRender={right.shouldRender}
+        onClose={() => right.setOpen(false)}
       />
 
       {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        {/* Header */}
         <DashboardHeader
-          onMenuClick={() => setDrawerOpen(true)}
+          onMenuClick={() => left.setOpen(true)}
+          onDocsClick={() => right.setOpen(true)}
           sessionName={sessionName}
           sessionLocation={sessionLocation}
         />
-
-        {/* Page content */}
         <main style={{ flex: 1 }}>{children}</main>
       </div>
 
