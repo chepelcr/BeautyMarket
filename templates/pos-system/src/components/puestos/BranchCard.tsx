@@ -29,9 +29,9 @@ export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTermina
   const typeColor = branch.type === "stand" ? "hsl(var(--primary))" : "hsl(220 80% 55%)";
 
   const { data: terminalsData } = useQuery({
-    queryKey: ["terminals", orgId, branch.branch_id],
+    queryKey: ["terminals", orgId, branch.code],
     enabled: expanded,
-    queryFn: () => crossAppApi.get<TerminalListResponse>(crossAppOrgPath(orgId, `/branches/${branch.branch_id}/terminals?page_size=100`)),
+    queryFn: () => crossAppApi.get<TerminalListResponse>(crossAppOrgPath(orgId, `/branches/${branch.code}/terminals?page_size=100`)),
   });
   const terminals = terminalsData?.data ?? [];
 

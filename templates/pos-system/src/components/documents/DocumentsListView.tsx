@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { useDocumentStore } from '@/store/documentStore';
 import { useSales } from '@/hooks/useSales';
 import { FadeIn, EmptyState, Pagination } from '@/components/ui';
 import { IssuedReceivedToggle } from './IssuedReceivedToggle';
-import { DocumentsFilters } from './DocumentsFilters';
+import { DocumentTypesFilter } from './DocumentTypesFilter';
+import { ComplexSearchModal } from './ComplexSearchModal';
 import { DocumentCard } from './DocumentCard';
 import { DocumentCardSkeleton } from './DocumentCardSkeleton';
 import { DocumentActionModal } from './DocumentActionModal';
@@ -21,6 +23,8 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
 
   const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
   const [search, setSearch] = useState<ComplexSearchFilters>({});
+  const [term, setTerm] = useState(search.searchTerm ?? '');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(0);
   const [actionModal, setActionModal] = useState<{
     doc: DocumentListItem;
@@ -44,39 +48,57 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
     setPage(0);
   };
 
-  const handleSearchChange = (next: ComplexSearchFilters) => {
-    setSearch(next);
+  const handleSearchTermChange = (next: string) => {
+    setTerm(next);
+    setSearch((s) => ({ ...s, searchTerm: next || undefined }));
     setPage(0);
   };
 
+  const hasAdvancedFilters =
+    !!(search.status || search.start_date || search.end_date || search.sort);
+
   return (
-    <div 
-      className="flex flex-col h-full"
-      style={{
-        animation: 'fadeIn 0.2s ease-in-out',
-      }}
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      style={{ animation: 'fadeIn 0.2s ease-in-out' }}
     >
-      {/* Toggle + total count */}
-      <div className="px-4 py-2.5 flex items-center justify-between border-b border-border bg-card">
-        <IssuedReceivedToggle />
-        <span className="text-[12px] text-muted-foreground">
-          {pagination ? `${pagination.total_elements} documentos` : ''}
-        </span>
+      {/* Unified toolbar — single row on desktop, wraps on mobile */}
+      <div className="px-4 py-2.5 border-b border-border bg-card shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <IssuedReceivedToggle />
+
+          <input
+            type="text"
+            value={term}
+            onChange={(e) => handleSearchTermChange(e.target.value)}
+            placeholder="Buscar por número, nombre…"
+            className="flex-1 min-w-[180px] h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
+          />
+
+          <DocumentTypesFilter
+            selectedTypes={selectedTypes}
+            onChange={handleTypesChange}
+          />
+
+          <button
+            onClick={() => setShowAdvanced(true)}
+            className={cn(
+              'h-10 px-3 rounded-md border text-[12px] font-semibold transition-colors shrink-0',
+              hasAdvancedFilters
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+            )}
+          >
+            Filtros{hasAdvancedFilters ? ' ●' : ''}
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <DocumentsFilters
-        selectedTypes={selectedTypes}
-        search={search}
-        onTypesChange={handleTypesChange}
-        onSearchChange={handleSearchChange}
-      />
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto p-4">
+      {/* Content area — the ONLY scrollable region */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {isLoading ? (
           <div
-            className="grid gap-3"
+            className="grid gap-3 p-4"
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}
           >
             {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
@@ -84,7 +106,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
             ))}
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center min-h-[400px]">
+          <div className="h-full flex items-center justify-center p-4">
             <EmptyState
               icon="alertCircle"
               title="Error al cargar documentos"
@@ -112,7 +134,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
             />
           </div>
         ) : docs.length === 0 ? (
-          <div className="flex items-center justify-center min-h-[400px]">
+          <div className="h-full flex items-center justify-center p-4">
             <EmptyState
               icon="fileText"
               title="Sin documentos"
@@ -124,7 +146,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
             />
           </div>
         ) : (
-          <>
+          <div className="p-4">
             <div
               className="grid gap-3"
               style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}
@@ -150,7 +172,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
                 />
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 
@@ -165,14 +187,23 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
         />
       )}
 
+      {/* Advanced filters modal */}
+      {showAdvanced && (
+        <ComplexSearchModal
+          filters={search}
+          onApply={(next) => {
+            setSearch(next);
+            setTerm(next.searchTerm ?? '');
+            setPage(0);
+          }}
+          onClose={() => setShowAdvanced(false)}
+        />
+      )}
+
       <style>{`
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
       `}</style>
     </div>

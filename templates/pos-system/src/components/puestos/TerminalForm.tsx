@@ -5,7 +5,7 @@ import { TerminalGeneralSection } from "./sections/TerminalGeneralSection";
 import type { CreateTerminalRequest } from "@/types";
 
 interface TerminalFormProps {
-  branchId: string;
+  branchId: number;
   onSave: (data: CreateTerminalRequest) => void;
   isSaving: boolean;
   onClose: () => void;

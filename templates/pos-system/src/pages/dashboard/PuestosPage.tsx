@@ -75,7 +75,7 @@ export default function PuestosPage() {
   });
 
   const addTerminalMutation = useMutation({
-    mutationFn: ({ branchId, data }: { branchId: string; data: CreateTerminalRequest }) =>
+    mutationFn: ({ branchId, data }: { branchId: number; data: CreateTerminalRequest }) =>
       crossAppApi.post(crossAppOrgPath(org!.id, `/branches/${branchId}/terminals`), data),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["terminals", org?.id, vars.branchId] });
@@ -252,8 +252,8 @@ export default function PuestosPage() {
       >
         {addTermBranch && (
           <TerminalForm
-            branchId={addTermBranch.branch_id}
-            onSave={(data) => addTerminalMutation.mutate({ branchId: addTermBranch.branch_id, data })}
+            branchId={addTermBranch.code}
+            onSave={(data) => addTerminalMutation.mutate({ branchId: addTermBranch.code, data })}
             isSaving={addTerminalMutation.isPending}
             onClose={() => { setTermDrawer(false); setAddTermBranch(null); }}
           />

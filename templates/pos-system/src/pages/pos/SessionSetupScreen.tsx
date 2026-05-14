@@ -405,7 +405,7 @@ export default function SessionSetupScreen({ org }: Props) {
         width={400}
       >
         <TerminalForm
-          branchId={selectedBranch?.branch_id ?? ""}
+          branchId={selectedBranch?.code ?? ""}
           isSaving={savingTerm}
           error={termError}
           onSave={handleAddTerminal}
@@ -424,7 +424,7 @@ export default function SessionSetupScreen({ org }: Props) {
 // ─── Inline terminal form ──────────────────────────────────────────────────────
 
 interface TerminalFormProps {
-  branchId: string;
+  branchId: number;
   isSaving: boolean;
   error: string | null;
   onSave: (data: CreateTerminalRequest) => void;
