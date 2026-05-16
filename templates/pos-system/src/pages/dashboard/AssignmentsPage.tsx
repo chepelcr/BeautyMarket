@@ -150,13 +150,13 @@ export default function AssignmentsPage() {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="t-h2" style={{ margin: 0 }}>{t("assignments.title")}</h2>
+          <h2 className="t-h2 !m-0">{t("assignments.title")}</h2>
           {!isLoading && (
-            <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))", marginTop: 2 }}>
+            <p className="t-sm text-muted-foreground mt-0.5">
               {t("assignments.count", { n: String(assignments.length) })}
             </p>
           )}
@@ -173,20 +173,17 @@ export default function AssignmentsPage() {
 
       {/* Create form */}
       {showForm && (
-        <Card className="fade-up" style={{ padding: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-            <div
-              className="icon-pill"
-              style={{ width: 32, height: 32, background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}
-            >
+        <Card className="fade-up p-5">
+          <div className="flex items-center gap-2.5 mb-[18px]">
+            <div className="icon-pill w-8 h-8 bg-primary/10 text-primary">
               <Icon name="userPlus" size={14} />
             </div>
-            <span style={{ fontSize: 15, fontWeight: 700, fontFamily: "var(--font-display)" }}>
+            <span className="text-[15px] font-bold font-display">
               {t("assignments.newAssignment")}
             </span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="flex flex-col gap-3.5">
             {/* Session */}
             <div>
               <FormLabel>
@@ -242,7 +239,7 @@ export default function AssignmentsPage() {
             </div>
 
             {formError && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "hsl(var(--destructive))" }}>
+              <div className="flex items-center gap-2 text-destructive">
                 <Icon name="alertTri" size={14} />
                 <span className="t-sm">{formError}</span>
               </div>
@@ -254,7 +251,7 @@ export default function AssignmentsPage() {
               icon="checkCircle"
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !sessionId || !userId || !branchId}
-              style={{ width: "100%" }}
+              className="w-full"
             >
               {createMutation.isPending ? t("assignments.assigning") : t("assignments.create")}
             </Button>
@@ -264,7 +261,7 @@ export default function AssignmentsPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className="flex flex-col gap-3.5">
           {Array.from({ length: pageSize }).map((_, i) => <AssignmentSkeletonCard key={i} />)}
         </div>
       )}
@@ -287,40 +284,30 @@ export default function AssignmentsPage() {
 
         return (
           <FadeIn key={a.assignment_id} delay={i * 0.03} duration={0.4}>
-            <Card
-              className="fade-up"
-              style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
-            >
-            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            <Card className="fade-up px-5 py-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div
-                className="icon-pill"
-                style={{
-                  width: 36,
-                  height: 36,
-                  background: a.role === "supervisor"
-                    ? "hsl(var(--primary) / 0.1)"
-                    : "hsl(var(--muted))",
-                  color: a.role === "supervisor"
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--muted-foreground))",
-                  flexShrink: 0,
-                }}
+                className={`icon-pill w-9 h-9 flex-shrink-0 ${
+                  a.role === "supervisor"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
+                }`}
               >
                 <Icon name={a.role === "supervisor" ? "star" : "user"} size={15} />
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-bold overflow-hidden text-ellipsis whitespace-nowrap">
                     {a.user_id}
                   </span>
                   <Badge variant={a.role === "supervisor" ? "primary-soft" : "secondary"}>
                     {ROLE_LABEL[a.role]}
                   </Badge>
                 </div>
-                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                <div className="t-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                   <Icon name="store" size={11} />
                   {t("assignments.station", { id: a.branch_id })}
-                  <span style={{ opacity: 0.5 }}>·</span>
+                  <span className="opacity-50">·</span>
                   <Icon name="clock" size={11} />
                   {t("assignments.start", { time: startTime })}
                 </div>
@@ -332,7 +319,7 @@ export default function AssignmentsPage() {
               size="sm"
               onClick={() => deactivateMutation.mutate(a.assignment_id)}
               disabled={deactivateMutation.isPending}
-              style={{ flexShrink: 0, color: "hsl(var(--destructive))", borderColor: "hsl(var(--destructive) / 0.4)" }}
+              className="flex-shrink-0 !text-destructive !border-destructive/40"
             >
               {t("assignments.finish")}
             </Button>
@@ -355,9 +342,6 @@ export default function AssignmentsPage() {
         />
       )}
 
-      <style>{`
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-      `}</style>
     </div>
   );
 }

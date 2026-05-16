@@ -8,7 +8,7 @@ import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { ClientSkeletonCard } from "@/components/clients/ClientSkeletonCard";
 import { ClientDrawerForm } from "@/components/clients/ClientDrawerForm";
-import { Icon, Button, Pagination, Spinner } from "@/components/ui";
+import { Icon, Button, Pagination } from "@/components/ui";
 
 export default function ClientsPage() {
   const { orgId } = useOrgContext();
@@ -52,12 +52,12 @@ export default function ClientsPage() {
   };
 
   return (
-    <div style={{ padding: "24px 24px 48px", maxWidth: 1300, margin: "0 auto" }}>
+    <div className="px-6 pt-6 pb-12 max-w-[1300px] mx-auto">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+      <div className="flex justify-between items-start mb-7 flex-wrap gap-3">
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 6 }}>{t("clients.title")}</h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <h1 className="t-h1 mb-1.5">{t("clients.title")}</h1>
+          <p className="t-body text-muted-foreground">
             {pagination ? `${pagination.total_elements} ${t("clients.registered")}` : t("clients.directory")}
           </p>
         </div>
@@ -65,38 +65,37 @@ export default function ClientsPage() {
       </div>
 
       {/* Search */}
-      <div style={{ position: "relative", marginBottom: 24, maxWidth: 400 }}>
-        <Icon name="search" size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "hsl(var(--muted-foreground))", pointerEvents: "none" }} />
+      <div className="relative mb-6 max-w-[400px]">
+        <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <input
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder={t("placeholder.searchByNameId")}
-          className="pp-input"
-          style={{ width: "100%", paddingLeft: 36 }}
+          className="pp-input w-full pl-9"
         />
       </div>
 
       {/* Grid */}
       {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))", gap: 14 }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))" }}>
           {Array.from({ length: 8 }).map((_, i) => <ClientSkeletonCard key={i} />)}
         </div>
       ) : clients.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "64px 20px" }}>
-          <div style={{ width: 64, height: 64, borderRadius: 20, background: "rgba(212,168,116,0.12)", border: "1px solid rgba(212,168,116,0.25)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px" }}>
-            <Icon name="users" size={28} style={{ color: "#D4A874" }} />
+        <div className="text-center px-5 py-16">
+          <div className="w-16 h-16 rounded-[20px] bg-accent-rose-soft border border-accent-rose-border flex items-center justify-center mx-auto mb-[18px]">
+            <Icon name="users" size={28} className="text-accent-rose" />
           </div>
-          <div className="t-h2" style={{ marginBottom: 6 }}>
+          <div className="t-h2 mb-1.5">
             {search ? t("clients.noResultsFor", { query: search }) : t("clients.noClients")}
           </div>
-          <div className="t-body" style={{ color: "hsl(var(--muted-foreground))", marginBottom: search ? 0 : 20 }}>
+          <div className={`t-body text-muted-foreground ${search ? "" : "mb-5"}`}>
             {search ? t("clients.tryOtherSearch") : t("empty.addFirst")}
           </div>
           {!search && <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>{t("clients.addClient")}</Button>}
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))", gap: 14 }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))" }}>
           {clients.map((c, i) => (
             <ClientCard key={c.client_id} client={c} orgId={orgId} onNavigate={() => goToDetail(c.client_id)} onEdit={openEdit} onToggleActive={handleToggleActive} delay={i * 0.03} />
           ))}

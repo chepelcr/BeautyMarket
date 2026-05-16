@@ -11,7 +11,6 @@ import type { TaxAmountResponse } from "@/services/data-api/dtos";
 const ISO = CountryISO.COSTA_RICA;
 const IVA_CODES = ["01", "07", "08"];
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
-// Codes that require fetching tax amounts from the API
 const SPECIAL_AMOUNT_CODES = ["03", "04", "05", "06"];
 
 interface OtherTaxSectionProps {
@@ -26,7 +25,6 @@ interface OtherTaxSectionProps {
   onUpdate: (taxTypeId: number, patch: Partial<TaxFormEntry>) => void;
 }
 
-// Per-tax row — lives in its own component so each can call useAllTaxAmounts independently
 function SpecialTaxRow({
   tax,
   cabys,
@@ -50,13 +48,11 @@ function SpecialTaxRow({
   );
   const taxAmounts: TaxAmountResponse[] = taxAmountsData ?? [];
 
-  // ISEBEC (05): beverages — alcoholic (3401) or non-alcoholic (2202)
   const isIsebec = tax.taxCode === "05";
   const isAlcoholic = cabys?.startsWith("3401");
   const isNonAlcoholic = cabys?.startsWith("2202");
   const isBeverage = isAlcoholic || isNonAlcoholic;
 
-  // Auto-select tax amount for ISEBEC based on entered percentage matching min/max range
   const handlePercentageChange = (pct: number) => {
     const match = taxAmounts.find(
       (ta) =>
@@ -77,24 +73,15 @@ function SpecialTaxRow({
   const selectedAmount = taxAmounts.find((ta) => ta.id === tax.specialFields?.taxAmountId);
 
   return (
-    <div
-      style={{
-        padding: "10px 12px",
-        background: "hsl(var(--muted) / 0.3)",
-        borderRadius: 8,
-        border: "1px solid hsl(var(--border))",
-      }}
-    >
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <div style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{tax.taxDescription}</div>
+    <div className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex-1 text-xs font-semibold">{tax.taxDescription}</div>
 
         {(cfg?.requireRate ?? true) && tax.taxCode !== "12" && !needsAmounts && (
           <>
             <input
               type="number"
-              className="pp-input"
-              style={{ width: 72, padding: "3px 8px", fontSize: 12 }}
+              className="pp-input w-[72px] !h-auto !px-2 !py-[3px] text-xs"
               placeholder="%"
               min={0}
               max={100}
@@ -102,7 +89,7 @@ function SpecialTaxRow({
               onChange={(e) => onUpdate(tax.taxTypeId, { rate: Number(e.target.value) })}
             />
             {basePrice > 0 && tax.rate > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: "hsl(var(--primary))", minWidth: 64, textAlign: "right" }}>
+              <span className="text-xs font-semibold text-primary min-w-[64px] text-right">
                 +{fmt(basePrice * tax.rate / 100)}
               </span>
             )}
@@ -110,11 +97,11 @@ function SpecialTaxRow({
         )}
         {tax.taxCode === "12" && (
           <>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "hsl(var(--muted-foreground))", padding: "3px 8px" }}>
+            <span className="text-xs font-semibold text-muted-foreground px-2 py-[3px]">
               5%
             </span>
             {basePrice > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: "hsl(var(--primary))", minWidth: 64, textAlign: "right" }}>
+              <span className="text-xs font-semibold text-primary min-w-[64px] text-right">
                 +{fmt(basePrice * 0.05)}
               </span>
             )}
@@ -130,22 +117,17 @@ function SpecialTaxRow({
         </button>
       </div>
 
-      {/* Special fields for codes 03, 04, 05, 06 */}
       {needsAmounts && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-
-          {/* ISEBEC (05) — beverage specific */}
+        <div className="flex flex-col gap-2">
           {isIsebec && isBeverage && (
             <>
-              {/* Alcohol percentage — auto-selects tax amount */}
               {isAlcoholic && (
                 <div>
-                  <FormLabel style={{ fontSize: 11 }}>{t("products.alcoholPercentage")}</FormLabel>
-                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <FormLabel>{t("products.alcoholPercentage")}</FormLabel>
+                  <div className="flex gap-1.5 items-center">
                     <input
                       type="number"
-                      className="pp-input"
-                      style={{ flex: 1, fontSize: 12 }}
+                      className="pp-input flex-1 text-xs"
                       placeholder={t("products.alcoholPercentageExample")}
                       min={0}
                       max={100}
@@ -153,28 +135,26 @@ function SpecialTaxRow({
                       value={tax.specialFields?.percentage ?? ""}
                       onChange={(e) => handlePercentageChange(Number(e.target.value))}
                     />
-                    <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>%</span>
+                    <span className="t-xs text-muted-foreground">%</span>
                   </div>
                   {selectedAmount && (
-                    <div className="t-xs" style={{ color: "hsl(var(--primary))", marginTop: 3 }}>
+                    <div className="t-xs text-primary mt-1">
                       {t("products.amountPerUnit", { amount: selectedAmount.amount.toLocaleString("es-CR"), desc: selectedAmount.description })}
                     </div>
                   )}
                   {tax.specialFields?.percentage && !selectedAmount && taxAmounts.length > 0 && (
-                    <div className="t-xs" style={{ color: "hsl(var(--destructive))", marginTop: 3 }}>
+                    <div className="t-xs text-destructive mt-1">
                       {t("products.noAmountForPercentage")}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Manual tax amount select for non-alcoholic */}
               {isNonAlcoholic && taxAmounts.length > 0 && (
                 <div>
-                  <FormLabel style={{ fontSize: 11 }}>{t("products.taxAmountLabel")}</FormLabel>
+                  <FormLabel>{t("products.taxAmountLabel")}</FormLabel>
                   <select
-                    className="pp-input"
-                    style={{ fontSize: 12 }}
+                    className="pp-input text-xs"
                     value={tax.specialFields?.taxAmountId ?? ""}
                     onChange={(e) =>
                       onUpdate(tax.taxTypeId, {
@@ -194,13 +174,11 @@ function SpecialTaxRow({
             </>
           )}
 
-          {/* Non-beverage ISEBEC or other special codes: manual tax amount select */}
           {(!isIsebec || !isBeverage) && taxAmounts.length > 0 && (
             <div>
-              <FormLabel style={{ fontSize: 11 }}>Monto de impuesto</FormLabel>
+              <FormLabel>Monto de impuesto</FormLabel>
               <select
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 value={tax.specialFields?.taxAmountId ?? ""}
                 onChange={(e) =>
                   onUpdate(tax.taxTypeId, {
@@ -218,14 +196,12 @@ function SpecialTaxRow({
             </div>
           )}
 
-          {/* Quantity field — all special codes */}
           {["03", "04", "05", "06"].includes(tax.taxCode) && (
             <div>
-              <FormLabel style={{ fontSize: 11 }}>{t("products.quantityUdm")}</FormLabel>
+              <FormLabel>{t("products.quantityUdm")}</FormLabel>
               <input
                 type="number"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder="0"
                 min={0}
                 value={tax.specialFields?.quantity ?? ""}
@@ -238,14 +214,12 @@ function SpecialTaxRow({
             </div>
           )}
 
-          {/* ISEBA (04) percentage */}
           {tax.taxCode === "04" && (
             <div>
-              <FormLabel style={{ fontSize: 11 }}>{t("products.percentage")}</FormLabel>
+              <FormLabel>{t("products.percentage")}</FormLabel>
               <input
                 type="number"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder="0"
                 min={0}
                 max={100}
@@ -259,14 +233,12 @@ function SpecialTaxRow({
             </div>
           )}
 
-          {/* ISEBEC (05) volume per unit */}
           {tax.taxCode === "05" && (
             <div>
-              <FormLabel style={{ fontSize: 11 }}>{t("products.volumePerUnit")}</FormLabel>
+              <FormLabel>{t("products.volumePerUnit")}</FormLabel>
               <input
                 type="number"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder="0"
                 min={0}
                 value={tax.specialFields?.volumeConsumption ?? ""}
@@ -313,7 +285,7 @@ export function OtherTaxSection({
       disabled={disabled}
       badge={addedOtherTaxes.length > 0 ? addedOtherTaxes.length : undefined}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {addedOtherTaxes.map((tax) => (
           <SpecialTaxRow
             key={tax.taxTypeId}

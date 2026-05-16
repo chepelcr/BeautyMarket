@@ -51,8 +51,8 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+    <div className="flex flex-col gap-3.5">
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <FormLabel>Provincia</FormLabel>
           <Select value={stateId?.toString() ?? ""} onChange={handleState} disabled={statesLoading}>
@@ -97,12 +97,11 @@ export function LocationSelect({ value, onChange, isoCode = CountryISO.COSTA_RIC
       <div>
         <FormLabel>Otras señas</FormLabel>
         <textarea
-          className="input"
+          className="input w-full resize-y text-sm"
           rows={2}
           value={value.address ?? ""}
           onChange={(e) => onChange({ ...value, address: e.target.value })}
           placeholder="Sector norte, fila 3, frente a la entrada principal"
-          style={{ width: "100%", resize: "vertical", fontFamily: "var(--font-sans)", fontSize: 14 }}
         />
       </div>
     </div>

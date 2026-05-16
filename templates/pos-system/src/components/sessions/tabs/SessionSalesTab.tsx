@@ -12,56 +12,59 @@ export function SessionSalesTab({ stands, isLoading }: SessionSalesTabProps) {
   const { t } = useLanguage();
 
   if (isLoading) {
-    return <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center", padding: 32 }}>{t("common.loading")}</div>;
+    return <div className="t-sm text-muted-foreground text-center p-8">{t("common.loading")}</div>;
   }
 
   if (!stands || stands.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: 40 }}>
-        <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 12px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 56, height: 56 }}>
+      <div className="text-center p-10">
+        <div className="icon-pill icon-pill-lg mx-auto mb-3 bg-muted/30 text-muted-foreground w-14 h-14">
           <Icon name="dollar" size={24} />
         </div>
-        <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Sin ventas registradas</div>
+        <div className="t-sm text-muted-foreground">Sin ventas registradas</div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: "grid", gap: 14 }}>
+    <div className="p-6">
+      <div className="grid gap-3.5">
         {stands.map((stand) => {
           const total = stand.total_revenue || 1;
           return (
-            <Card key={stand.id} style={{ padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+            <Card key={stand.id} className="p-5">
+              <div className="flex justify-between items-start mb-3.5">
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700 }}>{stand.name}</div>
-                  <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{stand.cashier_name} · {stand.context}</div>
+                  <div className="text-[15px] font-bold">{stand.name}</div>
+                  <div className="t-xs text-muted-foreground">{stand.cashier_name} · {stand.context}</div>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div className="t-num" style={{ fontSize: 20, fontWeight: 800, fontFamily: "var(--font-display)", color: "hsl(var(--primary))" }}>
+                <div className="text-right">
+                  <div className="t-num text-xl font-extrabold font-display text-primary">
                     {fmt(stand.total_revenue)}
                   </div>
-                  <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{stand.sales_count} ventas</div>
+                  <div className="t-xs text-muted-foreground">{stand.sales_count} ventas</div>
                 </div>
               </div>
               {[
-                { l: "Efectivo", v: stand.cash, c: "hsl(var(--success))" },
-                { l: "SINPE", v: stand.sinpe, c: "hsl(var(--primary))" },
-                { l: "Tarjeta", v: stand.card, c: "hsl(var(--info))" },
+                { l: "Efectivo", v: stand.cash, varName: "success" },
+                { l: "SINPE", v: stand.sinpe, varName: "primary" },
+                { l: "Tarjeta", v: stand.card, varName: "info" },
               ].map((p) => {
                 const pct = (p.v / total) * 100;
                 return (
-                  <div key={p.l} style={{ marginBottom: 8 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600 }}>{p.l}</span>
-                      <span className="t-num" style={{ fontSize: 12 }}>
+                  <div key={p.l} className="mb-2">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs font-semibold">{p.l}</span>
+                      <span className="t-num text-xs">
                         {fmt(p.v)}{" "}
-                        <span style={{ color: "hsl(var(--muted-foreground))" }}>({pct.toFixed(0)}%)</span>
+                        <span className="text-muted-foreground">({pct.toFixed(0)}%)</span>
                       </span>
                     </div>
                     <div className="progress progress-thin">
-                      <div className="progress-bar" style={{ width: `${pct}%`, background: p.c }} />
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${pct}%`, background: `hsl(var(--${p.varName}))` }}
+                      />
                     </div>
                   </div>
                 );

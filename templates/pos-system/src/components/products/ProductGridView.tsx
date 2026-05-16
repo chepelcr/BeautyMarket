@@ -39,47 +39,44 @@ export function ProductGridView({
   const { t } = useLanguage();
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-        gap: 14,
-      }}
-    >
+    <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
       {products.map((p, i) => (
         <FadeIn key={p.product_id} delay={i * 0.03} duration={0.4}>
-          <Card 
-            hoverable 
-            style={{ padding: 0, overflow: "hidden", opacity: p.status !== 0 ? 1 : 0.6, cursor: onNavigate ? "pointer" : "default" }}
+          <Card
+            hoverable
+            className={`!p-0 overflow-hidden ${p.status !== 0 ? "opacity-100" : "opacity-60"} ${
+              onNavigate ? "cursor-pointer" : "cursor-default"
+            }`}
             onClick={() => onNavigate?.(p.product_id)}
           >
-            <div style={{ position: "relative" }}>
+            <div className="relative">
               <ProductImage
                 imageUrl={p.image_url}
                 name={p.name}
                 size={0}
-                style={{ width: "100%", height: "auto", aspectRatio: "1/1", borderRadius: 0, objectFit: "cover" }}
+                className="w-full h-auto aspect-square !rounded-none object-cover"
+                style={{ width: "100%", height: "auto" }}
               />
-              <div style={{ position: "absolute", top: 8, left: 8 }}>
+              <div className="absolute top-2 left-2">
                 <input
                   type="checkbox"
                   checked={selected.includes(p.product_id)}
                   onChange={() => onToggleSelect(p.product_id)}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: 18, height: 18, accentColor: "hsl(var(--primary))", cursor: "pointer" }}
+                  className="w-[18px] h-[18px] cursor-pointer accent-primary"
                 />
               </div>
-              <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 4 }}>
+              <div className="absolute top-2 right-2 flex gap-1">
                 {p.status === 0 && <Badge variant="secondary">{t("products.inactive")}</Badge>}
                 {lowStock(p) && <Badge variant="warning">{t("products.stock", { n: String(p.stock_quantity) })}</Badge>}
               </div>
             </div>
-            <div style={{ padding: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>{p.name}</div>
-                <Badge variant="outline" style={{ flexShrink: 0, fontSize: 9 }}>{p.category?.name ?? "—"}</Badge>
+            <div className="p-3.5">
+              <div className="flex justify-between items-start gap-2 mb-1">
+                <div className="text-sm font-bold leading-tight">{p.name}</div>
+                <Badge variant="outline" className="flex-shrink-0 !text-[9px]">{p.category?.name ?? "—"}</Badge>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+              <div className="flex justify-between items-center mt-2.5">
                 <ProductPriceEditor
                   productId={p.product_id}
                   price={p.price}
@@ -91,7 +88,7 @@ export function ProductGridView({
                   onSave={onSavePrice}
                   onCancel={onCancelEditPrice}
                 />
-                <div style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
+                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="xs" icon="edit" onClick={() => onEdit(p)} />
                   <Button
                     variant="ghost"

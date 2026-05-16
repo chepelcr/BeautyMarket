@@ -16,53 +16,18 @@ function ActionButton({ label, icon, accent, onClick }: ActionButtonProps) {
   return (
     <button
       onClick={onClick}
-      style={{
-        flex: 1,
-        minWidth: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        padding: "16px 12px",
-        background: "hsl(var(--card))",
-        border: "1px solid hsl(var(--border))",
-        borderRadius: 10,
-        cursor: "pointer",
-        transition: "border-color 0.15s, transform 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = accent;
-        e.currentTarget.style.transform = "translateY(-1px)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "hsl(var(--border))";
-        e.currentTarget.style.transform = "translateY(0)";
-      }}
+      className="flex-1 min-w-0 flex flex-col items-center justify-center gap-2 px-3 py-4 bg-card border border-border rounded-lg cursor-pointer transition-all hover:-translate-y-px"
+      style={{ borderColor: undefined }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = accent; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = ""; }}
     >
       <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          background: accent,
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className="w-9 h-9 rounded-lg text-white flex items-center justify-center"
+        style={{ background: accent }}
       >
         <Icon name={icon} size={18} />
       </div>
-      <span
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          fontFamily: "var(--font-display)",
-          color: "hsl(var(--foreground))",
-          textAlign: "center",
-        }}
-      >
+      <span className="text-xs font-semibold font-display text-foreground text-center">
         {label}
       </span>
     </button>
@@ -89,26 +54,24 @@ export function QuickDocActionsCard() {
   };
 
   return (
-    <Card style={{ padding: 20 }}>
-      <div style={{ marginBottom: 14 }}>
-        <div className="t-h3" style={{ fontSize: 14, marginBottom: 4 }}>
-          Crear documento
-        </div>
-        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+    <Card className="p-5">
+      <div className="mb-3.5">
+        <div className="t-h3 !text-sm mb-1">Crear documento</div>
+        <div className="t-xs text-muted-foreground">
           Empieza una factura electrónica, un tiquete o consulta tus documentos.
         </div>
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
+      <div className="flex gap-2.5">
         <ActionButton
           label="Crear factura"
           icon="fileText"
-          accent="#16a34a"
+          accent="hsl(var(--success))"
           onClick={() => openNewDoc(1)}
         />
         <ActionButton
           label="Crear tiquete"
           icon="cash"
-          accent="#3b82f6"
+          accent="hsl(var(--info))"
           onClick={() => openNewDoc(4)}
         />
         <ActionButton

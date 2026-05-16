@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useDocumentStore } from "@/store/documentStore";
+import { useMaxVisibleTabs } from "@/store/uiStore";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { ROUTES, documentEditorPath } from "@/routePaths";
 import { getDocumentTypeInfo } from "@/types/invoice";
+import { Icon } from "@/components/ui";
 import { NewDocumentButton } from "@/components/documents/NewDocumentButton";
 
 interface DocumentsMobileDrawerProps {
@@ -13,12 +16,19 @@ interface DocumentsMobileDrawerProps {
 }
 
 /**
- * Right-side mobile drawer for documents. Mirrors DashboardMobileDrawer
- * with slideInRight/slideOutRight animations. Contains:
- *  - Header (title + close ✕)
- *  - "Documentos" big button → navigates to list
- *  - "+ Nuevo" dropdown (full-width)
- *  - List of open document drafts with doc-type bar + title + close
+ * Right-side drawer that lists open document drafts.
+ *
+ * - Mobile (<769px): renders the full nav surface — Documentos link, ALL open
+ *   drafts (none of them are in the navbar at this size), and the "+ Nuevo"
+ *   button at the footer.
+ * - Tablet/Desktop (≥769px): renders ONLY overflow drafts (those at index
+ *   `≥ maxVisible`) — the ones already in the navbar's DocumentsToolbar are
+ *   omitted to avoid duplication. Selecting an overflow draft swaps it into
+ *   the visible window via `promoteTabToVisible`.
+ *
+ * Uses `isolation: isolate` on the outer wrapper to guarantee its stacking
+ * context sits cleanly above the rest of the page, regardless of any
+ * `position: sticky` / `transform` ancestors in the layout below.
  */
 export function DocumentsMobileDrawer({
   open,
@@ -26,13 +36,21 @@ export function DocumentsMobileDrawer({
   shouldRender,
   onClose,
 }: DocumentsMobileDrawerProps) {
-  const { open_documents, removeDocumentTab } = useDocumentStore();
+  const { open_documents, removeDocumentTab, promoteTabToVisible } = useDocumentStore();
   const [location, setLocation] = useLocation();
+  const isDesktop = useIsDesktop(769);
+  const maxVisible = useMaxVisibleTabs();
 
   const editorMatch = location.match(/^\/dashboard\/documents\/new\/([^/?#]+)/);
   const activeTabId = editorMatch?.[1] ?? null;
 
-  // Lock body scroll when drawer is open
+  // On tablet/desktop the drawer is only a way to reach OVERFLOW tabs (the
+  // ones that didn't fit in the navbar). On mobile it lists everything.
+  const visibleDrafts = useMemo(
+    () => (isDesktop ? open_documents.slice(maxVisible) : open_documents),
+    [isDesktop, maxVisible, open_documents]
+  );
+
   useEffect(() => {
     if (open && shouldRender) {
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -51,6 +69,12 @@ export function DocumentsMobileDrawer({
   if (!shouldRender) return null;
 
   const handleTabClick = (id: string) => {
+    if (isDesktop) {
+      const idx = open_documents.findIndex((d) => d.id === id);
+      if (idx >= maxVisible) {
+        promoteTabToVisible(id, maxVisible);
+      }
+    }
     setLocation(documentEditorPath(id));
     onClose();
   };
@@ -76,204 +100,83 @@ export function DocumentsMobileDrawer({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 100,
-        display: "flex",
-        justifyContent: "flex-end",
-      }}
+      className="fixed inset-0 z-tooltip flex justify-end"
+      style={{ isolation: "isolate" }}
     >
-      {/* Overlay backdrop */}
       <div
-        className={isClosing ? "drawer-overlay-exit" : "drawer-overlay-enter"}
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.5)",
-          backdropFilter: "blur(1px)",
-        }}
+        className={`absolute inset-0 overlay-backdrop-dim ${
+          isClosing ? "drawer-overlay-exit" : "drawer-overlay-enter"
+        }`}
         onClick={onClose}
       />
 
-      {/* Drawer panel — RIGHT SIDE */}
-      <div
-        className={isClosing ? "drawer-panel-right-exit" : "drawer-panel-right-enter"}
-        style={{
-          position: "relative",
-          width: 280,
-          height: "100dvh",
-          zIndex: 101,
-          background: "hsl(var(--card))",
-          boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
+      <aside
+        className={`relative w-[280px] h-[100dvh] bg-card shadow-modal flex flex-col overflow-hidden ${
+          isClosing ? "drawer-panel-right-exit" : "drawer-panel-right-enter"
+        }`}
       >
-        {/* Top row — Documentos nav button (acts as both title + go-to-list) + close */}
-        <div
-          style={{
-            padding: "12px 12px 8px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        {/* Top row — Documentos nav link + close button (always rendered) */}
+        <div className="px-3 pt-3 pb-2 flex items-center gap-2 shrink-0">
           <button
             onClick={goToDocsList}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              height: 40,
-              borderRadius: 10,
-              border: "1px solid hsl(var(--border))",
-              background: "hsl(var(--card))",
-              color: "hsl(var(--foreground))",
-              fontSize: 14,
-              fontWeight: 700,
-              fontFamily: "var(--font-display)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "0 14px",
-              textAlign: "left",
-            }}
+            className="btn btn-outline btn-sm flex-1 min-w-0 justify-start gap-2"
           >
-            <span style={{ fontSize: 16 }} aria-hidden>📄</span>
-            Documentos
+            <Icon name="fileText" size={16} />
+            <span className="font-display font-bold">Documentos</span>
           </button>
           <button
             onClick={onClose}
             aria-label="Cerrar"
-            style={{
-              width: 40,
-              height: 40,
-              flexShrink: 0,
-              borderRadius: 10,
-              border: "1px solid hsl(var(--border))",
-              background: "hsl(var(--card))",
-              color: "hsl(var(--muted-foreground))",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 14,
-            }}
+            className="btn btn-outline btn-icon btn-sm flex-shrink-0"
           >
-            ✕
+            <Icon name="close" size={14} />
           </button>
         </div>
 
-        {/* Open documents — fills the middle area */}
-        {open_documents.length > 0 ? (
+        {/* Open drafts list */}
+        {visibleDrafts.length > 0 ? (
           <>
-            <div
-              className="t-label"
-              style={{ padding: "12px 16px 4px", color: "hsl(var(--muted-foreground))" }}
-            >
-              Abiertos
+            <div className="label-section px-4 pt-3 pb-1 shrink-0">
+              {isDesktop ? "Sin pestaña" : "Abiertos"}
             </div>
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: "4px 12px 12px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
-            >
-              {open_documents.map((tab) => {
+            <div className="flex-1 overflow-y-auto px-3 pt-1 pb-3 flex flex-col gap-1">
+              {visibleDrafts.map((tab) => {
                 const info = getDocumentTypeInfo(tab.doc_type);
                 const isActive = activeTabId === tab.id;
                 return (
                   <div
                     key={tab.id}
                     onClick={() => handleTabClick(tab.id)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "10px 12px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      background: isActive ? "hsl(var(--muted))" : "transparent",
-                      border: isActive
-                        ? `1px solid ${info?.dotColor ?? "hsl(var(--border))"}`
-                        : "1px solid transparent",
-                      transition: "background 0.15s",
-                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors border ${
+                      isActive
+                        ? "bg-muted border-primary"
+                        : "bg-transparent border-transparent hover:bg-muted"
+                    }`}
                   >
-                    {/* Color bar */}
                     <span
-                      style={{
-                        width: 4,
-                        height: 28,
-                        borderRadius: 4,
-                        background: info?.dotColor,
-                        flexShrink: 0,
-                      }}
+                      className="w-1 h-7 rounded-sm flex-shrink-0"
+                      style={{ background: info?.dotColor }}
                     />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          fontFamily: "var(--font-display)",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.06em",
-                          color: "hsl(var(--muted-foreground))",
-                        }}
-                      >
+                    <div className="flex-1 min-w-0">
+                      <div className="t-label !text-[10px] !tracking-[0.06em]">
                         {info?.short ?? "?"}
                         {tab.is_dirty && (
                           <span
-                            style={{
-                              display: "inline-block",
-                              width: 6,
-                              height: 6,
-                              borderRadius: 999,
-                              background: "#fb923c",
-                              marginLeft: 6,
-                              verticalAlign: "middle",
-                            }}
+                            className="inline-block w-1.5 h-1.5 rounded-full bg-warning ml-1.5 align-middle"
                             title="Cambios sin guardar"
                           />
                         )}
                       </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          color: "hsl(var(--foreground))",
-                        }}
-                      >
+                      <div className="text-xs font-semibold whitespace-nowrap overflow-hidden text-ellipsis text-foreground">
                         {tab.title}
                       </div>
                     </div>
                     <button
                       onClick={(e) => handleTabClose(tab.id, e)}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 6,
-                        border: "none",
-                        background: "transparent",
-                        color: "hsl(var(--muted-foreground))",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                      title="Cerrar"
+                      className="btn-icon-ghost-sm flex-shrink-0"
+                      title="Cerrar pestaña"
                     >
-                      ✕
+                      <Icon name="close" size={12} />
                     </button>
                   </div>
                 );
@@ -281,44 +184,18 @@ export function DocumentsMobileDrawer({
             </div>
           </>
         ) : (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 20,
-              textAlign: "center",
-              color: "hsl(var(--muted-foreground))",
-              fontSize: 12,
-            }}
-          >
-            No hay documentos abiertos
+          <div className="flex-1 flex items-center justify-center p-5 text-center text-muted-foreground text-xs">
+            {isDesktop
+              ? "Todos los documentos abiertos ya están en la barra superior."
+              : "No hay documentos abiertos"}
           </div>
         )}
 
-        {/* Footer — "+ Nuevo" with dropdown opening UP (toward the open-docs list) */}
-        <div
-          style={{
-            padding: "8px 12px 14px",
-            borderTop: "1px solid hsl(var(--border))",
-          }}
-        >
+        {/* Footer — "+ Nuevo" with dropdown opening UP */}
+        <div className="px-3 pt-2 pb-3.5 border-t border-border shrink-0">
           <NewDocumentButton fullWidth direction="up" onCreate={onClose} />
         </div>
-      </div>
-
-      <style>{`
-        .drawer-overlay-enter { animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
-        .drawer-overlay-exit { animation: fadeOut 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
-        .drawer-panel-right-enter { animation: slideInRight 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
-        .drawer-panel-right-exit { animation: slideOutRight 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-      `}</style>
+      </aside>
     </div>
   );
 }

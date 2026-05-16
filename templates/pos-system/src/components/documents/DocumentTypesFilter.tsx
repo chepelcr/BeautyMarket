@@ -45,28 +45,28 @@ export function DocumentTypesFilter({ selectedTypes, onChange }: DocumentTypesFi
   };
 
   return (
-    <div ref={containerRef} className="relative shrink-0">
+    <div ref={containerRef} className="docs-types-filter relative">
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'h-10 px-3 rounded-md border text-[12px] font-semibold flex items-center gap-2 transition-colors',
+          'docs-types-filter-trigger h-10 px-3 rounded-md border text-xs font-semibold flex items-center gap-2 justify-between transition-colors w-full',
           !allSelected
             ? 'border-primary bg-primary/5 text-primary'
             : 'border-border bg-card text-muted-foreground hover:border-primary/40'
         )}
       >
-        <span>{label}</span>
+        <span className="truncate">{label}</span>
         <ChevronDown
           size={14}
-          className={cn('transition-transform', open && 'rotate-180')}
+          className={cn('shrink-0 transition-transform', open && 'rotate-180')}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+4px)] z-[110] w-60 rounded-lg border border-border bg-card shadow-lg py-1">
+        <div className="absolute right-0 top-[calc(100%+4px)] z-tooltip w-60 rounded-lg border border-border bg-card shadow-dropdown py-1">
           <button
             onClick={() => onChange([])}
-            className="w-full px-3 py-2 text-left text-[12px] hover:bg-muted flex items-center gap-2 transition-colors"
+            className="w-full px-3 py-2 text-left text-xs hover:bg-muted flex items-center gap-2 transition-colors"
           >
             <span
               className={cn(
@@ -78,9 +78,7 @@ export function DocumentTypesFilter({ selectedTypes, onChange }: DocumentTypesFi
             >
               {allSelected && <Check size={12} strokeWidth={3} />}
             </span>
-            <span className="font-display font-bold text-[11px] uppercase tracking-wider text-muted-foreground">
-              Todos
-            </span>
+            <span className="label-section">Todos</span>
           </button>
 
           <div className="h-px bg-border my-1 mx-2" />
@@ -91,7 +89,7 @@ export function DocumentTypesFilter({ selectedTypes, onChange }: DocumentTypesFi
               <button
                 key={dt.code}
                 onClick={() => toggle(dt.code)}
-                className="w-full px-3 py-2 text-left text-[12px] hover:bg-muted flex items-center gap-2 transition-colors"
+                className="w-full px-3 py-2 text-left text-xs hover:bg-muted flex items-center gap-2 transition-colors"
               >
                 <span
                   className={cn(
@@ -107,7 +105,7 @@ export function DocumentTypesFilter({ selectedTypes, onChange }: DocumentTypesFi
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ background: dt.dotColor }}
                 />
-                <span className={cn('text-[10px] font-display font-bold uppercase tracking-wider', dt.color)}>
+                <span className={cn('label-section !text-[10px]', dt.color)}>
                   {dt.short}
                 </span>
                 <span className="truncate">{dt.label}</span>

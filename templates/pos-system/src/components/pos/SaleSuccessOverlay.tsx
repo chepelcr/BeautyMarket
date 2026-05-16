@@ -1,5 +1,4 @@
 import { Icon } from "@/components/ui";
-import { POS } from "@/theme/pos";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { PayMethod } from "@/hooks/useCartFlow";
 
@@ -19,55 +18,23 @@ export function SaleSuccessOverlay({ total, change, method, orderNum, onNewSale 
   const methodLabel = method === "cash" ? "Efectivo" : method === "card" ? "Tarjeta" : "SINPE";
 
   return (
-    <div
-      style={{
-        height: "100%",
-        minHeight: "60vh",
-        background: POS.bg,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 32,
-      }}
-    >
-      <div style={{ textAlign: "center", maxWidth: 360 }}>
-        <div
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            background: "rgba(50,215,75,0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 24px",
-            border: "2px solid rgba(50,215,75,0.4)",
-          }}
-        >
-          <Icon name="check" size={36} style={{ color: POS.success }} strokeWidth={3} />
+    <div className="h-full min-h-[60vh] bg-background flex items-center justify-center p-8">
+      <div className="text-center max-w-[360px]">
+        <div className="w-20 h-20 rounded-full bg-success/15 flex items-center justify-center mx-auto mb-6 border-2 border-success/40">
+          <Icon name="check" size={36} className="text-success" strokeWidth={3} />
         </div>
 
-        <div style={{ fontFamily: POS.fontDisplay, fontSize: 32, fontWeight: 600, color: POS.text, marginBottom: 8 }}>
+        <div className="font-display text-[32px] font-semibold text-foreground mb-2">
           {t("pos.saleRegistered")}
         </div>
-        <div style={{ fontFamily: POS.fontUI, fontSize: 14, color: POS.muted, marginBottom: 24 }}>
+        <div className="text-sm text-muted-foreground mb-6">
           Orden #{orderNum} · {fmt(total)} · {methodLabel}
         </div>
 
         {method === "cash" && change > 0 && (
-          <div
-            style={{
-              background: "rgba(50,215,75,0.1)",
-              border: "1px solid rgba(50,215,75,0.3)",
-              borderRadius: 12,
-              padding: "16px 20px",
-              marginBottom: 24,
-            }}
-          >
-            <div style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.success, marginBottom: 4 }}>
-              {t("pos.deliverChange")}
-            </div>
-            <div style={{ fontFamily: POS.fontDisplay, fontSize: 40, fontWeight: 700, color: POS.success }}>
+          <div className="bg-success/10 border border-success/30 rounded-xl px-5 py-4 mb-6">
+            <div className="text-xs text-success mb-1">{t("pos.deliverChange")}</div>
+            <div className="font-display text-[40px] font-bold text-success">
               {fmt(change)}
             </div>
           </div>
@@ -75,18 +42,7 @@ export function SaleSuccessOverlay({ total, change, method, orderNum, onNewSale 
 
         <button
           onClick={onNewSale}
-          style={{
-            width: "100%",
-            padding: "14px 0",
-            background: POS.rose,
-            color: "#1C1C1E",
-            border: "none",
-            borderRadius: 12,
-            fontFamily: POS.fontUI,
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
+          className="w-full py-3.5 bg-accent-rose text-background border-0 rounded-xl text-[15px] font-bold cursor-pointer"
         >
           {t("pos.newSale")}
         </button>

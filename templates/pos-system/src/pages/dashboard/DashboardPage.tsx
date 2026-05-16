@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { ROUTES } from "@/routePaths";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
@@ -49,11 +48,11 @@ export default function DashboardPage() {
   const ranking = data?.product_ranking ?? [];
 
   return (
-    <div style={{ padding: "24px 24px 40px", maxWidth: 1500, margin: "0 auto" }}>
+    <div className="px-6 pt-6 pb-10 max-w-[1500px] mx-auto">
       {/* Welcome */}
-      <div className="fade-up" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, gap: 16, flexWrap: "wrap" }}>
+      <div className="fade-up flex justify-between items-start mb-5 gap-4 flex-wrap">
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 6 }}>
+          <h1 className="t-h1 mb-1.5">
             {(() => {
               const hour = new Date().getHours();
               if (hour < 12) return t("dash.morningGreeting");
@@ -62,7 +61,7 @@ export default function DashboardPage() {
             })()},{" "}
             {user?.firstName ?? user?.name?.split(" ")[0] ?? ""}
           </h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <p className="t-body text-muted-foreground">
             {t("dash.activeStations", { n: String(stands.length) })}
           </p>
         </div>
@@ -72,35 +71,35 @@ export default function DashboardPage() {
       </div>
 
       {/* Hero stat card */}
-      <Card className="fade-up" style={{ padding: "20px 24px", marginBottom: 16, background: "linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--primary) / 0.02))", borderColor: "hsl(var(--primary) / 0.25)", position: "relative", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+      <Card className="fade-up px-6 py-5 mb-4 !border-primary/25 bg-gradient-to-br from-primary/[0.12] to-primary/[0.02] relative overflow-hidden">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="t-label" style={{ color: "hsl(var(--primary))", marginBottom: 8 }}>{t("dash.sessionSales")}</div>
-            <div className="t-stat-xl" style={{ fontSize: 44, color: "hsl(var(--primary))", lineHeight: 1 }}>
+            <div className="t-label !text-primary mb-2">{t("dash.sessionSales")}</div>
+            <div className="t-stat-xl !text-[44px] !text-primary !leading-none">
               {isLoading ? "…" : fmt(totalRevenue)}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-              <Badge variant="success" style={{ gap: 5 }}>
-                <span className="status-dot status-dot-live" style={{ width: 5, height: 5 }} />
+            <div className="flex items-center gap-2.5 mt-2.5 flex-wrap">
+              <Badge variant="success" className="gap-[5px]">
+                <span className="status-dot status-dot-live w-[5px] h-[5px]" />
                 {t("dash.live")}
               </Badge>
-              <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+              <span className="t-xs text-muted-foreground">
                 {t("dash.stationOrders", { n: String(totalSales) })} · {stands.length} {t("dash.activeStationsLabel").toLowerCase()}
               </span>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div className="flex gap-3 flex-wrap">
             {[
               { label: t("dash.orders"), value: isLoading ? "…" : String(totalSales), icon: "cart", color: "icon-pill-info" },
               { label: t("dash.avgTicket"), value: isLoading ? "…" : fmt(avgTicket), icon: "chart", color: "icon-pill-success" },
               { label: t("dash.activeStationsLabel"), value: isLoading ? "…" : String(stands.length), icon: "store", color: "icon-pill-warning" },
             ].map((k) => (
-              <div key={k.label} style={{ textAlign: "center", minWidth: 72 }}>
-                <div className={`icon-pill ${k.color}`} style={{ width: 36, height: 36, margin: "0 auto 6px" }}>
+              <div key={k.label} className="text-center min-w-[72px]">
+                <div className={`icon-pill ${k.color} w-9 h-9 mx-auto mb-1.5`}>
                   <Icon name={k.icon} size={16} />
                 </div>
-                <div className="t-stat" style={{ fontSize: 18, fontWeight: 800 }}>{k.value}</div>
-                <div className="t-label" style={{ fontSize: 10, marginTop: 2 }}>{k.label}</div>
+                <div className="t-stat !text-lg !font-extrabold">{k.value}</div>
+                <div className="t-label !text-[10px] mt-0.5">{k.label}</div>
               </div>
             ))}
           </div>
@@ -109,38 +108,38 @@ export default function DashboardPage() {
 
       {/* Quick document actions */}
       <FadeIn duration={0.4}>
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-4">
           <QuickDocActionsCard />
         </div>
       </FadeIn>
 
       {/* Main 2-col */}
       {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14, marginBottom: 14 }}>
+        <div className="grid gap-3.5 mb-3.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
           <ChartSkeleton />
           <DashboardStatSkeleton />
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14, marginBottom: 14 }}>
+        <div className="grid gap-3.5 mb-3.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
           <FadeIn duration={0.4}>
-            <Card style={{ padding: 22, minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+            <Card className="p-[22px] min-w-0">
+              <div className="flex justify-between items-start mb-[18px] flex-wrap gap-2.5">
                 <div>
                   <CardTitle>{t("dash.hourlyChart")}</CardTitle>
                   <CardDescription>{t("dash.currentSession")}</CardDescription>
                 </div>
                 <Badge variant="success">↗ +22% vs anterior</Badge>
               </div>
-              <div style={{ marginBottom: 14 }}>
-                <div className="t-stat-xl" style={{ fontSize: 38 }}>{fmt(totalRevenue)}</div>
-                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Pico entre 19:30 — 20:15</div>
+              <div className="mb-3.5">
+                <div className="t-stat-xl !text-[38px]">{fmt(totalRevenue)}</div>
+                <div className="t-xs text-muted-foreground">Pico entre 19:30 — 20:15</div>
               </div>
               <SalesChart />
             </Card>
           </FadeIn>
 
           <FadeIn delay={0.1} duration={0.4}>
-            <Card style={{ padding: 22, minWidth: 0 }}>
+            <Card className="p-[22px] min-w-0">
               <LiveStationsPanel stands={stands} isLoading={false} fmt={fmt} />
             </Card>
           </FadeIn>
@@ -148,47 +147,49 @@ export default function DashboardPage() {
       )}
 
       {/* Bottom row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
-        <Card style={{ padding: 22, minWidth: 0 }}>
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+        <Card className="p-[22px] min-w-0">
           <TopProductsPanel ranking={ranking} isLoading={isLoading} fmt={fmt} />
         </Card>
 
         {/* Live sales feed */}
-        <Card style={{ padding: 22, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <Card className="p-[22px] min-w-0">
+          <div className="flex justify-between items-center mb-3.5">
             <div>
               <CardTitle>{t("dash.salesFeed")}</CardTitle>
               <CardDescription>{t("dash.realTime")}</CardDescription>
             </div>
             <Badge variant="primary-soft">
-              <span className="status-dot status-dot-live" style={{ width: 6, height: 6 }} />{" "}
-              {t("dash.live")}
+              <span className="status-dot status-dot-live w-1.5 h-1.5" /> {t("dash.live")}
             </Badge>
           </div>
           {stands.length === 0 && !isLoading ? (
-            <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", padding: "16px 0" }}>{t("dash.noRecentSales")}</div>
+            <div className="t-sm text-muted-foreground py-4">{t("dash.noRecentSales")}</div>
           ) : (
             stands.slice(0, 5).map((f, i) => {
               const method = dominantMethod(f);
               const pillClass = method === "cash" ? "icon-pill-success" : method === "sinpe" ? "icon-pill-info" : "";
               const iconName = method === "cash" ? "cash" : method === "sinpe" ? "smartphone" : "card";
               return (
-                <div key={f.id} className="fade-up" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < stands.length - 1 ? "1px solid hsl(var(--border))" : "none" }}>
-                  <div className={`icon-pill ${pillClass}`} style={{ width: 34, height: 34, flexShrink: 0 }}>
+                <div
+                  key={f.id}
+                  className={`fade-up flex items-center gap-3 py-3 ${i < stands.length - 1 ? "border-b border-border" : ""}`}
+                >
+                  <div className={`icon-pill ${pillClass} w-[34px] h-[34px] flex-shrink-0`}>
                     <Icon name={iconName} size={15} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700 }}>{f.name}</span>
-                      <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>· {f.cashier_name}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="text-[13px] font-bold">{f.name}</span>
+                      <span className="t-xs text-muted-foreground">· {f.cashier_name}</span>
                     </div>
-                    <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div className="t-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                       {t("dash.ordersRegistered", { n: String(f.sales_count) })}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div className="t-num" style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-display)", color: "hsl(var(--primary))" }}>{fmt(f.total_revenue)}</div>
-                    <div className="t-xs t-num" style={{ color: "hsl(var(--muted-foreground))" }}>{fmtAgo(f.last_sync_at)}</div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="t-num text-sm font-bold font-display text-primary">{fmt(f.total_revenue)}</div>
+                    <div className="t-xs t-num text-muted-foreground">{fmtAgo(f.last_sync_at)}</div>
                   </div>
                 </div>
               );

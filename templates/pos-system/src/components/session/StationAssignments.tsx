@@ -72,18 +72,10 @@ export default function StationAssignments({
   const { t } = useLanguage();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div className="flex flex-col gap-3.5">
       {/* Branch selection */}
-      <Card style={{ padding: 0 }}>
-        <div
-          style={{
-            padding: "18px 24px",
-            borderBottom: "1px solid hsl(var(--border))",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+      <Card className="!p-0">
+        <div className="px-6 py-[18px] border-b border-border flex justify-between items-center">
           <div>
             <CardTitle>{t("session.selectStations")}</CardTitle>
             <CardDescription>
@@ -91,66 +83,38 @@ export default function StationAssignments({
             </CardDescription>
           </div>
         </div>
-        <div style={{ padding: "12px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="px-6 py-3 flex flex-col gap-2">
           {branches.length === 0 && (
-            <p
-              className="t-sm"
-              style={{ color: "hsl(var(--muted-foreground))", padding: "12px 0" }}
-            >
-              {t("session.noBranches")}
-            </p>
+            <p className="t-sm text-muted-foreground py-3">{t("session.noBranches")}</p>
           )}
           {branches.map((b) => (
             <button
               key={b.branch_id}
               onClick={() => toggleBranch(b.branch_id)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "14px 16px",
-                borderRadius: "var(--radius)",
-                border: activeBranches.has(b.branch_id)
-                  ? "2px solid hsl(var(--primary))"
-                  : "1px solid hsl(var(--border))",
-                background: activeBranches.has(b.branch_id)
-                  ? "hsl(var(--primary) / 0.06)"
-                  : "hsl(var(--card))",
-                cursor: "pointer",
-                transition: "all 0.15s",
-                textAlign: "left",
-              }}
+              className={`flex items-center justify-between px-4 py-3.5 rounded-md cursor-pointer transition-all text-left ${
+                activeBranches.has(b.branch_id)
+                  ? "border-2 border-primary bg-primary/[0.06]"
+                  : "border border-border bg-card"
+              }`}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div className="flex items-center gap-3">
                 <div className="icon-pill icon-pill-muted">
                   <Icon name="store" size={16} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{b.name}</div>
-                  <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {b.code} · {b.type}
-                  </div>
+                  <div className="text-sm font-bold">{b.name}</div>
+                  <div className="t-xs text-muted-foreground">{b.code} · {b.type}</div>
                 </div>
               </div>
               <div
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
-                  border: activeBranches.has(b.branch_id)
-                    ? "2px solid hsl(var(--primary))"
-                    : "2px solid hsl(var(--border))",
-                  background: activeBranches.has(b.branch_id)
-                    ? "hsl(var(--primary))"
-                    : "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
+                className={`w-5 h-5 rounded-sm flex items-center justify-center flex-shrink-0 border-2 ${
+                  activeBranches.has(b.branch_id)
+                    ? "border-primary bg-primary"
+                    : "border-border bg-transparent"
+                }`}
               >
                 {activeBranches.has(b.branch_id) && (
-                  <Icon name="check" size={12} style={{ color: "white" }} />
+                  <Icon name="check" size={12} className="text-white" />
                 )}
               </div>
             </button>
@@ -160,16 +124,8 @@ export default function StationAssignments({
 
       {/* Assignments table */}
       {selectedBranches.length > 0 && (
-        <Card style={{ padding: 0 }}>
-          <div
-            style={{
-              padding: "18px 24px",
-              borderBottom: "1px solid hsl(var(--border))",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+        <Card className="!p-0">
+          <div className="px-6 py-[18px] border-b border-border flex justify-between items-center">
             <div>
               <CardTitle>{t("session.assignments")}</CardTitle>
               <CardDescription>
@@ -177,7 +133,7 @@ export default function StationAssignments({
               </CardDescription>
             </div>
           </div>
-          <div style={{ padding: "0 24px" }}>
+          <div className="px-6">
             {selectedBranches.map((branch, i) => {
               const stationMembers = assignments[branch.branch_id]?.members || [];
               const branchTerminals = branch.terminals || [];
@@ -185,25 +141,15 @@ export default function StationAssignments({
               return (
                 <div
                   key={branch.branch_id}
-                  style={{
-                    padding: "18px 0",
-                    borderBottom:
-                      i < selectedBranches.length - 1
-                        ? "1px solid hsl(var(--border))"
-                        : "none",
-                  }}
+                  className={`py-[18px] ${i < selectedBranches.length - 1 ? "border-b border-border" : ""}`}
                 >
-                  {/* Station header */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <div className="flex items-center gap-3 mb-4">
                     <div className="icon-pill icon-pill-lg">
                       <Icon name="store" size={18} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700 }}>{branch.name}</div>
-                      <div
-                        className="t-xs"
-                        style={{ color: "hsl(var(--muted-foreground))" }}
-                      >
+                    <div className="flex-1">
+                      <div className="text-sm font-bold">{branch.name}</div>
+                      <div className="t-xs text-muted-foreground">
                         {branch.code} · {branchTerminals.length} terminales
                       </div>
                     </div>
@@ -218,15 +164,14 @@ export default function StationAssignments({
                     </Button>
                   </div>
 
-                  {/* Members list */}
                   {stationMembers.length === 0 ? (
-                    <div style={{ padding: "12px 16px", background: "hsl(var(--muted) / 0.3)", borderRadius: "var(--radius)", textAlign: "center" }}>
-                      <span className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    <div className="px-4 py-3 bg-muted/30 rounded-md text-center">
+                      <span className="t-sm text-muted-foreground">
                         {t("session.noMembers")}
                       </span>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div className="flex flex-col gap-2.5">
                       {stationMembers.map((member, memberIndex) => {
                         const availableForSlot = members.filter(
                           (m) => m.userId === member.userId || !allAssignedUserIds.has(m.userId)
@@ -239,18 +184,11 @@ export default function StationAssignments({
                         return (
                           <div
                             key={memberIndex}
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "2fr 1.5fr 1fr auto",
-                              gap: 10,
-                              alignItems: "end",
-                            }}
+                            className="grid gap-2.5 items-end"
+                            style={{ gridTemplateColumns: "2fr 1.5fr 1fr auto" }}
                           >
-                            {/* Member selector */}
                             <div>
-                              <label className="label" style={{ fontSize: 10 }}>
-                                {t("session.member")}
-                              </label>
+                              <label className="label !text-[10px]">{t("session.member")}</label>
                               <select
                                 className="input input-sm"
                                 value={member.userId}
@@ -267,11 +205,8 @@ export default function StationAssignments({
                               </select>
                             </div>
 
-                            {/* Terminal selector */}
                             <div>
-                              <label className="label" style={{ fontSize: 10 }}>
-                                {t("session.terminal")}
-                              </label>
+                              <label className="label !text-[10px]">{t("session.terminal")}</label>
                               <select
                                 className="input input-sm"
                                 value={member.terminalId || ""}
@@ -288,11 +223,8 @@ export default function StationAssignments({
                               </select>
                             </div>
 
-                            {/* Role selector */}
                             <div>
-                              <label className="label" style={{ fontSize: 10 }}>
-                                {t("session.role")}
-                              </label>
+                              <label className="label !text-[10px]">{t("session.role")}</label>
                               <select
                                 className="input input-sm"
                                 value={branchHasSupervisor ? "cashier" : member.role}
@@ -308,13 +240,12 @@ export default function StationAssignments({
                               </select>
                             </div>
 
-                            {/* Remove button */}
                             <Button
                               variant="ghost"
                               size="sm"
                               icon="trash"
                               onClick={() => removeMemberFromStation(branch.branch_id, memberIndex)}
-                              style={{ color: "hsl(var(--destructive))" }}
+                              className="!text-destructive"
                             />
                           </div>
                         );

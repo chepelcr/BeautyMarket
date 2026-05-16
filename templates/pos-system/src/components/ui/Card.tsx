@@ -31,7 +31,7 @@ interface CardSectionProps {
 
 export function CardHeader({ children, className = "", style }: CardSectionProps) {
   return (
-    <div className={className} style={{ padding: "20px 24px 0", ...style }}>
+    <div className={`px-6 pt-5 ${className}`} style={style}>
       {children}
     </div>
   );
@@ -39,7 +39,7 @@ export function CardHeader({ children, className = "", style }: CardSectionProps
 
 export function CardBody({ children, className = "", style }: CardSectionProps) {
   return (
-    <div className={className} style={{ padding: 24, ...style }}>
+    <div className={`p-6 ${className}`} style={style}>
       {children}
     </div>
   );
@@ -52,8 +52,8 @@ interface CardFooterProps extends CardSectionProps {
 export function CardFooter({ children, className = "", style, onClick }: CardFooterProps) {
   return (
     <div
-      className={className}
-      style={{ padding: "16px 24px", borderTop: "1px solid hsl(var(--border))", ...style }}
+      className={`px-6 py-4 border-t border-border ${className}`}
+      style={style}
       onClick={onClick}
     >
       {children}
@@ -63,7 +63,7 @@ export function CardFooter({ children, className = "", style, onClick }: CardFoo
 
 export function CardTitle({ children, className = "", style }: CardSectionProps) {
   return (
-    <h3 className={`t-h4 ${className}`} style={{ marginBottom: 4, ...style }}>
+    <h3 className={`t-h4 mb-1 ${className}`} style={style}>
       {children}
     </h3>
   );
@@ -71,7 +71,7 @@ export function CardTitle({ children, className = "", style }: CardSectionProps)
 
 export function CardDescription({ children, className = "", style }: CardSectionProps) {
   return (
-    <p className={`t-sm ${className}`} style={{ color: "hsl(var(--muted-foreground))", ...style }}>
+    <p className={`t-sm text-muted-foreground ${className}`} style={style}>
       {children}
     </p>
   );

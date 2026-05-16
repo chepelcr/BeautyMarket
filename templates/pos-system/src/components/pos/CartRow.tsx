@@ -1,6 +1,5 @@
 import { Icon } from "@/components/ui";
 import { ProductImage } from "@/components/ui/ProductImage";
-import { POS } from "@/theme/pos";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
@@ -25,24 +24,16 @@ export function CartRow({ item, onIncrease, onDecrease, onEdit }: CartRowProps) 
   const displayPrice = item.price * (1 - (item.lineDiscount ?? 0) / 100);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "12px 0",
-        borderBottom: `1px solid ${POS.border}`,
-      }}
-    >
-      <ProductImage imageUrl={item.image_url} name={item.name} size={40} style={{ borderRadius: 8, flexShrink: 0 }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: POS.text, fontFamily: POS.fontUI, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+    <div className="flex items-center gap-3 py-3 border-b border-border">
+      <ProductImage imageUrl={item.image_url} name={item.name} size={40} className="rounded-lg flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-semibold text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
           {item.lineNote || item.name}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-          <span style={{ fontSize: 11, color: POS.muted, fontFamily: POS.fontUI }}>{fmt(displayPrice)} c/u</span>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[11px] text-muted-foreground">{fmt(displayPrice)} c/u</span>
           {(item.lineDiscount ?? 0) > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: POS.rose, background: `${POS.rose}22`, padding: "1px 5px", borderRadius: 4, fontFamily: POS.fontUI }}>
+            <span className="text-[10px] font-bold text-accent-rose bg-accent-rose-soft px-1.5 py-px rounded-sm">
               -{item.lineDiscount}%
             </span>
           )}
@@ -51,37 +42,28 @@ export function CartRow({ item, onIncrease, onDecrease, onEdit }: CartRowProps) 
       <button
         onClick={onEdit}
         title="Editar línea"
-        style={{ width: 28, height: 28, border: "none", background: "transparent", color: POS.muted, cursor: "pointer", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+        className="w-7 h-7 border-0 bg-transparent text-muted-foreground cursor-pointer rounded-lg flex items-center justify-center flex-shrink-0"
       >
         <Icon name="edit" size={12} />
       </button>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          background: "rgba(255,255,255,0.06)",
-          borderRadius: 20,
-          padding: "2px 4px",
-        }}
-      >
+      <div className="flex items-center gap-0.5 bg-foreground/[0.06] rounded-[20px] px-1 py-0.5">
         <button
           onClick={onDecrease}
-          style={{ width: 28, height: 28, border: "none", background: "transparent", color: POS.muted, cursor: "pointer", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="w-7 h-7 border-0 bg-transparent text-muted-foreground cursor-pointer rounded-[14px] flex items-center justify-center"
         >
           <Icon name="minus" size={12} />
         </button>
-        <span style={{ minWidth: 20, textAlign: "center", fontSize: 14, fontWeight: 700, color: POS.text, fontFamily: POS.fontUI, fontVariantNumeric: "tabular-nums" }}>
+        <span className="min-w-[20px] text-center text-sm font-bold text-foreground tabular-nums">
           {item.qty}
         </span>
         <button
           onClick={onIncrease}
-          style={{ width: 28, height: 28, border: "none", background: "transparent", color: POS.rose, cursor: "pointer", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="w-7 h-7 border-0 bg-transparent text-accent-rose cursor-pointer rounded-[14px] flex items-center justify-center"
         >
           <Icon name="plus" size={12} />
         </button>
       </div>
-      <div style={{ minWidth: 70, textAlign: "right", fontSize: 13, fontWeight: 700, color: POS.text, fontFamily: POS.fontUI, fontVariantNumeric: "tabular-nums" }}>
+      <div className="min-w-[70px] text-right text-[13px] font-bold text-foreground tabular-nums">
         {fmt(displayPrice * item.qty)}
       </div>
     </div>

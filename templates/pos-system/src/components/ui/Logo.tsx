@@ -17,51 +17,25 @@ export function Logo({ size = 32, showWord = true, orgName }: LogoProps) {
   const displayName = orgName ?? "JMarkets POS";
 
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+    <div className="inline-flex items-center gap-2.5">
       <div
+        className="bg-primary text-primary-foreground flex items-center justify-center font-display font-extrabold flex-shrink-0"
         style={{
           width: size,
           height: size,
           borderRadius: Math.round(size * 0.25),
-          background: "hsl(var(--primary))",
-          color: "hsl(var(--primary-foreground))",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "var(--font-display)",
-          fontWeight: 800,
           fontSize: Math.round(size * 0.52),
           letterSpacing: 0.5,
-          flexShrink: 0,
         }}
       >
         {initials}
       </div>
       {showWord && (
-        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 800,
-              fontSize: 15,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              color: "hsl(var(--foreground))",
-            }}
-          >
+        <div className="flex flex-col leading-none">
+          <span className="font-display font-extrabold text-[15px] tracking-wider uppercase text-foreground">
             {displayName}
           </span>
-          <span
-            style={{
-              fontSize: 10,
-              color: "hsl(var(--muted-foreground))",
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              marginTop: 2,
-              fontFamily: "var(--font-display)",
-              fontWeight: 600,
-            }}
-          >
+          <span className="text-[10px] text-muted-foreground tracking-wider uppercase mt-0.5 font-display font-semibold">
             Punto de venta
           </span>
         </div>

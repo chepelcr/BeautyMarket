@@ -19,15 +19,14 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
 
   const add = () => {
     const first = (discountTypes ?? [])[0];
-    onChange([...discounts, { 
-      discount_type_id: first?.id ?? 1, 
+    onChange([...discounts, {
+      discount_type_id: first?.id ?? 1,
       discount_code: first?.code ?? '01',
-      percentage: 0 
+      percentage: 0
     }]);
   };
   const remove = (i: number) => onChange(discounts.filter((_, idx) => idx !== i));
   const update = (i: number, patch: Partial<LineDiscount>) => {
-    // If discount_type_id changes, also update the code
     if (patch.discount_type_id !== undefined) {
       const dt = (discountTypes ?? []).find((d: any) => d.id === patch.discount_type_id);
       patch.discount_code = dt?.code;
@@ -49,27 +48,25 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
       onToggle={onToggle}
       badge={discounts.length > 0 ? discounts.length : undefined}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="flex flex-col gap-3">
         {discounts.map((disc, i) => {
           const dt = (discountTypes ?? []).find((d: any) => d.id === disc.discount_type_id);
           const needs_reason = dt?.code === '99';
           const disc_amount = (netPrice * quantity * (disc.percentage || 0)) / 100;
 
           return (
-            <div key={i} style={{ border: '1px solid hsl(var(--border))', borderRadius: 8, padding: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 600 }}>{dt?.description ?? 'Descuento'}</span>
-                <button 
-                  onClick={() => remove(i)} 
-                  style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', background: 'none', border: 'none', cursor: 'pointer' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'hsl(var(--destructive))'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'hsl(var(--muted-foreground))'}
+            <div key={i} className="border border-border rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold">{dt?.description ?? 'Descuento'}</span>
+                <button
+                  onClick={() => remove(i)}
+                  className="text-[11px] text-muted-foreground bg-transparent border-0 cursor-pointer hover:text-destructive transition-colors"
                 >
                   Quitar
                 </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: needs_reason ? 8 : 0 }}>
+              <div className={`grid grid-cols-2 gap-2 ${needs_reason ? "mb-2" : ""}`}>
                 <div>
                   <FormLabel required>Tipo</FormLabel>
                   <select
@@ -108,7 +105,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
                 </div>
               )}
 
-              <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', textAlign: 'right', marginTop: 4 }}>
+              <div className="text-[11px] text-muted-foreground text-right mt-1">
                 Monto: ₡{disc_amount.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
               </div>
             </div>
@@ -117,41 +114,23 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
 
         <button
           onClick={add}
-          style={{
-            width: '100%',
-            height: 36,
-            borderRadius: 6,
-            border: '1px dashed hsl(var(--border))',
-            fontSize: 12,
-            color: 'hsl(var(--muted-foreground))',
-            background: 'transparent',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'hsl(var(--primary))';
-            e.currentTarget.style.color = 'hsl(var(--primary))';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'hsl(var(--border))';
-            e.currentTarget.style.color = 'hsl(var(--muted-foreground))';
-          }}
+          className="w-full h-9 rounded-md border border-dashed border-border text-xs text-muted-foreground bg-transparent cursor-pointer transition-colors hover:border-primary hover:text-primary"
         >
           + Agregar descuento
         </button>
 
         {discounts.length > 0 && (
-          <div style={{ borderTop: '1px solid hsl(var(--border))', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'hsl(var(--muted-foreground))' }}>
+          <div className="border-t border-border pt-3 flex flex-col gap-1 text-xs">
+            <div className="flex justify-between text-muted-foreground">
               <span>Total porcentaje</span>
-              <span style={{ fontFamily: 'var(--font-mono)' }}>{total_pct.toFixed(2)}%</span>
+              <span className="font-mono">{total_pct.toFixed(2)}%</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+            <div className="flex justify-between font-semibold">
               <span>Total descuentos</span>
-              <span style={{ fontFamily: 'var(--font-mono)' }}>₡{total_amt.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
+              <span className="font-mono">₡{total_amt.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
             </div>
             {total_pct > 100 && (
-              <div style={{ fontSize: 11, color: 'hsl(var(--destructive))' }}>⚠ Los descuentos superan el 100%</div>
+              <div className="text-[11px] text-destructive">⚠ Los descuentos superan el 100%</div>
             )}
           </div>
         )}

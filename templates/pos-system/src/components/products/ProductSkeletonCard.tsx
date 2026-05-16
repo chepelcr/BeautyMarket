@@ -2,34 +2,19 @@ import { Card } from "@/components/ui";
 
 export function ProductSkeletonCard() {
   return (
-    <Card style={{ padding: 0, overflow: "hidden" }}>
-      {/* Image skeleton */}
-      <div style={{ width: "100%", height: 180, background: "hsl(var(--muted) / 0.3)", animation: "pulse 1.5s ease-in-out infinite" }} />
-      
-      {/* Content */}
-      <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-        {/* Title */}
-        <div style={{ height: 14, width: "75%", background: "hsl(var(--muted) / 0.4)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite" }} />
-        
-        {/* Category */}
-        <div style={{ height: 10, width: "45%", background: "hsl(var(--muted) / 0.25)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.1s" }} />
-        
-        {/* Price */}
-        <div style={{ height: 18, width: "50%", background: "hsl(var(--muted) / 0.35)", borderRadius: 5, marginTop: 4, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.2s" }} />
-        
-        {/* Actions */}
-        <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-          <div style={{ flex: 1, height: 32, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.3s" }} />
-          <div style={{ width: 32, height: 32, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.3s" }} />
+    <Card className="!p-0 overflow-hidden">
+      <div className="w-full h-[180px] bg-muted/30 animate-pulse" />
+
+      <div className="px-4 py-3.5 flex flex-col gap-2.5">
+        <div className="h-3.5 w-3/4 bg-muted/40 rounded-sm animate-pulse" />
+        <div className="h-2.5 w-[45%] bg-muted/25 rounded-sm animate-pulse" />
+        <div className="h-[18px] w-1/2 bg-muted/35 rounded-sm mt-1 animate-pulse" />
+
+        <div className="flex gap-1.5 mt-1.5">
+          <div className="flex-1 h-8 bg-muted/20 rounded-lg animate-pulse" />
+          <div className="w-8 h-8 bg-muted/20 rounded-lg animate-pulse" />
         </div>
       </div>
-      
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </Card>
   );
 }

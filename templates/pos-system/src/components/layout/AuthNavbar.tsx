@@ -11,26 +11,10 @@ export function AuthNavbar({ leftSlot }: AuthNavbarProps) {
   const { dark, toggle: toggleDark } = useDarkMode();
 
   return (
-    <header
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "10px 16px",
-        background: "hsl(var(--background) / 0.85)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-        borderBottom: "1px solid hsl(var(--border))",
-      }}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5 bg-background/85 backdrop-blur-md border-b border-border">
       <div>{leftSlot}</div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={toggleLanguage}
@@ -40,7 +24,7 @@ export function AuthNavbar({ leftSlot }: AuthNavbarProps) {
           <img
             src={language === "es" ? "https://flagcdn.com/w20/cr.png" : "https://flagcdn.com/w20/us.png"}
             alt={language === "es" ? "Costa Rica" : "United States"}
-            style={{ width: 20, height: "auto", borderRadius: 2 }}
+            className="w-5 h-auto rounded-sm"
           />
         </button>
         <button

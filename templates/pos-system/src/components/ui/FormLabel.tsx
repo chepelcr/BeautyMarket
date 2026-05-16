@@ -7,17 +7,9 @@ interface FormLabelProps {
 
 export function FormLabel({ children, required, htmlFor, style }: FormLabelProps) {
   return (
-    <label
-      htmlFor={htmlFor}
-      className="t-label"
-      style={{
-        display: "block",
-        marginBottom: 6,
-        ...style,
-      }}
-    >
+    <label htmlFor={htmlFor} className="t-label block mb-1.5" style={style}>
       {children}
-      {required && <span style={{ color: "hsl(var(--destructive))" }}> *</span>}
+      {required && <span className="text-destructive"> *</span>}
     </label>
   );
 }

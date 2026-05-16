@@ -30,7 +30,7 @@ export function TerminalGeneralSection({
       isExpanded={isExpanded}
       onToggle={onToggle}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="flex flex-col gap-4">
         {/* Name */}
         <div>
           <FormLabel htmlFor="t-name" required>
@@ -58,7 +58,7 @@ export function TerminalGeneralSection({
             value={code}
             onChange={(e) => setCode(e.target.value === "" ? "" : Number(e.target.value))}
             placeholder="ej. 1"
-            style={{ fontFamily: "var(--font-mono)" }}
+            className="font-mono"
           />
         </div>
 
@@ -70,9 +70,9 @@ export function TerminalGeneralSection({
             value={deviceId}
             onChange={(e) => setDeviceId(e.target.value)}
             placeholder="ej. tablet-01 (opcional)"
-            style={{ fontFamily: "var(--font-mono)" }}
+            className="font-mono"
           />
-          <p className="t-xs" style={{ marginTop: 4, color: "hsl(var(--muted-foreground))" }}>
+          <p className="t-xs mt-1 text-muted-foreground">
             Identificador del dispositivo físico. Opcional.
           </p>
         </div>

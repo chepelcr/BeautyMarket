@@ -53,6 +53,25 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
         },
+        "accent-rose": {
+          DEFAULT: "hsl(var(--accent-rose))",
+          soft: "hsl(var(--accent-rose-soft))",
+          dim: "hsl(var(--accent-rose-dim))",
+          border: "hsl(var(--accent-rose-border))",
+        },
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+        dropdown: "var(--shadow-dropdown)",
+        "dropdown-up": "var(--shadow-dropdown-up)",
+        modal: "var(--shadow-modal)",
+      },
+      zIndex: {
+        dropdown: "var(--z-dropdown)",
+        overlay: "var(--z-overlay)",
+        modal: "var(--z-modal)",
+        tooltip: "var(--z-tooltip)",
       },
       fontFamily: {
         sans: ["Barlow", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],

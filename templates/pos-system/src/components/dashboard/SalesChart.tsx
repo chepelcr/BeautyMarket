@@ -10,8 +10,8 @@ export function SalesChart() {
   const pathArea = pathLine + ` L ${w} ${h} L 0 ${h} Z`;
 
   return (
-    <div style={{ width: "100%", overflow: "hidden", background: "hsl(var(--muted) / 0.3)", borderRadius: 8, padding: 12 }}>
-      <svg viewBox={`0 0 ${w} ${h + 30}`} style={{ width: "100%", height: "auto", display: "block" }}>
+    <div className="w-full overflow-hidden bg-muted/30 rounded-lg p-3">
+      <svg viewBox={`0 0 ${w} ${h + 30}`} className="w-full h-auto block">
         <defs>
           <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="hsl(var(--primary))" stopOpacity="0.4" />

@@ -4,6 +4,7 @@ import { DashboardHeader } from "./DashboardHeader";
 import { DashboardMobileDrawer } from "./DashboardMobileDrawer";
 import { DocumentsMobileDrawer } from "./DocumentsMobileDrawer";
 import { DashboardToggleButton } from "./DashboardToggleButton";
+import { useUIStore } from "@/store/uiStore";
 
 type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients";
 
@@ -15,10 +16,6 @@ interface DashboardShellProps {
   sessionLocation?: string;
 }
 
-/**
- * Shared open/close state pattern with 450ms slide animation.
- * Returns `[open, isClosing, shouldRender, setOpen]` for a drawer.
- */
 function useDrawerState() {
   const [open, setOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -48,15 +45,15 @@ export default function DashboardShell({
   sessionName,
   sessionLocation,
 }: DashboardShellProps) {
-  // Left (main nav) drawer
   const left = useDrawerState();
-  // Right (documents) drawer
   const right = useDrawerState();
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Sidebar collapsed lives in a shared store so DocumentsToolbar can adjust
+  // the visible-tabs cap (2 vs 3) based on the available horizontal space.
+  const sidebarCollapsed = useUIStore((s) => s.sidebar_collapsed);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const pendingNavRef = useRef<NavId | null>(null);
 
-  // Defer left-drawer navigation until after the close animation completes
   useEffect(() => {
     if (!left.open && !left.shouldRender && pendingNavRef.current) {
       onNav?.(pendingNavRef.current);
@@ -74,36 +71,19 @@ export default function DashboardShell({
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex" }}>
-      {/* Desktop/tablet sidebar (≥769px).
-          z-index sits ABOVE the reveal-anchor toggle so the toggle hides
-          behind it when the sidebar is expanded — only the peek-out portion
-          beyond the sidebar's right edge stays visible. */}
+    <div className="min-h-screen flex">
       <div
-        style={{
-          width: sidebarCollapsed ? 0 : 240,
-          display: "none",
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-          flexShrink: 0,
-          transition: "width 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-          overflow: "hidden",
-          zIndex: 50,
-          background: "hsl(var(--card))",
-        }}
-        className="dashboard-sidebar-full"
+        className="dashboard-sidebar-full sticky top-0 h-screen flex-shrink-0 overflow-hidden z-50 bg-card transition-[width] duration-[250ms] ease-out"
+        style={{ width: sidebarCollapsed ? 0 : 240, display: "none" }}
       >
         <DashboardSidebar active={active} onNav={handleNav} />
       </div>
 
-      {/* Desktop sidebar toggle button */}
       <DashboardToggleButton
         collapsed={sidebarCollapsed}
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onClick={toggleSidebar}
       />
 
-      {/* Mobile LEFT drawer (main sidebar) */}
       <DashboardMobileDrawer
         open={left.open}
         isClosing={left.isClosing}
@@ -113,7 +93,6 @@ export default function DashboardShell({
         onClose={() => left.setOpen(false)}
       />
 
-      {/* Mobile RIGHT drawer (documents) */}
       <DocumentsMobileDrawer
         open={right.open}
         isClosing={right.isClosing}
@@ -121,29 +100,16 @@ export default function DashboardShell({
         onClose={() => right.setOpen(false)}
       />
 
-      {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader
           onMenuClick={() => left.setOpen(true)}
-          onDocsClick={() => right.setOpen(true)}
+          onDocsClick={() => right.setOpen(!right.open)}
+          docsOpen={right.open}
           sessionName={sessionName}
           sessionLocation={sessionLocation}
         />
-        <main style={{ flex: 1 }}>{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
-
-      <style>{`
-        @media (min-width: 769px) {
-          .dashboard-sidebar-full { display: block !important; }
-          .dashboard-hamburger { display: none !important; }
-          .dashboard-sidebar-toggle { display: flex !important; }
-        }
-        @media (max-width: 768px) {
-          .dashboard-sidebar-full { display: none !important; }
-          .dashboard-hamburger { display: flex !important; }
-          .dashboard-sidebar-toggle { display: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

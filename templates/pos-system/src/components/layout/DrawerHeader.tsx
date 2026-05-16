@@ -8,12 +8,13 @@ interface DrawerHeaderProps {
   iconColor?: string;
   iconBackground?: string;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function DrawerHeader({ icon, label, title, subtitle, iconColor, iconBackground, style }: DrawerHeaderProps) {
+export function DrawerHeader({ icon, label, title, subtitle, iconColor, iconBackground, style, className }: DrawerHeaderProps) {
   return (
-    <div style={{ marginBottom: 20, ...style }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: subtitle ? 8 : 0 }}>
+    <div className={`mb-5 ${className ?? ""}`} style={style}>
+      <div className={`flex items-center gap-3 ${subtitle ? "mb-2" : ""}`}>
         <IconPill
           icon={icon}
           size={38}
@@ -23,13 +24,11 @@ export function DrawerHeader({ icon, label, title, subtitle, iconColor, iconBack
           radius={11}
         />
         <div>
-          <small className="t-label" style={{ textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            {label}
-          </small>
-          <h2 className="t-h3" style={{ marginTop: 1 }}>{title}</h2>
+          <small className="t-label uppercase tracking-[0.06em]">{label}</small>
+          <h2 className="t-h3 mt-px">{title}</h2>
         </div>
       </div>
-      {subtitle && <p className="t-sm" style={{ marginTop: 4 }}>{subtitle}</p>}
+      {subtitle && <p className="t-sm mt-1">{subtitle}</p>}
     </div>
   );
 }

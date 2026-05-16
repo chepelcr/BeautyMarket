@@ -339,23 +339,23 @@ export function LineDetailDrawer({
         icon="edit"
         width="min(500px, 100vw)"
         footer={
-          <div style={{ padding: "16px 24px", display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="px-6 py-4 flex gap-2 items-center">
             {onDelete && (
               <Button
                 variant="ghost"
                 size="sm"
                 icon="trash"
                 onClick={handleDelete}
-                style={{ color: "hsl(var(--destructive))" }}
+                className="!text-destructive"
               >
                 Eliminar
               </Button>
             )}
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "hsl(var(--muted-foreground))" }}>
+            <div className="flex-1 flex items-center gap-2">
+              <span className="text-[13px] font-semibold text-muted-foreground">
                 Total línea
               </span>
-              <span style={{ fontSize: 18, fontWeight: 700, fontFamily: "var(--font-mono)", color: "hsl(var(--primary))" }}>
+              <span className="text-lg font-bold font-mono text-primary">
                 {fmt(lineAmounts.total_amount_line)}
               </span>
             </div>
@@ -373,12 +373,12 @@ export function LineDetailDrawer({
         }
       >
       {!dataReady ? (
-        <div style={{ padding: 40, textAlign: "center", color: "hsl(var(--muted-foreground))" }}>
+        <div className="p-10 text-center text-muted-foreground">
           Cargando...
         </div>
       ) : (
         <FadeIn duration={0.3}>
-          <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="p-5 flex flex-col gap-2.5">
             {/* 1. General */}
             <GeneralTab
               detail={detail}

@@ -46,51 +46,51 @@ export function SessionDetailDrawer({
 
   return (
     <Drawer open={open} onClose={onClose} width="min(860px, 100vw)" title={session.name}>
-      <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <div className="flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid hsl(var(--border))", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div className={`icon-pill ${isActive ? "" : "icon-pill-muted"}`} style={{ width: 44, height: 44 }}>
+        <div className="px-6 py-5 border-b border-border flex-shrink-0">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className={`icon-pill w-11 h-11 ${isActive ? "" : "icon-pill-muted"}`}>
               <Icon name={session.type === "match" ? "trending" : "store"} size={20} />
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <h2 className="t-h2" style={{ marginBottom: 0 }}>{session.name}</h2>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="t-h2 !mb-0">{session.name}</h2>
                 {isActive && (
-                  <Badge variant="success" style={{ gap: 5 }}>
-                    <span className="status-dot status-dot-live" style={{ width: 5, height: 5 }} />
+                  <Badge variant="success" className="gap-[5px]">
+                    <span className="status-dot status-dot-live w-[5px] h-[5px]" />
                     {t("session.active")}
                   </Badge>
                 )}
                 {session.status === 2 && <Badge variant="secondary">{t("session.closed") ?? "Cerrada"}</Badge>}
               </div>
-              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+              <div className="t-xs text-muted-foreground">
                 {session.type === "match" ? t("session.match") : t("session.regular")} · {session.context}
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginTop: 8 }}>
+          <div className="flex gap-5 flex-wrap mt-2">
             <div>
-              <div className="t-label" style={{ fontSize: 10 }}>{t("session.startTime")}</div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(session.start_time)}</div>
+              <div className="t-label !text-[10px]">{t("session.startTime")}</div>
+              <div className="text-[13px] font-semibold">{formatDate(session.start_time)}</div>
             </div>
             {session.end_time && (
               <div>
-                <div className="t-label" style={{ fontSize: 10 }}>{t("session.endTime")}</div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(session.end_time)}</div>
+                <div className="t-label !text-[10px]">{t("session.endTime")}</div>
+                <div className="text-[13px] font-semibold">{formatDate(session.end_time)}</div>
               </div>
             )}
             {session.expected_revenue != null && (
               <div>
-                <div className="t-label" style={{ fontSize: 10 }}>Meta de ventas</div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{fmt(session.expected_revenue)}</div>
+                <div className="t-label !text-[10px]">Meta de ventas</div>
+                <div className="text-[13px] font-semibold">{fmt(session.expected_revenue)}</div>
               </div>
             )}
           </div>
 
           {isActive && (
-            <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+            <div className="flex gap-2 mt-3 flex-wrap">
               <Button variant="outline" size="sm" icon="edit" onClick={onEdit}>{t("common.edit") ?? "Editar"}</Button>
               <Button variant="secondary" size="sm" icon="lock" onClick={() => onEndSession(session.session_id)} disabled={endingPending}>
                 {t("session.endSession")}
@@ -100,7 +100,7 @@ export function SessionDetailDrawer({
         </div>
 
         {/* Tabs */}
-        <div style={{ padding: "0 24px", borderBottom: "1px solid hsl(var(--border))", flexShrink: 0 }}>
+        <div className="px-6 border-b border-border flex-shrink-0">
           <div className="tabs">
             {(["overview", "assignments", "sales", "report"] as DrawerTab[]).map((tab) => (
               <button key={tab} className="tab" aria-selected={activeTab === tab} onClick={() => onTabChange(tab)}>
@@ -111,7 +111,7 @@ export function SessionDetailDrawer({
         </div>
 
         {/* Tab content */}
-        <div style={{ flex: 1, overflowY: "auto" }}>
+        <div className="flex-1 overflow-y-auto">
           {activeTab === "overview" && (
             <FadeIn key="overview" duration={0.3}>
               <SessionOverviewTab dashboardData={dashboardData} isLoading={dashboardLoading} />

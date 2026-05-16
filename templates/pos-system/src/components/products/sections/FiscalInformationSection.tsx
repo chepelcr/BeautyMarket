@@ -41,7 +41,6 @@ export function FiscalInformationSection({
   const { data: productTypesData } = useAllProductTypes();
   const productTypes = productTypesData ?? [];
 
-  // Search is triggered manually via button/enter — we keep results in state
   const [searchResults, setSearchResults] = useState<CabysItem[]>([]);
 
   const { refetch: runSearch, isFetching: isFetchingSearch } = useCabysSearch(
@@ -54,7 +53,6 @@ export function FiscalInformationSection({
     { enabled: false }
   );
 
-  // Update dropdown position when showing results
   useEffect(() => {
     if (showResults && inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
@@ -139,11 +137,10 @@ export function FiscalInformationSection({
         onToggle={onToggle}
         disabled={disabled}
       >
-        {/* 1. Product type — radio pills */}
         {productTypes.length > 0 && (
           <div>
             <FormLabel>{t("products.productType")}</FormLabel>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+            <div className="flex flex-wrap gap-2 mt-1">
               {productTypes.map((pt: { id: number; description: string }) => {
                 const selected = form.productTypeId === pt.id;
                 return (
@@ -151,17 +148,11 @@ export function FiscalInformationSection({
                     key={pt.id}
                     type="button"
                     onClick={() => handleProductTypeClick(pt.id)}
-                    style={{
-                      padding: "5px 14px",
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 500,
-                      border: `1.5px solid ${selected ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                      background: selected ? "hsl(var(--primary) / 0.1)" : "transparent",
-                      color: selected ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
+                    className={`px-3.5 py-[5px] rounded-full text-xs font-medium border-[1.5px] cursor-pointer transition-all ${
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-transparent text-foreground"
+                    }`}
                   >
                     {pt.description}
                   </button>
@@ -171,35 +162,13 @@ export function FiscalInformationSection({
           </div>
         )}
 
-        {/* 2. CABYS */}
         {form.cabys ? (
-          /* Selected state — code is shown here (hidden until selected) */
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 12px",
-              background: "hsl(var(--primary) / 0.06)",
-              border: "1.5px solid hsl(var(--primary) / 0.35)",
-              borderRadius: 8,
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "hsl(var(--primary))",
-                  letterSpacing: "0.05em",
-                }}
-              >
+          <div className="flex items-center gap-2.5 px-3 py-2.5 bg-primary/[0.06] border-[1.5px] border-primary/35 rounded-lg">
+            <div className="flex-1">
+              <div className="font-mono text-[11px] font-bold text-primary tracking-[0.05em]">
                 {form.cabys}
               </div>
-              <div style={{ fontSize: 12, marginTop: 2, color: "hsl(var(--foreground))" }}>
-                {form.cabysDescription}
-              </div>
+              <div className="text-xs mt-0.5 text-foreground">{form.cabysDescription}</div>
             </div>
             <button
               type="button"
@@ -210,32 +179,23 @@ export function FiscalInformationSection({
             </button>
           </div>
         ) : (
-          /* Search state — no code input, just description search */
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <FormLabel required>{t("products.searchCabys")}</FormLabel>
-            <div style={{ display: "flex", gap: 6 }}>
-              <div style={{ flex: 1, position: "relative" }}>
+            <div className="flex gap-1.5">
+              <div className="flex-1 relative">
                 <Search
                   size={14}
-                  style={{
-                    position: "absolute",
-                    left: 10,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "hsl(var(--muted-foreground))",
-                    pointerEvents: "none",
-                  }}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                 />
                 <input
                   ref={inputRef}
-                  className="pp-input"
+                  className="pp-input pl-[30px]"
                   placeholder={
                     !form.productTypeId
                       ? t("products.selectProductTypeFirst")
                       : t("products.searchByName")
                   }
                   value={searchTerm}
-                  style={{ paddingLeft: 30 }}
                   disabled={!form.productTypeId}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -244,36 +204,24 @@ export function FiscalInformationSection({
               </div>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost btn-sm flex-shrink-0 !px-3"
                 disabled={!searchTerm.trim() || !form.productTypeId || loading}
                 onClick={handleSearch}
-                style={{ flexShrink: 0, padding: "0 12px" }}
               >
-                {loading ? (
-                  <Spinner size={14} />
-                ) : (
-                  <Search size={14} />
-                )}
+                {loading ? <Spinner size={14} /> : <Search size={14} />}
               </button>
             </div>
 
-            {/* Results dropdown - rendered via portal */}
             {showResults && (searchResults.length > 0 || (!loading && searchResults.length === 0)) && createPortal(
               <div
                 ref={dropdownRef}
+                className="bg-card border border-border rounded-lg shadow-dropdown overflow-hidden max-h-[260px] overflow-y-auto"
                 style={{
                   position: "absolute",
                   top: dropdownPosition.top,
                   left: dropdownPosition.left,
                   width: dropdownPosition.width,
                   zIndex: 9999,
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 8,
-                  boxShadow: "0 8px 24px hsl(var(--foreground) / 0.12)",
-                  overflow: "hidden",
-                  maxHeight: 260,
-                  overflowY: "auto",
                 }}
               >
                 {searchResults.length > 0 ? (
@@ -282,50 +230,21 @@ export function FiscalInformationSection({
                       key={item.code}
                       type="button"
                       onClick={() => selectCabys(item)}
-                      style={{
-                        width: "100%",
-                        padding: "10px 14px",
-                        textAlign: "left",
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        borderBottom: "1px solid hsl(var(--border) / 0.5)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--muted) / 0.5)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      className="w-full px-3.5 py-2.5 text-left bg-transparent border-0 border-b border-border/50 cursor-pointer flex flex-col gap-0.5 hover:bg-muted/50"
                     >
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: 11,
-                          color: "hsl(var(--primary))",
-                          fontWeight: 700,
-                        }}
-                      >
+                      <span className="font-mono text-[11px] text-primary font-bold">
                         {item.code}
                       </span>
-                      <span style={{ fontSize: 12, color: "hsl(var(--foreground))" }}>
-                        {item.description}
-                      </span>
+                      <span className="text-xs text-foreground">{item.description}</span>
                       {item.tax_rate && (
-                        <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>
+                        <span className="text-[11px] text-muted-foreground">
                           {t("products.suggestedIva", { pct: String(item.tax_rate.percentage) })}
                         </span>
                       )}
                     </button>
                   ))
                 ) : (
-                  <div
-                    style={{
-                      padding: "12px 16px",
-                      fontSize: 12,
-                      color: "hsl(var(--muted-foreground))",
-                      textAlign: "center",
-                    }}
-                  >
+                  <div className="px-4 py-3 text-xs text-muted-foreground text-center">
                     {t("products.noResultsFor", { query: searchTerm })}
                   </div>
                 )}
@@ -335,43 +254,26 @@ export function FiscalInformationSection({
           </div>
         )}
 
-        <p className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {t("products.cabysHelp")}
-        </p>
+        <p className="t-xs text-muted-foreground">{t("products.cabysHelp")}</p>
       </SectionWrapper>
 
-      {/* Product type change confirmation */}
       {showConfirm && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 200,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.45)",
-          }}
+          className="fixed inset-0 z-tooltip flex items-center justify-center bg-foreground/45"
           onClick={() => setShowConfirm(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "hsl(var(--card))",
-              borderRadius: 12,
-              padding: "24px",
-              width: 360,
-              boxShadow: "0 16px 48px rgba(0,0,0,0.3)",
-            }}
+            className="bg-card rounded-xl p-6 w-[360px] shadow-modal"
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <AlertTriangle size={18} style={{ color: "hsl(var(--warning, 38 92% 50%))", flexShrink: 0 }} />
-              <span style={{ fontSize: 15, fontWeight: 700 }}>{t("products.changeProductType")}</span>
+            <div className="flex items-center gap-2.5 mb-3">
+              <AlertTriangle size={18} className="text-warning flex-shrink-0" />
+              <span className="text-[15px] font-bold">{t("products.changeProductType")}</span>
             </div>
-            <p style={{ fontSize: 13, color: "hsl(var(--muted-foreground))", marginBottom: 20, lineHeight: 1.5 }}>
+            <p className="text-[13px] text-muted-foreground mb-5 leading-relaxed">
               {t("products.changeProductTypeWarning")}
             </p>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <div className="flex gap-2 justify-end">
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
@@ -381,15 +283,7 @@ export function FiscalInformationSection({
               </button>
               <button
                 type="button"
-                className="btn btn-sm"
-                style={{
-                  background: "hsl(var(--primary))",
-                  color: "hsl(var(--primary-foreground))",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "6px 16px",
-                  cursor: "pointer",
-                }}
+                className="btn btn-primary btn-sm"
                 onClick={confirmProductTypeChange}
               >
                 {t("common.continue")}

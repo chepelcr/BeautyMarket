@@ -35,7 +35,6 @@ export function GeneralInfoSection({
       isExpanded={isExpanded}
       onToggle={onToggle}
     >
-      {/* Name */}
       <div>
         <FormLabel required>{t("products.name")}</FormLabel>
         <input
@@ -46,20 +45,17 @@ export function GeneralInfoSection({
         />
       </div>
 
-      {/* Description */}
       <div>
         <FormLabel>{t("products.description")}</FormLabel>
         <textarea
-          className="pp-input"
+          className="pp-input resize-y"
           rows={2}
           placeholder={t("products.descriptionPlaceholder")}
           value={form.description}
           onChange={(e) => onChange({ description: e.target.value })}
-          style={{ resize: "vertical" }}
         />
       </div>
 
-      {/* Category */}
       <div>
         <FormLabel required>{t("products.categoryLabel")}</FormLabel>
         <select
@@ -76,7 +72,6 @@ export function GeneralInfoSection({
         </select>
       </div>
 
-      {/* Unit of Measure */}
       {units.length > 0 && (
         <div>
           <FormLabel>{t("products.unitOfMeasure")}</FormLabel>
@@ -98,17 +93,15 @@ export function GeneralInfoSection({
               <option value="__other__">{t("products.otherUnit")}</option>
             </select>
           ) : (
-            <div style={{ display: "flex", gap: 6 }}>
+            <div className="flex gap-1.5">
               <input
-                className="pp-input"
+                className="pp-input flex-1"
                 placeholder={t("products.specifyUnit")}
-                style={{ flex: 1 }}
               />
               <button
                 type="button"
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost btn-sm text-xs"
                 onClick={() => setCustomUnit(false)}
-                style={{ fontSize: 12 }}
               >
                 {t("common.cancel")}
               </button>
@@ -117,8 +110,7 @@ export function GeneralInfoSection({
         </div>
       )}
 
-      {/* Switches row */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="flex flex-col gap-2">
         <ToggleRow
           label={t("products.trackInventory")}
           description={t("products.trackInventoryDesc")}
@@ -154,27 +146,16 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "10px 12px",
-        background: "hsl(var(--muted) / 0.35)",
-        borderRadius: 8,
-      }}
-    >
+    <div className="flex items-center justify-between px-3 py-2.5 bg-muted/35 rounded-lg">
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {description}
-        </div>
+        <div className="text-[13px] font-semibold">{label}</div>
+        <div className="t-xs text-muted-foreground">{description}</div>
       </div>
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        style={{ width: 18, height: 18, accentColor: "hsl(var(--primary))", cursor: "pointer" }}
+        className="w-[18px] h-[18px] cursor-pointer accent-primary"
       />
     </div>
   );

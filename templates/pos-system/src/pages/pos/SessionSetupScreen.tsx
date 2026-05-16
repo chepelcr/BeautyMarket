@@ -457,7 +457,7 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
           value={code}
           onChange={(e) => setCode(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder={t("terminal.codePlaceholder")}
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="font-mono"
         />
       </div>
       <div>
@@ -466,9 +466,9 @@ function TerminalForm({ branchId, isSaving, error, onSave, onClose }: TerminalFo
           value={deviceId}
           onChange={(e) => setDeviceId(e.target.value)}
           placeholder={t("terminal.devicePlaceholder")}
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="font-mono"
         />
-        <p className="t-xs" style={{ marginTop: 4, color: "hsl(var(--muted-foreground))" }}>
+        <p className="t-xs mt-1 text-muted-foreground">
           {t("setup.deviceIdHint")}
         </p>
       </div>

@@ -39,31 +39,21 @@ export function BranchGeneralSection({
       isExpanded={isExpanded}
       onToggle={onToggle}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="flex flex-col gap-4">
         {/* Type toggle */}
         <div>
-          <FormLabel style={{ marginBottom: 8 }}>{t("session.sessionType")}</FormLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <FormLabel>{t("session.sessionType")}</FormLabel>
+          <div className="grid grid-cols-2 gap-2">
             {(["stand", "restaurant"] as BranchType[]).map((bt) => (
               <button
                 key={bt}
                 type="button"
                 onClick={() => setType(bt)}
-                style={{
-                  padding: "12px 16px",
-                  borderRadius: 10,
-                  border: `2px solid ${type === bt ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                  background: type === bt ? "hsl(var(--primary) / 0.08)" : "transparent",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: type === bt ? 700 : 500,
-                  fontSize: 14,
-                  color: type === bt ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                  transition: "all 0.15s",
-                }}
+                className={`px-4 py-3 rounded-lg border-2 cursor-pointer flex items-center gap-2 text-sm transition-all ${
+                  type === bt
+                    ? "border-primary bg-primary/[0.08] text-primary font-bold"
+                    : "border-border bg-transparent text-foreground font-medium"
+                }`}
               >
                 <Icon name={bt === "stand" ? "store" : "home"} size={15} />
                 {TYPE_LABEL[bt]}
@@ -99,9 +89,9 @@ export function BranchGeneralSection({
             value={code}
             onChange={(e) => setCode(e.target.value === "" ? "" : Number(e.target.value))}
             placeholder="ej. 1"
-            style={{ fontFamily: "var(--font-mono)" }}
+            className="font-mono"
           />
-          <p className="t-xs" style={{ marginTop: 4, color: "hsl(var(--muted-foreground))" }}>
+          <p className="t-xs mt-1 text-muted-foreground">
             Número único por organización (entero positivo).
           </p>
         </div>

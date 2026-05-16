@@ -39,7 +39,7 @@ export function InventorySection({
           value={form.low_stock_threshold}
           onChange={(e) => onChange({ low_stock_threshold: e.target.value })}
         />
-        <p className="t-xs" style={{ marginTop: 4, color: "hsl(var(--muted-foreground))" }}>
+        <p className="t-xs mt-1 text-muted-foreground">
           {t("products.lowStockHint")}
         </p>
       </div>

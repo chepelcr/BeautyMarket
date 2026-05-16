@@ -1,20 +1,14 @@
 interface ErrorBoxProps {
   message: string;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function ErrorBox({ message, style }: ErrorBoxProps) {
+export function ErrorBox({ message, style, className }: ErrorBoxProps) {
   return (
     <div
-      style={{
-        background: "hsl(var(--destructive) / 0.1)",
-        border: "1px solid hsl(var(--destructive) / 0.3)",
-        borderRadius: 10,
-        color: "hsl(var(--destructive))",
-        padding: "10px 14px",
-        fontSize: 13,
-        ...style,
-      }}
+      className={`bg-destructive/10 border border-destructive/30 rounded-lg text-destructive px-3.5 py-2.5 text-[13px] ${className ?? ""}`}
+      style={style}
     >
       {message}
     </div>

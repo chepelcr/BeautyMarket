@@ -18,34 +18,34 @@ export function SessionAssignmentsTab({ assignments, isLoading }: SessionAssignm
   const { t } = useLanguage();
 
   if (isLoading) {
-    return <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", textAlign: "center", padding: 32 }}>{t("common.loading")}</div>;
+    return <div className="t-sm text-muted-foreground text-center p-8">{t("common.loading")}</div>;
   }
 
   if (assignments.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: 40 }}>
-        <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 12px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 56, height: 56 }}>
+      <div className="text-center p-10">
+        <div className="icon-pill icon-pill-lg mx-auto mb-3 bg-muted/30 text-muted-foreground w-14 h-14">
           <Icon name="users" size={24} />
         </div>
-        <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>Sin asignaciones</div>
+        <div className="t-sm text-muted-foreground">Sin asignaciones</div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: "grid", gap: 10 }}>
+    <div className="p-6">
+      <div className="grid gap-2.5">
         {assignments.map((a) => (
-          <Card key={a.assignment_id} style={{ padding: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="icon-pill" style={{ width: 40, height: 40, background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))", flexShrink: 0 }}>
+          <Card key={a.assignment_id} className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="icon-pill w-10 h-10 bg-primary/10 text-primary flex-shrink-0">
                 <Icon name="user" size={18} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{getUserDisplayName(a)}</div>
-                <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{a.branch_id?.slice(0, 8)}…</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold">{getUserDisplayName(a)}</div>
+                <div className="t-xs text-muted-foreground">{a.branch_id?.slice(0, 8)}…</div>
               </div>
-              <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+              <div className="flex gap-1.5 items-center flex-shrink-0">
                 <Badge variant={a.role === "supervisor" ? "warning" : "secondary"}>
                   {a.role === "supervisor" ? "Supervisor" : "Cajero"}
                 </Badge>

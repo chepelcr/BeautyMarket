@@ -1,5 +1,4 @@
 import { Icon } from "@/components/ui";
-import { POS } from "@/theme/pos";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
 
 interface ClientSelectorProps {
@@ -13,40 +12,29 @@ interface ClientSelectorProps {
 
 export function ClientSelector({ clients, isLoading, query, selected, onQueryChange, onSelect }: ClientSelectorProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${POS.border}`, flexShrink: 0 }}>
-        <div style={{ fontFamily: POS.fontDisplay, fontSize: 22, fontWeight: 600, color: POS.text, marginBottom: 12 }}>
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="px-5 pt-4 pb-3 border-b border-border flex-shrink-0">
+        <div className="font-display text-[22px] font-semibold text-foreground mb-3">
           Clientes
         </div>
-        <div style={{ position: "relative" }}>
-          <Icon name="search" size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: POS.muted }} />
+        <div className="relative">
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Buscar por nombre, cédula..."
-            style={{
-              width: "100%",
-              padding: "10px 14px 10px 38px",
-              background: "rgba(255,255,255,0.06)",
-              border: `1px solid ${POS.border}`,
-              borderRadius: 10,
-              color: POS.text,
-              fontFamily: POS.fontUI,
-              fontSize: 14,
-              outline: "none",
-              boxSizing: "border-box",
-            }}
+            className="w-full pl-[38px] pr-3.5 py-2.5 bg-foreground/[0.06] border border-border rounded-lg text-foreground text-sm outline-none box-border"
           />
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "8px 20px" }}>
+      <div className="flex-1 overflow-y-auto px-5 py-2">
         {isLoading ? (
-          <div style={{ paddingTop: 32, textAlign: "center", color: POS.muted, fontFamily: POS.fontUI, fontSize: 14 }}>
+          <div className="pt-8 text-center text-muted-foreground text-sm">
             Cargando...
           </div>
         ) : clients.length === 0 ? (
-          <div style={{ paddingTop: 32, textAlign: "center", color: POS.muted, fontFamily: POS.fontUI, fontSize: 14 }}>
+          <div className="pt-8 text-center text-muted-foreground text-sm">
             Sin resultados
           </div>
         ) : (
@@ -54,36 +42,23 @@ export function ClientSelector({ clients, isLoading, query, selected, onQueryCha
             <button
               key={c.client_id}
               onClick={() => onSelect(c)}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 0",
-                borderBottom: `1px solid ${POS.border}`,
-                background: "transparent",
-                border: "none",
-                borderBottomColor: POS.border,
-                cursor: "pointer",
-                textAlign: "left",
-                font: "inherit",
-              }}
+              className="w-full flex items-center gap-3 py-3 border-b border-border bg-transparent cursor-pointer text-left font-inherit"
             >
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: POS.roseLight, border: `1px solid ${POS.rose}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <span style={{ fontFamily: POS.fontDisplay, fontSize: 18, color: POS.rose, fontWeight: 600 }}>
+              <div className="w-10 h-10 rounded-full bg-accent-rose-soft border border-accent-rose flex items-center justify-center flex-shrink-0">
+                <span className="font-display text-lg text-accent-rose font-semibold">
                   {(c.client_name || c.business_name || c.client_gln || "?").charAt(0).toUpperCase()}
                 </span>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: POS.fontUI, fontSize: 14, fontWeight: 600, color: POS.text }}>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-foreground">
                   {c.client_name || c.business_name || c.client_gln || "Sin nombre"}
                 </div>
                 {c.identification?.number && (
-                  <div style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted }}>{c.identification.number}</div>
+                  <div className="text-xs text-muted-foreground">{c.identification.number}</div>
                 )}
               </div>
               {selected?.client_id === c.client_id && (
-                <Icon name="check" size={16} style={{ color: POS.rose, flexShrink: 0 }} />
+                <Icon name="check" size={16} className="text-accent-rose flex-shrink-0" />
               )}
             </button>
           ))

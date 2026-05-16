@@ -26,7 +26,8 @@ export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTermina
   const STATUS_LABEL: Record<BranchStatus, string> = { 1: t("common.active"), 2: t("common.inactive"), 3: t("common.delete") };
   const [expanded, setExpanded] = useState(false);
   const isActive = branch.status === 1;
-  const typeColor = branch.type === "stand" ? "hsl(var(--primary))" : "hsl(220 80% 55%)";
+  const typeColorClass = branch.type === "stand" ? "text-primary" : "text-info";
+  const typeBorderColor = branch.type === "stand" ? "hsl(var(--primary))" : "hsl(var(--info))";
 
   const { data: terminalsData } = useQuery({
     queryKey: ["terminals", orgId, branch.code],
@@ -44,93 +45,96 @@ export function BranchCard({ branch, orgId, onEdit, onStatusChange, onAddTermina
 
   return (
     <FadeIn delay={delay} duration={0.4}>
-      <Card className="fade-up" style={{ borderLeft: `3px solid ${isActive ? typeColor : "hsl(var(--border))"}`, padding: 0, overflow: "hidden", opacity: branch.status === 3 ? 0.55 : 1 }}>
-      {/* Header */}
-      <div style={{ padding: "18px 20px 14px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-            <div
-              className="icon-pill"
-              style={{ width: 38, height: 38, background: `${isActive ? typeColor : "hsl(var(--muted))"}1a`, color: isActive ? typeColor : "hsl(var(--muted-foreground))", flexShrink: 0 }}
-            >
-              <Icon name={branch.type === "stand" ? "store" : "home"} size={17} />
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, background: "hsl(var(--muted))", padding: "2px 7px", borderRadius: 4, letterSpacing: "0.05em" }}>
-                  {branch.code}
-                </span>
-                <Badge variant={STATUS_VARIANT[branch.status]}>{STATUS_LABEL[branch.status]}</Badge>
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 700, fontFamily: "var(--font-display)", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {branch.name}
-              </div>
-            </div>
-          </div>
-          <Menu items={menuItems} />
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 12, flexWrap: "wrap" }}>
-          <div className="t-xs" style={{ display: "flex", alignItems: "center", gap: 5, color: "hsl(var(--muted-foreground))" }}>
-            <Icon name={branch.type === "stand" ? "store" : "home"} size={12} />
-            {TYPE_LABEL[branch.type]}
-          </div>
-          {branch.phone && (
-            <div className="t-xs" style={{ display: "flex", alignItems: "center", gap: 5, color: "hsl(var(--muted-foreground))" }}>
-              <Icon name="smartphone" size={12} />
-              {branch.phone}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div style={{ height: 1, background: "hsl(var(--border))" }} />
-
-      {/* Terminals accordion */}
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "transparent", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)", color: "hsl(var(--foreground))" }}
+      <Card
+        className={`fade-up !p-0 overflow-hidden border-l-[3px] ${branch.status === 3 ? "opacity-55" : "opacity-100"}`}
+        style={{ borderLeftColor: isActive ? typeBorderColor : "hsl(var(--border))" }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Icon name="sliders" size={13} style={{ color: "hsl(var(--muted-foreground))" } as any} />
-          <span className="t-xs" style={{ fontWeight: 600 }}>
-            Terminales
-            {branch.terminals?.length != null && (
-              <span style={{ marginLeft: 6, background: "hsl(var(--muted))", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 700 }}>
-                {branch.terminals.length}
-              </span>
-            )}
-          </span>
-        </div>
-        <Icon name={expanded ? "chevronUp" : "chevronDown"} size={14} style={{ color: "hsl(var(--muted-foreground))" } as any} />
-      </button>
-
-      {expanded && (
-        <div className="fade-up" style={{ borderTop: "1px solid hsl(var(--border) / 0.5)", background: "hsl(var(--muted) / 0.25)" }}>
-          {terminals.length === 0 ? (
-            <div style={{ padding: "16px 20px" }}>
-              <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{t("puestos.terminals")} — 0</span>
-            </div>
-          ) : (
-            terminals.map((term, i) => <TerminalRow key={term.terminal_id} terminal={term} isLast={i === terminals.length - 1} />)
-          )}
-          {isActive && (
-            <div style={{ padding: "10px 20px" }}>
-              <button
-                type="button"
-                onClick={() => onAddTerminal(branch)}
-                className="btn btn-outline btn-sm"
-                style={{ width: "100%", borderStyle: "dashed" }}
+        {/* Header */}
+        <div className="px-5 pt-[18px] pb-3.5">
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className={`icon-pill w-[38px] h-[38px] flex-shrink-0 ${
+                  isActive ? `${typeColorClass} bg-primary/10` : "text-muted-foreground bg-muted"
+                }`}
               >
-                <Icon name="plus" size={13} />
-                {t("puestos.addTerminal")}
-              </button>
+                <Icon name={branch.type === "stand" ? "store" : "home"} size={17} />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-[7px] flex-wrap">
+                  <span className="font-mono text-[11px] font-bold bg-muted px-[7px] py-0.5 rounded tracking-[0.05em]">
+                    {branch.code}
+                  </span>
+                  <Badge variant={STATUS_VARIANT[branch.status]}>{STATUS_LABEL[branch.status]}</Badge>
+                </div>
+                <div className="text-[15px] font-bold font-display mt-[3px] overflow-hidden text-ellipsis whitespace-nowrap">
+                  {branch.name}
+                </div>
+              </div>
             </div>
-          )}
+            <Menu items={menuItems} />
+          </div>
+
+          <div className="flex items-center gap-3.5 mt-3 flex-wrap">
+            <div className="t-xs flex items-center gap-[5px] text-muted-foreground">
+              <Icon name={branch.type === "stand" ? "store" : "home"} size={12} />
+              {TYPE_LABEL[branch.type]}
+            </div>
+            {branch.phone && (
+              <div className="t-xs flex items-center gap-[5px] text-muted-foreground">
+                <Icon name="smartphone" size={12} />
+                {branch.phone}
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </Card>
+
+        <div className="h-px bg-border" />
+
+        {/* Terminals accordion */}
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="w-full flex items-center justify-between px-5 py-3 bg-transparent border-0 cursor-pointer font-sans text-foreground"
+        >
+          <div className="flex items-center gap-2">
+            <Icon name="sliders" size={13} className="text-muted-foreground" />
+            <span className="t-xs font-semibold">
+              Terminales
+              {branch.terminals?.length != null && (
+                <span className="ml-1.5 bg-muted rounded-full px-[7px] py-px text-[11px] font-bold">
+                  {branch.terminals.length}
+                </span>
+              )}
+            </span>
+          </div>
+          <Icon name={expanded ? "chevronUp" : "chevronDown"} size={14} className="text-muted-foreground" />
+        </button>
+
+        {expanded && (
+          <div className="fade-up border-t border-border/50 bg-muted/25">
+            {terminals.length === 0 ? (
+              <div className="px-5 py-4">
+                <span className="t-xs text-muted-foreground">{t("puestos.terminals")} — 0</span>
+              </div>
+            ) : (
+              terminals.map((term, i) => <TerminalRow key={term.terminal_id} terminal={term} isLast={i === terminals.length - 1} />)
+            )}
+            {isActive && (
+              <div className="px-5 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => onAddTerminal(branch)}
+                  className="btn btn-outline btn-sm w-full !border-dashed"
+                >
+                  <Icon name="plus" size={13} />
+                  {t("puestos.addTerminal")}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
     </FadeIn>
   );
 }

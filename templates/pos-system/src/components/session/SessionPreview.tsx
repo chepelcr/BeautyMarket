@@ -31,50 +31,34 @@ export default function SessionPreview({
     : t("session.noDate");
 
   return (
-    <Card
-      style={{
-        padding: 22,
-        background: "linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.02))",
-        borderColor: "hsl(var(--primary) / 0.3)",
-      }}
-    >
-      <div style={{ marginBottom: 12 }}>
-        <div className="t-label" style={{ fontSize: 10, marginBottom: 6 }}>
-          {t("session.preview")}
-        </div>
-        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {t("session.previewDesc")}
-        </div>
+    <Card className="p-[22px] !border-primary/30 bg-gradient-to-br from-primary/10 to-primary/[0.02]">
+      <div className="mb-3">
+        <div className="t-label !text-[10px] mb-1.5">{t("session.preview")}</div>
+        <div className="t-xs text-muted-foreground">{t("session.previewDesc")}</div>
       </div>
-      <Badge variant="primary-soft" style={{ marginBottom: 10 }}>
+      <Badge variant="primary-soft" className="mb-2.5">
         {sessionType === "partido" ? t("session.match") : t("session.regular")}
       </Badge>
-      <div className="t-h2" style={{ marginBottom: 6, fontSize: 24 }}>
+      <div className="t-h2 !text-2xl mb-1.5">
         {sessionType === "partido"
           ? rival
             ? `vs ${rival}`
             : t("session.vsRival")
           : t("session.regularOp")}
       </div>
-      <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", marginBottom: 14 }}>
+      <div className="t-sm text-muted-foreground mb-3.5">
         {dateLabel}
         {sessionType === "partido" && sessionTime ? ` · ${sessionTime}` : ""}
       </div>
-      <div className="separator" style={{ marginBottom: 12 }} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div className="separator mb-3" />
+      <div className="grid grid-cols-2 gap-2.5">
         <div>
-          <div className="t-label" style={{ fontSize: 10 }}>
-            {t("session.stations")}
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "var(--font-display)" }}>
-            {selectedBranchesCount}
-          </div>
+          <div className="t-label !text-[10px]">{t("session.stations")}</div>
+          <div className="text-lg font-extrabold font-display">{selectedBranchesCount}</div>
         </div>
         <div>
-          <div className="t-label" style={{ fontSize: 10 }}>
-            {t("session.assigned")}
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "var(--font-display)" }}>
+          <div className="t-label !text-[10px]">{t("session.assigned")}</div>
+          <div className="text-lg font-extrabold font-display">
             {assignedCount}/{selectedBranchesCount}
           </div>
         </div>

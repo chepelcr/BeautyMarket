@@ -22,20 +22,11 @@ export default function POSLayout({
   const { t } = useLanguage();
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "hsl(var(--background))" }}>
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div
-        className="nav-bar"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 16px",
-          flexShrink: 0,
-        }}
-      >
+      <div className="nav-bar flex items-center justify-between px-4 py-2.5 flex-shrink-0">
         <Logo />
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="flex items-center gap-3">
           <SyncPill state={syncStatus} />
           <Button variant="ghost" size="sm" icon="logOut" onClick={logout}>
             {t("shell.logout")}
@@ -45,22 +36,9 @@ export default function POSLayout({
 
       {/* Assignment context strip */}
       {standName && (
-        <div
-          style={{
-            padding: "8px 16px",
-            background: "hsl(var(--primary) / 0.08)",
-            borderBottom: "1px solid hsl(var(--primary) / 0.2)",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            flexShrink: 0,
-          }}
-        >
-          <Icon name="mapPin" size={13} style={{ color: "hsl(var(--primary))" } as any} />
-          <span
-            className="t-label"
-            style={{ color: "hsl(var(--primary))", fontSize: 12 }}
-          >
+        <div className="px-4 py-2 bg-primary/[0.08] border-b border-primary/20 flex items-center gap-2 flex-shrink-0">
+          <Icon name="mapPin" size={13} className="text-primary" />
+          <span className="t-label !text-xs !text-primary">
             {standName}
             {context && ` · ${context.toUpperCase()}`}
             {sessionName && ` · ${sessionName}`}
@@ -69,9 +47,7 @@ export default function POSLayout({
       )}
 
       {/* Content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {children}
-      </div>
+      <div className="flex-1 flex flex-col overflow-hidden">{children}</div>
     </div>
   );
 }

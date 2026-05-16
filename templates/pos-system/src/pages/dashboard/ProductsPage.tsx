@@ -7,7 +7,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import type { Product, Category } from "@/types";
-import { Icon, Card, Button, EmptyState, Pagination, Spinner } from "@/components/ui";
+import { Icon, Button, EmptyState, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductGridView } from "@/components/products/ProductGridView";
 import { ProductTableView } from "@/components/products/ProductTableView";
@@ -272,12 +272,12 @@ export default function ProductsPage() {
   };
 
   return (
-    <div style={{ padding: "24px 24px 40px", maxWidth: 1400, margin: "0 auto" }}>
+    <div className="px-6 pt-6 pb-10 max-w-[1400px] mx-auto">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+      <div className="flex justify-between items-start mb-7 flex-wrap gap-3">
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 6 }}>{t("products.title")}</h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <h1 className="t-h1 mb-1.5">{t("products.title")}</h1>
+          <p className="t-body text-muted-foreground">
             {pagination ? `${pagination.total_elements} productos registrados` : t("products.subtitle")}
           </p>
         </div>
@@ -285,22 +285,20 @@ export default function ProductsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ position: "relative", flex: "1 1 280px", maxWidth: 400 }}>
-          <Icon name="search" size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "hsl(var(--muted-foreground))", pointerEvents: "none" }} />
-          <input 
-            className="pp-input" 
-            style={{ paddingLeft: 36, width: "100%" }} 
-            placeholder={t("products.searchPlaceholder")} 
-            value={search} 
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
+      <div className="flex gap-2.5 mb-6 flex-wrap items-center">
+        <div className="relative max-w-[400px]" style={{ flex: "1 1 280px" }}>
+          <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            className="pp-input w-full pl-9"
+            placeholder={t("products.searchPlaceholder")}
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <select 
-          className="pp-input" 
-          value={categoryFilter} 
-          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }} 
-          style={{ width: 180 }}
+        <select
+          className="pp-input w-[180px]"
+          value={categoryFilter}
+          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
         >
           {categoryLabels.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -320,7 +318,7 @@ export default function ProductsPage() {
       )}
 
       {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
           {Array.from({ length: pageSize }).map((_, i) => <ProductSkeletonCard key={i} />)}
         </div>
       ) : filtered.length === 0 ? (

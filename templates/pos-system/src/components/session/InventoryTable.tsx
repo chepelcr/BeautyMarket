@@ -22,19 +22,6 @@ interface InventoryTableProps {
 
 const fmt = (n: number) => "₡" + Math.round(Number(n) || 0).toLocaleString("es-CR");
 
-const thStyle: React.CSSProperties = {
-  padding: "12px 16px",
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "hsl(var(--muted-foreground))",
-  textAlign: "left",
-  fontFamily: "var(--font-display)",
-};
-
-const tdStyle: React.CSSProperties = { padding: "14px 16px", fontSize: 13 };
-
 export default function InventoryTable({
   products,
   selectedBranches,
@@ -48,23 +35,18 @@ export default function InventoryTable({
   const activeProducts = products.filter((p) => p.status === 1);
 
   return (
-    <Card style={{ padding: 0 }}>
-      <div
-        style={{
-          padding: "18px 24px",
-          borderBottom: "1px solid hsl(var(--border))",
-        }}
-      >
+    <Card className="!p-0">
+      <div className="px-6 py-[18px] border-b border-border">
         <CardTitle>{t("session.inventoryTitle")}</CardTitle>
         <CardDescription>{t("session.inventoryDesc")}</CardDescription>
       </div>
 
       {/* Desktop table layout */}
-      <div className="inv-desktop" style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className="inv-desktop overflow-x-auto">
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ background: "hsl(var(--muted) / 0.4)" }}>
-              <th style={{ ...thStyle, width: 40 }}>
+            <tr className="bg-muted/40">
+              <th className="pp-th w-10">
                 <input
                   type="checkbox"
                   checked={selectedProducts.size === activeProducts.length && activeProducts.length > 0}
@@ -77,18 +59,16 @@ export default function InventoryTable({
                   }}
                 />
               </th>
-              <th style={thStyle}>Producto</th>
+              <th className="pp-th">Producto</th>
               {selectedBranches.map((b) => (
-                <th key={b.branch_id} style={{ ...thStyle, textAlign: "center" }}>
+                <th key={b.branch_id} className="pp-th !text-center">
                   {b.name}
                 </th>
               ))}
               {selectedBranches.length === 0 && (
-                <th style={{ ...thStyle, textAlign: "center" }}>
-                  {t("session.selectFirst")}
-                </th>
+                <th className="pp-th !text-center">{t("session.selectFirst")}</th>
               )}
-              <th style={{ ...thStyle, textAlign: "right" }}>{t("session.total")}</th>
+              <th className="pp-th !text-right">{t("session.total")}</th>
             </tr>
           </thead>
           <tbody>
@@ -105,27 +85,24 @@ export default function InventoryTable({
               return (
                 <tr
                   key={p.product_id}
-                  style={{
-                    borderBottom: "1px solid hsl(var(--border))",
-                    opacity: isSelected ? 1 : 0.5,
-                  }}
+                  className={`border-b border-border ${isSelected ? "" : "opacity-50"}`}
                 >
-                  <td style={{ ...tdStyle, textAlign: "center" }}>
+                  <td className="pp-td text-center">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleProduct(p.product_id)}
                     />
                   </td>
-                  <td style={tdStyle}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <td className="pp-td">
+                    <div className="flex items-center gap-2.5">
                       <ProductImage imageUrl={p.image_url} name={p.name} size={32} />
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{p.name}</div>
-                        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                        <div className="text-[13px] font-semibold">{p.name}</div>
+                        <div className="t-xs text-muted-foreground">
                           {fmt(p.price)}
                           {!needsInventory && (
-                            <Badge variant="secondary" style={{ marginLeft: 6, fontSize: 9 }}>
+                            <Badge variant="secondary" className="ml-1.5 text-[9px]">
                               {t("session.noInventoryTracking")}
                             </Badge>
                           )}
@@ -134,21 +111,13 @@ export default function InventoryTable({
                     </div>
                   </td>
                   {selectedBranches.map((b) => (
-                    <td key={b.branch_id} style={{ ...tdStyle, textAlign: "center" }}>
+                    <td key={b.branch_id} className="pp-td text-center">
                       {needsInventory ? (
                         <input
-                          className="input input-sm t-num"
+                          className="input input-sm t-num w-[70px] mx-auto text-center font-bold font-display block"
                           type="number"
                           min={0}
                           disabled={!isSelected}
-                          style={{
-                            width: 70,
-                            margin: "0 auto",
-                            textAlign: "center",
-                            fontWeight: 700,
-                            fontFamily: "var(--font-display)",
-                            display: "block",
-                          }}
                           value={inventory[b.branch_id]?.[p.product_id] ?? 0}
                           onChange={(e) =>
                             setInventory((inv) => ({
@@ -161,32 +130,14 @@ export default function InventoryTable({
                           }
                         />
                       ) : (
-                        <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                          —
-                        </span>
+                        <span className="t-xs text-muted-foreground">—</span>
                       )}
                     </td>
                   ))}
                   {selectedBranches.length === 0 && (
-                    <td
-                      style={{
-                        ...tdStyle,
-                        textAlign: "center",
-                        color: "hsl(var(--muted-foreground))",
-                      }}
-                    >
-                      —
-                    </td>
+                    <td className="pp-td text-center text-muted-foreground">—</td>
                   )}
-                  <td
-                    style={{
-                      ...tdStyle,
-                      textAlign: "right",
-                      fontWeight: 800,
-                      fontFamily: "var(--font-display)",
-                    }}
-                    className="t-num"
-                  >
+                  <td className="pp-td text-right font-extrabold font-display t-num">
                     {needsInventory ? total : "—"}
                   </td>
                 </tr>
@@ -196,12 +147,7 @@ export default function InventoryTable({
               <tr>
                 <td
                   colSpan={selectedBranches.length + 3}
-                  style={{
-                    ...tdStyle,
-                    textAlign: "center",
-                    color: "hsl(var(--muted-foreground))",
-                    padding: 32,
-                  }}
+                  className="pp-td text-center text-muted-foreground !p-8"
                 >
                   {t("session.noActiveProducts")}
                 </td>
@@ -214,77 +160,43 @@ export default function InventoryTable({
       {/* Mobile card layout */}
       <div className="inv-mobile">
         {activeProducts.length === 0 ? (
-          <p
-            className="t-sm"
-            style={{
-              color: "hsl(var(--muted-foreground))",
-              textAlign: "center",
-              padding: "24px 0",
-            }}
-          >
+          <p className="t-sm text-muted-foreground text-center py-6">
             {t("session.noActiveProducts")}
           </p>
         ) : (
           activeProducts.map((p) => {
             const needsInventory = p.track_inventory === true;
             const isSelected = selectedProducts.has(p.product_id);
+            const hasBranchRows = needsInventory && selectedBranches.length > 0;
 
             return (
               <div
                 key={p.product_id}
-                style={{
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 10,
-                  overflow: "hidden",
-                  opacity: isSelected ? 1 : 0.55,
-                }}
+                className={`border border-border rounded-lg overflow-hidden ${
+                  isSelected ? "" : "opacity-[0.55]"
+                }`}
               >
                 {/* Card header */}
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "12px 14px",
-                    background: "hsl(var(--muted) / 0.35)",
-                    borderBottom:
-                      needsInventory && selectedBranches.length > 0
-                        ? "1px solid hsl(var(--border))"
-                        : undefined,
-                  }}
+                  className={`flex items-center gap-2.5 px-3.5 py-3 bg-muted/35 ${
+                    hasBranchRows ? "border-b border-border" : ""
+                  }`}
                 >
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleProduct(p.product_id)}
-                    style={{ flexShrink: 0 }}
+                    className="flex-shrink-0"
                   />
                   <ProductImage imageUrl={p.image_url} name={p.name} size={36} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-bold overflow-hidden text-ellipsis whitespace-nowrap">
                       {p.name}
                     </div>
-                    <div
-                      className="t-xs"
-                      style={{
-                        color: "hsl(var(--muted-foreground))",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        flexWrap: "wrap",
-                      }}
-                    >
+                    <div className="t-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                       {fmt(p.price)}
                       {!needsInventory && (
-                        <Badge variant="secondary" style={{ fontSize: 9 }}>
+                        <Badge variant="secondary" className="text-[9px]">
                           {t("session.noInventoryTracking")}
                         </Badge>
                       )}
@@ -293,40 +205,23 @@ export default function InventoryTable({
                 </div>
 
                 {/* Branch quantity rows — only when inventory tracking is on */}
-                {needsInventory && selectedBranches.length > 0 && (
+                {hasBranchRows && (
                   <div>
                     {selectedBranches.map((b, bi) => (
                       <div
                         key={b.branch_id}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "10px 14px",
-                          borderBottom:
-                            bi < selectedBranches.length - 1
-                              ? "1px solid hsl(var(--border))"
-                              : undefined,
-                          gap: 10,
-                        }}
+                        className={`flex items-center justify-between px-3.5 py-2.5 gap-2.5 ${
+                          bi < selectedBranches.length - 1 ? "border-b border-border" : ""
+                        }`}
                       >
-                        <span
-                          className="t-sm"
-                          style={{ fontWeight: 500, color: "hsl(var(--muted-foreground))" }}
-                        >
+                        <span className="t-sm font-medium text-muted-foreground">
                           {b.name}
                         </span>
                         <input
-                          className="input input-sm t-num"
+                          className="input input-sm t-num w-20 text-center font-bold font-display"
                           type="number"
                           min={0}
                           disabled={!isSelected}
-                          style={{
-                            width: 80,
-                            textAlign: "center",
-                            fontWeight: 700,
-                            fontFamily: "var(--font-display)",
-                          }}
                           value={inventory[b.branch_id]?.[p.product_id] ?? 0}
                           onChange={(e) =>
                             setInventory((inv) => ({
@@ -344,8 +239,8 @@ export default function InventoryTable({
                 )}
 
                 {needsInventory && selectedBranches.length === 0 && (
-                  <div style={{ padding: "10px 14px" }}>
-                    <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  <div className="px-3.5 py-2.5">
+                    <span className="t-xs text-muted-foreground">
                       {t("session.selectFirst")}
                     </span>
                   </div>

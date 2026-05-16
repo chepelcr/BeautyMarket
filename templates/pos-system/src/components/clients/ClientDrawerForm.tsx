@@ -132,11 +132,11 @@ export function ClientDrawerForm({ open, client, orgId, onClose }: ClientDrawerF
       title={isEdit ? "Editar cliente" : "Nuevo cliente"}
       subtitle={isEdit ? clientDisplayName(client) : "Complete los datos del cliente"}
       icon="user"
-      iconBg="rgba(212,168,116,0.12)"
-      iconColor="#D4A874"
+      iconBg="hsl(var(--accent-rose-soft))"
+      iconColor="hsl(var(--accent-rose))"
       width={520}
       footer={
-        <div style={{ display: "flex", gap: 10, padding: "16px 24px", justifyContent: "flex-end" }}>
+        <div className="flex gap-2.5 px-6 py-4 justify-end">
           <Button variant="outline" size="sm" onClick={onClose} disabled={saving}>Cancelar</Button>
           <Button variant="primary" size="sm" onClick={handleSave} disabled={saving}>
             {saving ? "Guardando…" : isEdit ? "Guardar cambios" : "Crear cliente"}
@@ -145,7 +145,7 @@ export function ClientDrawerForm({ open, client, orgId, onClose }: ClientDrawerF
       }
     >
       <FadeIn duration={0.3}>
-        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="p-5 flex flex-col gap-2.5">
           <IdentitySection
             form={form}
             setForm={setForm}
@@ -172,16 +172,7 @@ export function ClientDrawerForm({ open, client, orgId, onClose }: ClientDrawerF
           />
           
           {error && (
-            <div
-              style={{
-                padding: "10px 12px",
-                background: "hsl(var(--destructive) / 0.08)",
-                borderRadius: 8,
-                fontSize: 12,
-                color: "hsl(var(--destructive))",
-                border: "1px solid hsl(var(--destructive) / 0.2)",
-              }}
-            >
+            <div className="px-3 py-2.5 bg-destructive/[0.08] rounded-lg text-xs text-destructive border border-destructive/20">
               {error}
             </div>
           )}

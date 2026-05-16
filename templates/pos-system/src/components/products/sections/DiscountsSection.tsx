@@ -38,7 +38,6 @@ export function DiscountsSection({
   const totalExceeds = totalPct > 100;
   const totalAmount = basePrice * totalPct / 100;
 
-  // Group discounts by type
   const grouped = discounts.reduce<Record<number, DiscountFormEntry[]>>((acc, d) => {
     if (!acc[d.discountTypeId]) acc[d.discountTypeId] = [];
     acc[d.discountTypeId].push(d);
@@ -55,14 +54,13 @@ export function DiscountsSection({
       disabled={disabled}
       badge={discounts.length > 0 ? discounts.length : undefined}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="flex flex-col gap-2.5">
         {discounts.length === 0 && (
-          <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", padding: "4px 0" }}>
+          <div className="t-xs text-muted-foreground py-1">
             {t("products.noDiscountsHint")}
           </div>
         )}
 
-        {/* Grouped by type */}
         {typeIds.map((typeId) => {
           const group = grouped[typeId];
           const typeName = group[0].description;
@@ -70,57 +68,32 @@ export function DiscountsSection({
 
           return (
             <div key={typeId}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "hsl(var(--muted-foreground))",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: 4,
-                }}
-              >
+              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.05em] mb-1">
                 {typeName}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div className="flex flex-col gap-1.5">
                 {group.map((disc) => {
                   const discAmount = basePrice * (disc.rate ?? 0) / 100;
                   return (
                     <div
                       key={disc.id}
-                      style={{
-                        padding: "8px 12px",
-                        background: "hsl(var(--muted) / 0.3)",
-                        borderRadius: 8,
-                        border: "1px solid hsl(var(--border))",
-                      }}
+                      className="px-3 py-2 bg-muted/30 rounded-lg border border-border"
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        {/* % input */}
+                      <div className="flex items-center gap-2">
                         <input
                           type="number"
-                          className="pp-input"
-                          style={{ width: 72, padding: "3px 8px", fontSize: 12 }}
+                          className="pp-input w-[72px] !h-auto !px-2 !py-[3px] text-xs"
                           placeholder="%"
                           min={0}
                           max={100}
                           value={disc.rate ?? 0}
                           onChange={(e) => onUpdate(disc.id, { rate: Number(e.target.value) })}
                         />
-                        <span style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}>%</span>
+                        <span className="text-[11px] text-muted-foreground">%</span>
 
-                        {/* ₡ amount */}
                         {basePrice > 0 && (
-                          <span
-                            style={{
-                              flex: 1,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              color: "hsl(var(--destructive))",
-                              textAlign: "right",
-                            }}
-                          >
+                          <span className="flex-1 text-xs font-semibold text-destructive text-right">
                             -{fmt(discAmount)}
                           </span>
                         )}
@@ -134,14 +107,12 @@ export function DiscountsSection({
                         </button>
                       </div>
 
-                      {/* Reason field for Otros (code 99) */}
                       {isOtros && (
-                        <div style={{ marginTop: 6 }}>
-                          <FormLabel required style={{ fontSize: 11 }}>{t("products.discountReason")}</FormLabel>
+                        <div className="mt-1.5">
+                          <FormLabel required>{t("products.discountReason")}</FormLabel>
                           <input
                             type="text"
-                            className="pp-input"
-                            style={{ fontSize: 12 }}
+                            className="pp-input text-xs"
                             placeholder={t("products.discountReasonPlaceholder")}
                             value={disc.reason ?? ""}
                             onChange={(e) => onUpdate(disc.id, { reason: e.target.value })}
@@ -156,33 +127,25 @@ export function DiscountsSection({
           );
         })}
 
-        {/* Total */}
         {discounts.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
-            <span className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>{t("products.discountTotal")}</span>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: totalExceeds ? "hsl(var(--destructive))" : "hsl(var(--foreground))",
-              }}
-            >
+          <div className="flex justify-end items-center gap-2">
+            <span className="t-xs text-muted-foreground">{t("products.discountTotal")}</span>
+            <span className={`text-[13px] font-bold ${totalExceeds ? "text-destructive" : "text-foreground"}`}>
               {totalPct.toFixed(1)}%
             </span>
             {basePrice > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: "hsl(var(--destructive))" }}>
+              <span className="text-xs font-semibold text-destructive">
                 -{fmt(totalAmount)}
               </span>
             )}
             {totalExceeds && (
-              <span style={{ fontSize: 11, color: "hsl(var(--destructive))" }}>
+              <span className="text-[11px] text-destructive">
                 {t("products.discountExceeds")}
               </span>
             )}
           </div>
         )}
 
-        {/* Add discount */}
         <select
           className="pp-input"
           value=""

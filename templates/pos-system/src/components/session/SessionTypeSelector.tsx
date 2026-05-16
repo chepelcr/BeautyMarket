@@ -27,11 +27,11 @@ export default function SessionTypeSelector({
   const { t } = useLanguage();
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+    <div className="grid grid-cols-2 gap-3.5">
       {/* Session type */}
-      <div style={{ gridColumn: "1 / -1" }}>
+      <div className="col-span-2">
         <label className="label">{t("session.sessionType")}</label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div className="grid grid-cols-2 gap-2">
           {(
             [
               { id: "partido", icon: "trending", label: t("session.match"), desc: t("session.matchDesc") },
@@ -41,38 +41,20 @@ export default function SessionTypeSelector({
             <button
               key={o.id}
               onClick={() => setSessionType(o.id)}
-              className={sessionType === o.id ? "card card-primary" : "card"}
-              style={{
-                padding: 14,
-                textAlign: "left",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 6,
-                border:
-                  sessionType === o.id
-                    ? "2px solid hsl(var(--primary))"
-                    : "1px solid hsl(var(--border))",
-                background:
-                  sessionType === o.id
-                    ? "hsl(var(--primary) / 0.08)"
-                    : "hsl(var(--card))",
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
+              className={`p-3.5 text-left flex flex-col items-center gap-1.5 cursor-pointer transition-all rounded-lg ${
+                sessionType === o.id
+                  ? "border-2 border-primary bg-primary/[0.08]"
+                  : "border border-border bg-card"
+              }`}
             >
               <div
-                className={`icon-pill ${sessionType === o.id ? "" : "icon-pill-muted"}`}
-                style={{ width: 40, height: 40, flexShrink: 0 }}
+                className={`icon-pill w-10 h-10 flex-shrink-0 ${sessionType === o.id ? "" : "icon-pill-muted"}`}
               >
                 <Icon name={o.icon} size={18} />
               </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>{o.label}</div>
-                <div
-                  className="t-xs"
-                  style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.4 }}
-                >
+              <div className="text-center">
+                <div className="text-sm font-bold mb-0.5">{o.label}</div>
+                <div className="t-xs text-muted-foreground leading-relaxed">
                   {o.desc}
                 </div>
               </div>

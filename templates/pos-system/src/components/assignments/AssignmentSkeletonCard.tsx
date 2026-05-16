@@ -2,28 +2,18 @@ import { Card } from "@/components/ui";
 
 export function AssignmentSkeletonCard() {
   return (
-    <Card style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-      {/* Left side */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: "hsl(var(--muted) / 0.4)", animation: "pulse 1.5s ease-in-out infinite" }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <div style={{ height: 12, width: 100, background: "hsl(var(--muted) / 0.4)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite" }} />
-            <div style={{ height: 18, width: 60, background: "hsl(var(--muted) / 0.3)", borderRadius: 12, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.1s" }} />
+    <Card className="px-5 py-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3 flex-1">
+        <div className="w-9 h-9 rounded-lg bg-muted/40 animate-pulse" />
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="h-3 w-[100px] bg-muted/40 rounded-sm animate-pulse" />
+            <div className="h-[18px] w-[60px] bg-muted/30 rounded-xl animate-pulse" />
           </div>
-          <div style={{ height: 9, width: 180, background: "hsl(var(--muted) / 0.25)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.15s" }} />
+          <div className="h-[9px] w-[180px] bg-muted/25 rounded-sm animate-pulse" />
         </div>
       </div>
-      
-      {/* Action button */}
-      <div style={{ width: 80, height: 32, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.2s" }} />
-      
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
+      <div className="w-20 h-8 bg-muted/20 rounded-lg animate-pulse" />
     </Card>
   );
 }

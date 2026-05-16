@@ -28,16 +28,7 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
   return (
     <>
       {/* Category tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          padding: "10px 12px",
-          background: "hsl(var(--card))",
-          borderBottom: "1px solid hsl(var(--border))",
-          flexShrink: 0,
-        }}
-      >
+      <div className="flex gap-2 px-3 py-2.5 bg-card border-b border-border flex-shrink-0">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
@@ -51,17 +42,7 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
       </div>
 
       {/* Product grid */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: 12,
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: 10,
-          alignContent: "start",
-        }}
-      >
+      <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2.5 content-start">
         {filtered.map((p) => {
           const pid = p.product_id;
           const inCart = cart[pid as any] ?? 0;
@@ -70,45 +51,31 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
           const isOut = stock === 0;
           const isLow = stock > 0 && stock <= 3;
 
+          const borderClass = inCart > 0 ? "border-primary/50" : "border-border";
+          const bgClass = isOut
+            ? "bg-muted/40"
+            : inCart > 0
+            ? "bg-primary/[0.06]"
+            : "bg-card";
+
           return (
             <button
               key={p.product_id}
               type="button"
               onClick={() => onAdd(p)}
               disabled={isOut}
-              style={{
-                position: "relative",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                gap: 6,
-                padding: 12,
-                borderRadius: 12,
-                border: `1.5px solid ${
-                  inCart > 0
-                    ? "hsl(var(--primary) / 0.5)"
-                    : "hsl(var(--border))"
-                }`,
-                background: isOut
-                  ? "hsl(var(--muted) / 0.4)"
-                  : inCart > 0
-                  ? "hsl(var(--primary) / 0.06)"
-                  : "hsl(var(--card))",
-                cursor: isOut ? "not-allowed" : "pointer",
-                opacity: isOut ? 0.5 : 1,
-                textAlign: "left",
-                minHeight: 90,
-                transition: "border-color 0.15s, background 0.15s",
-              }}
+              className={`relative flex flex-col items-start gap-1.5 p-3 rounded-xl border-[1.5px] text-left min-h-[90px] transition-colors ${borderClass} ${bgClass} ${
+                isOut ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
             >
               {/* Stock badge */}
               {isOut && (
-                <div style={{ position: "absolute", top: 6, right: 6 }}>
+                <div className="absolute top-1.5 right-1.5">
                   <Badge variant="destructive">Agotado</Badge>
                 </div>
               )}
               {isLow && !isOut && (
-                <div style={{ position: "absolute", top: 6, right: 6 }}>
+                <div className="absolute top-1.5 right-1.5">
                   <Badge variant="warning">
                     <Icon name="alert" size={10} />
                     {" "}{stock}
@@ -118,47 +85,19 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
 
               {/* Cart count bubble */}
               {inCart > 0 && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: -6,
-                    right: -6,
-                    width: 20,
-                    height: 20,
-                    borderRadius: 999,
-                    background: "hsl(var(--primary))",
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 800,
-                    fontFamily: "var(--font-display)",
-                  }}
-                >
+                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-display text-[11px] font-extrabold">
                   {inCart}
                 </div>
               )}
 
               <ProductImage imageUrl={p.image_url} name={p.name} size={28} />
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  fontFamily: "var(--font-display)",
-                  lineHeight: 1.2,
-                  color: "hsl(var(--foreground))",
-                }}
-              >
+              <span className="text-sm font-bold font-display leading-tight text-foreground">
                 {p.name}
               </span>
               <span
-                className="t-num"
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: inCart > 0 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                }}
+                className={`t-num text-base font-extrabold ${
+                  inCart > 0 ? "text-primary" : "text-muted-foreground"
+                }`}
               >
                 ₡{p.price.toLocaleString("es-CR")}
               </span>

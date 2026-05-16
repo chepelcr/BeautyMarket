@@ -58,39 +58,40 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
     !!(search.status || search.start_date || search.end_date || search.sort);
 
   return (
-    <div
-      className="flex flex-col h-full overflow-hidden"
-      style={{ animation: 'fadeIn 0.2s ease-in-out' }}
-    >
-      {/* Unified toolbar — single row on desktop, wraps on mobile */}
-      <div className="px-4 py-2.5 border-b border-border bg-card shrink-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <IssuedReceivedToggle />
+    <div className="flex flex-col h-full overflow-hidden fade-in">
+      {/* Unified toolbar — see .docs-toolbar in index.css for container-query responsiveness */}
+      <div className="docs-toolbar px-4 py-2.5 border-b border-border bg-card shrink-0">
+        <div className="docs-toolbar-grid">
+          {/* Row 1 — toggle + search */}
+          <div className="docs-toolbar-row-1">
+            <IssuedReceivedToggle />
+            <input
+              type="text"
+              value={term}
+              onChange={(e) => handleSearchTermChange(e.target.value)}
+              placeholder="Buscar por número, nombre…"
+              className="docs-toolbar-search input-search"
+            />
+          </div>
 
-          <input
-            type="text"
-            value={term}
-            onChange={(e) => handleSearchTermChange(e.target.value)}
-            placeholder="Buscar por número, nombre…"
-            className="flex-1 min-w-[180px] h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
-          />
-
-          <DocumentTypesFilter
-            selectedTypes={selectedTypes}
-            onChange={handleTypesChange}
-          />
-
-          <button
-            onClick={() => setShowAdvanced(true)}
-            className={cn(
-              'h-10 px-3 rounded-md border text-[12px] font-semibold transition-colors shrink-0',
-              hasAdvancedFilters
-                ? 'border-primary bg-primary/5 text-primary'
-                : 'border-border bg-card text-muted-foreground hover:border-primary/40'
-            )}
-          >
-            Filtros{hasAdvancedFilters ? ' ●' : ''}
-          </button>
+          {/* Row 2 — types + filtros (50/50 on narrow toolbars) */}
+          <div className="docs-toolbar-row-2">
+            <DocumentTypesFilter
+              selectedTypes={selectedTypes}
+              onChange={handleTypesChange}
+            />
+            <button
+              onClick={() => setShowAdvanced(true)}
+              className={cn(
+                'docs-toolbar-filtros h-10 px-3 rounded-md border text-xs font-semibold transition-colors w-full',
+                hasAdvancedFilters
+                  ? 'border-primary bg-primary/5 text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+              )}
+            >
+              Filtros{hasAdvancedFilters ? ' ●' : ''}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -118,15 +119,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
               action={
                 <button
                   onClick={() => refetch()}
-                  className="btn btn-primary"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 16px',
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
+                  className="btn btn-primary btn-sm"
                 >
                   <span>Reintentar</span>
                 </button>
@@ -199,13 +192,6 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
           onClose={() => setShowAdvanced(false)}
         />
       )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }

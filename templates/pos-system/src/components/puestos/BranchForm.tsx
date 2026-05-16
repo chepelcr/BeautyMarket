@@ -67,7 +67,7 @@ export function BranchForm({ editing, onSave, isSaving, onClose, renderButtons }
 
   return (
     <FadeIn duration={0.3}>
-      <form id="branch-form" onSubmit={handleSubmit} style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+      <form id="branch-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
         {/* General Section */}
         <BranchGeneralSection
           name={name}
@@ -98,13 +98,13 @@ export function BranchForm({ editing, onSave, isSaving, onClose, renderButtons }
 
         {/* Status Card (only when editing) */}
         {editing && (
-          <Card style={{ padding: 14, background: "hsl(var(--muted) / 0.4)" }}>
-            <div className="t-label" style={{ marginBottom: 6 }}>Estado actual</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Card className="p-3.5 !bg-muted/40">
+            <div className="t-label mb-1.5">Estado actual</div>
+            <div className="flex items-center gap-2">
               <span className={`status-dot status-dot-${editing.status === 1 ? "success" : "warning"}`} />
-              <span style={{ fontSize: 14, fontWeight: 600 }}>{STATUS_LABEL[editing.status]}</span>
+              <span className="text-sm font-semibold">{STATUS_LABEL[editing.status]}</span>
             </div>
-            <p className="t-xs" style={{ marginTop: 6, color: "hsl(var(--muted-foreground))" }}>
+            <p className="t-xs mt-1.5 text-muted-foreground">
               Para cambiar el estado usá las acciones en la tarjeta.
             </p>
           </Card>

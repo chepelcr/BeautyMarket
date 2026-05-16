@@ -8,19 +8,12 @@ interface StatCardProps {
   value: React.ReactNode;
   sub?: React.ReactNode;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function StatCard({ icon, iconColor, iconBackground, label, value, sub, style }: StatCardProps) {
+export function StatCard({ icon, iconColor, iconBackground, label, value, sub, style, className }: StatCardProps) {
   return (
-    <div
-      className="card"
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 14,
-        ...style,
-      }}
-    >
+    <div className={`card card-stat ${className ?? ""}`} style={style}>
       <IconPill
         icon={icon}
         size={40}
@@ -29,10 +22,10 @@ export function StatCard({ icon, iconColor, iconBackground, label, value, sub, s
         background={iconBackground ?? "hsl(var(--primary) / 0.1)"}
         radius={11}
       />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="t-label" style={{ marginBottom: 4 }}>{label}</div>
+      <div className="flex-1 min-w-0">
+        <div className="t-label mb-1">{label}</div>
         <div className="t-stat">{value}</div>
-        {sub && <div className="t-xs" style={{ marginTop: 3, color: "hsl(var(--muted-foreground))" }}>{sub}</div>}
+        {sub && <div className="t-xs mt-0.5 text-muted-foreground">{sub}</div>}
       </div>
     </div>
   );

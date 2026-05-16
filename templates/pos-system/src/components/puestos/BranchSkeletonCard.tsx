@@ -2,37 +2,27 @@ import { Card } from "@/components/ui";
 
 export function BranchSkeletonCard() {
   return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "hsl(var(--muted) / 0.4)", animation: "pulse 1.5s ease-in-out infinite" }} />
+    <Card className="px-[18px] py-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg bg-muted/40 animate-pulse" />
           <div>
-            <div style={{ height: 14, width: 120, background: "hsl(var(--muted) / 0.4)", borderRadius: 5, marginBottom: 6, animation: "pulse 1.5s ease-in-out infinite" }} />
-            <div style={{ height: 10, width: 80, background: "hsl(var(--muted) / 0.25)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.1s" }} />
+            <div className="h-3.5 w-[120px] bg-muted/40 rounded-sm mb-1.5 animate-pulse" />
+            <div className="h-2.5 w-20 bg-muted/25 rounded-sm animate-pulse" />
           </div>
         </div>
-        <div style={{ width: 60, height: 22, background: "hsl(var(--muted) / 0.3)", borderRadius: 12, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.15s" }} />
+        <div className="w-[60px] h-[22px] bg-muted/30 rounded-xl animate-pulse" />
       </div>
-      
-      {/* Stats */}
-      <div style={{ display: "flex", gap: 8 }}>
-        <div style={{ flex: 1, height: 50, background: "hsl(var(--muted) / 0.15)", borderRadius: 10, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.2s" }} />
-        <div style={{ flex: 1, height: 50, background: "hsl(var(--muted) / 0.15)", borderRadius: 10, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.25s" }} />
+
+      <div className="flex gap-2">
+        <div className="flex-1 h-[50px] bg-muted/15 rounded-lg animate-pulse" />
+        <div className="flex-1 h-[50px] bg-muted/15 rounded-lg animate-pulse" />
       </div>
-      
-      {/* Actions */}
-      <div style={{ display: "flex", gap: 6 }}>
-        <div style={{ flex: 1, height: 32, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.3s" }} />
-        <div style={{ width: 32, height: 32, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.3s" }} />
+
+      <div className="flex gap-1.5">
+        <div className="flex-1 h-8 bg-muted/20 rounded-lg animate-pulse" />
+        <div className="w-8 h-8 bg-muted/20 rounded-lg animate-pulse" />
       </div>
-      
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </Card>
   );
 }

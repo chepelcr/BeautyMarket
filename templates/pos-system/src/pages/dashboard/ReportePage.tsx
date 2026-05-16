@@ -45,18 +45,6 @@ interface ReportData {
   }>;
 }
 
-const thStyle: React.CSSProperties = {
-  padding: "12px 16px",
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "hsl(var(--muted-foreground))",
-  textAlign: "left",
-  fontFamily: "var(--font-display)",
-};
-const tdStyle: React.CSSProperties = { padding: "14px 16px", fontSize: 13 };
-
 interface ReportePageProps {
   sessionId?: string;
 }
@@ -92,43 +80,28 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 40, textAlign: "center" }}>
-        <div className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
-          {t("report.loading")}
-        </div>
+      <div className="p-10 text-center">
+        <div className="t-body text-muted-foreground">{t("report.loading")}</div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: sessionId ? "24px" : "24px 24px 40px", maxWidth: sessionId ? "none" : 1400, margin: "0 auto" }}>
+    <div className={`mx-auto ${sessionId ? "p-6 max-w-none" : "px-6 pt-6 pb-10 max-w-[1400px]"}`}>
       {/* Header — hide in inline/drawer mode */}
       {!sessionId && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: 20,
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
+        <div className="flex justify-between items-start mb-5 flex-wrap gap-3">
           <div>
-            <Badge variant="primary-soft" style={{ marginBottom: 8 }}>
-              {t("report.finalReport")}
-            </Badge>
-            <h1 className="t-h1" style={{ marginBottom: 6 }}>
-              {session?.name ?? "Sesión sin nombre"}
-            </h1>
-            <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <Badge variant="primary-soft" className="mb-2">{t("report.finalReport")}</Badge>
+            <h1 className="t-h1 mb-1.5">{session?.name ?? "Sesión sin nombre"}</h1>
+            <p className="t-body text-muted-foreground">
               {session?.date ? new Date(session.date).toLocaleDateString("es-CR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "Fecha no disponible"}
               {session?.location ? ` · ${session.location}` : ""}
               {session?.startTime ? ` · ${session.startTime}` : ""}
               {session?.endTime ? ` → ${session.endTime}` : ""}
             </p>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex gap-2">
             <Button variant="outline" icon="print" onClick={handlePrint}>
               {t("report.print")}
             </Button>
@@ -143,33 +116,12 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
       )}
 
       {/* Hero KPIs */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 14,
-          marginBottom: 20,
-        }}
-      >
+      <div className="grid gap-3.5 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
         {/* Main KPI */}
-        <Card
-          style={{
-            padding: 22,
-            background:
-              "linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--primary) / 0.02))",
-            borderColor: "hsl(var(--primary) / 0.3)",
-          }}
-        >
-          <div className="t-label" style={{ color: "hsl(var(--primary))", marginBottom: 6 }}>
-            {t("report.grossIncome")}
-          </div>
-          <div
-            className="t-stat-xl"
-            style={{ fontSize: 40, color: "hsl(var(--primary))" }}
-          >
-            {fmt(totals.ventas)}
-          </div>
-          <Badge variant="success" style={{ marginTop: 8 }}>
+        <Card className="p-[22px] !border-primary/30 bg-gradient-to-br from-primary/[0.12] to-primary/[0.02]">
+          <div className="t-label !text-primary mb-1.5">{t("report.grossIncome")}</div>
+          <div className="t-stat-xl !text-[40px] !text-primary">{fmt(totals.ventas)}</div>
+          <Badge variant="success" className="mt-2">
             {stands.length} puestos activos
           </Badge>
         </Card>
@@ -200,194 +152,87 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
             s: totals.diferenciaCaja === 0 ? t("report.allStandsBalanced") : t("report.standsWithDiff"),
           },
         ].map((k) => (
-          <Card key={k.l} style={{ padding: 18 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 12,
-              }}
-            >
+          <Card key={k.l} className="p-[18px]">
+            <div className="flex justify-between items-center mb-3">
               <div className="t-label">{k.l}</div>
-              <div
-                className={`icon-pill ${k.c === "primary" ? "" : `icon-pill-${k.c}`}`}
-                style={{ width: 32, height: 32 }}
-              >
+              <div className={`icon-pill w-8 h-8 ${k.c === "primary" ? "" : `icon-pill-${k.c}`}`}>
                 <Icon name={k.i} size={14} />
               </div>
             </div>
-            <div className="t-stat-xl" style={{ fontSize: 28, marginBottom: 4 }}>
-              {k.v}
-            </div>
-            <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {k.s}
-            </div>
+            <div className="t-stat-xl !text-[28px] mb-1">{k.v}</div>
+            <div className="t-xs text-muted-foreground">{k.s}</div>
           </Card>
         ))}
       </div>
 
-      <div
-        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}
-      >
+      <div className="grid grid-cols-2 gap-3.5 mb-5">
         <PaymentBreakdown totals={totals} />
         <StandBreakdown stands={stands} />
       </div>
 
       {/* Top products table */}
-      <Card style={{ padding: 0 }}>
-        <div
-          style={{
-            padding: "20px 24px",
-            borderBottom: "1px solid hsl(var(--border))",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+      <Card className="!p-0">
+        <div className="px-6 py-5 border-b border-border flex justify-between items-center">
           <div>
             <CardTitle>{t("report.productsTable")}</CardTitle>
             <CardDescription>{t("report.productsTable")}</CardDescription>
           </div>
-          <Button variant="outline" size="sm" icon="download">
-            {t("report.csv")}
-          </Button>
+          <Button variant="outline" size="sm" icon="download">{t("report.csv")}</Button>
         </div>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
             <thead>
-              <tr style={{ background: "hsl(var(--muted) / 0.4)" }}>
-                <th style={{ ...thStyle, width: 50 }}>#</th>
-                <th style={thStyle}>{t("analytics.colProduct")}</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>{t("report.units")}</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>{t("products.price")}</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>{t("report.revenue")}</th>
-                <th style={{ ...thStyle, textAlign: "right" }}>%</th>
+              <tr className="bg-muted/40">
+                <th className="pp-th w-[50px]">#</th>
+                <th className="pp-th">{t("analytics.colProduct")}</th>
+                <th className="pp-th !text-right">{t("report.units")}</th>
+                <th className="pp-th !text-right">{t("products.price")}</th>
+                <th className="pp-th !text-right">{t("report.revenue")}</th>
+                <th className="pp-th !text-right">%</th>
               </tr>
             </thead>
             <tbody>
               {topProducts.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={6}
-                    style={{
-                      ...tdStyle,
-                      textAlign: "center",
-                      color: "hsl(var(--muted-foreground))",
-                      padding: 32,
-                    }}
-                  >
+                  <td colSpan={6} className="pp-td text-center text-muted-foreground !p-8">
                     {t("report.noProductData")}
                   </td>
                 </tr>
               )}
               {topProducts.map((prod, i) => {
-                const pct =
-                  totals.ventas > 0 ? (prod.revenue / totals.ventas) * 100 : 0;
+                const pct = totals.ventas > 0 ? (prod.revenue / totals.ventas) * 100 : 0;
                 return (
                   <tr
                     key={prod.id}
-                    style={{
-                      borderBottom:
-                        i < topProducts.length - 1
-                          ? "1px solid hsl(var(--border))"
-                          : "none",
-                    }}
+                    className={i < topProducts.length - 1 ? "border-b border-border" : ""}
                   >
-                    <td
-                      style={{
-                        ...tdStyle,
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 800,
-                        color:
-                          i < 3
-                            ? "hsl(var(--primary))"
-                            : "hsl(var(--muted-foreground))",
-                      }}
-                    >
+                    <td className={`pp-td font-display font-extrabold ${i < 3 ? "text-primary" : "text-muted-foreground"}`}>
                       #{i + 1}
                     </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div
-                          style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 6,
-                            background: "hsl(var(--muted))",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 18,
-                            flexShrink: 0,
-                          }}
-                        >
+                    <td className="pp-td">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center text-lg flex-shrink-0">
                           {prod.emoji ?? "🍗"}
                         </div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 700 }}>{prod.name}</div>
+                          <div className="text-[13px] font-bold">{prod.name}</div>
                           {prod.category && (
-                            <div
-                              className="t-xs"
-                              style={{ color: "hsl(var(--muted-foreground))" }}
-                            >
-                              {prod.category}
-                            </div>
+                            <div className="t-xs text-muted-foreground">{prod.category}</div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td
-                      style={{ ...tdStyle, textAlign: "right", fontWeight: 700, fontFamily: "var(--font-display)" }}
-                      className="t-num"
-                    >
-                      {prod.qty}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: "right" }} className="t-num">
-                      {fmt(prod.price)}
-                    </td>
-                    <td
-                      style={{
-                        ...tdStyle,
-                        textAlign: "right",
-                        fontWeight: 700,
-                        fontFamily: "var(--font-display)",
-                        color: "hsl(var(--primary))",
-                      }}
-                      className="t-num"
-                    >
+                    <td className="pp-td t-num !text-right font-bold font-display">{prod.qty}</td>
+                    <td className="pp-td t-num !text-right">{fmt(prod.price)}</td>
+                    <td className="pp-td t-num !text-right font-bold font-display !text-primary">
                       {fmt(prod.revenue)}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          justifyContent: "flex-end",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 60,
-                            height: 4,
-                            borderRadius: 999,
-                            background: "hsl(var(--muted))",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${pct}%`,
-                              height: "100%",
-                              background: "hsl(var(--primary))",
-                            }}
-                          />
+                    <td className="pp-td !text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <div className="w-[60px] h-1 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
                         </div>
-                        <span
-                          className="t-num t-xs"
-                          style={{ fontWeight: 700, minWidth: 38 }}
-                        >
+                        <span className="t-num t-xs font-bold min-w-[38px]">
                           {pct.toFixed(1)}%
                         </span>
                       </div>
@@ -398,34 +243,17 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
             </tbody>
             {topProducts.length > 0 && (
               <tfoot>
-                <tr style={{ background: "hsl(var(--muted) / 0.6)" }}>
-                  <td style={tdStyle} />
-                  <td style={{ ...tdStyle, fontWeight: 800 }}>{t("report.total")}</td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      textAlign: "right",
-                      fontWeight: 800,
-                      fontFamily: "var(--font-display)",
-                    }}
-                    className="t-num"
-                  >
+                <tr className="bg-muted/60">
+                  <td className="pp-td" />
+                  <td className="pp-td font-extrabold">{t("report.total")}</td>
+                  <td className="pp-td t-num !text-right font-extrabold font-display">
                     {topProducts.reduce((s, t) => s + t.qty, 0)}
                   </td>
-                  <td style={tdStyle} />
-                  <td
-                    style={{
-                      ...tdStyle,
-                      textAlign: "right",
-                      fontWeight: 800,
-                      fontFamily: "var(--font-display)",
-                      color: "hsl(var(--primary))",
-                    }}
-                    className="t-num"
-                  >
+                  <td className="pp-td" />
+                  <td className="pp-td t-num !text-right font-extrabold font-display !text-primary">
                     {fmt(topProducts.reduce((s, t) => s + t.revenue, 0))}
                   </td>
-                  <td style={{ ...tdStyle, textAlign: "right", fontWeight: 800 }}>100%</td>
+                  <td className="pp-td !text-right font-extrabold">100%</td>
                 </tr>
               </tfoot>
             )}

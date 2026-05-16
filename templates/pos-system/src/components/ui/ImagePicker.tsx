@@ -40,90 +40,52 @@ export function ImagePicker({ currentUrl, onFileChange }: ImagePickerProps) {
   const displaySrc = preview ?? currentUrl;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="flex flex-col gap-2">
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => !displaySrc && inputRef.current?.click()}
-        style={{
-          width: "100%",
-          height: 160,
-          borderRadius: 10,
-          border: `2px dashed ${dragging ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-          background: dragging ? "hsl(var(--primary) / 0.06)" : "hsl(var(--muted) / 0.35)",
-          cursor: displaySrc ? "default" : "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          position: "relative",
-          transition: "border-color 0.2s, background 0.2s",
-        }}
+        className={`w-full h-40 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden relative transition-colors ${
+          dragging ? "border-primary bg-primary/[0.06]" : "border-border bg-muted/35"
+        } ${displaySrc ? "cursor-default" : "cursor-pointer"}`}
       >
         {displaySrc ? (
           <>
             <img
               src={displaySrc}
               alt="preview"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              className="w-full h-full object-cover"
             />
-            {/* Hover overlay with actions */}
             <div
               onMouseEnter={() => setHovering(true)}
               onMouseLeave={() => setHovering(false)}
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "rgba(0,0,0,0.45)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                opacity: hovering ? 1 : 0,
-                transition: "opacity 0.2s",
-              }}
+              className={`absolute inset-0 bg-foreground/45 flex items-center justify-center gap-2 transition-opacity ${
+                hovering ? "opacity-100" : "opacity-0"
+              }`}
             >
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                style={{
-                  fontSize: 12,
-                  padding: "5px 14px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(255,255,255,0.6)",
-                  background: "rgba(255,255,255,0.15)",
-                  color: "#fff",
-                  cursor: "pointer",
-                  backdropFilter: "blur(4px)",
-                }}
+                className="text-xs px-3.5 py-1 rounded-md border border-white/60 bg-white/15 text-white cursor-pointer backdrop-blur-[4px]"
               >
                 Cambiar
               </button>
               <button
                 type="button"
                 onClick={handleRemove}
-                style={{
-                  fontSize: 12,
-                  padding: "5px 14px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(255,100,100,0.6)",
-                  background: "rgba(239,68,68,0.2)",
-                  color: "#fca5a5",
-                  cursor: "pointer",
-                  backdropFilter: "blur(4px)",
-                }}
+                className="text-xs px-3.5 py-1 rounded-md border border-destructive/60 bg-destructive/20 text-destructive-foreground cursor-pointer backdrop-blur-[4px]"
               >
                 Eliminar
               </button>
             </div>
           </>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, color: "hsl(var(--muted-foreground))", userSelect: "none" }}>
+          <div className="flex flex-col items-center gap-2 text-muted-foreground select-none">
             <Icon name="upload" size={28} />
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>Arrastra una imagen aquí</div>
-              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))" }}>o haz clic para seleccionar</div>
+            <div className="text-center">
+              <div className="text-[13px] font-semibold">Arrastra una imagen aquí</div>
+              <div className="t-xs text-muted-foreground">o haz clic para seleccionar</div>
             </div>
           </div>
         )}
@@ -133,7 +95,7 @@ export function ImagePicker({ currentUrl, onFileChange }: ImagePickerProps) {
         ref={inputRef}
         type="file"
         accept="image/*"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={handleFileChange}
       />
     </div>

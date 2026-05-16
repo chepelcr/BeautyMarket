@@ -6,7 +6,11 @@
       "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\BeautyMarket\\\\templates\\\\pos-landing\\\\\" -Recurse -Force | Select-Object FullName | Sort-Object FullName)",
       "Bash(cd /E:/dev/cross-app-be && find app/dtos -name \"*.py\" -type f | grep -v __pycache__ | sort)",
       "Read(//E:/dev/**)",
-      "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\BeautyMarket\\\\templates\\\\pos-system\\\\src\\\\components\\\\documents\\\\\" -File | Select-Object Name)"
+      "Bash(Get-ChildItem -Path \"E:\\\\dev\\\\BeautyMarket\\\\templates\\\\pos-system\\\\src\\\\components\\\\documents\\\\\" -File | Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"e:\\\\dev\\\\BeautyMarket\\\\templates\\\\pos-system\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(sort -t: -k2 -n -r)",
+      "Bash(awk '/^## 3\\\\./,/^## 4\\\\./' \"E:/dev/BeautyMarket/templates/pos-system/CLAUDE.md\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\chepe\\.claude\\skills\\be-builder"

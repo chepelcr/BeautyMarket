@@ -46,7 +46,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
       isExpanded={isExpanded}
       onToggle={onToggle}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="flex flex-col gap-3">
         {/* Description */}
         <div>
           <FormLabel required>
@@ -62,7 +62,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         </div>
 
         {/* Quantity + Price + Unit */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <div className="grid grid-cols-3 gap-2">
           <div>
             <FormLabel required>
               Cantidad
@@ -107,11 +107,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         </div>
 
         {/* Optional fields - conditional layout based on unit and document type */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: showCommercialUnit && isExportInvoice ? '1fr 1fr' : '1fr', 
-          gap: 8 
-        }}>
+        <div className={`grid gap-2 ${showCommercialUnit && isExportInvoice ? "grid-cols-2" : "grid-cols-1"}`}>
           {showCommercialUnit && (
             <div>
               <FormLabel required>
@@ -141,9 +137,9 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         </div>
 
         {/* Subtotal display */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid hsl(var(--border))' }}>
-          <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>Subtotal línea</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+        <div className="flex justify-between items-center pt-2 border-t border-border">
+          <span className="text-xs text-muted-foreground">Subtotal línea</span>
+          <span className="font-mono font-semibold">
             ₡{(detail.quantity * detail.net_price).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
           </span>
         </div>

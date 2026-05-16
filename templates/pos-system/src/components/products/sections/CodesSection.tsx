@@ -29,11 +29,9 @@ export function CodesSection({
   onUpdate,
 }: CodesSectionProps) {
   const { t } = useLanguage();
-  // document_version_id is auto-injected by the data API client via DocumentVersionProvider
   const { data: codesData } = useAllCodes({ iso_code: ISO } as GetAllCodesParams);
   const codeTypes = codesData ?? [];
 
-  // Only show types not yet used (one per type)
   const availableTypes = codeTypes.filter(
     (ct: { id: number }) => !codes.some((c) => c.codeTypeId === ct.id)
   );
@@ -47,32 +45,16 @@ export function CodesSection({
       disabled={disabled}
       badge={codes.length > 0 ? codes.length : undefined}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {codes.map((entry, idx) => {
           const isOtros = entry.codeTypeCode === "99";
           return (
             <div
               key={idx}
-              style={{
-                padding: "8px 12px",
-                background: "hsl(var(--muted) / 0.3)",
-                borderRadius: 8,
-                border: "1px solid hsl(var(--border))",
-              }}
+              className="px-3 py-2 bg-muted/30 rounded-lg border border-border"
             >
-              {/* Row 1: description + remove button */}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span
-                  style={{
-                    flex: 1,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "hsl(var(--muted-foreground))",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="flex-1 text-[11px] font-semibold text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                   {entry.codeTypeDescription}
                 </span>
                 <button
@@ -84,24 +66,20 @@ export function CodesSection({
                 </button>
               </div>
 
-              {/* Row 2: value input */}
               <input
                 type="text"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder={t("products.codeValue")}
                 value={entry.value}
                 onChange={(e) => onUpdate(idx, { value: e.target.value })}
               />
 
-              {/* Row 3: reason input for "Otros" (code 99) */}
               {isOtros && (
-                <div style={{ marginTop: 6 }}>
-                  <FormLabel required style={{ fontSize: 11 }}>{t("products.specifyType")}</FormLabel>
+                <div className="mt-1.5">
+                  <FormLabel required>{t("products.specifyType")}</FormLabel>
                   <input
                     type="text"
-                    className="pp-input"
-                    style={{ fontSize: 12 }}
+                    className="pp-input text-xs"
                     placeholder={t("products.codeTypePlaceholder")}
                     value={entry.reason ?? ""}
                     onChange={(e) => onUpdate(idx, { reason: e.target.value })}
@@ -112,7 +90,6 @@ export function CodesSection({
           );
         })}
 
-        {/* Add code — description only, only unused types */}
         {availableTypes.length > 0 && (
           <select
             className="pp-input"

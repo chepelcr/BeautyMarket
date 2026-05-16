@@ -3,43 +3,24 @@ import { Loader2 } from "lucide-react";
 interface SpinnerProps {
   size?: number;
   label?: string;
-  fullHeight?: boolean; // fills parent with centered content
+  fullHeight?: boolean;
 }
 
 export function Spinner({ size = 28, label, fullHeight = false }: SpinnerProps) {
   const inner = (
     <>
-      <Loader2
-        size={size}
-        style={{ animation: "spin 1s linear infinite", color: "hsl(var(--primary))", flexShrink: 0 }}
-      />
-      {label && (
-        <span style={{ fontSize: 13, color: "hsl(var(--muted-foreground))" }}>{label}</span>
-      )}
+      <Loader2 size={size} className="animate-spin text-primary flex-shrink-0" />
+      {label && <span className="text-[13px] text-muted-foreground">{label}</span>}
     </>
   );
 
   if (fullHeight) {
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 12,
-          height: "100%",
-          minHeight: "60vh",
-        }}
-      >
+      <div className="flex flex-col items-center justify-center gap-3 h-full min-h-[60vh]">
         {inner}
       </div>
     );
   }
 
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      {inner}
-    </div>
-  );
+  return <div className="flex items-center gap-2">{inner}</div>;
 }

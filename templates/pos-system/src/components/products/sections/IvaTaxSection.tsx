@@ -75,30 +75,24 @@ export function IvaTaxSection({
       disabled={disabled}
       badge={hasIva ? addedIvaTaxes.length : undefined}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {addedIvaTaxes.map((tax) => {
           const isIvarbu = tax.taxCode === "08";
           const ivaAmount = baseAmount > 0 ? baseAmount * tax.rate / 100 : 0;
           return (
             <div
               key={tax.taxTypeId}
-              style={{
-                padding: "10px 12px",
-                background: "hsl(var(--muted) / 0.3)",
-                borderRadius: 8,
-                border: "1px solid hsl(var(--border))",
-              }}
+              className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border"
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: isIvarbu ? 8 : 0 }}>
+              <div className={`flex items-center gap-2 ${isIvarbu ? "mb-2" : ""}`}>
                 {/* Description only, no code */}
-                <div style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>
+                <div className="flex-1 text-[13px] font-semibold">
                   {tax.taxDescription}
                 </div>
 
                 {!isIvarbu && (
                   <select
-                    className="pp-input"
-                    style={{ width: 150, padding: "4px 8px", fontSize: 13 }}
+                    className="pp-input w-[150px] !h-auto !px-2 !py-1 text-[13px]"
                     value={tax.taxRateId ?? ""}
                     onChange={(e) => {
                       const r = rateList.find((r: { id: number }) => String(r.id) === e.target.value);
@@ -116,7 +110,7 @@ export function IvaTaxSection({
 
                 {/* ₡ amount */}
                 {!isIvarbu && ivaAmount > 0 && (
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "hsl(var(--primary))", minWidth: 70, textAlign: "right" }}>
+                  <span className="text-xs font-semibold text-primary min-w-[70px] text-right">
                     +{fmt(ivaAmount)}
                   </span>
                 )}
@@ -132,10 +126,9 @@ export function IvaTaxSection({
 
               {isIvarbu && (
                 <div>
-                  <FormLabel style={{ fontSize: 11 }}>{t("products.ivarbuFactor")}</FormLabel>
+                  <FormLabel>{t("products.ivarbuFactor")}</FormLabel>
                   <select
-                    className="pp-input"
-                    style={{ fontSize: 13 }}
+                    className="pp-input text-[13px]"
                     value={tax.taxFactorId ?? ""}
                     onChange={(e) => onUpdate(tax.taxTypeId, { taxFactorId: Number(e.target.value) })}
                   >
@@ -182,15 +175,7 @@ export function IvaTaxSection({
 
         {/* Factory tax charge — description only */}
         {factoryCharges.length > 0 && (
-          <div
-            style={{
-              marginTop: 4,
-              padding: "10px 12px",
-              background: "hsl(var(--muted) / 0.25)",
-              borderRadius: 8,
-              border: "1px dashed hsl(var(--border))",
-            }}
-          >
+          <div className="mt-1 px-3 py-2.5 bg-muted/25 rounded-lg border border-dashed border-border">
             <FormLabel>{t("products.factoryTaxCharge")}</FormLabel>
             <select
               className="pp-input"
@@ -209,7 +194,7 @@ export function IvaTaxSection({
               ))}
             </select>
             {selectedCharge && (
-              <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 4 }}>
+              <div className="t-xs text-muted-foreground mt-1">
                 {(selectedCharge as { code?: string }).code === "01"
                   ? t("products.factoryTaxAssumed")
                   : t("products.factoryTaxNotAssumed")}

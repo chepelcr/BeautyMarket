@@ -1,5 +1,4 @@
 import { Icon } from "@/components/ui";
-import { POS } from "@/theme/pos";
 import { PayTab } from "./PayTab";
 import type { PayMethod } from "@/hooks/useCartFlow";
 
@@ -35,56 +34,42 @@ export function PaymentFlow({
   onConfirm,
 }: PaymentFlowProps) {
   return (
-    <div style={{ padding: "16px 20px 20px", borderTop: `1px solid ${POS.border}`, flexShrink: 0 }}>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+    <div className="px-5 pt-4 pb-5 border-t border-border flex-shrink-0">
+      <div className="flex gap-2 mb-4">
         <PayTab icon="cash" label="Efectivo" selected={payMethod === "cash"} onClick={() => onPayMethodChange("cash")} />
         <PayTab icon="card" label="Tarjeta" selected={payMethod === "card"} onClick={() => onPayMethodChange("card")} />
         <PayTab icon="smartphone" label="SINPE" selected={payMethod === "sinpe"} onClick={() => onPayMethodChange("sinpe")} />
       </div>
 
       {payMethod === "cash" && (
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted, display: "block", marginBottom: 6 }}>
-            Monto recibido
-          </label>
-          <div style={{ position: "relative", marginBottom: 8 }}>
-            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: POS.muted, fontWeight: 600, fontFamily: POS.fontUI }}>₡</span>
+        <div className="mb-4">
+          <label className="text-xs text-muted-foreground block mb-1.5">Monto recibido</label>
+          <div className="relative mb-2">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₡</span>
             <input
               type="number"
               value={cashGiven}
               onChange={(e) => onCashGivenChange(e.target.value)}
               placeholder="0"
-              style={{
-                width: "100%",
-                padding: "12px 14px 12px 30px",
-                background: "rgba(255,255,255,0.06)",
-                border: `1px solid ${POS.border}`,
-                borderRadius: 10,
-                color: POS.text,
-                fontFamily: POS.fontDisplay,
-                fontSize: 22,
-                fontWeight: 700,
-                outline: "none",
-                boxSizing: "border-box",
-              }}
+              className="w-full pl-[30px] pr-3.5 py-3 bg-foreground/[0.06] border border-border rounded-lg text-foreground font-display text-[22px] font-bold outline-none box-border"
             />
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          <div className="flex gap-1.5">
             {[1000, 2000, 5000, 10000, 20000].map((v) => (
               <button
                 key={v}
                 onClick={() => onCashGivenChange(String(v))}
-                style={{ flex: 1, padding: "6px 2px", background: "rgba(255,255,255,0.06)", border: `1px solid ${POS.border}`, borderRadius: 8, color: POS.muted, fontFamily: POS.fontUI, fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+                className="flex-1 py-1.5 px-0.5 bg-foreground/[0.06] border border-border rounded-lg text-muted-foreground text-[11px] font-semibold cursor-pointer"
               >
                 {v / 1000}k
               </button>
             ))}
           </div>
           {given > 0 && (
-            <div style={{ marginTop: 12, padding: "10px 14px", background: "rgba(50,215,75,0.08)", border: "1px solid rgba(50,215,75,0.2)", borderRadius: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted }}>Vuelto</span>
-                <span style={{ fontFamily: POS.fontDisplay, fontSize: 20, fontWeight: 700, color: POS.success }}>{fmt(change)}</span>
+            <div className="mt-3 px-3.5 py-2.5 bg-success/[0.08] border border-success/20 rounded-lg">
+              <div className="flex justify-between">
+                <span className="text-xs text-muted-foreground">Vuelto</span>
+                <span className="font-display text-xl font-bold text-success">{fmt(change)}</span>
               </div>
             </div>
           )}
@@ -92,63 +77,41 @@ export function PaymentFlow({
       )}
 
       {payMethod === "card" && (
-        <div style={{ textAlign: "center", padding: "16px 0", marginBottom: 16 }}>
-          <Icon name="card" size={28} style={{ color: POS.info, margin: "0 auto 8px", display: "block" }} />
-          <div style={{ fontFamily: POS.fontUI, fontSize: 13, fontWeight: 600, color: POS.text }}>Deslizar tarjeta</div>
-          <div style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted }}>Cobrar {fmt(cartTotal)}</div>
+        <div className="text-center py-4 mb-4">
+          <Icon name="card" size={28} className="text-info mx-auto mb-2 block" />
+          <div className="text-[13px] font-semibold text-foreground">Deslizar tarjeta</div>
+          <div className="text-xs text-muted-foreground">Cobrar {fmt(cartTotal)}</div>
         </div>
       )}
 
       {payMethod === "sinpe" && (
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted, display: "block", marginBottom: 6 }}>
-            Últimos 4 dígitos
-          </label>
+        <div className="mb-4">
+          <label className="text-xs text-muted-foreground block mb-1.5">Últimos 4 dígitos</label>
           <input
             maxLength={4}
             value={sinpeCode}
             onChange={(e) => onSinpeCodeChange(e.target.value)}
             placeholder="0000"
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              background: "rgba(255,255,255,0.06)",
-              border: `1px solid ${POS.border}`,
-              borderRadius: 10,
-              color: POS.text,
-              fontFamily: POS.fontDisplay,
-              fontSize: 22,
-              fontWeight: 700,
-              outline: "none",
-              boxSizing: "border-box",
-              letterSpacing: "0.3em",
-            }}
+            className="w-full px-3.5 py-3 bg-foreground/[0.06] border border-border rounded-lg text-foreground font-display text-[22px] font-bold outline-none box-border tracking-[0.3em]"
           />
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="flex gap-2">
         <button
           onClick={onBack}
-          style={{ flex: "0 0 48px", padding: "12px 0", background: "rgba(255,255,255,0.06)", border: `1px solid ${POS.border}`, borderRadius: 10, color: POS.muted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="basis-12 flex-shrink-0 py-3 bg-foreground/[0.06] border border-border rounded-lg text-muted-foreground cursor-pointer flex items-center justify-center"
         >
           <Icon name="arrowLeft" size={18} />
         </button>
         <button
           onClick={onConfirm}
           disabled={!canConfirm}
-          style={{
-            flex: 1,
-            padding: "14px 0",
-            background: canConfirm ? POS.rose : "rgba(255,255,255,0.1)",
-            color: canConfirm ? "#1C1C1E" : POS.muted,
-            border: "none",
-            borderRadius: 10,
-            fontFamily: POS.fontUI,
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: canConfirm ? "pointer" : "not-allowed",
-          }}
+          className={`flex-1 py-3.5 border-0 rounded-lg text-sm font-bold ${
+            canConfirm
+              ? "bg-accent-rose text-background cursor-pointer"
+              : "bg-foreground/10 text-muted-foreground cursor-not-allowed"
+          }`}
         >
           Confirmar {fmt(cartTotal)}
         </button>

@@ -27,14 +27,15 @@ export function ProductPriceEditor({
 }: ProductPriceEditorProps) {
   if (editing) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: align === "right" ? "flex-end" : "flex-start", gap: 6 }}>
+      <div
+        className={`flex items-center gap-1.5 ${align === "right" ? "justify-end" : "justify-start"}`}
+      >
         <input
           type="number"
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
           autoFocus
-          className="pp-input pp-input-sm"
-          style={{ width: 90 }}
+          className="pp-input pp-input-sm w-[90px]"
         />
         <button
           className="btn btn-success btn-xs"
@@ -51,15 +52,9 @@ export function ProductPriceEditor({
 
   return (
     <button
-      style={{
-        fontWeight: 700,
-        fontFamily: "var(--font-display)",
-        color: "hsl(var(--primary))",
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        fontSize: align === "left" ? 20 : 13,
-      }}
+      className={`font-bold font-display text-primary bg-transparent border-0 cursor-pointer ${
+        align === "left" ? "text-xl" : "text-[13px]"
+      }`}
       onClick={() => onStartEdit(productId, price)}
     >
       {fmt(price)}

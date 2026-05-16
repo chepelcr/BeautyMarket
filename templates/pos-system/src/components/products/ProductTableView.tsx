@@ -41,34 +41,33 @@ export function ProductTableView({
   const { t } = useLanguage();
 
   return (
-    <Card style={{ padding: 0 }}>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <Card className="!p-0">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ background: "hsl(var(--muted) / 0.4)" }}>
-              <th className="pp-th" style={{ width: 40 }}>
+            <tr className="bg-muted/40">
+              <th className="pp-th w-10">
                 <input
                   type="checkbox"
                   checked={selected.length === products.length && products.length > 0}
                   onChange={onToggleAll}
-                  style={{ accentColor: "hsl(var(--primary))" }}
+                  className="accent-primary"
                 />
               </th>
               <th className="pp-th">{t("products.product")}</th>
               <th className="pp-th">{t("products.category")}</th>
-              <th className="pp-th" style={{ textAlign: "right" }}>{t("products.price")}</th>
-              <th className="pp-th" style={{ textAlign: "center" }}>{t("products.status")}</th>
-              <th className="pp-th" style={{ width: 100 }} />
+              <th className="pp-th !text-right">{t("products.price")}</th>
+              <th className="pp-th !text-center">{t("products.status")}</th>
+              <th className="pp-th w-[100px]" />
             </tr>
           </thead>
           <tbody>
             {products.map((p, i) => (
               <FadeIn key={p.product_id} delay={i * 0.02} duration={0.3}>
                 <tr
-                  style={{ 
-                    borderBottom: i < products.length - 1 ? "1px solid hsl(var(--border))" : "none",
-                    cursor: onNavigate ? "pointer" : "default",
-                  }}
+                  className={`${i < products.length - 1 ? "border-b border-border" : ""} ${
+                    onNavigate ? "cursor-pointer" : "cursor-default"
+                  }`}
                   onClick={() => onNavigate?.(p.product_id)}
                 >
                   <td className="pp-td">
@@ -77,19 +76,19 @@ export function ProductTableView({
                       checked={selected.includes(p.product_id)}
                       onChange={() => onToggleSelect(p.product_id)}
                       onClick={(e) => e.stopPropagation()}
-                      style={{ accentColor: "hsl(var(--primary))" }}
+                      className="accent-primary"
                     />
                   </td>
                   <td className="pp-td">
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div className="flex items-center gap-2.5">
                       <ProductImage imageUrl={p.image_url} name={p.name} size={36} />
-                      <div style={{ fontSize: 13, fontWeight: 700 }}>{p.name}</div>
+                      <div className="text-[13px] font-bold">{p.name}</div>
                     </div>
                   </td>
                   <td className="pp-td">
                     <Badge variant="outline">{p.category?.name ?? "—"}</Badge>
                   </td>
-                  <td className="pp-td t-num" style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+                  <td className="pp-td t-num !text-right" onClick={(e) => e.stopPropagation()}>
                     <ProductPriceEditor
                       productId={p.product_id}
                       price={p.price}
@@ -102,13 +101,13 @@ export function ProductTableView({
                       onCancel={onCancelEditPrice}
                     />
                   </td>
-                  <td className="pp-td" style={{ textAlign: "center" }}>
+                  <td className="pp-td !text-center">
                     <Badge variant={p.status === 1 ? "success" : "secondary"}>
                       {p.status === 1 ? t("products.activeLabel") : t("products.inactiveLabel")}
                     </Badge>
                   </td>
                   <td className="pp-td">
-                    <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }} onClick={(e) => e.stopPropagation()}>
+                    <div className="flex gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="xs" icon="edit" onClick={() => onEdit(p)} />
                       <Button
                         variant="ghost"
@@ -124,8 +123,8 @@ export function ProductTableView({
           </tbody>
         </table>
       </div>
-      <div style={{ padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid hsl(var(--border))" }}>
-        <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+      <div className="px-5 py-3.5 flex justify-between items-center border-t border-border">
+        <div className="t-sm text-muted-foreground">
           {t("products.showing", { n: String(products.length), total: String(allProducts.length) })}
         </div>
       </div>

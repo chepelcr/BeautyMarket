@@ -2,14 +2,18 @@ import { Icon, Badge, Button } from "@/components/ui";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useLanguageSwitch } from "@/hooks/useLanguageSwitch";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDocumentStore } from "@/store/documentStore";
+import { useMaxVisibleTabs } from "@/store/uiStore";
 import { DocumentsToolbar } from "@/components/documents/DocumentsToolbar";
 import { NewDocumentButton } from "@/components/documents/NewDocumentButton";
 
 interface DashboardHeaderProps {
   /** Mobile hamburger → opens left sidebar drawer */
   onMenuClick: () => void;
-  /** Mobile docs icon → opens right-side documents drawer */
+  /** Docs icon → toggles right-side documents drawer (open/close) */
   onDocsClick?: () => void;
+  /** Whether the docs drawer is currently open — drives toggle button styling */
+  docsOpen?: boolean;
   /** Live session badge — preserved on the left after the documents toolbar */
   sessionName?: string;
   sessionLocation?: string;
@@ -18,12 +22,20 @@ interface DashboardHeaderProps {
 export function DashboardHeader({
   onMenuClick,
   onDocsClick,
+  docsOpen = false,
   sessionName,
   sessionLocation,
 }: DashboardHeaderProps) {
   const { dark, toggle: toggleDark } = useDarkMode();
   const { language, toggle: toggleLanguage } = useLanguageSwitch();
   const { t } = useLanguage();
+  const openCount = useDocumentStore((s) => s.open_documents.length);
+  const maxVisible = useMaxVisibleTabs();
+  // On md+ the toolbar shows the first `maxVisible` open tabs (2 with the
+  // sidebar expanded, 3 when collapsed). Extras live in the drawer — and the
+  // drawer toggle button is only surfaced when there's at least one.
+  const overflowCount = Math.max(0, openCount - maxVisible);
+  const hasOverflow = overflowCount > 0;
 
   return (
     <header
@@ -116,27 +128,42 @@ export function DashboardHeader({
           {t("shell.sync")}
         </Button>
 
-        {/* Mobile-only right-drawer toggle — Documentos + open tabs live there on small screens */}
+        {/* Right-drawer toggle (toggles open/close on click).
+            - Mobile (<769px): always visible — the drawer is the only access to docs.
+            - Desktop/tablet (≥769px): only visible when there are MORE than
+              `maxVisible` open docs (overflow). Shows a count badge. */}
         {onDocsClick && (
           <button
-            className="btn btn-ghost btn-sm btn-icon documents-drawer-mobile"
+            className={`btn ${docsOpen ? "btn-primary-soft" : "btn-ghost"} btn-sm btn-icon documents-drawer-toggle relative ${hasOverflow ? "has-overflow" : ""}`}
             onClick={onDocsClick}
-            aria-label="Open documents drawer"
-            style={{ display: "none" }}
+            aria-label={docsOpen ? "Cerrar documentos" : "Abrir documentos"}
+            aria-expanded={docsOpen}
           >
             <Icon name="fileText" size={18} />
+            {hasOverflow && (
+              <span
+                aria-hidden
+                className="badge-mini badge-mini-primary absolute -top-1 -right-1"
+              >
+                +{overflowCount}
+              </span>
+            )}
           </button>
         )}
       </div>
 
       <style>{`
+        /* Default (hidden) — flip visibility per viewport + overflow state */
+        .documents-drawer-toggle { display: none; }
         @media (min-width: 769px) {
           .documents-toolbar-desktop { display: flex !important; align-items: center; }
-          .documents-drawer-mobile { display: none !important; }
+          /* Desktop: drawer toggle only when there are overflow tabs */
+          .documents-drawer-toggle.has-overflow { display: inline-flex !important; }
         }
         @media (max-width: 768px) {
           .documents-toolbar-desktop { display: none !important; }
-          .documents-drawer-mobile { display: inline-flex !important; }
+          /* Mobile: drawer toggle always visible (it's the only doc access) */
+          .documents-drawer-toggle { display: inline-flex !important; }
         }
       `}</style>
     </header>

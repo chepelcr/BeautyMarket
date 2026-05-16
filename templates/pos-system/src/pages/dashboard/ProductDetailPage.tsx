@@ -11,19 +11,6 @@ import type { Product, Category } from "@/types";
 import { Card, Icon, Button, Badge, Menu } from "@/components/ui";
 import { ProductDrawerForm, EMPTY_FORM, type ProductFormState } from "@/components/products/ProductDrawerForm";
 
-// ─── Design tokens ─────────────────────────────────────────────────────────
-const T = {
-  surface: "hsl(var(--card))",
-  border: "hsl(var(--border))",
-  rose: "#D4A874",
-  roseLight: "rgba(212,168,116,0.12)",
-  roseBorder: "rgba(212,168,116,0.25)",
-  text: "hsl(var(--foreground))",
-  muted: "hsl(var(--muted-foreground))",
-  fontDisplay: "'Cormorant Garamond', Georgia, serif",
-  fontUI: "'DM Sans', 'Barlow', system-ui, sans-serif",
-} as const;
-
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -33,28 +20,26 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
-// ─── Info row ──────────────────────────────────────────────────────────────
 function InfoRow({ icon, label, value }: { icon: string; label: string; value: string | number }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 0", borderBottom: `1px solid ${T.border}` }}>
-      <div style={{ width: 34, height: 34, borderRadius: 9, background: T.roseLight, border: `1px solid ${T.roseBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <Icon name={icon} size={15} style={{ color: T.rose }} />
+    <div className="flex items-center gap-3.5 py-3 border-b border-border">
+      <div className="w-[34px] h-[34px] rounded-[9px] bg-accent-rose-soft border border-accent-rose-border flex items-center justify-center flex-shrink-0">
+        <Icon name={icon} size={15} className="text-accent-rose" />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.07em", color: T.muted, fontFamily: T.fontUI, marginBottom: 1 }}>{label}</div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: T.fontUI }}>{value}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-[0.07em] text-muted-foreground mb-px">{label}</div>
+        <div className="text-sm font-semibold text-foreground">{value}</div>
       </div>
     </div>
   );
 }
 
-// ─── Section card ──────────────────────────────────────────────────────────
 function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
   return (
-    <Card style={{ padding: "20px 24px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <Icon name={icon} size={14} style={{ color: T.rose }} />
-        <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: T.rose, fontFamily: T.fontUI }}>{title}</span>
+    <Card className="px-6 py-5">
+      <div className="flex items-center gap-2 mb-1">
+        <Icon name={icon} size={14} className="text-accent-rose" />
+        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-accent-rose">{title}</span>
       </div>
       {children}
     </Card>
@@ -276,18 +261,20 @@ export default function ProductDetailPage({ productId }: Props) {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "48px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        <Icon name="refresh" size={18} style={{ color: T.muted, animation: "spin 1s linear infinite" }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="px-6 py-12 flex items-center justify-center gap-2.5">
+        <Icon name="refresh" size={18} className="text-muted-foreground animate-spin" />
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div style={{ padding: "48px 24px", textAlign: "center" }}>
-        <div style={{ fontSize: 14, color: T.muted, fontFamily: T.fontUI }}>Producto no encontrado.</div>
-        <button onClick={() => navigate(ROUTES.DASHBOARD_PRODUCTS)} style={{ marginTop: 16, color: T.rose, background: "none", border: "none", cursor: "pointer", fontSize: 13, fontFamily: T.fontUI }}>
+      <div className="px-6 py-12 text-center">
+        <div className="text-sm text-muted-foreground">Producto no encontrado.</div>
+        <button
+          onClick={() => navigate(ROUTES.DASHBOARD_PRODUCTS)}
+          className="mt-4 text-accent-rose bg-transparent border-0 cursor-pointer text-[13px]"
+        >
           ← Volver a productos
         </button>
       </div>
@@ -295,57 +282,53 @@ export default function ProductDetailPage({ productId }: Props) {
   }
 
   return (
-    <div style={{ padding: "24px 24px 48px", maxWidth: 900, margin: "0 auto" }}>
+    <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
       {/* Back button */}
       <button
         onClick={() => navigate(ROUTES.DASHBOARD_PRODUCTS)}
-        className="t-body"
-        style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "hsl(var(--muted-foreground))", background: "none", border: "none", cursor: "pointer", marginBottom: 20, padding: "6px 0" }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(var(--foreground))")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(var(--muted-foreground))")}
+        className="t-body inline-flex items-center gap-1.5 text-muted-foreground bg-transparent border-0 cursor-pointer mb-5 py-1.5 hover:text-foreground transition-colors"
       >
         <Icon name="arrowLeft" size={14} /> Productos
       </button>
 
       {/* Hero card */}
-      <Card style={{ padding: "28px 28px 24px", marginBottom: 14, background: `linear-gradient(135deg, ${T.roseLight} 0%, transparent 60%)`, borderColor: T.roseBorder }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
-          {/* Product Image */}
-          <div style={{ width: 100, height: 100, borderRadius: 16, background: product.image_url ? "transparent" : T.roseLight, border: `1px solid ${T.roseBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+      <Card className="px-7 pt-7 pb-6 mb-3.5 !border-accent-rose-border bg-gradient-to-br from-accent-rose-soft to-transparent">
+        <div className="flex items-start gap-5 flex-wrap">
+          <div
+            className={`w-[100px] h-[100px] rounded-2xl border border-accent-rose-border flex items-center justify-center flex-shrink-0 overflow-hidden shadow-card ${
+              product.image_url ? "bg-transparent" : "bg-accent-rose-soft"
+            }`}
+          >
             {product.image_url ? (
-              <img src={product.image_url} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
             ) : (
-              <Icon name="package" size={36} style={{ color: T.rose }} />
+              <Icon name="package" size={36} className="text-accent-rose" />
             )}
           </div>
 
-          {/* Name + meta */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="t-h1" style={{ margin: "0 0 6px", lineHeight: 1.2 }}>
-              {product.name}
-            </h1>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-              <span className="t-h2" style={{ color: T.rose }}>
+          <div className="flex-1 min-w-0">
+            <h1 className="t-h1 !my-0 !mb-1.5 leading-tight">{product.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <span className="t-h2 !text-accent-rose">
                 ₡{product.price.toLocaleString("es-CR")}
               </span>
               <Badge variant={isActive ? "success" : "secondary"}>
                 {isActive ? "● Activo" : "○ Inactivo"}
               </Badge>
               {hasCategory && (
-                <span style={{ background: T.roseLight, color: T.rose, border: `1px solid ${T.roseBorder}`, padding: "2px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700, fontFamily: T.fontUI }}>
+                <span className="bg-accent-rose-soft text-accent-rose border border-accent-rose-border px-2 py-0.5 rounded-[5px] text-[11px] font-bold">
                   {product.category?.name}
                 </span>
               )}
             </div>
             {hasDescription && (
-              <p className="t-body" style={{ color: "hsl(var(--muted-foreground))", margin: 0, lineHeight: 1.5 }}>
+              <p className="t-body text-muted-foreground !m-0 leading-relaxed">
                 {product.description}
               </p>
             )}
           </div>
 
-          {/* Actions */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Button variant="outline" size="sm" icon="edit" onClick={openEdit}>
               Editar
             </Button>
@@ -372,7 +355,7 @@ export default function ProductDetailPage({ productId }: Props) {
       </Card>
 
       {/* Info sections */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14 }}>
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
         {/* Basic Info */}
         <Section title="Información básica" icon="info">
           <InfoRow icon="dollarSign" label="Precio" value={`₡${product.price.toLocaleString("es-CR")}`} />
@@ -413,14 +396,17 @@ export default function ProductDetailPage({ productId }: Props) {
 
       {/* Empty state if no additional info */}
       {!hasInventory && !hasFiscalInfo && !hasDiscounts && (
-        <Card style={{ padding: "32px 24px", textAlign: "center", marginTop: 14 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: T.roseLight, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-            <Icon name="package" size={20} style={{ color: T.rose }} />
+        <Card className="px-6 py-8 text-center mt-3.5">
+          <div className="w-11 h-11 rounded-xl bg-accent-rose-soft flex items-center justify-center mx-auto mb-3">
+            <Icon name="package" size={20} className="text-accent-rose" />
           </div>
-          <div className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <div className="t-body text-muted-foreground">
             Sin información adicional registrada.
           </div>
-          <button onClick={openEdit} className="t-body" style={{ marginTop: 10, color: T.rose, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
+          <button
+            onClick={openEdit}
+            className="t-body mt-2.5 text-accent-rose bg-transparent border-0 cursor-pointer font-semibold"
+          >
             Agregar información →
           </button>
         </Card>

@@ -21,19 +21,18 @@ export function IconPill({
   className,
   style,
 }: IconPillProps) {
+  const hasOverrides = color !== undefined || background !== undefined;
   return (
     <div
-      className={className}
+      className={`flex-shrink-0 flex items-center justify-center ${
+        hasOverrides ? "" : "bg-muted text-muted-foreground"
+      } ${className ?? ""}`}
       style={{
         width: size,
         height: size,
         borderRadius: radius,
-        background: background ?? "hsl(var(--muted))",
-        color: color ?? "hsl(var(--muted-foreground))",
-        flexShrink: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        ...(background !== undefined ? { background } : {}),
+        ...(color !== undefined ? { color } : {}),
         ...style,
       }}
     >

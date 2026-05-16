@@ -20,7 +20,6 @@ export function DashboardMobileDrawer({
   onNav,
   onClose,
 }: DashboardMobileDrawerProps) {
-  // Lock body scroll when drawer is open
   useEffect(() => {
     if (open && shouldRender) {
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -30,7 +29,7 @@ export function DashboardMobileDrawer({
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
     }
-    
+
     return () => {
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
@@ -40,95 +39,23 @@ export function DashboardMobileDrawer({
   if (!shouldRender) return null;
 
   return (
-    <div
-      style={{ 
-        position: "fixed", 
-        inset: 0, 
-        zIndex: 100,
-        display: "flex",
-      }}
-    >
+    <div className="fixed inset-0 z-tooltip flex">
       {/* Overlay */}
       <div
-        className={isClosing ? "drawer-overlay-exit" : "drawer-overlay-enter"}
-        style={{ 
-          position: "absolute", 
-          inset: 0, 
-          background: "rgba(0,0,0,0.5)",
-          backdropFilter: "blur(1px)",
-        }}
+        className={`absolute inset-0 bg-foreground/50 backdrop-blur-[1px] ${
+          isClosing ? "drawer-overlay-exit" : "drawer-overlay-enter"
+        }`}
         onClick={onClose}
       />
-      
+
       {/* Drawer panel */}
       <div
-        className={isClosing ? "drawer-panel-exit" : "drawer-panel-enter"}
-        style={{
-          position: "relative",
-          width: 260,
-          height: "100dvh",
-          zIndex: 101,
-          background: "hsl(var(--card))",
-          boxShadow: "4px 0 24px rgba(0,0,0,0.12)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
+        className={`relative w-[260px] h-[100dvh] z-[101] bg-card shadow-modal flex flex-col overflow-hidden ${
+          isClosing ? "drawer-panel-left-exit" : "drawer-panel-left-enter"
+        }`}
       >
-        <DashboardSidebar
-          active={active}
-          onNav={onNav}
-          onClose={onClose}
-        />
+        <DashboardSidebar active={active} onNav={onNav} onClose={onClose} />
       </div>
-
-      <style>{`
-        /* Mobile drawer animations - 450ms to match Drawer.tsx */
-        .drawer-overlay-enter {
-          animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .drawer-overlay-exit {
-          animation: fadeOut 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .drawer-panel-enter {
-          animation: slideInLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .drawer-panel-exit {
-          animation: slideOutLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        @keyframes slideInLeft {
-          from { 
-            transform: translateX(-100%); 
-            opacity: 0; 
-          }
-          to { 
-            transform: translateX(0); 
-            opacity: 1; 
-          }
-        }
-        
-        @keyframes slideOutLeft {
-          from { 
-            transform: translateX(0); 
-            opacity: 1; 
-          }
-          to { 
-            transform: translateX(-100%); 
-            opacity: 0; 
-          }
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }

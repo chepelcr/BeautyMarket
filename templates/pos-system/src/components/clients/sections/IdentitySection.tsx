@@ -8,12 +8,6 @@ import { CountryISO, CustomerType, IdTypeCode, allowedIdCodes } from "@/lib/enum
 import { applyIdMask, validateIdLength, getIdPlaceholder } from "@/utils/idValidation";
 import type { CreateClientDto } from "@/hooks/useClients";
 
-const T = {
-  rose: "#D4A874",
-  roseLight: "rgba(212,168,116,0.12)",
-  roseBorder: "rgba(212,168,116,0.2)",
-} as const;
-
 interface IdentitySectionProps {
   form: CreateClientDto;
   setForm: React.Dispatch<React.SetStateAction<CreateClientDto>>;
@@ -42,16 +36,13 @@ export function IdentitySection({
   const [lookingUpTaxpayer, setLookingUpTaxpayer] = useState(false);
   const [taxpayerError, setTaxpayerError] = useState<string | null>(null);
 
-  // API data
   const { data: customerTypes = [], isLoading: loadingCT } = useAllCustomerTypes();
   const { data: allIdTypes = [], isLoading: loadingID } = useAllIdentifications({ iso_code: CountryISO.COSTA_RICA });
   const { data: countries = [], isLoading: loadingCountries } = useAllCountries();
 
-  // Filter ID types based on nationality + customer type
   const allowed = allowedIdCodes(nationality, customerType);
   const filteredIdTypes = allIdTypes.filter((t) => allowed.includes(t.code));
 
-  // Auto-reset ID type when nationality/customer type change and current selection is no longer valid
   useEffect(() => {
     const currentCode = form.identification?.code;
     const isValid = filteredIdTypes.some((t) => t.code === currentCode);
@@ -60,7 +51,6 @@ export function IdentitySection({
         ...f,
         identification: { ...f.identification, code: filteredIdTypes[0].code, number: "" },
         business_name: "",
-        // Don't clear client_name as it's the fantasy/trade name (user-editable)
       }));
       setIdComplete(false);
       setTaxpayerError(null);
@@ -68,7 +58,6 @@ export function IdentitySection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nationality, customerType, filteredIdTypes.length]);
 
-  // Handle ID number change with masking and validation
   const handleIdNumberChange = async (value: string) => {
     const maskedValue = applyIdMask(value, idCode);
     setForm((f) => ({ ...f, identification: { ...f.identification, number: maskedValue } }));
@@ -77,7 +66,6 @@ export function IdentitySection({
     setIdComplete(isComplete);
     setTaxpayerError(null);
 
-    // Trigger Hacienda lookup for Costa Rica when ID is complete
     if (isCR && isComplete) {
       const cleanId = maskedValue.replace(/\D/g, "");
       setLookingUpTaxpayer(true);
@@ -87,7 +75,6 @@ export function IdentitySection({
           identification: cleanId,
         });
         if (taxpayer?.name) {
-          // Always populate business_name with Hacienda data (legal name)
           setForm((f) => ({
             ...f,
             business_name: taxpayer.name,
@@ -111,7 +98,6 @@ export function IdentitySection({
       ...f,
       identification: { ...f.identification, number: "" },
       business_name: "",
-      // Don't clear client_name as it's the fantasy/trade name (user-editable)
     }));
     setIdComplete(false);
     setTaxpayerError(null);
@@ -131,9 +117,9 @@ export function IdentitySection({
       {/* Customer Type Pills */}
       <div>
         <FormLabel required>Tipo de cliente</FormLabel>
-        <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+        <div className="flex gap-2.5 mt-1">
           {loadingCT ? (
-            <div style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}>Cargando…</div>
+            <div className="text-xs text-muted-foreground">Cargando…</div>
           ) : (
             customerTypes.map((ct) => {
               const selected = customerType === ct.id;
@@ -143,37 +129,18 @@ export function IdentitySection({
                   type="button"
                   onClick={canEditCriticalFields ? () => setForm((f) => ({ ...f, customer_type: ct.id })) : undefined}
                   disabled={!canEditCriticalFields}
-                  style={{
-                    flex: 1,
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: canEditCriticalFields ? "pointer" : "not-allowed",
-                    transition: "all 0.15s",
-                    border: `1.5px solid ${selected ? T.rose : "hsl(var(--border))"}`,
-                    background: selected ? T.roseLight : "hsl(var(--muted) / 0.3)",
-                    color: selected ? T.rose : "hsl(var(--muted-foreground)))",
-                    opacity: canEditCriticalFields ? 1 : 0.5,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
+                  className={`flex-1 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all border-[1.5px] flex items-center gap-2 ${
+                    selected
+                      ? "border-accent-rose bg-accent-rose-soft text-accent-rose"
+                      : "border-border bg-muted/30 text-muted-foreground"
+                  } ${canEditCriticalFields ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-50"}`}
                 >
                   <div
-                    style={{
-                      width: 14,
-                      height: 14,
-                      borderRadius: "50%",
-                      flexShrink: 0,
-                      border: `2px solid ${selected ? T.rose : "hsl(var(--muted-foreground))"}`,
-                      background: selected ? T.rose : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                    className={`w-3.5 h-3.5 rounded-full flex-shrink-0 border-2 flex items-center justify-center ${
+                      selected ? "border-accent-rose bg-accent-rose" : "border-muted-foreground bg-transparent"
+                    }`}
                   >
-                    {selected && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#1C1410" }} />}
+                    {selected && <div className="w-[5px] h-[5px] rounded-full bg-background" />}
                   </div>
                   {ct.description}
                 </button>
@@ -182,7 +149,7 @@ export function IdentitySection({
           )}
         </div>
         {!canEditCriticalFields && (
-          <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontStyle: "italic" }}>
+          <div className="t-xs text-muted-foreground mt-1 italic">
             No se puede cambiar el tipo de cliente durante la edición
           </div>
         )}
@@ -192,11 +159,10 @@ export function IdentitySection({
       <div>
         <FormLabel required>Nacionalidad</FormLabel>
         <select
-          className="pp-input"
+          className={`pp-input ${canEditCriticalFields ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}
           value={nationality}
           onChange={canEditCriticalFields ? (e) => setForm((f) => ({ ...f, nationality: e.target.value })) : undefined}
           disabled={loadingCountries || !canEditCriticalFields}
-          style={{ cursor: canEditCriticalFields ? "pointer" : "not-allowed", opacity: canEditCriticalFields ? 1 : 0.6 }}
         >
           {loadingCountries && <option value="">Cargando países…</option>}
           {countries.map((c) => (
@@ -208,15 +174,14 @@ export function IdentitySection({
       </div>
 
       {/* ID Type & Number */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <div style={{ flex: "0 0 calc(50% - 5px)" }}>
+      <div className="flex gap-2.5">
+        <div className="flex-1">
           <FormLabel required>Tipo de identificación</FormLabel>
           <select
-            className="pp-input"
+            className={`pp-input ${canEditCriticalFields ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}
             value={idCode}
             onChange={canEditCriticalFields ? (e) => setForm((f) => ({ ...f, identification: { ...f.identification, code: e.target.value, number: "" } })) : undefined}
             disabled={loadingID || !canEditCriticalFields}
-            style={{ cursor: canEditCriticalFields ? "pointer" : "not-allowed", opacity: canEditCriticalFields ? 1 : 0.6 }}
           >
             {loadingID && <option value="">Cargando…</option>}
             {filteredIdTypes.map((t) => (
@@ -227,63 +192,35 @@ export function IdentitySection({
           </select>
         </div>
 
-        <div style={{ flex: "0 0 calc(50% - 5px)" }}>
+        <div className="flex-1">
           <FormLabel required>Número de identificación</FormLabel>
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <input
-              className="pp-input"
+              className={`pp-input ${
+                idComplete || lookingUpTaxpayer ? "!pr-9" : ""
+              } ${idComplete && isCR ? "!bg-primary/[0.06] !border-[1.5px] !border-primary/35" : ""}`}
               value={form.identification?.number ?? ""}
               onChange={(e) => handleIdNumberChange(e.target.value)}
               placeholder={getIdPlaceholder(idCode)}
               disabled={idComplete || lookingUpTaxpayer}
-              style={{
-                paddingRight: idComplete || lookingUpTaxpayer ? 36 : 12,
-                background: idComplete && isCR ? "hsl(var(--primary) / 0.06)" : undefined,
-                border: idComplete && isCR ? "1.5px solid hsl(var(--primary) / 0.35)" : undefined,
-              }}
             />
             {lookingUpTaxpayer && (
-              <div
-                style={{
-                  position: "absolute",
-                  right: 10,
-                  top: 0,
-                  bottom: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  pointerEvents: "none",
-                }}
-              >
-                <Loader2
-                  size={16}
-                  style={{
-                    color: "hsl(var(--primary))",
-                    animation: "spin 1s linear infinite",
-                  }}
-                />
+              <div className="absolute right-2.5 top-0 bottom-0 flex items-center justify-center pointer-events-none">
+                <Loader2 size={16} className="text-primary animate-spin" />
               </div>
             )}
             {idComplete && !lookingUpTaxpayer && (
               <button
                 type="button"
                 onClick={handleClearId}
-                className="btn btn-ghost btn-icon btn-xs"
-                style={{
-                  position: "absolute",
-                  right: 4,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                }}
+                className="btn btn-ghost btn-icon btn-xs absolute right-1 top-1/2 -translate-y-1/2"
               >
                 <X size={14} />
               </button>
             )}
           </div>
           {taxpayerError && (
-            <div className="t-xs" style={{ color: "hsl(var(--destructive))", marginTop: 4 }}>
-              {taxpayerError}
-            </div>
+            <div className="t-xs text-destructive mt-1">{taxpayerError}</div>
           )}
         </div>
       </div>
@@ -292,24 +229,20 @@ export function IdentitySection({
       <div>
         <FormLabel required>Razón social</FormLabel>
         <input
-          className="pp-input"
+          className={`pp-input ${isCR ? "!bg-muted/15 cursor-not-allowed" : ""}`}
           value={form.business_name ?? ""}
           onChange={(e) => setForm((f) => ({ ...f, business_name: e.target.value }))}
           placeholder="Nombre legal de la empresa o persona"
           readOnly={isCR}
-          style={{
-            background: isCR ? "hsl(var(--muted) / 0.15)" : undefined,
-            cursor: isCR ? "not-allowed" : "text",
-          }}
         />
         {isCR && (
-          <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontStyle: "italic" }}>
+          <div className="t-xs text-muted-foreground mt-1 italic">
             Se completa automáticamente desde Hacienda
           </div>
         )}
       </div>
 
-      {/* Client Name (Fantasy/Trade Name) - Always editable */}
+      {/* Client Name (Fantasy/Trade Name) */}
       <div>
         <FormLabel>Nombre comercial / Fantasía</FormLabel>
         <input
@@ -318,7 +251,7 @@ export function IdentitySection({
           onChange={(e) => setForm((f) => ({ ...f, client_name: e.target.value }))}
           placeholder="Nombre comercial o de fantasía (opcional)"
         />
-        <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 4, fontStyle: "italic" }}>
+        <div className="t-xs text-muted-foreground mt-1 italic">
           Nombre con el que se conoce comercialmente
         </div>
       </div>

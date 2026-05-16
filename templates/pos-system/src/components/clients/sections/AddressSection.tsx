@@ -58,7 +58,7 @@ export function AddressSection({
         <div>
           <FormLabel>Dirección completa</FormLabel>
           <textarea
-            className="pp-input"
+            className="pp-input resize-y"
             rows={3}
             value={form.residence?.address ?? ""}
             onChange={(e) =>
@@ -68,7 +68,6 @@ export function AddressSection({
               }))
             }
             placeholder="Dirección completa"
-            style={{ resize: "vertical" }}
           />
         </div>
       )}

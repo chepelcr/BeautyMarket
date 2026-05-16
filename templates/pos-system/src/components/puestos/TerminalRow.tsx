@@ -20,21 +20,18 @@ export function TerminalRow({ terminal, isLast }: TerminalRowProps) {
     : null;
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 12, padding: "10px 20px",
-      borderBottom: isLast ? "none" : "1px solid hsl(var(--border) / 0.4)",
-    }}>
-      <span className={`status-dot status-dot-${isActive ? "success" : "warning"}`} style={{ flexShrink: 0 }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>{terminal.name}</span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, background: "hsl(var(--muted))", padding: "1px 6px", borderRadius: 4, letterSpacing: "0.05em" }}>
+    <div className={`flex items-center gap-3 px-5 py-2.5 ${isLast ? "" : "border-b border-border/40"}`}>
+      <span className={`status-dot status-dot-${isActive ? "success" : "warning"} flex-shrink-0`} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-[7px] flex-wrap">
+          <span className="text-[13px] font-bold">{terminal.name}</span>
+          <span className="font-mono text-[10px] font-semibold bg-muted px-1.5 py-px rounded tracking-[0.05em]">
             {terminal.code}
           </span>
         </div>
-        {lastSeen && <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 1 }}>{lastSeen}</div>}
+        {lastSeen && <div className="t-xs text-muted-foreground mt-px">{lastSeen}</div>}
         {terminal.device_id && (
-          <div className="t-xs" style={{ color: "hsl(var(--muted-foreground))", marginTop: 1, fontFamily: "var(--font-mono)" }}>
+          <div className="t-xs text-muted-foreground mt-px font-mono">
             {terminal.device_id}
           </div>
         )}

@@ -94,12 +94,12 @@ export default function PuestosPage() {
   const activeCount = branchesData?.data?.filter((b) => b.status === 1).length ?? 0;
 
   return (
-    <div style={{ padding: "24px 24px 48px", maxWidth: 1400, margin: "0 auto" }}>
+    <div className="px-6 pt-6 pb-12 max-w-[1400px] mx-auto">
       {/* Page header */}
-      <div className="fade-up" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16, flexWrap: "wrap" }}>
+      <div className="fade-up flex justify-between items-start mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 4 }}>{t("puestos.title")}</h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <h1 className="t-h1 mb-1">{t("puestos.title")}</h1>
+          <p className="t-body text-muted-foreground">
             {total === 0 ? t("puestos.title") : t("puestos.subtitle", { active: String(activeCount), total: String(total) })}
           </p>
         </div>
@@ -109,27 +109,27 @@ export default function PuestosPage() {
       </div>
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 340 }}>
-          <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "hsl(var(--muted-foreground))", pointerEvents: "none" }}>
+      <div className="flex gap-2.5 mb-5 flex-wrap items-center">
+        <div className="relative flex-1 min-w-[200px] max-w-[340px]">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
             <Icon name="search" size={14} />
           </div>
           <Input
             inputSize="sm"
-            style={{ paddingLeft: 36 }}
+            className="!pl-9"
             placeholder="Buscar por nombre o código…"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div className="flex gap-1.5">
           {(["all", "stand", "restaurant"] as const).map((f) => (
             <button key={f} type="button" onClick={() => { setFilter(f); setPage(1); }} className={`btn btn-sm ${filter === f ? "btn-primary" : "btn-outline"}`}>
               {f === "all" ? t("puestos.all") : f === "stand" ? t("puestos.stand") : t("puestos.restaurant")}
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => { setShowOnlyActive((v) => !v); setPage(1); }} className={`btn btn-sm ${showOnlyActive ? "btn-success" : "btn-outline"}`} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <button type="button" onClick={() => { setShowOnlyActive((v) => !v); setPage(1); }} className={`btn btn-sm flex items-center gap-1.5 ${showOnlyActive ? "btn-success" : "btn-outline"}`}>
           <Icon name={showOnlyActive ? "checkCircle" : "eye"} size={14} />
           {t("puestos.onlyActive")}
         </button>
@@ -137,7 +137,7 @@ export default function PuestosPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
           {Array.from({ length: pageSize }).map((_, i) => <BranchSkeletonCard key={i} />)}
         </div>
       ) : branches.length === 0 ? (
@@ -152,7 +152,7 @@ export default function PuestosPage() {
           ) : undefined}
         />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
           {branches.map((branch, i) => (
             <BranchCard
               key={branch.branch_id}
@@ -189,7 +189,7 @@ export default function PuestosPage() {
         subtitle={editingBranch ? String(editingBranch.code) : t("puestos.newStation")}
         icon="store"
         footer={
-          <div style={{ display: "flex", gap: 10, padding: "16px 24px", justifyContent: "flex-end" }}>
+          <div className="flex gap-2.5 px-6 py-4 justify-end">
             <Button 
               variant="outline" 
               size="sm" 
@@ -229,7 +229,7 @@ export default function PuestosPage() {
         iconColor="hsl(220 100% 55%)"
         width={400}
         footer={
-          <div style={{ display: "flex", gap: 10, padding: "16px 24px", justifyContent: "flex-end" }}>
+          <div className="flex gap-2.5 px-6 py-4 justify-end">
             <Button 
               variant="outline" 
               size="sm" 
@@ -260,9 +260,6 @@ export default function PuestosPage() {
         )}
       </Drawer>
 
-      <style>{`
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-      `}</style>
     </div>
   );
 }

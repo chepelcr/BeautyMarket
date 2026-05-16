@@ -22,7 +22,6 @@ export function Menu({ items, trigger, align = "right" }: MenuProps) {
   const triggerRef = useRef<HTMLDivElement>(null);
   const visible = items.filter((i) => !i.hidden);
 
-  // Recalculate position on scroll/resize while open
   useEffect(() => {
     if (!open) return;
     const update = () => {
@@ -48,7 +47,7 @@ export function Menu({ items, trigger, align = "right" }: MenuProps) {
   };
 
   return (
-    <div style={{ display: "inline-block" }}>
+    <div className="inline-block">
       <div ref={triggerRef} onClick={handleOpen}>
         {trigger ?? (
           <button className="btn btn-ghost btn-sm btn-icon" type="button">
@@ -60,21 +59,14 @@ export function Menu({ items, trigger, align = "right" }: MenuProps) {
       {open && createPortal(
         <>
           <div
-            style={{ position: "fixed", inset: 0, zIndex: 9998 }}
+            className="fixed inset-0 z-[9998]"
             onClick={() => setOpen(false)}
           />
           <div
+            className="fixed bg-card border border-border rounded-lg shadow-dropdown z-[9999] min-w-[170px] overflow-hidden"
             style={{
-              position: "fixed",
               top: coords.top,
               ...(align === "right" ? { right: coords.right } : { left: coords.left }),
-              background: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: 10,
-              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-              zIndex: 9999,
-              minWidth: 170,
-              overflow: "hidden",
             }}
           >
             {visible.map((item) => (
@@ -85,23 +77,8 @@ export function Menu({ items, trigger, align = "right" }: MenuProps) {
                   item.action();
                   setOpen(false);
                 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 9,
-                  width: "100%",
-                  padding: "10px 14px",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 500,
-                  color: item.color ?? "hsl(var(--foreground))",
-                  textAlign: "left",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--muted) / 0.6)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                className="flex items-center gap-2.5 w-full px-3.5 py-2.5 bg-transparent border-0 cursor-pointer text-[13px] font-sans font-medium text-left hover:bg-muted/60"
+                style={item.color ? { color: item.color } : undefined}
               >
                 {item.icon && <Icon name={item.icon} size={14} />}
                 {item.label}

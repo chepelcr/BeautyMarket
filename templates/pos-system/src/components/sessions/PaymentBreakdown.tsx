@@ -24,34 +24,32 @@ export function PaymentBreakdown({ totals }: PaymentBreakdownProps) {
   ] as const;
 
   return (
-    <Card style={{ padding: 22 }}>
+    <Card className="p-[22px]">
       <CardTitle>{t("report.paymentMethods")}</CardTitle>
-      <CardDescription style={{ marginBottom: 16 }}>{t("report.distribution")}</CardDescription>
+      <CardDescription className="!mb-4">{t("report.distribution")}</CardDescription>
       {methods.map((m) => {
         const pct = totals.ventas > 0 ? (m.v / totals.ventas) * 100 : 0;
+        const barColor = m.c === "primary" ? "hsl(var(--primary))" : `hsl(var(--${m.c}))`;
         return (
-          <div key={m.l} style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div
-                  className={`icon-pill ${m.c === "primary" ? "" : `icon-pill-${m.c}`}`}
-                  style={{ width: 26, height: 26 }}
-                >
+          <div key={m.l} className="mb-3.5">
+            <div className="flex justify-between items-center mb-1.5">
+              <div className="flex items-center gap-2">
+                <div className={`icon-pill w-[26px] h-[26px] ${m.c === "primary" ? "" : `icon-pill-${m.c}`}`}>
                   <Icon name={m.i} size={12} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700 }}>{m.l}</span>
+                <span className="text-[13px] font-bold">{m.l}</span>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div className="t-num" style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--font-display)" }}>
+              <div className="text-right">
+                <div className="t-num text-sm font-bold font-display">
                   {fmt(m.v)}
                 </div>
-                <div className="t-xs t-num" style={{ color: "hsl(var(--muted-foreground))" }}>
+                <div className="t-xs t-num text-muted-foreground">
                   {pct.toFixed(0)}%
                 </div>
               </div>
             </div>
-            <div className="progress" style={{ height: 8 }}>
-              <div className="progress-bar" style={{ width: `${pct}%`, background: `hsl(var(--${m.c}))` }} />
+            <div className="progress h-2">
+              <div className="progress-bar" style={{ width: `${pct}%`, background: barColor }} />
             </div>
           </div>
         );

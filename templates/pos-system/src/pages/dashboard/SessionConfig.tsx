@@ -279,42 +279,26 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Fixed Header */}
-      <div
-        style={{
-          padding: "20px 24px",
-          borderBottom: "1px solid hsl(var(--border))",
-          flexShrink: 0,
-        }}
-      >
-        <h2 className="t-h2" style={{ marginBottom: 6 }}>
+      <div className="px-6 py-5 border-b border-border flex-shrink-0">
+        <h2 className="t-h2 mb-1.5">
           {isEditMode ? "Editar sesión" : t("session.title")}
         </h2>
-        <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+        <p className="t-sm text-muted-foreground">
           {isEditMode ? "Modifica los detalles de la sesión activa." : t("session.subtitle")}
         </p>
         {error && (
-          <div
-            style={{
-              marginTop: 12,
-              padding: "10px 14px",
-              background: "hsl(var(--destructive) / 0.1)",
-              border: "1px solid hsl(var(--destructive) / 0.3)",
-              borderRadius: "var(--radius)",
-              color: "hsl(var(--destructive))",
-              fontSize: 13,
-            }}
-          >
+          <div className="mt-3 px-3.5 py-2.5 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-[13px]">
             {error}
           </div>
         )}
       </div>
 
       {/* Scrollable Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
+      <div className="flex-1 overflow-y-auto p-6">
         {/* Tabs — edit mode only shows details */}
-        <div className="tabs" style={{ marginBottom: 20 }}>
+        <div className="tabs mb-5">
           <button className="tab" aria-selected={tab === "details"} onClick={() => setTab("details")}>
             {t("session.tabMatch")}
           </button>
@@ -328,7 +312,7 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
 
         {/* Tab Content */}
         {tab === "details" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
+          <div className="grid gap-3.5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
             <div>
               <SessionTypeSelector
                 sessionType={sessionType}
@@ -340,7 +324,7 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
                 sessionDate={sessionDate}
                 setSessionDate={setSessionDate}
               />
-              <div style={{ marginTop: 14 }}>
+              <div className="mt-3.5">
                 <label className="label">Meta de ventas (opcional)</label>
                 <input
                   className="input"
@@ -395,19 +379,11 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
       </div>
 
       {/* Fixed Footer */}
-      <div
-        style={{
-          padding: "16px 24px",
-          borderTop: "1px solid hsl(var(--border))",
-          flexShrink: 0,
-          background: "hsl(var(--card))",
-        }}
-      >
-        {/* Validation feedback — only for create mode */}
+      <div className="px-6 py-4 border-t border-border flex-shrink-0 bg-card">
         {!isEditMode && !canActivate && (
-          <div style={{ marginBottom: 12, padding: "10px 14px", background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)", fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
+          <div className="mb-3 px-3.5 py-2.5 bg-muted/50 border border-border rounded-md text-xs text-muted-foreground">
             {t("session.requiredSteps")}:
-            <ul style={{ margin: "6px 0 0 0", paddingLeft: 20 }}>
+            <ul className="mt-1.5 pl-5">
               {!hasSelectedBranches && <li>{t("session.selectBranches")}</li>}
               {hasSelectedBranches && !allBranchesAssigned && <li>{t("session.assignMembers")}</li>}
               {!hasDate && <li>{t("session.selectDate")}</li>}
@@ -422,7 +398,7 @@ export default function SessionConfig({ onDone, onSuccess, initialSession }: Ses
           icon="check"
           disabled={(!isEditMode && !canActivate) || mutation.isPending}
           onClick={() => mutation.mutate()}
-          style={{ width: "100%" }}
+          className="w-full"
         >
           {mutation.isPending
             ? (isEditMode ? "Guardando…" : t("session.activating"))

@@ -6,35 +6,24 @@ interface SearchInputProps {
   placeholder?: string;
   isLoading?: boolean;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function SearchInput({ value, onChange, placeholder = "Buscar…", isLoading, style }: SearchInputProps) {
+export function SearchInput({ value, onChange, placeholder = "Buscar…", isLoading, style, className }: SearchInputProps) {
   return (
-    <div style={{ position: "relative", ...style }}>
-      <div
-        style={{
-          position: "absolute",
-          left: 12,
-          top: "50%",
-          transform: "translateY(-50%)",
-          pointerEvents: "none",
-          color: "hsl(var(--muted-foreground))",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+    <div className={`relative ${className ?? ""}`} style={style}>
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground flex items-center">
         {isLoading ? (
-          <Icon name="refresh" size={14} style={{ animation: "spin 1s linear infinite" }} />
+          <Icon name="refresh" size={14} className="animate-spin" />
         ) : (
           <Icon name="search" size={14} />
         )}
       </div>
       <input
-        className="input"
+        className="input w-full pl-9"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{ paddingLeft: 36, width: "100%" }}
       />
     </div>
   );

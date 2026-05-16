@@ -17,26 +17,15 @@ export function ProductImage({ imageUrl, name, size = 40, className = "", style 
         alt={name ?? "producto"}
         width={size}
         height={size}
-        className={className}
-        style={{ width: size, height: size, objectFit: "cover", borderRadius: 6, flexShrink: 0, ...style }}
+        className={`object-cover rounded-md flex-shrink-0 ${className}`}
+        style={{ width: size, height: size, ...style }}
       />
     );
   }
   return (
     <div
-      className={className}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 6,
-        background: "hsl(var(--muted))",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: "hsl(var(--muted-foreground))",
-        ...style,
-      }}
+      className={`rounded-md bg-muted flex items-center justify-center flex-shrink-0 text-muted-foreground ${className}`}
+      style={{ width: size, height: size, ...style }}
     >
       <Icon name="package" size={Math.max(16, Math.round(size * 0.5))} />
     </div>

@@ -112,12 +112,12 @@ export default function SessionsPage() {
   };
 
   return (
-    <div style={{ padding: "24px 24px 40px", maxWidth: 1280, margin: "0 auto" }}>
+    <div className="px-6 pt-6 pb-10 max-w-[1280px] mx-auto">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+      <div className="flex justify-between items-start mb-5 flex-wrap gap-3">
         <div>
-          <h1 className="t-h1" style={{ marginBottom: 6 }}>{t("session.title")}</h1>
-          <p className="t-body" style={{ color: "hsl(var(--muted-foreground))" }}>{t("session.manageActiveSessions")}</p>
+          <h1 className="t-h1 mb-1.5">{t("session.title")}</h1>
+          <p className="t-body text-muted-foreground">{t("session.manageActiveSessions")}</p>
         </div>
         <Button variant="primary" icon="plus" onClick={() => { setEditSession(null); setConfigOpen(true); }}>
           {t("session.newSession")}
@@ -125,7 +125,7 @@ export default function SessionsPage() {
       </div>
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+      <div className="flex gap-2 mb-5">
         {(["all", "active", "closed"] as const).map((f) => (
           <button key={f} onClick={() => setFilter(f)} className={filter === f ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm"}>
             {f === "all" ? t("session.allSessions") : f === "active" ? t("session.activeSessions") : t("session.closedSessions")}
@@ -135,20 +135,20 @@ export default function SessionsPage() {
 
       {/* Sessions list */}
       {isLoading ? (
-        <div style={{ display: "grid", gap: 14 }}>
+        <div className="grid gap-3.5">
           {Array.from({ length: pageSize }).map((_, i) => <SessionSkeletonCard key={i} />)}
         </div>
       ) : sessions.length === 0 ? (
-        <Card style={{ padding: 40, textAlign: "center" }}>
-          <div className="icon-pill icon-pill-lg" style={{ margin: "0 auto 16px", background: "hsl(var(--muted) / 0.3)", color: "hsl(var(--muted-foreground))", width: 64, height: 64 }}>
+        <Card className="p-10 text-center">
+          <div className="icon-pill icon-pill-lg mx-auto mb-4 bg-muted/30 text-muted-foreground w-16 h-16">
             <Icon name="calendar" size={28} />
           </div>
-          <div className="t-h3" style={{ marginBottom: 6 }}>{t("session.noSessions")}</div>
-          <div className="t-sm" style={{ color: "hsl(var(--muted-foreground))", marginBottom: 20 }}>{t("session.createFirstSession")}</div>
+          <div className="t-h3 mb-1.5">{t("session.noSessions")}</div>
+          <div className="t-sm text-muted-foreground mb-5">{t("session.createFirstSession")}</div>
           <Button variant="primary" icon="plus" onClick={() => setConfigOpen(true)}>{t("session.newSession")}</Button>
         </Card>
       ) : (
-        <div style={{ display: "grid", gap: 14 }}>
+        <div className="grid gap-3.5">
           {sessions.map((session, i) => (
             <SessionCard
               key={session.session_id}

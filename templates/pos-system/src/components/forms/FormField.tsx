@@ -6,19 +6,16 @@ interface FormFieldProps {
   error?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function FormField({ label, required, error, children, style }: FormFieldProps) {
+export function FormField({ label, required, error, children, style, className }: FormFieldProps) {
   return (
-    <div style={style}>
-      <FormLabel required={required}>
-        {label}
-      </FormLabel>
+    <div className={className} style={style}>
+      <FormLabel required={required}>{label}</FormLabel>
       {children}
       {error && (
-        <span style={{ fontSize: 12, color: "hsl(var(--destructive))", marginTop: 4, display: "block" }}>
-          {error}
-        </span>
+        <span className="block text-xs text-destructive mt-1">{error}</span>
       )}
     </div>
   );

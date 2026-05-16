@@ -43,8 +43,8 @@ export function ContactSection({
       </div>
 
       {/* Phone Country & Number */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <div style={{ flex: "0 0 calc(50% - 5px)" }}>
+      <div className="flex gap-2.5">
+        <div className="flex-1">
           <FormLabel>País (teléfono)</FormLabel>
           <select
             className="pp-input"
@@ -60,7 +60,7 @@ export function ContactSection({
           </select>
         </div>
 
-        <div style={{ flex: "0 0 calc(50% - 5px)" }}>
+        <div className="flex-1">
           <FormLabel>Número de teléfono</FormLabel>
           <input
             className="pp-input"

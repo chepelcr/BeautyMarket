@@ -151,7 +151,7 @@ export function OtherTaxSection({
       onToggle={onToggle}
       badge={addedOtherTaxes.length > 0 ? addedOtherTaxes.length : undefined}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {addedOtherTaxes.map((tax) => {
           const tt = allTaxTypes.find((x: any) => x.id === tax.tax_type_id);
           const cfg = getTaxConfig(tt?.code);
@@ -253,17 +253,10 @@ function TaxCard({
   const isBeverage = isAlcoholic || isNonAlcoholic;
 
   return (
-    <div
-      style={{
-        padding: '10px 12px',
-        background: 'hsl(var(--muted) / 0.3)',
-        borderRadius: 8,
-        border: '1px solid hsl(var(--border))',
-      }}
-    >
+    <div className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: needsSpecialFields ? 8 : 0 }}>
-        <div style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>
+      <div className={`flex items-center gap-2 ${needsSpecialFields ? "mb-2" : ""}`}>
+        <div className="flex-1 text-xs font-semibold">
           {taxType?.description ?? 'Impuesto'}
         </div>
 
@@ -271,8 +264,7 @@ function TaxCard({
           <>
             <input
               type="number"
-              className="pp-input"
-              style={{ width: 72, padding: '3px 8px', fontSize: 12 }}
+              className="pp-input w-[72px] !h-auto !px-2 !py-[3px] text-xs"
               placeholder="%"
               min={0}
               max={100}
@@ -280,7 +272,7 @@ function TaxCard({
               onChange={(e) => onUpdate({ rate: Number(e.target.value) })}
             />
             {taxAmount > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--primary))', minWidth: 64, textAlign: 'right' }}>
+              <span className="text-xs font-semibold text-primary min-w-[64px] text-right">
                 +{fmt(taxAmount)}
               </span>
             )}
@@ -289,11 +281,11 @@ function TaxCard({
         
         {isFixed && (
           <>
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', padding: '3px 8px' }}>
+            <span className="text-xs font-semibold text-muted-foreground px-2 py-[3px]">
               5%
             </span>
             {basePrice > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--primary))', minWidth: 64, textAlign: 'right' }}>
+              <span className="text-xs font-semibold text-primary min-w-[64px] text-right">
                 +{fmt(basePrice * 0.05)}
               </span>
             )}
@@ -312,14 +304,13 @@ function TaxCard({
       {/* Special Fields */}
       {needsSpecialFields && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
             {/* Tax Amount dropdown - shown for all special field taxes */}
           {taxAmounts.length > 0 && (
             <div>
               <FormLabel>Monto impuesto</FormLabel>
               <select
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 value={tax.special_fields?.tax_amount_id ?? ''}
                 onChange={(e) => {
                   const selectedId = Number(e.target.value);
@@ -351,8 +342,7 @@ function TaxCard({
               </FormLabel>
               <input
                 type="number"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder="0"
                 min={0}
                 value={tax.special_fields?.quantity ?? ''}
@@ -371,8 +361,7 @@ function TaxCard({
               <FormLabel>Porcentaje</FormLabel>
               <input
                 type="number"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder="0"
                 min={0}
                 max={100}
@@ -393,8 +382,7 @@ function TaxCard({
               <FormLabel>Volumen/unidad</FormLabel>
               <input
                 type="number"
-                className="pp-input"
-                style={{ fontSize: 12 }}
+                className="pp-input text-xs"
                 placeholder="0"
                 min={0}
                 value={tax.special_fields?.volume_consumption ?? ''}
@@ -409,19 +397,15 @@ function TaxCard({
         </div>
         
         {/* Calculated Amount Display - Always show for special field taxes */}
-        <div style={{ 
-          marginTop: 8, 
-          padding: '6px 10px', 
-          background: taxAmount > 0 ? 'hsl(var(--primary) / 0.08)' : 'hsl(var(--muted) / 0.3)', 
-          borderRadius: 6,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'hsl(var(--muted-foreground))' }}>
+        <div className={`mt-2 px-2.5 py-1.5 rounded-md flex justify-between items-center ${
+          taxAmount > 0 ? "bg-primary/[0.08]" : "bg-muted/30"
+        }`}>
+          <span className="text-[11px] font-semibold text-muted-foreground">
             Monto calculado
           </span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: taxAmount > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))', fontFamily: 'var(--font-mono)' }}>
+          <span className={`text-[13px] font-bold font-mono ${
+            taxAmount > 0 ? "text-primary" : "text-muted-foreground"
+          }`}>
             {taxAmount > 0 ? `+${fmt(taxAmount)}` : '₡0'}
           </span>
         </div>

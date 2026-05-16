@@ -1,47 +1,9 @@
 export function ProductGridSkeleton() {
   return (
-    <div
-      style={{
-        width: "100%",
-        aspectRatio: "1/1",
-        borderRadius: 12,
-        border: "1px solid hsl(var(--border))",
-        background: "hsl(var(--card))",
-        padding: 12,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
-      className="animate-pulse"
-    >
-      {/* Image placeholder */}
-      <div
-        style={{
-          flex: 1,
-          borderRadius: 8,
-          background: "hsl(var(--muted))",
-        }}
-      />
-      
-      {/* Name placeholder */}
-      <div
-        style={{
-          height: 14,
-          borderRadius: 4,
-          background: "hsl(var(--muted))",
-          width: "80%",
-        }}
-      />
-      
-      {/* Price placeholder */}
-      <div
-        style={{
-          height: 16,
-          borderRadius: 4,
-          background: "hsl(var(--muted))",
-          width: "50%",
-        }}
-      />
+    <div className="w-full aspect-square rounded-xl border border-border bg-card p-3 flex flex-col gap-2 animate-pulse">
+      <div className="flex-1 rounded-lg bg-muted" />
+      <div className="h-3.5 rounded-sm bg-muted w-4/5" />
+      <div className="h-4 rounded-sm bg-muted w-1/2" />
     </div>
   );
 }

@@ -2,42 +2,35 @@ import { Card } from "@/components/ui";
 
 export function SessionSkeletonCard() {
   return (
-    <Card style={{ padding: "18px 20px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+    <Card className="px-5 py-[18px]">
+      <div className="flex items-center justify-between gap-4">
         {/* Left side */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: "hsl(var(--muted) / 0.4)", animation: "pulse 1.5s ease-in-out infinite" }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ height: 15, width: "60%", background: "hsl(var(--muted) / 0.4)", borderRadius: 5, marginBottom: 8, animation: "pulse 1.5s ease-in-out infinite" }} />
-            <div style={{ height: 10, width: "40%", background: "hsl(var(--muted) / 0.25)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.1s" }} />
+        <div className="flex-1 flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-[14px] bg-muted/40 animate-pulse" />
+          <div className="flex-1">
+            <div className="h-[15px] w-3/5 bg-muted/40 rounded-sm mb-2 animate-pulse" />
+            <div className="h-2.5 w-2/5 bg-muted/25 rounded-sm animate-pulse" />
           </div>
         </div>
-        
+
         {/* Stats */}
-        <div style={{ display: "flex", gap: 16 }}>
+        <div className="flex gap-4">
           <div>
-            <div style={{ height: 9, width: 60, background: "hsl(var(--muted) / 0.25)", borderRadius: 5, marginBottom: 6, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.15s" }} />
-            <div style={{ height: 16, width: 80, background: "hsl(var(--muted) / 0.35)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.2s" }} />
+            <div className="h-[9px] w-[60px] bg-muted/25 rounded-sm mb-1.5 animate-pulse" />
+            <div className="h-4 w-20 bg-muted/35 rounded-sm animate-pulse" />
           </div>
           <div>
-            <div style={{ height: 9, width: 60, background: "hsl(var(--muted) / 0.25)", borderRadius: 5, marginBottom: 6, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.25s" }} />
-            <div style={{ height: 16, width: 50, background: "hsl(var(--muted) / 0.35)", borderRadius: 5, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.3s" }} />
+            <div className="h-[9px] w-[60px] bg-muted/25 rounded-sm mb-1.5 animate-pulse" />
+            <div className="h-4 w-[50px] bg-muted/35 rounded-sm animate-pulse" />
           </div>
         </div>
-        
+
         {/* Actions */}
-        <div style={{ display: "flex", gap: 6 }}>
-          <div style={{ width: 80, height: 34, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.35s" }} />
-          <div style={{ width: 34, height: 34, background: "hsl(var(--muted) / 0.2)", borderRadius: 8, animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.35s" }} />
+        <div className="flex gap-1.5">
+          <div className="w-20 h-[34px] bg-muted/20 rounded-lg animate-pulse" />
+          <div className="w-[34px] h-[34px] bg-muted/20 rounded-lg animate-pulse" />
         </div>
       </div>
-      
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </Card>
   );
 }

@@ -3,6 +3,17 @@ import { persist } from 'zustand/middleware';
 import type { InvoiceFormData, DocTypeCode } from '@/types/invoice';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 
+/**
+ * Maximum number of document tabs visible in the desktop/tablet navbar
+ * (DocumentsToolbar). Any tab beyond this count is "overflow" and only
+ * reachable via the right-side DocumentsMobileDrawer.
+ *
+ * When the user picks an overflow tab from the drawer, we swap it into
+ * the last visible slot so it appears selected in the toolbar — see
+ * `promoteTabToVisible`.
+ */
+export const MAX_VISIBLE_TABS = 3;
+
 // Cart item structure (matching cart store)
 interface CartItem {
   product: any;
@@ -41,6 +52,12 @@ interface DocumentStore {
   setActiveDocumentTab: (id: string | null) => void;
   updateDocumentTab: (id: string, patch: Partial<DocumentTab>) => void;
   closeAllTabs: () => void;
+  /**
+   * Move an "overflow" tab (index ≥ maxVisible) into the visible window by
+   * swapping it with the tab currently at the last visible slot. No-op if
+   * the tab is already visible or not found.
+   */
+  promoteTabToVisible: (id: string, maxVisible: number) => void;
 
   // List filter
   setIsReceived: (received: boolean) => void;
@@ -88,6 +105,20 @@ export const useDocumentStore = create<DocumentStore>()(
 
       closeAllTabs: () =>
         set({ open_documents: [], active_document_tab: null }),
+
+      promoteTabToVisible: (id, maxVisible) => {
+        set((state) => {
+          const docs = state.open_documents;
+          const idx = docs.findIndex((d) => d.id === id);
+          // Already visible (or not found) — nothing to swap
+          if (idx < 0 || idx < maxVisible) return state;
+          const targetIdx = maxVisible - 1;
+          // Swap doc at `idx` with doc currently at `targetIdx`
+          const next = docs.slice();
+          [next[targetIdx], next[idx]] = [next[idx], next[targetIdx]];
+          return { open_documents: next };
+        });
+      },
 
       setIsReceived: (received) => set({ is_received: received }),
     }),

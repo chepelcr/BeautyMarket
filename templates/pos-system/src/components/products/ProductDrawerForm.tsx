@@ -330,19 +330,19 @@ export function ProductDrawerForm({
       icon="package"
       width="min(500px, 100vw)"
       footer={
-        <div style={{ padding: "16px 24px", display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="px-6 py-4 flex gap-2 items-center">
           {!isNew && (
             <Button
               variant="ghost"
               size="sm"
               icon="trash"
               onClick={onDelete}
-              style={{ color: "hsl(var(--destructive))" }}
+              className="!text-destructive"
             >
               {t("common.delete")}
             </Button>
           )}
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
           <Button variant="outline" size="sm" onClick={onClose}>
             {t("common.cancel")}
           </Button>
@@ -365,7 +365,7 @@ export function ProductDrawerForm({
       {/* Form content — only rendered once data is ready */}
       {drawerReady && (
         <FadeIn duration={0.3}>
-          <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="p-5 flex flex-col gap-2.5">
 
             {/* 1. General Information */}
             <GeneralInfoSection

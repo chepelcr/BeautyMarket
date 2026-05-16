@@ -39,64 +39,45 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
   };
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 16, gap: 14, overflowY: "auto" }}>
+    <div className="flex-1 flex flex-col p-4 gap-3.5 overflow-y-auto">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" icon="arrowLeft" onClick={onBack} />
-        <h2 className="t-h2" style={{ margin: 0 }}>{t("payment.title")}</h2>
+        <h2 className="t-h2 !m-0">{t("payment.title")}</h2>
       </div>
 
       {/* Total card */}
-      <Card style={{ padding: "20px 24px", textAlign: "center" }}>
-        <div className="t-label" style={{ marginBottom: 8, letterSpacing: "0.08em" }}>
-          {t("payment.totalLabel")}
-        </div>
-        <div
-          className="t-stat-xl"
-          style={{ fontSize: 48, color: "hsl(var(--primary))" }}
-        >
-          {fmt(total)}
-        </div>
+      <Card className="px-6 py-5 text-center">
+        <div className="t-label mb-2 tracking-[0.08em]">{t("payment.totalLabel")}</div>
+        <div className="t-stat-xl !text-5xl !text-primary">{fmt(total)}</div>
       </Card>
 
       {/* Method selector */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+      <div className="grid grid-cols-3 gap-2">
         {METHODS.map(({ id, icon, label }) => (
           <button
             key={id}
             type="button"
             onClick={() => setMethod(id)}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 8,
-              padding: "14px 8px",
-              borderRadius: 12,
-              border: `2px solid ${method === id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-              background: method === id ? "hsl(var(--primary) / 0.08)" : "transparent",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
+            className={`flex flex-col items-center gap-2 px-2 py-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+              method === id
+                ? "border-primary bg-primary/[0.08]"
+                : "border-border bg-transparent"
+            }`}
           >
             <div
-              className="icon-pill"
-              style={{
-                width: 36,
-                height: 36,
-                background: method === id ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
-                color: method === id ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-              }}
+              className={`icon-pill w-9 h-9 ${
+                method === id
+                  ? "bg-primary/15 text-primary"
+                  : "bg-muted text-muted-foreground"
+              }`}
             >
               <Icon name={icon} size={16} />
             </div>
             <span
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: "var(--font-display)",
-                color: method === id ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-              }}
+              className={`text-[13px] font-bold font-display ${
+                method === id ? "text-primary" : "text-foreground"
+              }`}
             >
               {label}
             </span>
@@ -106,39 +87,31 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
 
       {/* Efectivo */}
       {method === "Efectivo" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <FormLabel style={{ letterSpacing: "0.06em" }}>
-            {t("payment.receivedLabel")}
-          </FormLabel>
+        <div className="flex flex-col gap-2.5">
+          <FormLabel>{t("payment.receivedLabel")}</FormLabel>
           <Input
             type="number"
             placeholder="₡0"
             value={received}
             onChange={(e) => setReceived(e.target.value)}
             inputSize="lg"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 800,
-              fontSize: 32,
-              textAlign: "center",
-              borderColor:
-                received
-                  ? receivedNum >= total
-                    ? "hsl(var(--success))"
-                    : "hsl(var(--destructive))"
-                  : undefined,
-            }}
+            className={`!font-display !font-extrabold !text-3xl !text-center ${
+              received
+                ? receivedNum >= total
+                  ? "!border-success"
+                  : "!border-destructive"
+                : ""
+            }`}
           />
 
           {/* Quick amount chips */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div className="flex gap-1.5 flex-wrap">
             {[1000, 2000, 5000, 10000, 20000].map((amt) => (
               <button
                 key={amt}
                 type="button"
                 onClick={() => setReceived(String(amt))}
-                className="btn btn-outline btn-xs"
-                style={{ fontFamily: "var(--font-mono)" }}
+                className="btn btn-outline btn-xs font-mono"
               >
                 ₡{amt.toLocaleString("es-CR")}
               </button>
@@ -147,42 +120,19 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
 
           {/* Change card */}
           {received && receivedNum >= total && (
-            <Card
-              style={{
-                padding: "14px 18px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: "hsl(var(--success) / 0.08)",
-                border: "1px solid hsl(var(--success) / 0.3)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Icon name="cash" size={16} style={{ color: "hsl(var(--success))" } as any} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: "hsl(var(--success))" }}>
-                  {t("payment.return")}
-                </span>
+            <Card className="px-[18px] py-3.5 flex justify-between items-center bg-success/[0.08] !border-success/30">
+              <div className="flex items-center gap-2">
+                <Icon name="cash" size={16} className="text-success" />
+                <span className="text-sm font-bold text-success">{t("payment.return")}</span>
               </div>
-              <span
-                className="t-stat"
-                style={{ fontSize: 22, color: "hsl(var(--success))" }}
-              >
-                {fmt(change)}
-              </span>
+              <span className="t-stat !text-[22px] !text-success">{fmt(change)}</span>
             </Card>
           )}
 
           {received && receivedNum < total && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                color: "hsl(var(--destructive))",
-              }}
-            >
+            <div className="flex items-center gap-2 text-destructive">
               <Icon name="alertTri" size={14} />
-              <span className="t-sm" style={{ fontWeight: 600 }}>
+              <span className="t-sm font-semibold">
                 {t("payment.remaining", { amount: fmt(total - receivedNum) })}
               </span>
             </div>
@@ -192,23 +142,12 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
 
       {/* SINPE */}
       {method === "SINPE" && (
-        <Card style={{ padding: "24px", textAlign: "center" }}>
-          <div className="t-label" style={{ marginBottom: 10, letterSpacing: "0.06em" }}>
-            {t("payment.sinpeTitle")}
-          </div>
-          <div
-            className="t-num"
-            style={{
-              fontSize: 36,
-              fontWeight: 800,
-              color: "hsl(var(--primary))",
-              letterSpacing: "0.08em",
-              marginBottom: 12,
-            }}
-          >
+        <Card className="p-6 text-center">
+          <div className="t-label mb-2.5 tracking-[0.06em]">{t("payment.sinpeTitle")}</div>
+          <div className="t-num text-4xl font-extrabold text-primary tracking-[0.08em] mb-3">
             {import.meta.env.VITE_SINPE_NUMBER || "8888-8888"}
           </div>
-          <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <p className="t-sm text-muted-foreground">
             {t("payment.sinpeInstruction", { amount: fmt(total) })}
           </p>
         </Card>
@@ -216,24 +155,15 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
 
       {/* Tarjeta */}
       {method === "Tarjeta" && (
-        <Card style={{ padding: "32px 24px", textAlign: "center" }}>
-          <div
-            className="icon-pill"
-            style={{
-              width: 64,
-              height: 64,
-              margin: "0 auto 16px",
-              background: "hsl(var(--primary) / 0.1)",
-              color: "hsl(var(--primary))",
-            }}
-          >
+        <Card className="px-6 py-8 text-center">
+          <div className="icon-pill w-16 h-16 mx-auto mb-4 bg-primary/10 text-primary">
             <Icon name="card" size={28} />
           </div>
-          <div style={{ fontSize: 17, fontWeight: 700, fontFamily: "var(--font-display)", marginBottom: 6 }}>
+          <div className="text-[17px] font-bold font-display mb-1.5">
             {t("payment.cardInstruction")}
           </div>
-          <p className="t-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {t("payment.amountLabel")} <strong style={{ color: "hsl(var(--primary))" }}>{fmt(total)}</strong>
+          <p className="t-sm text-muted-foreground">
+            {t("payment.amountLabel")} <strong className="text-primary">{fmt(total)}</strong>
           </p>
         </Card>
       )}
@@ -245,7 +175,7 @@ export default function PaymentScreen({ total, onBack, onConfirm }: PaymentScree
         onClick={handleConfirm}
         disabled={!canConfirm || loading}
         icon={loading ? undefined : "checkCircle"}
-        style={{ width: "100%", marginTop: "auto" }}
+        className="w-full mt-auto"
       >
         {loading
           ? t("payment.registering")

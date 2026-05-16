@@ -23,53 +23,30 @@ export function Pagination({
 }: PaginationProps) {
   const { t } = useLanguage();
 
-  // Show pagination if there are multiple pages OR if page size selector is enabled
   if (totalPages <= 1 && !onPageSizeChange) return null;
 
-  // Calculate the actual range of items being displayed
-  // Use the actual pageSize from backend response, not the requested one
   const startItem = totalElements > 0 ? (page - 1) * pageSize + 1 : 0;
   const endItem = Math.min(startItem + pageSize - 1, totalElements);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginTop: 24,
-        flexWrap: "wrap",
-        gap: 10,
-      }}
-    >
+    <div className="flex items-center justify-between mt-6 flex-wrap gap-2.5">
       {/* Info + Page Size Selector */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 13, color: "hsl(var(--muted-foreground))" }}>
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-[13px] text-muted-foreground">
           Mostrando {startItem}-{endItem} de {totalElements} {itemName}
         </span>
-        
+
         {onPageSizeChange && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}>
-              Mostrar:
-            </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Mostrar:</span>
             <select
               value={pageSize}
               onChange={(e) => {
                 const newSize = Number(e.target.value);
-                onPageChange(1); // Reset to first page BEFORE changing page size
+                onPageChange(1);
                 onPageSizeChange(newSize);
               }}
-              style={{
-                padding: "4px 8px",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: 6,
-                background: "hsl(var(--background))",
-                color: "hsl(var(--foreground))",
-                fontSize: 12,
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                cursor: "pointer",
-              }}
+              className="px-2 py-1 border border-border rounded-md bg-background text-foreground text-xs font-sans cursor-pointer"
             >
               {pageSizeOptions.map((size) => (
                 <option key={size} value={size}>
@@ -83,55 +60,31 @@ export function Pagination({
 
       {/* Controls */}
       {totalPages > 1 && (
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {/* Previous Button */}
+        <div className="flex gap-2 items-center">
           <button
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page <= 1}
-            style={{
-              padding: "8px 16px",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: 8,
-              background: "transparent",
-              color: page <= 1 ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))",
-              fontSize: 13,
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              cursor: page <= 1 ? "not-allowed" : "pointer",
-              opacity: page <= 1 ? 0.45 : 1,
-              transition: "all 0.2s",
-            }}
+            className={`px-4 py-2 border border-border rounded-lg bg-transparent text-[13px] font-sans transition-colors ${
+              page <= 1
+                ? "text-muted-foreground opacity-45 cursor-not-allowed"
+                : "text-foreground cursor-pointer hover:bg-muted"
+            }`}
           >
             ← {t("common.previous")}
           </button>
 
-          {/* Page Info */}
-          <span
-            style={{
-              fontSize: 13,
-              color: "hsl(var(--foreground))",
-              fontWeight: 600,
-              padding: "0 8px",
-            }}
-          >
+          <span className="text-[13px] text-foreground font-semibold px-2">
             {page} / {totalPages}
           </span>
 
-          {/* Next Button */}
           <button
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            style={{
-              padding: "8px 16px",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: 8,
-              background: "transparent",
-              color: page >= totalPages ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))",
-              fontSize: 13,
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              cursor: page >= totalPages ? "not-allowed" : "pointer",
-              opacity: page >= totalPages ? 0.45 : 1,
-              transition: "all 0.2s",
-            }}
+            className={`px-4 py-2 border border-border rounded-lg bg-transparent text-[13px] font-sans transition-colors ${
+              page >= totalPages
+                ? "text-muted-foreground opacity-45 cursor-not-allowed"
+                : "text-foreground cursor-pointer hover:bg-muted"
+            }`}
           >
             {t("common.next")} →
           </button>

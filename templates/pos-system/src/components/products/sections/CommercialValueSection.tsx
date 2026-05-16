@@ -43,7 +43,6 @@ export function CommercialValueSection({
     rate: d.rate,
   }));
 
-  // Full calculation using the tax service — same engine as the backend
   const calc = price > 0
     ? TaxCalculationService.getLineAmounts({
         subtotal: price,
@@ -55,7 +54,6 @@ export function CommercialValueSection({
       })
     : null;
 
-  // Per-discount amounts
   const discountLines = discounts.map((d) => ({
     label: d.description,
     rate: d.rate ?? 0,
@@ -63,14 +61,11 @@ export function CommercialValueSection({
   }));
   const totalDiscountAmount = discountLines.reduce((s, d) => s + d.amount, 0);
 
-  // Net price after discounts
   const netPrice = price - totalDiscountAmount;
 
-  // Per-tax amounts — use full calc totals for accuracy, individual approximations for line display
   const ivaTaxes = taxes.filter((t) => IVA_CODES.includes(t.taxCode));
   const otherTaxes = taxes.filter((t) => !IVA_CODES.includes(t.taxCode));
 
-  // IVA amounts: baseAmount × rate / 100 (calc.baseAmount accounts for special taxes)
   const baseAmount = calc?.baseAmount ?? netPrice;
   const ivaLines = ivaTaxes.map((t) => ({
     label: t.taxDescription,
@@ -79,7 +74,6 @@ export function CommercialValueSection({
       : baseAmount * t.rate / 100,
   }));
 
-  // Other tax amounts — approximation from rate (special taxes use fixed amounts from the service)
   const otherTaxLines = otherTaxes.map((t) => ({
     label: t.taxDescription,
     amount: t.rate > 0 ? price * t.rate / 100 : 0,
@@ -99,131 +93,83 @@ export function CommercialValueSection({
       {/* Base price input */}
       <div>
         <FormLabel required>{t("products.basePriceNoTax")}</FormLabel>
-        <div style={{ position: "relative" }}>
-          <span
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              fontSize: 14,
-              fontWeight: 600,
-              color: "hsl(var(--muted-foreground))",
-            }}
-          >
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
             ₡
           </span>
           <input
             type="number"
-            className="pp-input"
+            className="pp-input pl-6"
             placeholder="0"
             min={0}
-            style={{ paddingLeft: 24 }}
             value={form.price}
             onChange={(e) => onChange({ price: e.target.value })}
           />
         </div>
       </div>
 
-      {/* Detailed price breakdown — JCampos-Biller style */}
       {price > 0 && (
-        <div
-          style={{
-            padding: "14px 16px",
-            background: "hsl(var(--primary) / 0.06)",
-            borderRadius: 10,
-            border: "1.5px solid hsl(var(--primary) / 0.3)",
-          }}
-        >
-          {/* Sale price header */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
-            <span className="t-label" style={{ color: "hsl(var(--primary))", display: "block", marginBottom: 0 }}>
+        <div className="px-4 py-3.5 bg-primary/[0.06] rounded-lg border-[1.5px] border-primary/30">
+          <div className="flex justify-between items-center mb-3">
+            <span className="t-label !text-primary !mb-0">
               {t("products.estimatedSalePrice")}
             </span>
-            <span
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: "hsl(var(--primary))",
-                fontFamily: "var(--font-display)",
-              }}
-            >
+            <span className="text-[22px] font-bold text-primary font-display">
               {fmt(salePrice)}
             </span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {/* Base price */}
+          <div className="flex flex-col gap-[3px]">
             <Row label={t("products.basePriceLine")} value={fmt(price)} />
 
-            {/* Each discount line */}
             {discountLines.map((d, i) => (
               <Row
                 key={i}
                 label={`${d.label}${d.rate > 0 ? ` (${d.rate}%)` : ""}`}
                 value={`-${fmt(d.amount)}`}
-                color="hsl(var(--destructive))"
+                tone="destructive"
               />
             ))}
 
-            {/* Net price after discounts */}
             {totalDiscountAmount > 0 && (
               <Row label={t("products.netPrice")} value={fmt(netPrice)} bold />
             )}
 
-            {/* Other/special taxes (added before IVA base) */}
             {otherTaxLines.map((t, i) => (
               <Row
                 key={i}
                 label={t.label}
                 value={t.amount > 0 ? `+${fmt(t.amount)}` : "—"}
-                color="hsl(var(--muted-foreground))"
               />
             ))}
 
-            {/* Base for IVA — shown when there are IVA taxes */}
             {ivaTaxes.length > 0 && (
               <>
-                <div style={{ borderTop: "1px solid hsl(var(--border) / 0.4)", margin: "4px 0" }} />
+                <div className="border-t border-border/40 my-1" />
                 <Row
                   label={t("products.baseForIva")}
                   value={fmt(baseAmount)}
                   bold
-                  color="hsl(var(--foreground))"
+                  tone="foreground"
                 />
               </>
             )}
 
-            {/* IVA lines */}
             {ivaLines.map((t, i) => (
-              <Row
-                key={i}
-                label={t.label}
-                value={`+${fmt(t.amount)}`}
-                color="hsl(var(--muted-foreground))"
-              />
+              <Row key={i} label={t.label} value={`+${fmt(t.amount)}`} />
             ))}
 
-            {/* Factory assumed tax */}
             {factoryAssumedTax > 0 && (
               <Row
                 label={t("products.factoryAssumedTax")}
                 value={`-${fmt(factoryAssumedTax)}`}
-                color="hsl(var(--warning, 38 92% 50%))"
+                tone="warning"
               />
             )}
 
-            {/* Totals */}
             {(ivaTaxes.length > 0 || otherTaxes.length > 0) && (
               <>
-                <div style={{ borderTop: "1px solid hsl(var(--border) / 0.5)", margin: "4px 0" }} />
+                <div className="border-t border-border/50 my-1" />
                 {(calc?.ivaTaxTotal ?? 0) > 0 && (
                   <Row label={t("products.totalIva")} value={`+${fmt(calc!.ivaTaxTotal)}`} bold />
                 )}
@@ -242,28 +188,24 @@ export function CommercialValueSection({
 function Row({
   label,
   value,
-  color,
+  tone = "muted",
   bold,
 }: {
   label: string;
   value: string;
-  color?: string;
+  tone?: "muted" | "foreground" | "destructive" | "warning";
   bold?: boolean;
 }) {
+  const toneClass = {
+    muted: "text-muted-foreground",
+    foreground: "text-foreground",
+    destructive: "text-destructive",
+    warning: "text-warning",
+  }[tone];
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <span
-        className="t-xs"
-        style={{ color: color ?? "hsl(var(--muted-foreground))", fontWeight: bold ? 700 : undefined }}
-      >
-        {label}
-      </span>
-      <span
-        className="t-xs"
-        style={{ color: color ?? "hsl(var(--muted-foreground))", fontWeight: bold ? 700 : undefined }}
-      >
-        {value}
-      </span>
+    <div className="flex justify-between items-center">
+      <span className={`t-xs ${toneClass} ${bold ? "font-bold" : ""}`}>{label}</span>
+      <span className={`t-xs ${toneClass} ${bold ? "font-bold" : ""}`}>{value}</span>
     </div>
   );
 }

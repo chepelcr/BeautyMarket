@@ -23,14 +23,14 @@ interface IvaTaxSectionProps {
   onDetailChange: (patch: { base_amount?: number }) => void;
 }
 
-export function IvaTaxSection({ 
-  taxes, 
-  onChange, 
+export function IvaTaxSection({
+  taxes,
+  onChange,
   factoryTaxChargeId,
   onFactoryTaxChargeChange,
   baseAmount,
   factoryAssumedTax,
-  isExpanded, 
+  isExpanded,
   onToggle,
   detail,
   onDetailChange,
@@ -38,8 +38,6 @@ export function IvaTaxSection({
   const { data: taxesData } = useAllTaxes({ iso_code: ISO });
   const { data: taxRatesData } = useAllTaxRates({ iso_code: ISO });
   const { data: taxFactorsData } = useAllTaxFactors({ iso_code: ISO });
-  
-  // document_version_id is auto-injected by the data API client via DocumentVersionProvider
   const { data: factoryChargesData } = useAllFactoryTaxCharges(
     { iso_code: ISO } as GetAllFactoryTaxChargesParams
   );
@@ -59,20 +57,18 @@ export function IvaTaxSection({
   });
 
   const hasIva = addedIvaTaxes.length > 0;
-  
-  // Check if IVACE (code 07) is present
+
   const hasIvace = addedIvaTaxes.some((t) => {
     const tt = allTaxTypes.find((x: any) => x.id === t.tax_type_id);
     return tt?.code === '07';
   });
-  
-  // Base amount should be shown and editable when IVACE or factory tax charge is present
+
   const showBaseAmount = hasIvace || !!factoryTaxChargeId;
 
   const addIva = (taxTypeId: number) => {
     const tt = ivaTaxTypes.find((t: any) => t.id === taxTypeId);
     if (!tt) return;
-    
+
     const defaultRate = rateList[0];
     const newTax: LineTax = {
       tax_type_id: tt.id,
@@ -80,7 +76,7 @@ export function IvaTaxSection({
       tax_rate_id: (defaultRate as any)?.id,
       special_fields: {},
     };
-    
+
     onChange([...taxes, newTax]);
   };
 
@@ -104,7 +100,7 @@ export function IvaTaxSection({
       onToggle={onToggle}
       badge={hasIva ? addedIvaTaxes.length : undefined}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {addedIvaTaxes.map((tax) => {
           const tt = allTaxTypes.find((x: any) => x.id === tax.tax_type_id);
           const isIvarbu = tt?.code === '08';
@@ -113,23 +109,16 @@ export function IvaTaxSection({
           return (
             <div
               key={tax.tax_type_id}
-              style={{
-                padding: '10px 12px',
-                background: 'hsl(var(--muted) / 0.3)',
-                borderRadius: 8,
-                border: '1px solid hsl(var(--border))',
-              }}
+              className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isIvarbu ? 8 : 0 }}>
-                {/* Description only, no code */}
-                <div style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>
+              <div className={`flex items-center gap-2 ${isIvarbu ? "mb-2" : ""}`}>
+                <div className="flex-1 text-[13px] font-semibold">
                   {tt?.description ?? 'IVA'}
                 </div>
 
                 {!isIvarbu && (
                   <select
-                    className="pp-input"
-                    style={{ width: 80, padding: '4px 8px', fontSize: 13 }}
+                    className="pp-input w-20 !h-auto !px-2 !py-1 text-[13px]"
                     value={tax.tax_rate_id ?? ''}
                     onChange={(e) => {
                       const r = rateList.find((r: any) => String(r.id) === e.target.value);
@@ -145,9 +134,8 @@ export function IvaTaxSection({
                   </select>
                 )}
 
-                {/* ₡ amount */}
                 {!isIvarbu && ivaAmount > 0 && (
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--primary))', minWidth: 70, textAlign: 'right' }}>
+                  <span className="text-xs font-semibold text-primary min-w-[70px] text-right">
                     +{fmt(ivaAmount)}
                   </span>
                 )}
@@ -165,8 +153,7 @@ export function IvaTaxSection({
                 <div>
                   <FormLabel>Factor IVARBU</FormLabel>
                   <select
-                    className="pp-input"
-                    style={{ fontSize: 13 }}
+                    className="pp-input text-[13px]"
                     value={tax.tax_factor_id ?? ''}
                     onChange={(e) => updateIva(tax.tax_type_id, { tax_factor_id: Number(e.target.value) })}
                   >
@@ -183,7 +170,6 @@ export function IvaTaxSection({
           );
         })}
 
-        {/* Add IVA — description only in options, only one allowed */}
         {addedIvaTaxes.length === 0 && (
           <select
             className="pp-input"
@@ -201,20 +187,9 @@ export function IvaTaxSection({
           </select>
         )}
 
-        {/* Base amount — only shown when IVACE or factory tax charge is present */}
         {showBaseAmount && (
-          <div
-            style={{
-              marginTop: 4,
-              padding: '10px 12px',
-              background: 'hsl(var(--accent) / 0.1)',
-              borderRadius: 8,
-              border: '1px solid hsl(var(--border))',
-            }}
-          >
-            <FormLabel required={hasIvace}>
-              Monto base
-            </FormLabel>
+          <div className="mt-1 px-3 py-2.5 bg-accent/10 rounded-lg border border-border">
+            <FormLabel required={hasIvace}>Monto base</FormLabel>
             <input
               className="pp-input"
               type="number"
@@ -224,28 +199,17 @@ export function IvaTaxSection({
               step={0.01}
               placeholder="Ingrese el monto base"
             />
-            <div className="t-xs" style={{ color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
-              {hasIvace 
+            <div className="t-xs text-muted-foreground mt-1">
+              {hasIvace
                 ? 'IVACE requiere un monto base manual para el cálculo del impuesto'
                 : 'El monto base se usa para calcular el IVA cuando hay cargo de fábrica'}
             </div>
           </div>
         )}
 
-        {/* Factory tax charge — description only */}
         {factoryCharges.length > 0 && (
-          <div
-            style={{
-              marginTop: 4,
-              padding: '10px 12px',
-              background: 'hsl(var(--muted) / 0.25)',
-              borderRadius: 8,
-              border: '1px dashed hsl(var(--border))',
-            }}
-          >
-            <FormLabel>
-              Cargo por fábrica
-            </FormLabel>
+          <div className="mt-1 px-3 py-2.5 bg-muted/25 rounded-lg border border-dashed border-border">
+            <FormLabel>Cargo por fábrica</FormLabel>
             <select
               className="pp-input"
               value={factoryTaxChargeId ?? ''}
@@ -262,14 +226,14 @@ export function IvaTaxSection({
               ))}
             </select>
             {selectedCharge && (
-              <div className="t-xs" style={{ color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+              <div className="t-xs text-muted-foreground mt-1">
                 {(selectedCharge as any).code === '01'
                   ? 'El impuesto será asumido por la fábrica'
                   : 'El impuesto no será asumido por la fábrica'}
               </div>
             )}
             {factoryAssumedTax > 0 && (
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--warning, 38 92% 50%))', marginTop: 4 }}>
+              <div className="text-xs font-semibold text-warning mt-1">
                 Asumido: {fmt(factoryAssumedTax)}
               </div>
             )}

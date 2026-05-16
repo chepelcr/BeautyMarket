@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Icon } from "@/components/ui";
-import { POS } from "@/theme/pos";
 import type { Product } from "@/types";
 
 interface CartLineEditorProps {
@@ -31,51 +30,31 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.6)",
-        zIndex: 9000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
+      className="fixed inset-0 bg-foreground/60 z-[9000] flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div
-        style={{
-          background: POS.surface,
-          borderRadius: 16,
-          width: "100%",
-          maxWidth: 420,
-          boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
-          overflow: "hidden",
-        }}
-      >
+      <div className="bg-card rounded-2xl w-full max-w-[420px] shadow-modal overflow-hidden">
         {/* Header */}
-        <div style={{ padding: "20px 20px 16px", borderBottom: `1px solid ${POS.border}`, display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: POS.fontUI, fontSize: 11, fontWeight: 600, color: POS.rose, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>
+        <div className="px-5 pt-5 pb-4 border-b border-border flex items-center gap-3">
+          <div className="flex-1">
+            <div className="text-[11px] font-semibold text-accent-rose uppercase tracking-[0.08em] mb-0.5">
               Editar línea
             </div>
-            <div style={{ fontFamily: POS.fontDisplay, fontSize: 18, fontWeight: 600, color: POS.text }}>{product.name}</div>
+            <div className="font-display text-lg font-semibold text-foreground">{product.name}</div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: POS.muted, cursor: "pointer", padding: 4, display: "flex" }}>
+          <button onClick={onClose} className="bg-transparent border-0 text-muted-foreground cursor-pointer p-1 flex">
             <Icon name="close" size={18} />
           </button>
         </div>
 
-        <div style={{ padding: "20px 20px 0" }}>
+        <div className="px-5 pt-5">
           {/* Quantity */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontFamily: POS.fontUI, fontSize: 12, fontWeight: 600, color: POS.muted, display: "block", marginBottom: 6 }}>
-              Cantidad
-            </label>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Cantidad</label>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setEditQty(String(Math.max(1, parsedQty - 1)))}
-                style={{ width: 36, height: 36, border: `1px solid ${POS.border}`, background: "transparent", color: POS.text, cursor: "pointer", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
+                className="w-9 h-9 border border-border bg-transparent text-foreground cursor-pointer rounded-lg flex items-center justify-center"
               >
                 <Icon name="minus" size={14} />
               </button>
@@ -84,11 +63,11 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
                 min={1}
                 value={editQty}
                 onChange={(e) => setEditQty(e.target.value)}
-                style={{ width: 80, padding: "8px 12px", border: `1px solid ${POS.border}`, borderRadius: 8, background: POS.bg, color: POS.text, fontFamily: POS.fontUI, fontSize: 16, fontWeight: 700, textAlign: "center" }}
+                className="w-20 px-3 py-2 border border-border rounded-lg bg-background text-foreground text-base font-bold text-center"
               />
               <button
                 onClick={() => setEditQty(String(parsedQty + 1))}
-                style={{ width: 36, height: 36, border: `1px solid ${POS.border}`, background: "transparent", color: POS.rose, cursor: "pointer", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
+                className="w-9 h-9 border border-border bg-transparent text-accent-rose cursor-pointer rounded-lg flex items-center justify-center"
               >
                 <Icon name="plus" size={14} />
               </button>
@@ -96,11 +75,11 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
           </div>
 
           {/* Discount */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontFamily: POS.fontUI, fontSize: 12, fontWeight: 600, color: POS.muted, display: "block", marginBottom: 6 }}>
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
               Descuento en línea (%)
             </label>
-            <div style={{ position: "relative" }}>
+            <div className="relative">
               <input
                 type="number"
                 min={0}
@@ -109,15 +88,15 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
                 value={editDiscount}
                 onChange={(e) => setEditDiscount(e.target.value)}
                 placeholder="0"
-                style={{ width: "100%", padding: "10px 40px 10px 12px", border: `1px solid ${POS.border}`, borderRadius: 8, background: POS.bg, color: POS.text, fontFamily: POS.fontUI, fontSize: 14, boxSizing: "border-box" }}
+                className="w-full pl-3 pr-10 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm box-border"
               />
-              <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontFamily: POS.fontUI, fontSize: 14, color: POS.muted }}>%</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
             </div>
           </div>
 
           {/* Note */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontFamily: POS.fontUI, fontSize: 12, fontWeight: 600, color: POS.muted, display: "block", marginBottom: 6 }}>
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
               Nota (descripción alternativa)
             </label>
             <input
@@ -125,43 +104,43 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
               value={editNote}
               onChange={(e) => setEditNote(e.target.value)}
               placeholder={product.name}
-              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${POS.border}`, borderRadius: 8, background: POS.bg, color: POS.text, fontFamily: POS.fontUI, fontSize: 14, boxSizing: "border-box" }}
+              className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm box-border"
             />
           </div>
 
           {/* Taxes (read-only) */}
           {product.taxes && product.taxes.length > 0 && (
-            <div style={{ marginBottom: 16, padding: "12px 14px", background: POS.bg, borderRadius: 8, border: `1px solid ${POS.border}` }}>
-              <div style={{ fontFamily: POS.fontUI, fontSize: 11, fontWeight: 600, color: POS.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
+            <div className="mb-4 px-3.5 py-3 bg-background rounded-lg border border-border">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.06em] mb-2">
                 Impuestos del producto
               </div>
               {product.taxes.map((t, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.muted }}>Código {t.tax_code ?? "—"}</span>
-                  <span style={{ fontFamily: POS.fontUI, fontSize: 12, color: POS.text, fontWeight: 600 }}>{t.rate}%</span>
+                <div key={i} className="flex justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Código {t.tax_code ?? "—"}</span>
+                  <span className="text-xs text-foreground font-semibold">{t.rate}%</span>
                 </div>
               ))}
             </div>
           )}
 
           {/* Line total preview */}
-          <div style={{ padding: "14px 0", borderTop: `1px solid ${POS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <span style={{ fontFamily: POS.fontUI, fontSize: 13, color: POS.muted }}>Total de línea</span>
-            <span style={{ fontFamily: POS.fontDisplay, fontSize: 22, fontWeight: 700, color: POS.rose }}>{fmt(lineTotal)}</span>
+          <div className="py-3.5 border-t border-border flex justify-between items-center mb-5">
+            <span className="text-[13px] text-muted-foreground">Total de línea</span>
+            <span className="font-display text-[22px] font-bold text-accent-rose">{fmt(lineTotal)}</span>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "0 20px 20px", display: "flex", gap: 10 }}>
+        <div className="px-5 pb-5 flex gap-2.5">
           <button
             onClick={onClose}
-            style={{ flex: 1, padding: "12px 0", border: `1px solid ${POS.border}`, background: "transparent", color: POS.text, borderRadius: 10, fontFamily: POS.fontUI, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+            className="flex-1 py-3 border border-border bg-transparent text-foreground rounded-lg text-sm font-semibold cursor-pointer"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            style={{ flex: 2, padding: "12px 0", border: "none", background: POS.rose, color: "#1C1C1E", borderRadius: 10, fontFamily: POS.fontUI, fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+            className="flex-[2] py-3 border-0 bg-accent-rose text-background rounded-lg text-sm font-bold cursor-pointer"
           >
             Aplicar cambios
           </button>

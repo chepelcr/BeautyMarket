@@ -1,64 +1,24 @@
 export function ChartSkeleton() {
   return (
-    <div
-      style={{
-        padding: "20px",
-        borderRadius: 12,
-        border: "1px solid hsl(var(--border))",
-        background: "hsl(var(--card))",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-      }}
-      className="animate-pulse"
-    >
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div
-          style={{
-            height: 16,
-            borderRadius: 4,
-            background: "hsl(var(--muted))",
-            width: "30%",
-          }}
-        />
-        <div
-          style={{
-            height: 12,
-            borderRadius: 4,
-            background: "hsl(var(--muted))",
-            width: "15%",
-          }}
-        />
+    <div className="p-5 rounded-xl border border-border bg-card flex flex-col gap-4 animate-pulse">
+      <div className="flex justify-between items-center">
+        <div className="h-4 rounded-sm bg-muted w-[30%]" />
+        <div className="h-3 rounded-sm bg-muted w-[15%]" />
       </div>
-      
-      {/* Chart bars */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 200 }}>
+
+      <div className="flex items-end gap-2 h-[200px]">
         {[60, 80, 45, 90, 70, 55, 85].map((height, i) => (
           <div
             key={i}
-            style={{
-              flex: 1,
-              height: `${height}%`,
-              borderRadius: "4px 4px 0 0",
-              background: "hsl(var(--muted))",
-            }}
+            className="flex-1 rounded-t-sm bg-muted"
+            style={{ height: `${height}%` }}
           />
         ))}
       </div>
-      
-      {/* X-axis labels */}
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+
+      <div className="flex justify-between">
         {Array.from({ length: 7 }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              height: 10,
-              borderRadius: 4,
-              background: "hsl(var(--muted))",
-              width: "10%",
-            }}
-          />
+          <div key={i} className="h-2.5 rounded-sm bg-muted w-[10%]" />
         ))}
       </div>
     </div>

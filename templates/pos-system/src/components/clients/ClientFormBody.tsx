@@ -5,30 +5,14 @@ import type { CreateClientDto } from "@/hooks/useClients";
 import { useAllCustomerTypes, useAllIdentifications, useAllCountries } from "@/hooks/useDataApi";
 import { CountryISO, CustomerType, IdTypeCode, DEFAULT_ID_TYPE, allowedIdCodes } from "@/lib/enums";
 
-// ─── Styles ────────────────────────────────────────────────────────────────
-
-const T = {
-  rose:       "#D4A874",
-  roseLight:  "rgba(212,168,116,0.12)",
-  roseBorder: "rgba(212,168,116,0.2)",
-  text:       "hsl(var(--foreground))",
-  muted:      "hsl(var(--muted-foreground))",
-  border:     "hsl(var(--border))",
-  fontUI:     "'DM Sans', 'Barlow', system-ui, sans-serif",
-} as const;
-
-export const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "10px 12px",
-  background: "hsl(var(--muted) / 0.3)",
-  border: "1px solid hsl(var(--border))",
-  borderRadius: 8, color: T.text, fontSize: 13,
-  fontFamily: T.fontUI, outline: "none", boxSizing: "border-box",
-};
+// Re-exported for legacy consumers — prefer the `.client-input` className going forward.
+export const inputStyle: React.CSSProperties = {};
+export const clientInputClass = "client-input";
 
 export function Field({ label, children, half }: { label: string; children: React.ReactNode; half?: boolean }) {
   return (
     <div style={{ flex: half ? "0 0 calc(50% - 6px)" : "0 0 100%" }}>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: T.muted, marginBottom: 6, fontFamily: T.fontUI }}>
+      <label className="block text-[11px] font-bold uppercase tracking-[0.07em] text-muted-foreground mb-1.5 font-sans">
         {label}
       </label>
       {children}
@@ -38,13 +22,11 @@ export function Field({ label, children, half }: { label: string; children: Reac
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.08em", color: T.rose, fontFamily: T.fontUI, marginBottom: 12 }}>
+    <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-accent-rose font-sans mb-3">
       {children}
     </div>
   );
 }
-
-// ─── Main component ────────────────────────────────────────────────────────
 
 interface Props {
   form: CreateClientDto;
@@ -58,16 +40,13 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
   const customerType = form.customer_type ?? CustomerType.PERSONA_FISICA;
   const isCR         = nationality === CountryISO.COSTA_RICA;
 
-  // ─── API data ───────────────────────────────────────────────────────────
   const { data: customerTypes = [], isLoading: loadingCT } = useAllCustomerTypes();
   const { data: allIdTypes = [],   isLoading: loadingID } = useAllIdentifications({ iso_code: nationality });
   const { data: countries = [],    isLoading: loadingCountries } = useAllCountries();
 
-  // Filter ID types to those allowed by nationality + customer type
   const allowed = allowedIdCodes(nationality, customerType);
   const filteredIdTypes = allIdTypes.filter((t) => allowed.includes(t.code));
 
-  // Auto-reset ID type when nationality/customer type change and current selection is no longer valid
   useEffect(() => {
     const currentCode = form.identification?.code;
     const isValid = filteredIdTypes.some((t) => t.code === currentCode);
@@ -77,13 +56,11 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nationality, customerType]);
 
-  // Auto-sync phone country code when nationality changes
   useEffect(() => {
     setForm((f) => ({ ...f, phone: { ...f.phone, country_code: nationality } }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nationality]);
 
-  // Reset location IDs (keep address text) when switching away from CR
   useEffect(() => {
     if (!isCR) {
       setForm((f) => ({
@@ -101,13 +78,12 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
   const canEditCriticalFields = !isEditing;
 
   return (
-    <div style={{ padding: "20px 24px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
-
+    <div className="px-6 pt-5 pb-6 flex flex-col gap-0">
       {/* Customer type */}
       <SectionLabel>Tipo de cliente</SectionLabel>
-      <div style={{ display: "flex", gap: 10, marginBottom: canEditCriticalFields ? 24 : 8 }}>
+      <div className={`flex gap-2.5 ${canEditCriticalFields ? "mb-6" : "mb-2"}`}>
         {loadingCT ? (
-          <div style={{ fontSize: 12, color: T.muted, fontFamily: T.fontUI }}>Cargando…</div>
+          <div className="text-xs text-muted-foreground font-sans">Cargando…</div>
         ) : (
           customerTypes.map((ct) => {
             const selected = customerType === ct.id;
@@ -117,23 +93,18 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
                 type="button"
                 onClick={canEditCriticalFields ? () => setForm((f) => ({ ...f, customer_type: ct.id })) : undefined}
                 disabled={!canEditCriticalFields}
-                style={{
-                  flex: 1, padding: "10px 12px", borderRadius: 8, fontSize: 13, fontFamily: T.fontUI, fontWeight: 600,
-                  cursor: canEditCriticalFields ? "pointer" : "not-allowed", transition: "all 0.15s",
-                  border: `1.5px solid ${selected ? T.rose : T.border}`,
-                  background: selected ? T.roseLight : "hsl(var(--muted) / 0.3)",
-                  color: selected ? T.rose : T.muted,
-                  opacity: canEditCriticalFields ? 1 : 0.5,
-                  display: "flex", alignItems: "center", gap: 8,
-                }}
+                className={`flex-1 px-3 py-2.5 rounded-lg text-[13px] font-sans font-semibold transition-all border-[1.5px] flex items-center gap-2 ${
+                  selected
+                    ? "border-accent-rose bg-accent-rose-soft text-accent-rose"
+                    : "border-border bg-muted/30 text-muted-foreground"
+                } ${canEditCriticalFields ? "cursor-pointer opacity-100" : "cursor-not-allowed opacity-50"}`}
               >
-                <div style={{
-                  width: 14, height: 14, borderRadius: "50%", flexShrink: 0,
-                  border: `2px solid ${selected ? T.rose : T.muted}`,
-                  background: selected ? T.rose : "transparent",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  {selected && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#1C1410" }} />}
+                <div
+                  className={`w-3.5 h-3.5 rounded-full flex-shrink-0 border-2 flex items-center justify-center ${
+                    selected ? "border-accent-rose bg-accent-rose" : "border-muted-foreground bg-transparent"
+                  }`}
+                >
+                  {selected && <div className="w-[5px] h-[5px] rounded-full bg-background" />}
                 </div>
                 {ct.description}
               </button>
@@ -142,19 +113,17 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
         )}
       </div>
       {!canEditCriticalFields && (
-        <div style={{ fontSize: 11, color: T.muted, marginBottom: 24, fontStyle: "italic", fontFamily: T.fontUI }}>
+        <div className="text-[11px] text-muted-foreground mb-6 italic font-sans">
           No se puede cambiar el tipo de cliente durante la edición
         </div>
       )}
 
       {/* Identity */}
       <SectionLabel>Identidad</SectionLabel>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 24 }}>
-
-        {/* Nationality */}
+      <div className="flex flex-wrap gap-2.5 mb-6">
         <Field label="Nacionalidad">
           <select
-            style={{ ...inputStyle, appearance: "none", cursor: canEditCriticalFields ? "pointer" : "not-allowed", opacity: canEditCriticalFields ? 1 : 0.6 }}
+            className={`client-input appearance-none ${canEditCriticalFields ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}
             value={nationality}
             onChange={canEditCriticalFields ? (e) => setForm((f) => ({ ...f, nationality: e.target.value })) : undefined}
             disabled={loadingCountries || !canEditCriticalFields}
@@ -168,10 +137,9 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
           </select>
         </Field>
 
-        {/* ID type */}
         <Field label="Tipo de identificación" half>
           <select
-            style={{ ...inputStyle, appearance: "none", cursor: canEditCriticalFields ? "pointer" : "not-allowed", opacity: canEditCriticalFields ? 1 : 0.6 }}
+            className={`client-input appearance-none ${canEditCriticalFields ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}
             value={form.identification?.code ?? DEFAULT_ID_TYPE}
             onChange={canEditCriticalFields ? (e) => setForm((f) => ({ ...f, identification: { ...f.identification, code: e.target.value, number: "" } })) : undefined}
             disabled={loadingID || !canEditCriticalFields}
@@ -183,10 +151,9 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
           </select>
         </Field>
 
-        {/* ID number */}
         <Field label="Número de identificación" half>
           <input
-            style={inputStyle}
+            className="client-input"
             value={form.identification?.number ?? ""}
             onChange={(e) => setForm((f) => ({ ...f, identification: { ...f.identification, number: e.target.value } }))}
             placeholder={
@@ -197,32 +164,31 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
           />
         </Field>
 
-        {/* Name depends on customer type */}
         {customerType === CustomerType.EMPRESA ? (
           <Field label="Razón social">
-            <input style={inputStyle} value={form.business_name ?? ""} onChange={(e) => setForm((f) => ({ ...f, business_name: e.target.value }))} placeholder="Nombre de la empresa" />
+            <input className="client-input" value={form.business_name ?? ""} onChange={(e) => setForm((f) => ({ ...f, business_name: e.target.value }))} placeholder="Nombre de la empresa" />
           </Field>
         ) : (
           <Field label="Nombre completo">
-            <input style={inputStyle} value={form.client_name ?? ""} onChange={(e) => setForm((f) => ({ ...f, client_name: e.target.value }))} placeholder="Nombre y apellidos" />
+            <input className="client-input" value={form.client_name ?? ""} onChange={(e) => setForm((f) => ({ ...f, client_name: e.target.value }))} placeholder="Nombre y apellidos" />
           </Field>
         )}
 
         <Field label="GLN / Código comercial">
-          <input style={inputStyle} value={form.client_gln ?? ""} onChange={(e) => setForm((f) => ({ ...f, client_gln: e.target.value }))} placeholder="Código GLN (opcional)" />
+          <input className="client-input" value={form.client_gln ?? ""} onChange={(e) => setForm((f) => ({ ...f, client_gln: e.target.value }))} placeholder="Código GLN (opcional)" />
         </Field>
       </div>
 
       {/* Contact */}
       <SectionLabel>Contacto</SectionLabel>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 24 }}>
+      <div className="flex flex-wrap gap-2.5 mb-6">
         <Field label="Correo electrónico">
-          <input type="email" style={inputStyle} value={form.email ?? ""} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="correo@ejemplo.com" />
+          <input type="email" className="client-input" value={form.email ?? ""} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="correo@ejemplo.com" />
         </Field>
 
         <Field label="País (teléfono)" half>
           <select
-            style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
+            className="client-input appearance-none cursor-pointer"
             value={form.phone?.country_code ?? CountryISO.COSTA_RICA}
             onChange={(e) => setForm((f) => ({ ...f, phone: { ...f.phone, country_code: e.target.value } }))}
             disabled={loadingCountries}
@@ -236,13 +202,13 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
         </Field>
 
         <Field label="Número de teléfono" half>
-          <input style={inputStyle} value={form.phone?.number ?? ""} onChange={(e) => setForm((f) => ({ ...f, phone: { ...f.phone, number: e.target.value } }))} placeholder="8888-8888" />
+          <input className="client-input" value={form.phone?.number ?? ""} onChange={(e) => setForm((f) => ({ ...f, phone: { ...f.phone, number: e.target.value } }))} placeholder="8888-8888" />
         </Field>
       </div>
 
-      {/* Address — CR gets full location selector, others get plain textarea */}
+      {/* Address */}
       <SectionLabel>Dirección</SectionLabel>
-      <div style={{ marginBottom: 16 }}>
+      <div className="mb-4">
         {isCR ? (
           <LocationSelect
             isoCode={nationality}
@@ -267,7 +233,7 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
         ) : (
           <Field label="Dirección">
             <textarea
-              style={{ ...inputStyle, resize: "vertical", minHeight: 72 }}
+              className="client-input min-h-[72px] resize-y"
               rows={3}
               value={form.residence?.address ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, residence: { address: e.target.value } }))}
@@ -278,8 +244,8 @@ export default function ClientFormBody({ form, setForm, error, isEditing }: Prop
       </div>
 
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", background: "hsl(var(--destructive) / 0.1)", border: "1px solid hsl(var(--destructive) / 0.3)", borderRadius: 8, fontSize: 13, color: "hsl(var(--destructive))", fontFamily: T.fontUI }}>
-          <Icon name="alertTri" size={13} style={{ flexShrink: 0 }} /> {error}
+        <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/30 rounded-lg text-[13px] text-destructive font-sans">
+          <Icon name="alertTri" size={13} className="flex-shrink-0" /> {error}
         </div>
       )}
     </div>

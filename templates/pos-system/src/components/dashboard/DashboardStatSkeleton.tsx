@@ -1,56 +1,12 @@
 export function DashboardStatSkeleton() {
   return (
-    <div
-      style={{
-        padding: "20px",
-        borderRadius: 12,
-        border: "1px solid hsl(var(--border))",
-        background: "hsl(var(--card))",
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-      }}
-      className="animate-pulse"
-    >
-      {/* Icon + Label */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            background: "hsl(var(--muted))",
-          }}
-        />
-        <div
-          style={{
-            height: 12,
-            borderRadius: 4,
-            background: "hsl(var(--muted))",
-            width: "60%",
-          }}
-        />
+    <div className="p-5 rounded-xl border border-border bg-card flex flex-col gap-3 animate-pulse">
+      <div className="flex items-center gap-2.5">
+        <div className="w-10 h-10 rounded-lg bg-muted" />
+        <div className="h-3 rounded-sm bg-muted w-3/5" />
       </div>
-      
-      {/* Value */}
-      <div
-        style={{
-          height: 28,
-          borderRadius: 6,
-          background: "hsl(var(--muted))",
-          width: "80%",
-        }}
-      />
-      
-      {/* Subtitle */}
-      <div
-        style={{
-          height: 10,
-          borderRadius: 4,
-          background: "hsl(var(--muted))",
-          width: "50%",
-        }}
-      />
+      <div className="h-7 rounded-md bg-muted w-4/5" />
+      <div className="h-2.5 rounded-sm bg-muted w-1/2" />
     </div>
   );
 }

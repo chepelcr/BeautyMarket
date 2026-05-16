@@ -1,6 +1,7 @@
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useDocumentStore } from '@/store/documentStore';
+import { useMaxVisibleTabs } from '@/store/uiStore';
 import { ROUTES, documentEditorPath } from '@/routePaths';
 import { getDocumentTypeInfo } from '@/types/invoice';
 
@@ -21,6 +22,7 @@ import { getDocumentTypeInfo } from '@/types/invoice';
  */
 export function DocumentsToolbar() {
   const { open_documents, removeDocumentTab } = useDocumentStore();
+  const maxVisible = useMaxVisibleTabs();
   const [location, setLocation] = useLocation();
 
   const editorMatch = location.match(/^\/dashboard\/documents\/new\/([^/?#]+)/);
@@ -49,8 +51,15 @@ export function DocumentsToolbar() {
   // without an editor sub-path
   const docsTabActive = onDocsRoute && !activeTabId;
 
+  // Only render the first `maxVisible` tabs inline. The count is dynamic:
+  // 2 when the left sidebar is expanded, 3 when collapsed — driven by
+  // `useMaxVisibleTabs`. Tabs beyond that index are reachable via the
+  // right-side drawer (see DashboardHeader for the overflow toggle button
+  // + DocumentsMobileDrawer for the swap-on-click logic).
+  const visibleTabs = open_documents.slice(0, maxVisible);
+
   return (
-    <div className="flex items-stretch min-w-0 overflow-x-auto scroll-area">
+    <div className="flex items-stretch min-w-0">
       {/* Documentos — first tab in the strip, always visible.
           Same square shape as document tabs; active when on the list route. */}
       <div
@@ -69,8 +78,9 @@ export function DocumentsToolbar() {
         <span className="text-[12px] font-display font-bold">Documentos</span>
       </div>
 
-      {/* Open document tab chips — same square style */}
-      {open_documents.map((tab) => {
+      {/* Open document tab chips — same square style. Capped at
+          MAX_VISIBLE_TABS; overflow lives in the right-side drawer. */}
+      {visibleTabs.map((tab) => {
         const info = getDocumentTypeInfo(tab.doc_type);
         const isActive = activeTabId === tab.id;
         return (

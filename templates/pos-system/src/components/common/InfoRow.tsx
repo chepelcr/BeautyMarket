@@ -11,13 +11,8 @@ interface InfoRowProps {
 export function InfoRow({ icon, text, gap = 5, iconSize = 12, className }: InfoRowProps) {
   return (
     <div
-      className={className}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap,
-        color: "hsl(var(--muted-foreground))",
-      }}
+      className={`flex items-center text-muted-foreground ${className ?? ""}`}
+      style={{ gap }}
     >
       <Icon name={icon} size={iconSize} />
       <span className="t-xs">{text}</span>

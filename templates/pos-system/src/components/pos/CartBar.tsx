@@ -21,24 +21,15 @@ export default function CartBar({ items, total, count, onAdd, onRemove, onChecko
   const { t } = useLanguage();
 
   return (
-    <div
-      style={{
-        background: "hsl(var(--card))",
-        borderTop: "1px solid hsl(var(--border))",
-        padding: "10px 12px",
-        flexShrink: 0,
-      }}
-    >
-      {/* Item list */}
+    <div className="bg-card border-t border-border px-3 py-2.5 flex-shrink-0">
       {items.length > 0 && (
-        <div style={{ maxHeight: 120, overflowY: "auto", marginBottom: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="max-h-[120px] overflow-y-auto mb-2.5 flex flex-col gap-1.5">
           {items.map(({ product, qty }) => (
             <div
               key={product.product_id}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              className="flex items-center justify-between"
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                {/* − */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => onRemove(product.product_id)}
                   className="btn btn-outline btn-xs btn-icon"
@@ -46,27 +37,20 @@ export default function CartBar({ items, total, count, onAdd, onRemove, onChecko
                 >
                   <Icon name="minus" size={12} />
                 </button>
-                <span className="t-xs" style={{ width: 16, textAlign: "center", fontFamily: "var(--font-mono)", fontWeight: 700 }}>
+                <span className="t-xs w-4 text-center font-mono font-bold">
                   {qty}
                 </span>
-                {/* + */}
                 <button
                   onClick={() => onAdd(product)}
-                  className="btn btn-xs btn-icon"
-                  style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.3)" }}
+                  className="btn btn-xs btn-icon btn-primary-soft"
                   type="button"
                 >
                   <Icon name="plus" size={12} />
                 </button>
-                <ProductImage imageUrl={product.image_url} name={product.name} size={20} style={{ borderRadius: 4 }} />
-                <span className="t-sm" style={{ fontWeight: 500 }}>
-                  {product.name}
-                </span>
+                <ProductImage imageUrl={product.image_url} name={product.name} size={20} className="rounded-sm" />
+                <span className="t-sm font-medium">{product.name}</span>
               </div>
-              <span
-                className="t-num"
-                style={{ fontSize: 13, fontWeight: 700, color: "hsl(var(--primary))" }}
-              >
+              <span className="t-num text-[13px] font-bold text-primary">
                 ₡{(product.price * qty).toLocaleString("es-CR")}
               </span>
             </div>
@@ -74,22 +58,21 @@ export default function CartBar({ items, total, count, onAdd, onRemove, onChecko
         </div>
       )}
 
-      {/* Checkout button */}
       <Button
         variant="primary"
         size="xl"
         onClick={onCheckout}
         disabled={items.length === 0}
-        style={{ width: "100%", display: "flex", justifyContent: "space-between" }}
+        className="w-full !flex !justify-between"
       >
-        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span className="flex items-center gap-2">
           <Icon name="cart" size={18} />
           {items.length > 0
             ? `${count} ${count !== 1 ? t("cart.items") : t("cart.item")}`
             : t("cart.selectProducts")}
         </span>
         {items.length > 0 && (
-          <span className="t-num" style={{ fontSize: 18, fontWeight: 800 }}>
+          <span className="t-num text-lg font-extrabold">
             ₡{total.toLocaleString("es-CR")}
           </span>
         )}

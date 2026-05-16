@@ -3,19 +3,14 @@ interface LoadingSkeletonProps {
   width?: number | string;
   radius?: number;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export function LoadingSkeleton({ height = 16, width = "100%", radius = 6, style }: LoadingSkeletonProps) {
+export function LoadingSkeleton({ height = 16, width = "100%", radius = 6, style, className }: LoadingSkeletonProps) {
   return (
     <div
-      style={{
-        height,
-        width,
-        borderRadius: radius,
-        background: "hsl(var(--muted) / 0.4)",
-        animation: "pulse 1.5s ease-in-out infinite",
-        ...style,
-      }}
+      className={`bg-muted/40 animate-pulse ${className ?? ""}`}
+      style={{ height, width, borderRadius: radius, ...style }}
     />
   );
 }
