@@ -313,9 +313,22 @@ export function ProductDrawerForm({
   const baseAmountForIva = price > 0 && form.taxes.length > 0
     ? TaxCalculationService.getLineAmounts({
         subtotal: price,
-        taxes: form.taxes.map((tx) => ({ tax_type_id: tx.taxTypeId, tax_code: tx.taxCode, rate: tx.rate, special_fields: tx.specialFields })) as LineTax[],
+        taxes: form.taxes.map((tx) => ({
+          code: tx.taxCode,
+          rate: tx.rate,
+          special_fields: tx.specialFields,
+        })) as LineTax[],
         tax_types: (taxesData ?? []) as any,
-        discounts: form.discounts.map((d) => ({ discount_type_id: d.discountTypeId, percentage: d.rate ?? 0 })) as LineDiscount[],
+        // The product-edit form holds discountTypeId internally; project
+        // to the canonical Hacienda code string when feeding the calc
+        // service. (ProductDrawerForm has its own discounts catalog loaded
+        // elsewhere — use the form's `discountCode` field when present.)
+        discounts: form.discounts.map((d) => ({
+          discount_type:
+            ((d as any).discountCode as string) ??
+            String(d.discountTypeId).padStart(2, '0'),
+          percentage: d.rate ?? 0,
+        })) as LineDiscount[],
         detail_quantity: 1,
         cabys: form.cabys || undefined,
         has_factory_tax: form.hasFactoryTax,

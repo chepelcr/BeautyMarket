@@ -21,7 +21,7 @@ interface DocumentsListViewProps {
 export function DocumentsListView({ orgId }: DocumentsListViewProps) {
   const { is_received } = useDocumentStore();
 
-  const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [search, setSearch] = useState<ComplexSearchFilters>({});
   const [term, setTerm] = useState(search.searchTerm ?? '');
   const [showAdvanced, setShowAdvanced] = useState(false);

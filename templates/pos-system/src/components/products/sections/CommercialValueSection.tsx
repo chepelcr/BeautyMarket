@@ -35,14 +35,17 @@ export function CommercialValueSection({
   const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
   const price = Number(form.price) || 0;
 
+  // Project the product-form internal shape into the canonical LineTax /
+  // LineDiscount shapes the calc service expects.
   const taxEntries = taxes.map((tx) => ({
-    tax_type_id: tx.taxTypeId,
-    tax_code: tx.taxCode,
+    code: tx.taxCode,
     rate: tx.rate,
     special_fields: tx.specialFields,
   })) as LineTax[];
   const discountEntries = discounts.map((d) => ({
-    discount_type_id: d.discountTypeId,
+    discount_type:
+      ((d as any).discountCode as string) ??
+      String(d.discountTypeId).padStart(2, '0'),
     percentage: d.rate ?? 0,
   })) as LineDiscount[];
 

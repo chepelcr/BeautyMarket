@@ -1,4 +1,9 @@
 import { getTaxConfig } from '@/types/taxTypeConfig';
+import type { LineTax, LineDiscount } from '@/types/lineDetail';
+
+// Re-export so internal types here remain stable while delegating to the
+// canonical type module.
+export type { LineTax, LineDiscount };
 
 // Tax codes — matches Hacienda codes; kept as constants to avoid magic strings
 const TAX_CODE = {
@@ -9,41 +14,23 @@ const TAX_CODE = {
   OTHERS: '99',
 } as const;
 
+/** Discount codes — Hacienda canonical. */
+const DISCOUNT_CODE = {
+  REGALIA: '01',
+  BONIFICACION: '03',
+} as const;
+
 export interface TaxType {
-  tax_id: number;
+  /** Hacienda tax type code. */
   code: string;
+  /** Data-api numeric id, kept only for internal catalog lookups. */
+  tax_id?: number;
   description?: string;
 }
 
 export interface TaxAmount {
   id: number;
   amount: number;
-}
-
-export interface TaxSpecialFields {
-  quantity?: number;
-  percentage?: number;
-  volume_consumption?: number;
-  tax_amount_id?: number;
-  tax_amount?: { id: number };
-  amount?: number; // Store the tax amount value for calculation
-}
-
-export interface LineTax {
-  tax_type_id: number;
-  tax_rate_id?: number;
-  tax_factor_id?: number;
-  rate?: number;
-  factor?: number;
-  special_fields?: TaxSpecialFields;
-  exemption?: any;
-}
-
-export interface LineDiscount {
-  discount_type_id: number;
-  discount_code?: string; // Add code for proper type matching
-  percentage: number;
-  reason?: string;
 }
 
 interface TaxCalculationParams {
@@ -75,7 +62,8 @@ export interface LineAmountsParams {
   document_type?: string;
   detail_quantity: number;
   cabys?: string;
-  tax_amounts?: { [tax_type_id: number]: TaxAmount[] };
+  /** Keyed by Hacienda tax-type code string. */
+  tax_amounts?: { [code: string]: TaxAmount[] };
   has_factory_tax?: boolean;
 }
 
@@ -110,10 +98,10 @@ export class TaxCalculationService {
     let iva_tax_total = 0;
     let other_tax_total = 0;
 
-    // Check for bonus/gift discounts (codes '01' and '03' OR type IDs 1 and 3)
+    // Check for bonus/gift discounts (Hacienda canonical codes "01" / "03")
     const has_discounts_bonus_or_gifts = discounts.some(
-      (d) => d.discount_type_id === 1 || d.discount_type_id === 3 ||
-             d.discount_code === '01' || d.discount_code === '03'
+      (d) => d.discount_type === DISCOUNT_CODE.REGALIA ||
+             d.discount_type === DISCOUNT_CODE.BONIFICACION
     );
 
     const is_purchase_or_export_bill =
@@ -121,18 +109,18 @@ export class TaxCalculationService {
 
     // Process special taxes first (ISC, IUC, ISEBA, ISEBEC, IPT, ISEC)
     const special_taxes = taxes.filter((tax) => {
-      const tax_type = tax_types.find((tt) => tt.tax_id === tax.tax_type_id);
+      const tax_type = tax_types.find((tt) => tt.code === tax.code);
       const tax_config = getTaxConfig(tax_type?.code);
       return tax_type && !tax_config?.iva && tax_type.code !== '99';
     });
 
     special_taxes.forEach((tax) => {
-      const tax_type = tax_types.find((tt) => tt.tax_id === tax.tax_type_id);
+      const tax_type = tax_types.find((tt) => tt.code === tax.code);
       if (!tax_type) return;
 
       const tax_amount_id =
         tax.special_fields?.tax_amount_id || tax.special_fields?.tax_amount?.id;
-      const tax_amount = tax_amounts[tax.tax_type_id]?.find(
+      const tax_amount = tax_amounts[tax.code ?? '']?.find(
         (ta) => ta.id === tax_amount_id
       );
       const tax_config = getTaxConfig(tax_type.code);
@@ -174,12 +162,12 @@ export class TaxCalculationService {
 
     // Process other taxes (OTHERS code 99)
     const other_taxes = taxes.filter((tax) => {
-      const tax_type = tax_types.find((tt) => tt.tax_id === tax.tax_type_id);
+      const tax_type = tax_types.find((tt) => tt.code === tax.code);
       return tax_type && tax_type.code === '99';
     });
 
     other_taxes.forEach((tax) => {
-      const tax_type = tax_types.find((tt) => tt.tax_id === tax.tax_type_id);
+      const tax_type = tax_types.find((tt) => tt.code === tax.code);
       if (!tax_type) return;
 
       const amount = this.calculateTaxAmount({
@@ -211,13 +199,13 @@ export class TaxCalculationService {
 
     // Process IVA taxes last (01=IVA, 07=IVACE, 08=IVARBU)
     const iva_taxes = taxes.filter((tax) => {
-      const tax_type = tax_types.find((tt) => tt.tax_id === tax.tax_type_id);
+      const tax_type = tax_types.find((tt) => tt.code === tax.code);
       const tax_config = getTaxConfig(tax_type?.code);
       return tax_type && tax_config?.iva;
     });
 
     iva_taxes.forEach((tax) => {
-      const tax_type = tax_types.find((tt) => tt.tax_id === tax.tax_type_id);
+      const tax_type = tax_types.find((tt) => tt.code === tax.code);
       if (!tax_type) return;
 
       const amount = this.calculateIvaTaxAmount({
@@ -261,8 +249,11 @@ export class TaxCalculationService {
     if (taxType.code === '07' || taxType.code === '01') {
       // IVACE / IVA — use total_amount when bonus/gift discounts present or export bill
       const use_total_amount =
-        discounts.some((d) => d.discount_type_id === 1 || d.discount_type_id === 3 ||
-                              d.discount_code === '01' || d.discount_code === '03') ||
+        discounts.some(
+          (d) =>
+            d.discount_type === DISCOUNT_CODE.REGALIA ||
+            d.discount_type === DISCOUNT_CODE.BONIFICACION
+        ) ||
         document_type === 'EXPORT_BILL';
 
       amount = use_total_amount

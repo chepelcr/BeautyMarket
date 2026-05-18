@@ -193,7 +193,7 @@ function TaxCard({
 }) {
   const { t } = useLanguage();
   const { data: taxAmountsData } = useAllTaxAmounts(
-    { iso_code: ISO, tax_id: taxTypeId },
+    { iso_code: ISO, tax_id: taxTypeId ?? 0 },
     { enabled: needsSpecialFields && !!taxTypeId }
   );
   const taxAmounts = taxAmountsData ?? [];

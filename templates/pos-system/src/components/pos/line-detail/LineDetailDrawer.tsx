@@ -284,8 +284,8 @@ export function LineDetailDrawer({
         base_amount: detail.base_amount,
         taxes: detail.taxes,
         tax_types: (taxTypes ?? []).map((tt: any) => ({
-          tax_id: tt.id, // API returns 'id' from HaciendaBase
           code: tt.code,
+          tax_id: tt.id,
           description: tt.description,
         })),
         discounts: detail.discounts,
