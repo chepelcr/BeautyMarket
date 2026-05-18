@@ -43,7 +43,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
   const docs = data?.data ?? [];
   const pagination = data?.pagination;
 
-  const handleTypesChange = (types: number[]) => {
+  const handleTypesChange = (types: string[]) => {
     setSelectedTypes(types);
     setPage(0);
   };

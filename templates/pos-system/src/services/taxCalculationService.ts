@@ -118,8 +118,7 @@ export class TaxCalculationService {
       const tax_type = tax_types.find((tt) => tt.code === tax.code);
       if (!tax_type) return;
 
-      const tax_amount_id =
-        tax.special_fields?.tax_amount_id || tax.special_fields?.tax_amount?.id;
+      const tax_amount_id = tax.special_fields?.tax_amount_id;
       const tax_amount = tax_amounts[tax.code ?? '']?.find(
         (ta) => ta.id === tax_amount_id
       );
@@ -274,8 +273,9 @@ export class TaxCalculationService {
 
     let amount = 0;
     
-    // Get tax amount value - use from taxAmount parameter or fallback to stored value in special_fields
-    const taxAmountValue = taxAmount?.amount || tax.special_fields?.amount || 0;
+    // Tax amount per unit, sourced from the data-api tax-amounts catalog
+    // (resolved by the caller via the tax-amount id stored in special_fields).
+    const taxAmountValue = taxAmount?.amount || 0;
 
     if (taxType.code === TAX_CODE.IUC) {
       // IUC: quantity × tax per unit (quantity from special_fields)
