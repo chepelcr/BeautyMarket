@@ -1,95 +1,83 @@
-import { useState } from "react";
+import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
+import { Icon, Badge } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { HaciendaTab } from "@/components/org-settings/tabs/HaciendaTab";
-import { NotificationsTab } from "@/components/org-settings/tabs/NotificationsTab";
-import { HaciendaConfigDrawer } from "@/components/org-settings/HaciendaConfigDrawer";
-import { NotificationsDrawer } from "@/components/org-settings/NotificationsDrawer";
-
-type OrgSettingsTab = "hacienda" | "notifications";
+import { ROUTES } from "@/routePaths";
 
 export default function OrgSettingsPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
-
-  const [activeTab, setActiveTab] = useState<OrgSettingsTab>("hacienda");
-  const [haciendaOpen, setHaciendaOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [, navigate] = useLocation();
 
   const { data: config, isLoading } = useOrgConfigurations(org?.id);
 
-  const tabs: { id: OrgSettingsTab; label: string }[] = [
-    { id: "hacienda", label: t("orgSettings.tab.hacienda") },
-    { id: "notifications", label: t("orgSettings.tab.notifications") },
+  const cards = [
+    {
+      id: "hacienda",
+      icon: "lock",
+      iconClass: "icon-pill-primary-soft",
+      title: t("orgSettings.tab.hacienda"),
+      description: t("orgSettings.hacienda.empty.desc"),
+      configured: config !== null && config !== undefined,
+      route: ROUTES.DASHBOARD_ORG_HACIENDA,
+    },
+    {
+      id: "notifications",
+      icon: "sliders",
+      iconClass: "icon-pill-info",
+      title: t("orgSettings.tab.notifications"),
+      description: t("orgSettings.notifications.empty.desc"),
+      configured: !!(config?.notificationSettings),
+      route: ROUTES.DASHBOARD_ORG_NOTIFICATIONS,
+    },
   ];
 
   return (
     <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
-      {/* Page header */}
-      <div className="fade-up mb-6">
-        <h1 className="t-h1 mb-1">{t("orgSettings.title")}</h1>
-        <p className="t-body text-muted-foreground">{t("orgSettings.subtitle")}</p>
-      </div>
+      <FadeIn duration={0.3}>
+        <div className="mb-8">
+          <h1 className="t-h1 mb-1">{t("orgSettings.title")}</h1>
+          <p className="t-body text-muted-foreground">{t("orgSettings.subtitle")}</p>
+        </div>
 
-      {/* Tab bar */}
-      <div className="fade-up tabs-container mb-6">
-        <div className="tabs">
-          {tabs.map((tab) => (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {cards.map((card) => (
             <button
-              key={tab.id}
-              className="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              key={card.id}
+              className="card card-hover text-left w-full p-5 flex items-start gap-4 group"
+              onClick={() => navigate(card.route)}
             >
-              {tab.label}
+              <div className={`icon-pill icon-pill-lg w-12 h-12 flex-shrink-0 ${card.iconClass}`}>
+                <Icon name={card.icon} size={22} />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="t-h4 !mb-0">{card.title}</span>
+                  {!isLoading && (
+                    <Badge variant={card.configured ? "success" : "secondary"}>
+                      {card.configured ? "Configurado" : "Sin configurar"}
+                    </Badge>
+                  )}
+                  {isLoading && (
+                    <div className="skeleton-block h-5 w-20 rounded-full animate-pulse" />
+                  )}
+                </div>
+                <p className="t-sm text-muted-foreground leading-relaxed">{card.description}</p>
+              </div>
+
+              <div className="text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0 mt-0.5">
+                <Icon name="chevronRight" size={18} />
+              </div>
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Tab content */}
-      {activeTab === "hacienda" && (
-        <FadeIn key="hacienda" duration={0.25}>
-          <HaciendaTab
-            config={config}
-            isLoading={isLoading}
-            onEdit={() => setHaciendaOpen(true)}
-          />
-        </FadeIn>
-      )}
-
-      {activeTab === "notifications" && (
-        <FadeIn key="notifications" duration={0.25}>
-          <NotificationsTab
-            config={config}
-            isLoading={isLoading}
-            onEdit={() => setNotificationsOpen(true)}
-          />
-        </FadeIn>
-      )}
-
-      {/* Drawers */}
-      {org && (
-        <>
-          <HaciendaConfigDrawer
-            open={haciendaOpen}
-            onClose={() => setHaciendaOpen(false)}
-            config={config}
-            orgId={org.id}
-          />
-          <NotificationsDrawer
-            open={notificationsOpen}
-            onClose={() => setNotificationsOpen(false)}
-            config={config}
-            orgId={org.id}
-          />
-        </>
-      )}
+      </FadeIn>
     </div>
   );
 }

@@ -26,7 +26,7 @@ function getActiveNav(location: string): NavId {
   // Legacy /dashboard/pos route also maps to documents (POS is now an editor view)
   if (location.startsWith(ROUTES.DASHBOARD_POS))      return "documents";
   if (location.startsWith(ROUTES.DASHBOARD_CLIENTS))  return "clients";
-  if (location.startsWith(ROUTES.DASHBOARD_ORG_SETTINGS)) return "organization";
+  if (location.startsWith(ROUTES.DASHBOARD_ORG_SETTINGS)) return "organization"; // covers /hacienda and /notifications sub-paths too
   return "dashboard";
 }
 

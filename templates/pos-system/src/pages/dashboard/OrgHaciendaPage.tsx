@@ -1,0 +1,57 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
+import { Icon } from "@/components/ui";
+import { FadeIn } from "@/components/ui/FadeIn";
+import { HaciendaTab } from "@/components/org-settings/tabs/HaciendaTab";
+import { HaciendaConfigDrawer } from "@/components/org-settings/HaciendaConfigDrawer";
+import { ROUTES } from "@/routePaths";
+
+export default function OrgHaciendaPage() {
+  const { user } = useAuthContext();
+  const { useDefaultOrganization } = useOrganization();
+  const { data: org } = useDefaultOrganization(user?.userId);
+  const { t } = useLanguage();
+  const [, navigate] = useLocation();
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const { data: config, isLoading } = useOrgConfigurations(org?.id);
+
+  return (
+    <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
+      <FadeIn duration={0.3}>
+        {/* Back + header */}
+        <div className="mb-6">
+          <button
+            className="btn btn-ghost btn-sm !pl-0 mb-3 text-muted-foreground"
+            onClick={() => navigate(ROUTES.DASHBOARD_ORG_SETTINGS)}
+          >
+            <Icon name="arrowLeft" size={15} />
+            {t("orgSettings.title")}
+          </button>
+          <h1 className="t-h1 mb-1">{t("orgSettings.tab.hacienda")}</h1>
+          <p className="t-body text-muted-foreground">{t("orgSettings.hacienda.empty.desc")}</p>
+        </div>
+
+        <HaciendaTab
+          config={config}
+          isLoading={isLoading}
+          onEdit={() => setDrawerOpen(true)}
+        />
+      </FadeIn>
+
+      {org && (
+        <HaciendaConfigDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          config={config}
+          orgId={org.id}
+        />
+      )}
+    </div>
+  );
+}
