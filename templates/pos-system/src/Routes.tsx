@@ -18,6 +18,7 @@ import DocumentsPage from "@/pages/dashboard/DocumentsPage";
 import ClientsPage from "@/pages/dashboard/ClientsPage";
 import ClientDetailPage from "@/pages/dashboard/ClientDetailPage";
 import ProductDetailPage from "@/pages/dashboard/ProductDetailPage";
+import OrgSettingsPage from "@/pages/dashboard/OrgSettingsPage";
 
 const DASHBOARD_ROLES = ["gerente", "supervisor", "customer", "cajero"];
 
@@ -168,6 +169,11 @@ export default function Routes() {
       <Route
         path={ROUTES.DASHBOARD_CLIENTS}
         component={() => <DashboardPage><ClientsPage /></DashboardPage>}
+      />
+
+      <Route
+        path={ROUTES.DASHBOARD_ORG_SETTINGS}
+        component={() => <DashboardPage><OrgSettingsPage /></DashboardPage>}
       />
 
       <Route
