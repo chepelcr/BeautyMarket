@@ -345,7 +345,7 @@ export default function ProductDetailPage({ productId }: Props) {
                     label: "Eliminar producto",
                     icon: "trash",
                     action: handleDelete,
-                    variant: "destructive",
+                    color: "destructive",
                   },
                 ]}
               />

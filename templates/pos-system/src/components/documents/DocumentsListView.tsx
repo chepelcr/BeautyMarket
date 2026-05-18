@@ -159,8 +159,10 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
             {pagination && pagination.total_pages > 1 && (
               <div className="mt-6">
                 <Pagination
-                  currentPage={page}
+                  page={page}
                   totalPages={pagination.total_pages}
+                  totalElements={pagination.total_elements}
+                  pageSize={pagination.page_size}
                   onPageChange={setPage}
                 />
               </div>

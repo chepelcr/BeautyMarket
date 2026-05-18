@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useDocumentStore } from '@/store/documentStore';
 import { useMaxVisibleTabs } from '@/store/uiStore';
 import { ROUTES, documentEditorPath } from '@/routePaths';
 import { getDocumentTypeInfo } from '@/types/invoice';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /**
  * Compact toolbar embedded inside the global navbar — renders the
@@ -21,13 +23,23 @@ import { getDocumentTypeInfo } from '@/types/invoice';
  * doc-type hex without dynamic Tailwind class composition.
  */
 export function DocumentsToolbar() {
-  const { open_documents, removeDocumentTab } = useDocumentStore();
+  const { open_documents, removeDocumentTab, promoteTabToVisible } = useDocumentStore();
   const maxVisible = useMaxVisibleTabs();
   const [location, setLocation] = useLocation();
+  const { t } = useLanguage();
 
   const editorMatch = location.match(/^\/dashboard\/documents\/new\/([^/?#]+)/);
   const activeTabId = editorMatch?.[1] ?? null;
   const onDocsRoute = location.startsWith(ROUTES.DASHBOARD_DOCUMENTS);
+
+  // If the visible window shrinks (sidebar expands → maxVisible drops from 3→2)
+  // and the active tab now sits in overflow, promote it into the last visible
+  // slot so the user doesn't lose sight of the doc they're currently editing.
+  useEffect(() => {
+    if (!activeTabId || maxVisible <= 0) return;
+    const idx = open_documents.findIndex((d) => d.id === activeTabId);
+    if (idx >= maxVisible) promoteTabToVisible(activeTabId, maxVisible);
+  }, [activeTabId, maxVisible, open_documents, promoteTabToVisible]);
 
   const handleTabClick = (id: string) => {
     if (id !== activeTabId) setLocation(documentEditorPath(id));
@@ -72,10 +84,10 @@ export function DocumentsToolbar() {
             : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
         )}
         style={docsTabActive ? { color: 'hsl(var(--primary))' } : undefined}
-        title="Ir a la lista de documentos"
+        title={t('documents.goToList')}
       >
         <span className="text-[14px]" aria-hidden>📄</span>
-        <span className="text-[12px] font-display font-bold">Documentos</span>
+        <span className="text-[12px] font-display font-bold">{t('documents.title')}</span>
       </div>
 
       {/* Open document tab chips — same square style. Capped at
@@ -106,18 +118,18 @@ export function DocumentsToolbar() {
               {info?.short ?? '?'}
             </span>
             <span className="text-[12px] font-semibold truncate max-w-[120px]">
-              {tab.title}
+              {t(`docTypes.${tab.doc_type}`)}
             </span>
             {tab.is_dirty && (
               <span
                 className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0"
-                title="Cambios sin guardar"
+                title={t('documents.unsavedChanges')}
               />
             )}
             <button
               onClick={(e) => handleTabClose(tab.id, e)}
               className="w-4 h-4 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors text-[10px] leading-none"
-              title="Cerrar pestaña"
+              title={t('documents.closeTab')}
             >
               ✕
             </button>

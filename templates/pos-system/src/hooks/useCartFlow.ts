@@ -3,21 +3,40 @@ import { useInventory } from "@/store/inventory";
 import { salesApi, salesOrgPath } from "@/lib/api";
 import { db } from "@/lib/db";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
-import type { SaleReceiver } from "@/types/receiver";
+import type {
+  SaleReceiver,
+  SaleReceiverDraft,
+  Residence,
+  ResidenceLocalState,
+} from "@/types/receiver";
 import type { SaleReference } from "@/types/reference";
-import type { CurrencyCode } from "@/types/invoice";
+import type {
+  CurrencyCode,
+  DocTypeCode,
+  SaleDocument,
+  SalePayment,
+} from "@/types/invoice";
 
+/**
+ * Inputs the checkout drawer assembles before calling submit.
+ *
+ * Uses the canonical Hacienda code strings throughout. Receiver may carry a
+ * `neighborhood_id` (LocationSelect cascade state) — the payload builder
+ * resolves it to `neighborhood_name` if a name isn't already present.
+ */
 interface InvoiceCheckoutData {
-  document_type: number;
-  sale_condition_id: number;
+  document_type: DocTypeCode;
+  /** Hacienda sale condition code. */
+  sale_condition: string;
   activity_code: string;
   credit_term: string;
   notes?: string;
-  currency_code: CurrencyCode;
-  receiver?: SaleReceiver | null;
+  /** Document currency. */
+  currency: CurrencyCode;
+  receiver?: SaleReceiverDraft | SaleReceiver | null;
   references?: SaleReference[];
   copy_emails?: string[];
-  payments: Array<{ payment_type_id: number; amount: number }>;
+  payments: SalePayment[];
   subtotal: number;
   discount_amount: number;
   tax_amount: number;
@@ -28,11 +47,20 @@ interface ConfirmPaymentArgs {
   assignmentId: string;
   orgId: string;
   userId: string;
-  branchCode: number;
-  terminalCode: number;
+  branchNumber: number;
+  terminalNumber: number;
   selectedClient: ClientSearchResult | null;
   invoiceData: InvoiceCheckoutData;
 }
+
+// ── code-string fallbacks until cross-app-be product API returns canonical codes ──
+const pad2 = (n: number | string | undefined): string | undefined => {
+  if (n === undefined || n === null || n === "") return undefined;
+  const s = String(n);
+  return s.length === 1 ? `0${s}` : s;
+};
+
+const DEFAULT_UNIT_MEASURE = "Unid";
 
 export function useCartFlow() {
   const { items, add, remove, updateLine, clear, total, count } = useCart();
@@ -62,61 +90,112 @@ export function useCartFlow() {
   );
   const taxAmount = Math.max(0, cartTotal - subtotal);
 
+  /**
+   * Build a canonical SaleReceiver from either a draft (with `neighborhood_id`)
+   * or a ClientSearchResult. Drops `neighborhood_id` from the outbound shape;
+   * caller is responsible for resolving the name (the checkout form does so via
+   * the loaded useNeighborhoods cache when the user picks a neighborhood).
+   */
+  const buildReceiver = (
+    inbound: SaleReceiverDraft | SaleReceiver | null | undefined,
+    fallback: ClientSearchResult | null
+  ): SaleReceiver | null => {
+    if (inbound) {
+      const residence = (inbound.residence ?? undefined) as
+        | ResidenceLocalState
+        | Residence
+        | undefined;
+      const canonicalResidence: Residence | undefined = residence
+        ? {
+            state_id: residence.state_id,
+            state_name: residence.state_name,
+            county_id: residence.county_id,
+            county_name: residence.county_name,
+            district_id: residence.district_id,
+            district_name: residence.district_name,
+            // `neighborhood_name` wins over `neighborhood_id` (id is local-state only).
+            neighborhood_name:
+              (residence as Residence).neighborhood_name ?? undefined,
+            country_code: residence.country_code,
+            country_name: residence.country_name,
+            address: residence.address,
+          }
+        : undefined;
+      return {
+        ...inbound,
+        residence: canonicalResidence,
+      };
+    }
+
+    if (!fallback) return null;
+    return {
+      name: fallback.business_name || fallback.client_name || undefined,
+      email: fallback.email ?? undefined,
+      identification: fallback.identification
+        ? {
+            code: fallback.identification.code ?? undefined,
+            number: fallback.identification.number ?? undefined,
+          }
+        : undefined,
+      residence: fallback.residence
+        ? {
+            state_id: fallback.residence.state_id ?? undefined,
+            county_id: fallback.residence.county_id ?? undefined,
+            district_id: fallback.residence.district_id ?? undefined,
+            // Note: ClientSearchResult only has neighborhood_id — caller can
+            // re-edit the receiver in the checkout form to populate the name
+            // before submitting (Hacienda needs the name, not the id).
+            address: fallback.residence.address ?? undefined,
+          }
+        : undefined,
+    };
+  };
+
   const handleConfirmPayment = async ({
     assignmentId,
     orgId,
     userId,
-    branchCode,
-    terminalCode,
+    branchNumber,
+    terminalNumber,
     selectedClient,
     invoiceData,
-  }: ConfirmPaymentArgs) => {
+  }: ConfirmPaymentArgs): Promise<SaleDocument> => {
     const localId = `sale-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    // Build receiver: prefer checkout form data, fall back to selected cart client
-    const receiver: SaleReceiver | null =
-      invoiceData.receiver ??
-      (selectedClient
-        ? {
-            id_type: selectedClient.identification?.code
-              ? parseInt(selectedClient.identification.code, 10)
-              : undefined,
-            id_number: selectedClient.identification?.number,
-            business_name:
-              selectedClient.business_name || selectedClient.client_name || undefined,
-            email: selectedClient.email ?? undefined,
-            state_id: selectedClient.residence?.state_id,
-            county_id: selectedClient.residence?.county_id,
-            district_id: selectedClient.residence?.district_id,
-            address: selectedClient.residence?.address,
-          }
-        : null);
+    const receiver = buildReceiver(invoiceData.receiver, selectedClient);
 
-    const payload = {
+    // ── Build the canonical DocumentDTO payload ────────────────────────────
+    const payload: SaleDocument = {
       assignment_id: assignmentId,
-      branch_code: branchCode,
-      terminal_code: terminalCode,
+      branch_number: branchNumber,
+      terminal_number: terminalNumber,
       client_id: selectedClient?.client_id ?? null,
-      // Invoice fields from CheckoutModal
+
       document_type: invoiceData.document_type,
-      version_id: 1,
+      version: "4.4",
       activity_code: invoiceData.activity_code,
-      sale_condition_id: invoiceData.sale_condition_id,
+      sale_condition: invoiceData.sale_condition,
       credit_term: invoiceData.credit_term,
-      notes: invoiceData.notes ?? null,
+      notes: invoiceData.notes ?? undefined,
       copy_emails: invoiceData.copy_emails?.filter(Boolean) ?? [],
-      currency_code: invoiceData.currency_code,
+      country_code: "506",
+
       receiver,
       references: invoiceData.references ?? [],
-      // Line details from cart
+
+      // Cart lines → canonical DetailDTO[] (Hacienda code strings throughout)
       details: cartItems.map((item, index) => {
         const lineDiscounts = [
           ...item.discounts.map((d: any) => ({
-            discount_type_id: d.discount_type_id ?? d.discountTypeId,
+            discount_type:
+              d.discount_code ??
+              d.discount_type ??
+              pad2(d.discount_type_id ?? d.discountTypeId) ??
+              "01",
             percentage: d.rate ?? d.percentage ?? 0,
           })),
           ...(item.lineDiscount > 0
-            ? [{ discount_type_id: 1, percentage: item.lineDiscount }]
+            ? [{ discount_type: "01", percentage: item.lineDiscount }]
             : []),
         ];
 
@@ -125,22 +204,34 @@ export function useCartFlow() {
           product_id: item.id,
           description: item.lineNote || item.name,
           quantity: item.qty,
-          unit_id: item.product.unit_id ?? 1,
+          unit_measure:
+            (item.product as any).unit_code ??
+            (item.product as any).unit_measure ??
+            DEFAULT_UNIT_MEASURE,
           net_price: item.netPrice,
           cabys: item.cabys,
           taxes: item.taxes.map((t: any) => ({
-            tax_type_id: t.tax_type_id ?? t.taxId,
+            code: t.tax_code ?? t.code ?? pad2(t.tax_type_id ?? t.taxId) ?? "01",
             rate: t.rate,
-            special_fields: t.special_fields ?? t.specialFields ?? null,
+            rate_code: t.rate_code ?? t.tax_rate_code ?? undefined,
+            special_fields: t.special_fields ?? t.specialFields ?? undefined,
           })),
           discounts: lineDiscounts,
         };
       }),
+
       payments: invoiceData.payments,
-      subtotal: invoiceData.subtotal,
-      discount_amount: invoiceData.discount_amount,
-      tax_amount: invoiceData.tax_amount,
-      total_amount: invoiceData.total_amount,
+
+      // Hint summary — BE recomputes authoritative values.
+      summary: {
+        currency_code: invoiceData.currency,
+        sale_total: invoiceData.subtotal,
+        discount_total: invoiceData.discount_amount,
+        net_total: Math.max(0, invoiceData.subtotal - invoiceData.discount_amount),
+        tax_total: invoiceData.tax_amount,
+        voucher_total: invoiceData.total_amount,
+        payments_total: invoiceData.payments.reduce((s, p) => s + (p.amount || 0), 0),
+      },
     };
 
     const syncUrl = salesOrgPath(orgId);
@@ -159,15 +250,16 @@ export function useCartFlow() {
       })),
       total: invoiceData.total_amount,
       paymentMethod: invoiceData.payments
-        .map((p) =>
-          p.payment_type_id === 1
-            ? "Efectivo"
-            : p.payment_type_id === 3
-            ? "Tarjeta"
-            : p.payment_type_id === 4
-            ? "SINPE"
-            : "Otro"
-        )
+        .map((p) => {
+          switch (p.type) {
+            case "01": return "Efectivo";
+            case "02": return "Tarjeta";
+            case "03": return "Cheque";
+            case "04": return "Transferencia";
+            case "06": return "SINPE";
+            default:   return p.type === "99" ? (p.other_type || "Otro") : "Otro";
+          }
+        })
         .join(", "),
       timestamp: Date.now(),
       synced: false,
@@ -182,7 +274,7 @@ export function useCartFlow() {
       const sale = await salesApi.post(syncUrl, payload);
       await db.sales.where({ localId }).modify({ synced: true });
       clear();
-      return sale;
+      return sale as SaleDocument;
     } catch (err) {
       if ("serviceWorker" in navigator && "SyncManager" in window) {
         const reg = await navigator.serviceWorker.ready;

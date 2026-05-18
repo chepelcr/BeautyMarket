@@ -1,16 +1,13 @@
 import { create } from 'zustand';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { MAX_VISIBLE_TABS } from './documentStore';
 
 /**
- * Minimal shared UI-state store. Currently tracks whether the left dashboard
- * sidebar is collapsed, because that affects how many open-document tabs fit
- * in the global navbar (DocumentsToolbar):
- *
- *  - Sidebar open    → less horizontal room → 2 tabs visible
- *  - Sidebar closed  → more room            → 3 tabs visible (= MAX_VISIBLE_TABS)
- *
- * Anything in the open-documents list beyond that count becomes "overflow" and
- * is only reachable through the right-side DocumentsMobileDrawer.
+ * Minimal shared UI-state store. Tracks whether the left dashboard sidebar is
+ * collapsed — relevant because, together with viewport size, it drives how
+ * many open-document tabs fit in the global navbar (DocumentsToolbar).
+ * Anything beyond that count is "overflow" and only reachable through the
+ * right-side DocumentsMobileDrawer.
  */
 interface UIStore {
   sidebar_collapsed: boolean;
@@ -26,10 +23,22 @@ export const useUIStore = create<UIStore>((set) => ({
 
 /**
  * Returns the number of document tabs that fit in the global navbar at the
- * current sidebar state. Tabs beyond this index are "overflow" and live in
- * the documents drawer.
+ * current viewport + sidebar state.
+ *
+ *  - Mobile (<769px):    toolbar hidden — returns 0 so the drawer-toggle
+ *                        badge reflects the *full* open count.
+ *  - Tablet (769-1023):  sidebar collapsed → 2 tabs, sidebar open → 1 tab
+ *                        (the open sidebar eats too much horizontal room to
+ *                        fit a second tab cleanly at this width).
+ *  - Desktop (≥1024px):  sidebar collapsed → 3 tabs, sidebar open → 2 tabs.
+ *
+ * Tabs beyond this index live in the right-side DocumentsMobileDrawer.
  */
 export function useMaxVisibleTabs(): number {
   const collapsed = useUIStore((s) => s.sidebar_collapsed);
+  const isTabletUp = useIsDesktop(769);
+  const isWideDesktop = useIsDesktop(1024);
+  if (!isTabletUp) return 0;
+  if (!isWideDesktop) return collapsed ? MAX_VISIBLE_TABS - 1 : MAX_VISIBLE_TABS - 2;
   return collapsed ? MAX_VISIBLE_TABS : MAX_VISIBLE_TABS - 1;
 }

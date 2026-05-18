@@ -9,7 +9,7 @@ export interface ClientSearchResult {
   identification?: { code?: string | null; number?: string | null } | null;
   email?: string | null;
   phone?: { area_code?: string | null; number?: string | null } | null;
-  residence?: { state_id?: number | null; county_id?: number | null; district_id?: number | null; address?: string | null } | null;
+  residence?: { state_id?: number | null; county_id?: number | null; district_id?: number | null; neighborhood_id?: number | null; address?: string | null } | null;
 }
 
 export function useClientSearch(orgId: string | undefined, enabled: boolean) {

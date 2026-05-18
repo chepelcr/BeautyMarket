@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { FadeIn } from '@/components/ui/FadeIn';
 import { ClientListSkeleton } from './ClientListSkeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 
 const fmt_id = (c: ClientSearchResult) =>
@@ -23,6 +24,7 @@ export function CustomerPanel({
   onQueryChange,
   onSelect,
 }: CustomerPanelProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Search */}
@@ -30,7 +32,7 @@ export function CustomerPanel({
         <input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Buscar cliente por nombre o cédula…"
+          placeholder={t('clients.searchPlaceholder')}
           className="w-full h-10 rounded-md border border-border bg-card px-3 text-sm outline-none focus:border-primary"
         />
       </div>
@@ -45,11 +47,11 @@ export function CustomerPanel({
           </div>
         ) : clients.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
-            {query ? `Sin resultados para "${query}"` : 'Busca un cliente arriba'}
+            {query ? t('clients.noResultsFor', { query }) : t('clients.searchHint')}
           </div>
         ) : (
           clients.map((c, i) => {
-            const name = c.client_name || c.business_name || c.client_gln || 'Sin nombre';
+            const name = c.client_name || c.business_name || c.client_gln || t('clients.noName');
             const isSelected = selected?.client_id === c.client_id;
             return (
               <FadeIn key={c.client_id} delay={i * 0.02} duration={0.3}>
@@ -67,7 +69,7 @@ export function CustomerPanel({
                     <div className="text-[11px] text-muted-foreground mt-0.5">{fmt_id(c)}</div>
                   </div>
                   {isSelected && (
-                    <span className="text-[11px] font-bold text-primary shrink-0">Seleccionado</span>
+                    <span className="text-[11px] font-bold text-primary shrink-0">{t('clients.selected')}</span>
                   )}
                 </button>
               </FadeIn>

@@ -4,6 +4,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ProductGridSkeleton } from "./ProductGridSkeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Product } from "@/types";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
@@ -18,6 +19,7 @@ interface ProductsPanelProps {
 }
 
 export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPanelProps) {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [page, setPage] = useState(1);
@@ -77,13 +79,13 @@ export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPa
           <input
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Buscar producto..."
+            placeholder={t('productsPanel.searchPlaceholder')}
             className="w-full pl-[38px] pr-3.5 py-2.5 bg-foreground/[0.06] border border-border rounded-lg text-foreground text-sm outline-none box-border"
           />
         </div>
         {categories.length > 0 && (
           <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {renderCategoryButton("", "Todo")}
+            {renderCategoryButton("", t('productsPanel.allCategory'))}
             {categories.map((c) => renderCategoryButton(c.category_id, c.name))}
           </div>
         )}
@@ -98,7 +100,7 @@ export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPa
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center pt-12 text-muted-foreground">Sin productos</div>
+          <div className="text-center pt-12 text-muted-foreground">{t('productsPanel.noProducts')}</div>
         ) : (
           <div className="grid gap-3" style={gridColumnsStyle}>
             {products.map((p, i) => {
@@ -137,7 +139,7 @@ export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPa
                       </div>
                       {inCart && (
                         <div className="text-[10px] text-accent-rose mt-0.5">
-                          × {inCart.qty} en carrito
+                          {t('productsPanel.inCart', { n: inCart.qty })}
                         </div>
                       )}
                     </div>

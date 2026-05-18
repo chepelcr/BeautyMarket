@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Input, Button, Drawer, EmptyState, Pagination, Spinner } from "@/components/ui";
+import { Icon, Input, Button, Drawer, EmptyState, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BranchCard } from "@/components/puestos/BranchCard";
 import { BranchForm } from "@/components/puestos/BranchForm";

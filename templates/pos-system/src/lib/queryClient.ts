@@ -6,7 +6,7 @@ export const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: false, // Don't retry on error so we see errors immediately
       refetchOnWindowFocus: false,
-      useErrorBoundary: false, // Don't throw errors to error boundary, handle in components
+      throwOnError: false, // Don't throw errors to error boundary, handle in components
     },
   },
 });

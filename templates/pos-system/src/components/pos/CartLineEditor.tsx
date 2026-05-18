@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "@/components/ui";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Product } from "@/types";
 
 interface CartLineEditorProps {
@@ -14,6 +15,7 @@ interface CartLineEditorProps {
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
 export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", onSave, onClose }: CartLineEditorProps) {
+  const { t } = useLanguage();
   const [editQty, setEditQty] = useState(String(qty));
   const [editDiscount, setEditDiscount] = useState(String(lineDiscount));
   const [editNote, setEditNote] = useState(lineNote);
@@ -38,7 +40,7 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
         <div className="px-5 pt-5 pb-4 border-b border-border flex items-center gap-3">
           <div className="flex-1">
             <div className="text-[11px] font-semibold text-accent-rose uppercase tracking-[0.08em] mb-0.5">
-              Editar línea
+              {t('lineEditor.editLine')}
             </div>
             <div className="font-display text-lg font-semibold text-foreground">{product.name}</div>
           </div>
@@ -50,7 +52,7 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
         <div className="px-5 pt-5">
           {/* Quantity */}
           <div className="mb-4">
-            <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Cantidad</label>
+            <label className="text-xs font-semibold text-muted-foreground block mb-1.5">{t('lineEditor.quantity')}</label>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setEditQty(String(Math.max(1, parsedQty - 1)))}
@@ -77,7 +79,7 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
           {/* Discount */}
           <div className="mb-4">
             <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
-              Descuento en línea (%)
+              {t('lineEditor.lineDiscount')}
             </label>
             <div className="relative">
               <input
@@ -97,7 +99,7 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
           {/* Note */}
           <div className="mb-4">
             <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
-              Nota (descripción alternativa)
+              {t('lineEditor.note')}
             </label>
             <input
               type="text"
@@ -112,12 +114,12 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
           {product.taxes && product.taxes.length > 0 && (
             <div className="mb-4 px-3.5 py-3 bg-background rounded-lg border border-border">
               <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.06em] mb-2">
-                Impuestos del producto
+                {t('lineEditor.productTaxes')}
               </div>
-              {product.taxes.map((t, i) => (
+              {product.taxes.map((tx, i) => (
                 <div key={i} className="flex justify-between mb-1">
-                  <span className="text-xs text-muted-foreground">Código {t.tax_code ?? "—"}</span>
-                  <span className="text-xs text-foreground font-semibold">{t.rate}%</span>
+                  <span className="text-xs text-muted-foreground">{t('lineEditor.codeLabel', { code: tx.tax_code ?? '—' })}</span>
+                  <span className="text-xs text-foreground font-semibold">{tx.rate}%</span>
                 </div>
               ))}
             </div>
@@ -125,7 +127,7 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
 
           {/* Line total preview */}
           <div className="py-3.5 border-t border-border flex justify-between items-center mb-5">
-            <span className="text-[13px] text-muted-foreground">Total de línea</span>
+            <span className="text-[13px] text-muted-foreground">{t('lineEditor.lineTotal')}</span>
             <span className="font-display text-[22px] font-bold text-accent-rose">{fmt(lineTotal)}</span>
           </div>
         </div>
@@ -136,13 +138,13 @@ export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", 
             onClick={onClose}
             className="flex-1 py-3 border border-border bg-transparent text-foreground rounded-lg text-sm font-semibold cursor-pointer"
           >
-            Cancelar
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSave}
             className="flex-[2] py-3 border-0 bg-accent-rose text-background rounded-lg text-sm font-bold cursor-pointer"
           >
-            Aplicar cambios
+            {t('lineEditor.apply')}
           </button>
         </div>
       </div>

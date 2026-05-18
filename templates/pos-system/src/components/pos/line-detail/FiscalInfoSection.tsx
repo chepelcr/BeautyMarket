@@ -5,6 +5,7 @@ import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { Spinner, FormLabel } from '@/components/ui';
 import { useCabysSearch, useAllProductTypes, useAllTaxes } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDetail } from '@/types/lineDetail';
 import type { CabysItem } from '@/services/data-api';
 
@@ -18,6 +19,7 @@ interface FiscalInfoSectionProps {
 }
 
 export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: FiscalInfoSectionProps) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -164,7 +166,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
   return (
     <>
       <SectionWrapper
-        title="Información Fiscal"
+        title={t('lineDetail.fiscalInfo')}
         icon={FileCheck}
         isExpanded={isExpanded}
         onToggle={onToggle}
@@ -173,7 +175,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
           {/* 1. Product type — radio pills */}
           {productTypes.length > 0 && (
             <div>
-              <FormLabel>Tipo de producto</FormLabel>
+              <FormLabel>{t('products.productType')}</FormLabel>
               <div className="flex flex-wrap gap-2 mt-1">
                 {productTypes.map((pt: { id: number; description: string }) => {
                   const selected = productTypeId === pt.id;
@@ -201,7 +203,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
             {detail.cabys ? (
               /* Selected state */
               <div className="docs-fade-in">
-                <FormLabel>Código CABYS</FormLabel>
+                <FormLabel>{t('lineDetail.cabysCode')}</FormLabel>
                 <div className="flex items-center gap-2.5 px-3 py-2.5 bg-primary/[0.06] border-[1.5px] border-primary/35 rounded-lg transition-all">
                   <div className="flex-1">
                     <div className="font-mono text-[13px] font-bold text-primary tracking-[0.05em]">
@@ -217,13 +219,13 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                   </button>
                 </div>
                 <div className="text-[11px] text-muted-foreground mt-1">
-                  El código CABYS se puede modificar para esta línea específica.
+                  {t('products.cabysHelp')}
                 </div>
               </div>
             ) : (
               /* Search state */
               <div className="relative docs-fade-in">
-                <FormLabel>Buscar código CABYS</FormLabel>
+                <FormLabel>{t('lineDetail.searchCabys')}</FormLabel>
                 <div className="flex gap-1.5">
                   <div className="flex-1 relative">
                     <Search
@@ -235,8 +237,8 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                       className="pp-input pl-[30px] text-xs transition-all"
                       placeholder={
                         !productTypeId
-                          ? "Selecciona tipo de producto primero"
-                          : "Buscar por nombre de producto..."
+                          ? t('lineDetail.selectProductTypeFirst')
+                          : t('lineDetail.cabysSearchPlaceholder')
                       }
                       value={searchTerm}
                       disabled={!productTypeId}
@@ -284,14 +286,14 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                           </span>
                           {item.tax_rate && (
                             <span className="text-[11px] text-muted-foreground">
-                              IVA sugerido: {item.tax_rate.percentage}%
+                              {t('products.suggestedIva', { pct: item.tax_rate.percentage ?? 0 })}
                             </span>
                           )}
                         </button>
                       ))
                     ) : (
                       <div className="px-4 py-3 text-xs text-muted-foreground text-center">
-                        No se encontraron resultados para "{searchTerm}"
+                        {t('products.noResultsFor', { query: searchTerm })}
                       </div>
                     )}
                   </div>,
@@ -299,7 +301,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                 )}
 
                 <div className="text-[11px] text-muted-foreground mt-1">
-                  Busca y selecciona un código CABYS para esta línea.
+                  {t('products.cabysHelp')}
                 </div>
               </div>
             )}
@@ -319,10 +321,10 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
           >
             <div className="flex items-center gap-2.5 mb-3">
               <AlertTriangle size={18} className="text-warning flex-shrink-0" />
-              <span className="text-[15px] font-bold">Cambiar tipo de producto</span>
+              <span className="text-[15px] font-bold">{t('products.changeProductType')}</span>
             </div>
             <p className="text-[13px] text-muted-foreground mb-5 leading-relaxed">
-              Al cambiar el tipo de producto se eliminará el código CABYS seleccionado. ¿Deseas continuar?
+              {t('products.changeProductTypeWarning')}
             </p>
             <div className="flex gap-2 justify-end">
               <button
@@ -330,14 +332,14 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                 className="btn btn-ghost btn-sm"
                 onClick={() => { setPendingProductTypeId(undefined); setShowConfirm(false); }}
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
                 onClick={confirmProductTypeChange}
               >
-                Continuar
+                {t('common.continue')}
               </button>
             </div>
           </div>

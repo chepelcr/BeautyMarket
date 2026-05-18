@@ -2,6 +2,7 @@ import { DollarSign } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useAllTaxes } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDetail } from '@/types/lineDetail';
 
 const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
@@ -29,6 +30,7 @@ export function CommercialValueSection({
   isExpanded,
   onToggle
 }: CommercialValueSectionProps) {
+  const { t } = useLanguage();
   const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
 
   const basePrice = detail.net_price * detail.quantity;
@@ -46,25 +48,25 @@ export function CommercialValueSection({
 
   return (
     <SectionWrapper
-      title="Valor Comercial"
+      title={t('lineDetail.commercialValue')}
       icon={DollarSign}
       isExpanded={isExpanded}
       onToggle={onToggle}
     >
       <div className="px-4 py-3.5 bg-primary/[0.06] rounded-lg border-[1.5px] border-primary/30">
         <div className="flex justify-between items-center mb-3">
-          <span className="t-label !text-primary">Total Línea</span>
+          <span className="t-label !text-primary">{t('lineEditor.lineTotal')}</span>
           <span className="text-[22px] font-bold text-primary font-display">
             {fmt(totalLine)}
           </span>
         </div>
 
         <div className="flex flex-col gap-[3px]">
-          <Row label="Precio base" value={fmt(basePrice)} />
+          <Row label={t('lineDetail.basePrice')} value={fmt(basePrice)} />
 
           {discountAmount > 0 && (
             <Row
-              label="Descuentos"
+              label={t('lineDetail.discountsLabel')}
               value={`-${fmt(discountAmount)}`}
               tone="destructive"
             />
@@ -74,7 +76,7 @@ export function CommercialValueSection({
             <>
               <div className="border-t border-border/40 my-1" />
               <Row
-                label="Neto después de descuentos"
+                label={t('lineDetail.netAfterDiscounts')}
                 value={fmt(subtotalAfterDiscount)}
                 bold
               />
@@ -85,7 +87,7 @@ export function CommercialValueSection({
             <>
               <div className="border-t border-border/40 my-1" />
               <Row
-                label="Base para IVA"
+                label={t('lineDetail.baseForIva')}
                 value={fmt(baseAmount)}
                 bold
                 tone="foreground"
@@ -95,7 +97,7 @@ export function CommercialValueSection({
 
           {factoryAssumedTax > 0 && (
             <Row
-              label="Asumido por fábrica"
+              label={t('lineDetail.factoryAssumed')}
               value={`-${fmt(factoryAssumedTax)}`}
               tone="warning"
             />
@@ -105,10 +107,10 @@ export function CommercialValueSection({
             <>
               <div className="border-t border-border/50 my-1" />
               {ivaTaxTotal > 0 && (
-                <Row label="Total IVA" value={`+${fmt(ivaTaxTotal)}`} bold />
+                <Row label={t('products.totalIva')} value={`+${fmt(ivaTaxTotal)}`} bold />
               )}
               {otherTaxTotal > 0 && (
-                <Row label="Total otros impuestos" value={`+${fmt(otherTaxTotal)}`} bold />
+                <Row label={t('lineDetail.totalOtherTaxes')} value={`+${fmt(otherTaxTotal)}`} bold />
               )}
             </>
           )}

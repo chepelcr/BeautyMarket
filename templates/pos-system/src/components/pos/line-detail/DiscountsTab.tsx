@@ -3,6 +3,7 @@ import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { FormLabel } from '@/components/ui';
 import { useAllDiscountTypes } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDiscount } from '@/types/lineDetail';
 
 interface DiscountsTabProps {
@@ -15,6 +16,7 @@ interface DiscountsTabProps {
 }
 
 export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpanded, onToggle }: DiscountsTabProps) {
+  const { t } = useLanguage();
   const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
 
   const add = () => {
@@ -42,7 +44,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
 
   return (
     <SectionWrapper
-      title="Descuentos"
+      title={t('products.discounts')}
       icon={Tag}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -57,18 +59,18 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
           return (
             <div key={i} className="border border-border rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold">{dt?.description ?? 'Descuento'}</span>
+                <span className="text-[11px] font-semibold">{dt?.description ?? t('products.discounts')}</span>
                 <button
                   onClick={() => remove(i)}
                   className="text-[11px] text-muted-foreground bg-transparent border-0 cursor-pointer hover:text-destructive transition-colors"
                 >
-                  Quitar
+                  {t('common.delete')}
                 </button>
               </div>
 
               <div className={`grid grid-cols-2 gap-2 ${needs_reason ? "mb-2" : ""}`}>
                 <div>
-                  <FormLabel required>Tipo</FormLabel>
+                  <FormLabel required>{t('lineDetail.discountType')}</FormLabel>
                   <select
                     className="pp-input"
                     value={disc.discount_type_id}
@@ -80,7 +82,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
                   </select>
                 </div>
                 <div>
-                  <FormLabel required>Porcentaje %</FormLabel>
+                  <FormLabel required>{t('lineDetail.percentage')} %</FormLabel>
                   <input
                     className="pp-input"
                     type="number"
@@ -95,18 +97,18 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
 
               {needs_reason && (
                 <div>
-                  <FormLabel required>Razón</FormLabel>
+                  <FormLabel required>{t('lineDetail.discountReason')}</FormLabel>
                   <input
                     className="pp-input"
                     value={disc.reason || ''}
                     onChange={(e) => update(i, { reason: e.target.value })}
-                    placeholder="Motivo del descuento"
+                    placeholder={t('lineDetail.discountReasonPlaceholder')}
                   />
                 </div>
               )}
 
               <div className="text-[11px] text-muted-foreground text-right mt-1">
-                Monto: ₡{disc_amount.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                ₡{disc_amount.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
               </div>
             </div>
           );
@@ -116,21 +118,21 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
           onClick={add}
           className="w-full h-9 rounded-md border border-dashed border-border text-xs text-muted-foreground bg-transparent cursor-pointer transition-colors hover:border-primary hover:text-primary"
         >
-          + Agregar descuento
+          {t('products.addDiscount')}
         </button>
 
         {discounts.length > 0 && (
           <div className="border-t border-border pt-3 flex flex-col gap-1 text-xs">
             <div className="flex justify-between text-muted-foreground">
-              <span>Total porcentaje</span>
+              <span>{t('lineDetail.totalPercentage')}</span>
               <span className="font-mono">{total_pct.toFixed(2)}%</span>
             </div>
             <div className="flex justify-between font-semibold">
-              <span>Total descuentos</span>
+              <span>{t('lineDetail.totalDiscounts')}</span>
               <span className="font-mono">₡{total_amt.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
             </div>
             {total_pct > 100 && (
-              <div className="text-[11px] text-destructive">⚠ Los descuentos superan el 100%</div>
+              <div className="text-[11px] text-destructive">⚠ {t('products.discountExceeds')}</div>
             )}
           </div>
         )}

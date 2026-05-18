@@ -2,6 +2,7 @@ import { Package } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { FormLabel } from '@/components/ui';
 import { useAllMeasurementUnits } from '@/hooks/useDataApi';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDetail } from '@/types/lineDetail';
 
 interface GeneralTabProps {
@@ -13,6 +14,7 @@ interface GeneralTabProps {
 }
 
 export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInvoice = false }: GeneralTabProps) {
+  const { t } = useLanguage();
   const { data: measurementUnits } = useAllMeasurementUnits();
   
   // Find the selected unit
@@ -41,7 +43,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
 
   return (
     <SectionWrapper
-      title="General"
+      title={t('lineDetail.general')}
       icon={Package}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -50,13 +52,13 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         {/* Description */}
         <div>
           <FormLabel required>
-            Descripción
+            {t('products.description')}
           </FormLabel>
           <input
             className="pp-input"
             value={detail.description}
             onChange={(e) => onChange({ description: e.target.value })}
-            placeholder="Descripción del producto o servicio"
+            placeholder={t('lineDetail.descriptionPlaceholder')}
             maxLength={200}
           />
         </div>
@@ -65,7 +67,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
         <div className="grid grid-cols-3 gap-2">
           <div>
             <FormLabel required>
-              Cantidad
+              {t('lineEditor.quantity')}
             </FormLabel>
             <input
               className="pp-input"
@@ -78,7 +80,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
           </div>
           <div>
             <FormLabel required>
-              Precio neto
+              {t('products.netPrice')}
             </FormLabel>
             <input
               className="pp-input"
@@ -91,7 +93,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
           </div>
           <div>
             <FormLabel required>
-              Unidad
+              {t('products.unitOfMeasure')}
             </FormLabel>
             <select
               className="pp-input"
@@ -111,20 +113,20 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
           {showCommercialUnit && (
             <div>
               <FormLabel required>
-                Unidad comercial
+                {t('products.specifyUnit')}
               </FormLabel>
               <input
                 className="pp-input"
                 value={detail.commercial_unit_measure || ''}
                 onChange={(e) => onChange({ commercial_unit_measure: e.target.value })}
                 maxLength={20}
-                placeholder="Ej: Caja, Paquete, etc."
+                placeholder={t('lineDetail.commercialUnitPlaceholder')}
               />
             </div>
           )}
           {isExportInvoice && (
             <div>
-              <FormLabel>Partida arancelaria</FormLabel>
+              <FormLabel>{t('lineDetail.tariffItem')}</FormLabel>
               <input
                 className="pp-input"
                 value={detail.customs_part || ''}
@@ -138,7 +140,7 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
 
         {/* Subtotal display */}
         <div className="flex justify-between items-center pt-2 border-t border-border">
-          <span className="text-xs text-muted-foreground">Subtotal línea</span>
+          <span className="text-xs text-muted-foreground">{t('cart.subtotal')}</span>
           <span className="font-mono font-semibold">
             ₡{(detail.quantity * detail.net_price).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
           </span>

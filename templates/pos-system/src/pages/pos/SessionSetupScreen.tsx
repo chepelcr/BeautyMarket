@@ -405,7 +405,7 @@ export default function SessionSetupScreen({ org }: Props) {
         width={400}
       >
         <TerminalForm
-          branchId={selectedBranch?.code ?? ""}
+          branchId={selectedBranch?.code ?? 0}
           isSaving={savingTerm}
           error={termError}
           onSave={handleAddTerminal}

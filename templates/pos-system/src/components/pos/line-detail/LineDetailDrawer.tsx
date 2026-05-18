@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Drawer, Button } from '@/components/ui';
 import { FadeIn } from '@/components/ui/FadeIn';
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges, useAllDiscountTypes } from '@/hooks/useDataApi';
@@ -64,6 +65,7 @@ export function LineDetailDrawer({
   const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
   // Note: taxAmounts requires tax_id, so we don't fetch it here - it's fetched per-tax when needed
   const { confirm, ConfirmModal } = useConfirmModal();
+  const { t } = useLanguage();
   
   const [expanded, setExpanded] = useState<SectionExpanded>({
     general: true,
@@ -229,9 +231,6 @@ export function LineDetailDrawer({
 
   const patch = (p: Partial<LineDetail>) => setDetail((d) => ({ ...d, ...p }));
 
-  // Live calculation
-  const hasFactoryTax = !!detail.factory_tax_charge_id;
-  
   // Get the selected factory charge to check its code
   const selectedFactoryCharge = (factoryTaxCharges ?? []).find(
     (c: any) => c.id === detail.factory_tax_charge_id
@@ -299,11 +298,11 @@ export function LineDetailDrawer({
 
   const handleDelete = () => {
     confirm({
-      title: "Eliminar línea",
-      message: "¿Estás seguro de que deseas eliminar esta línea del carrito?",
+      title: t("lineDetail.deleteTitle"),
+      message: t("lineDetail.deleteMessage"),
       variant: "destructive",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
       icon: "trash",
       onConfirm: () => {
         onDelete?.();
@@ -334,7 +333,7 @@ export function LineDetailDrawer({
       <Drawer
         open={open}
         onClose={onClose}
-        title="Detalle de línea"
+        title={t('lineDetail.title')}
         subtitle={product?.name}
         icon="edit"
         width="min(500px, 100vw)"
@@ -348,26 +347,26 @@ export function LineDetailDrawer({
                 onClick={handleDelete}
                 className="!text-destructive"
               >
-                Eliminar
+                {t('common.delete')}
               </Button>
             )}
             <div className="flex-1 flex items-center gap-2">
               <span className="text-[13px] font-semibold text-muted-foreground">
-                Total línea
+                {t('lineEditor.lineTotal')}
               </span>
               <span className="text-lg font-bold font-mono text-primary">
                 {fmt(lineAmounts.total_amount_line)}
               </span>
             </div>
             <Button variant="outline" size="sm" onClick={onClose}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               variant="primary"
               size="sm"
               onClick={handleSave}
             >
-              Guardar
+              {t('common.save')}
             </Button>
           </div>
         }

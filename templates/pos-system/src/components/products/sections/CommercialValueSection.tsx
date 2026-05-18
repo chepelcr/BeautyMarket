@@ -1,7 +1,9 @@
 import { DollarSign } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { FormLabel } from "@/components/ui";
-import { TaxCalculationService } from "@/services/taxCalculationService";
+import { TaxCalculationService, type LineTax, type LineDiscount } from "@/services/taxCalculationService";
+import { useAllTaxes } from "@/hooks/useDataApi";
+import { CountryISO } from "@/lib/enums";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { TaxFormEntry, DiscountFormEntry, ProductFormState } from "@/types/productForm";
 
@@ -30,27 +32,29 @@ export function CommercialValueSection({
   onChange,
 }: CommercialValueSectionProps) {
   const { t } = useLanguage();
+  const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
   const price = Number(form.price) || 0;
 
-  const taxEntries = taxes.map((t) => ({
-    taxTypeId: t.taxTypeId,
-    taxCode: t.taxCode,
-    rate: t.rate,
-    specialFields: t.specialFields,
-  }));
+  const taxEntries = taxes.map((tx) => ({
+    tax_type_id: tx.taxTypeId,
+    tax_code: tx.taxCode,
+    rate: tx.rate,
+    special_fields: tx.specialFields,
+  })) as LineTax[];
   const discountEntries = discounts.map((d) => ({
-    discountTypeId: d.discountTypeId,
-    rate: d.rate,
-  }));
+    discount_type_id: d.discountTypeId,
+    percentage: d.rate ?? 0,
+  })) as LineDiscount[];
 
   const calc = price > 0
     ? TaxCalculationService.getLineAmounts({
         subtotal: price,
         taxes: taxEntries,
+        tax_types: (taxTypes ?? []) as any,
         discounts: discountEntries,
-        detailQuantity: 1,
+        detail_quantity: 1,
         cabys: form.cabys || undefined,
-        hasFactoryTax,
+        has_factory_tax: hasFactoryTax,
       })
     : null;
 
@@ -66,21 +70,21 @@ export function CommercialValueSection({
   const ivaTaxes = taxes.filter((t) => IVA_CODES.includes(t.taxCode));
   const otherTaxes = taxes.filter((t) => !IVA_CODES.includes(t.taxCode));
 
-  const baseAmount = calc?.baseAmount ?? netPrice;
-  const ivaLines = ivaTaxes.map((t) => ({
-    label: t.taxDescription,
-    amount: t.taxCode === "07" || t.taxCode === "01"
-      ? (calc?.ivaTaxTotal ?? baseAmount * t.rate / 100) / Math.max(ivaTaxes.length, 1)
-      : baseAmount * t.rate / 100,
+  const baseAmount = calc?.base_amount ?? netPrice;
+  const ivaLines = ivaTaxes.map((tx) => ({
+    label: tx.taxDescription,
+    amount: tx.taxCode === "07" || tx.taxCode === "01"
+      ? (calc?.iva_tax_total ?? baseAmount * tx.rate / 100) / Math.max(ivaTaxes.length, 1)
+      : baseAmount * tx.rate / 100,
   }));
 
-  const otherTaxLines = otherTaxes.map((t) => ({
-    label: t.taxDescription,
-    amount: t.rate > 0 ? price * t.rate / 100 : 0,
+  const otherTaxLines = otherTaxes.map((tx) => ({
+    label: tx.taxDescription,
+    amount: tx.rate > 0 ? price * tx.rate / 100 : 0,
   }));
 
-  const salePrice = calc?.totalAmountLine ?? price;
-  const factoryAssumedTax = calc?.factoryAssumedTax ?? 0;
+  const salePrice = calc?.total_amount_line ?? price;
+  const factoryAssumedTax = calc?.factory_assumed_tax ?? 0;
 
   return (
     <SectionWrapper
@@ -170,11 +174,11 @@ export function CommercialValueSection({
             {(ivaTaxes.length > 0 || otherTaxes.length > 0) && (
               <>
                 <div className="border-t border-border/50 my-1" />
-                {(calc?.ivaTaxTotal ?? 0) > 0 && (
-                  <Row label={t("products.totalIva")} value={`+${fmt(calc!.ivaTaxTotal)}`} bold />
+                {(calc?.iva_tax_total ?? 0) > 0 && (
+                  <Row label={t("products.totalIva")} value={`+${fmt(calc!.iva_tax_total)}`} bold />
                 )}
-                {(calc?.otherTaxTotal ?? 0) > 0 && (
-                  <Row label={t("products.totalOtherTaxes")} value={`+${fmt(calc!.otherTaxTotal)}`} bold />
+                {(calc?.other_tax_total ?? 0) > 0 && (
+                  <Row label={t("products.totalOtherTaxes")} value={`+${fmt(calc!.other_tax_total)}`} bold />
                 )}
               </>
             )}

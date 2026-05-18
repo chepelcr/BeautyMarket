@@ -136,7 +136,7 @@ export function DashboardHeader({
           <button
             className={`btn ${docsOpen ? "btn-primary-soft" : "btn-ghost"} btn-sm btn-icon documents-drawer-toggle relative ${hasOverflow ? "has-overflow" : ""}`}
             onClick={onDocsClick}
-            aria-label={docsOpen ? "Cerrar documentos" : "Abrir documentos"}
+            aria-label={docsOpen ? t("documents.drawer.closeAria") : t("documents.drawer.openAria")}
             aria-expanded={docsOpen}
           >
             <Icon name="fileText" size={18} />

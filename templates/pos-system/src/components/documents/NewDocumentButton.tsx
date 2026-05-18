@@ -6,6 +6,7 @@ import { useDocumentStore, newDocTabId } from '@/store/documentStore';
 import { documentEditorPath } from '@/routePaths';
 import { DOCUMENT_TYPES } from '@/types/invoice';
 import type { DocTypeCode } from '@/types/invoice';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NewDocumentButtonProps {
   /** When true, the button stretches full-width with icon + label (mobile drawer).
@@ -34,6 +35,7 @@ export function NewDocumentButton({
   const { addDocumentTab } = useDocumentStore();
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on click-outside via document-level listener. This is more robust
@@ -83,14 +85,14 @@ export function NewDocumentButton({
           )}
         >
           <Plus size={16} className="shrink-0" />
-          <span className="flex-1 text-left">Nuevo</span>
+          <span className="flex-1 text-left">{t('documents.newShort')}</span>
         </button>
       ) : (
         // Navbar / desktop: square icon-only button, mirrors main sidebar's inline `+`.
         <button
           onClick={() => setOpen((v) => !v)}
-          aria-label="Crear documento"
-          title="Crear documento"
+          aria-label={t('documents.newDocument')}
+          title={t('documents.newDocument')}
           className={cn(
             'inline-flex items-center justify-center w-9 h-9 rounded-md transition-colors',
             open
@@ -121,7 +123,7 @@ export function NewDocumentButton({
                 style={{ background: dt.dotColor }}
               />
               <span className={cn('text-[11px] font-bold', dt.color)}>{dt.short}</span>
-              <span>{dt.label}</span>
+              <span>{t(`docTypes.${dt.code}`)}</span>
             </button>
           ))}
         </div>

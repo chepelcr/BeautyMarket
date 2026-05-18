@@ -8,7 +8,7 @@ export interface SaleRecord {
   userId: string;
   items: Array<{ productId: number; name: string; price: number; qty: number }>;
   total: number;
-  paymentMethod: "Efectivo" | "SINPE" | "Tarjeta";
+  paymentMethod: string;
   receivedAmount?: number;
   change?: number;
   timestamp: number;

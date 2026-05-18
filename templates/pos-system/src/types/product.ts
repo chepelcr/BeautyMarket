@@ -40,6 +40,7 @@ export interface Product {
   track_inventory?: boolean;
   low_stock_threshold?: number;
   units_per_box?: number;
+  unit_id?: number;
   cabys?: string | null;
   codes?: Array<{
     code_type_id: string;

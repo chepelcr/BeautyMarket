@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { TerminalGeneralSection } from "./sections/TerminalGeneralSection";
 import type { CreateTerminalRequest } from "@/types";
 
@@ -13,7 +12,6 @@ interface TerminalFormProps {
 }
 
 export function TerminalForm({ branchId, onSave, isSaving, onClose, renderButtons }: TerminalFormProps) {
-  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [code, setCode] = useState<number | "">("");
   const [deviceId, setDeviceId] = useState("");

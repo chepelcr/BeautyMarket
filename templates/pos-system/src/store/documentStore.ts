@@ -34,7 +34,7 @@ export interface DocumentTab {
   opened_at?: number;
   /** Cart state per tab — hydrated/saved by POSIntegratedPage on tab activation */
   cart_items?: Record<string, CartItem>;
-  /** Selected client for this tab — drives CartSidebar pill and ReceiverTab pre-fill */
+  /** Selected client for this tab — drives CartSidebar pill and receiver drawer pre-fill */
   selected_client?: ClientSearchResult | null;
 }
 
@@ -71,10 +71,26 @@ export const useDocumentStore = create<DocumentStore>()(
       is_received: false,
 
       addDocumentTab: (tab) => {
-        set((state) => ({
-          open_documents: [...state.open_documents, { ...tab, cart_items: {} }],
-          active_document_tab: tab.id,
-        }));
+        set((state) => {
+          const newTab = { ...tab, cart_items: {} };
+          const docs = state.open_documents;
+          // When the visible window is already full, insert the new tab at the
+          // last visible slot so it appears in the toolbar instead of falling
+          // straight into the overflow drawer. The tab previously at that slot
+          // gets pushed into overflow.
+          const next =
+            docs.length >= MAX_VISIBLE_TABS
+              ? [
+                  ...docs.slice(0, MAX_VISIBLE_TABS - 1),
+                  newTab,
+                  ...docs.slice(MAX_VISIBLE_TABS - 1),
+                ]
+              : [...docs, newTab];
+          return {
+            open_documents: next,
+            active_document_tab: tab.id,
+          };
+        });
       },
 
       removeDocumentTab: (id) => {
@@ -108,6 +124,8 @@ export const useDocumentStore = create<DocumentStore>()(
 
       promoteTabToVisible: (id, maxVisible) => {
         set((state) => {
+          // No visible window (mobile, toolbar hidden) — nothing to promote
+          if (maxVisible <= 0) return state;
           const docs = state.open_documents;
           const idx = docs.findIndex((d) => d.id === id);
           // Already visible (or not found) — nothing to swap
@@ -129,6 +147,25 @@ export const useDocumentStore = create<DocumentStore>()(
         active_document_tab: state.active_document_tab,
         is_received: state.is_received,
       }),
+      // Defensive scrub: earlier versions of `promoteTabToVisible` could
+      // corrupt the array with undefined/null entries when called with
+      // maxVisible <= 0. Drop any garbage on rehydrate so old persisted
+      // state doesn't crash the renderer.
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const clean = (state.open_documents ?? []).filter(
+          (d): d is DocumentTab => !!d && typeof d.id === 'string'
+        );
+        if (clean.length !== state.open_documents.length) {
+          state.open_documents = clean;
+          if (
+            state.active_document_tab &&
+            !clean.some((d) => d.id === state.active_document_tab)
+          ) {
+            state.active_document_tab = null;
+          }
+        }
+      },
     }
   )
 );

@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PosHeaderProps {
   branchName: string;
@@ -8,15 +9,16 @@ interface PosHeaderProps {
 }
 
 export function PosHeader({ branchName, terminalCode, userName, syncStatus }: PosHeaderProps) {
+  const { t } = useLanguage();
   const isOnline = syncStatus === 'online';
 
   return (
     <div className="h-[52px] flex items-center justify-between px-5 border-b border-border bg-card shrink-0">
       <div className="flex items-center gap-3">
-        <span className="font-display font-bold text-[18px] leading-none">Punto de venta</span>
+        <span className="font-display font-bold text-[18px] leading-none">{t('pos.header.title')}</span>
         <span className="text-muted-foreground text-xs">·</span>
         <span className="text-[13px] text-muted-foreground">
-          {branchName} · Terminal {terminalCode}
+          {branchName} · {t('pos.header.terminal', { code: terminalCode })}
         </span>
       </div>
       <div className="flex items-center gap-3">
@@ -35,7 +37,7 @@ export function PosHeader({ branchName, terminalCode, userName, syncStatus }: Po
               isOnline ? 'bg-success' : 'bg-muted-foreground'
             )}
           />
-          {isOnline ? 'En línea' : syncStatus === 'syncing' ? 'Sincronizando' : 'Sin conexión'}
+          {isOnline ? t('status.online') : syncStatus === 'syncing' ? t('status.syncing') : t('status.offline')}
         </span>
       </div>
     </div>

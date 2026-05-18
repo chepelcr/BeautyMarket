@@ -3,7 +3,7 @@ import { Drawer, Button, Spinner } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAllProductTypes, useAllMeasurementUnits, useAllTaxes, useAllTaxRates } from "@/hooks/useDataApi";
-import { TaxCalculationService } from "@/services/taxCalculationService";
+import { TaxCalculationService, type LineTax, type LineDiscount } from "@/services/taxCalculationService";
 import { CountryISO } from "@/lib/enums";
 import type { Product, Category } from "@/types";
 import type { CabysItem } from "@/services/data-api";
@@ -313,12 +313,13 @@ export function ProductDrawerForm({
   const baseAmountForIva = price > 0 && form.taxes.length > 0
     ? TaxCalculationService.getLineAmounts({
         subtotal: price,
-        taxes: form.taxes.map((t) => ({ taxTypeId: t.taxTypeId, taxCode: t.taxCode, rate: t.rate, specialFields: t.specialFields })),
-        discounts: form.discounts.map((d) => ({ discountTypeId: d.discountTypeId, rate: d.rate })),
-        detailQuantity: 1,
+        taxes: form.taxes.map((tx) => ({ tax_type_id: tx.taxTypeId, tax_code: tx.taxCode, rate: tx.rate, special_fields: tx.specialFields })) as LineTax[],
+        tax_types: (taxesData ?? []) as any,
+        discounts: form.discounts.map((d) => ({ discount_type_id: d.discountTypeId, percentage: d.rate ?? 0 })) as LineDiscount[],
+        detail_quantity: 1,
         cabys: form.cabys || undefined,
-        hasFactoryTax: form.hasFactoryTax,
-      }).baseAmount
+        has_factory_tax: form.hasFactoryTax,
+      }).base_amount
     : price;
 
   return (

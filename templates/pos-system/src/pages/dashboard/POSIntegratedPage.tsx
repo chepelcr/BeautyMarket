@@ -12,15 +12,16 @@ import { useCart } from "@/store/cart";
 import { useDocumentStore } from "@/store/documentStore";
 import { cn } from "@/lib/utils";
 import { PosHeader } from "@/components/pos/PosHeader";
-import { PosLeftPane } from "@/components/pos/PosLeftPane";
+import { PosLeftPane, type LeftTab } from "@/components/pos/PosLeftPane";
 import { CartSidebar } from "@/components/pos/CartSidebar";
-import { CheckoutModal } from "@/components/pos/checkout/CheckoutModal";
+import { CheckoutDrawer } from "@/components/pos/checkout/CheckoutDrawer";
+import { ClientDrawerForm } from "@/components/clients/ClientDrawerForm";
 import { POSPageSkeleton } from "@/components/pos/POSPageSkeleton";
 import SessionSetupScreen from "@/pages/pos/SessionSetupScreen";
-import type { DocTypeCode } from "@/types/invoice";
+import type { DocTypeCode, InvoiceFormData } from "@/types/invoice";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
+import type { SaleReceiver } from "@/types/receiver";
 
-type LeftTab = "products" | "clients" | "cart";
 
 interface POSIntegratedPageProps {
   /** When rendered inside DocumentEditor: drives the doc-type badge in CartSidebar */
@@ -41,7 +42,7 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
   console.log('[POSIntegratedPage] Org loading:', orgLoading, 'org:', org?.id);
   
   const { data: assignment, isLoading: assignmentLoading } = useAssignment();
-  console.log('[POSIntegratedPage] Assignment loading:', assignmentLoading, 'assignment:', assignment?.id);
+  console.log('[POSIntegratedPage] Assignment loading:', assignmentLoading, 'assignment:', assignment?.assignment_id);
   
   const sessionCtx = useSessionContext();
   console.log('[POSIntegratedPage] Session context:', sessionCtx);
@@ -51,6 +52,8 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
 
   const [leftTab, setLeftTab] = useState<LeftTab>("products");
   const [showCheckout, setShowCheckout] = useState(false);
+  const [receiverDrawerOpen, setReceiverDrawerOpen] = useState(false);
+  const [localReceiver, setLocalReceiver] = useState<SaleReceiver>({});
 
   // selected_client is per-tab — read from active tab, write via updateDocumentTab.
   // Falls back to local state only when launched without a tabId (legacy /dashboard/pos route).
@@ -60,11 +63,32 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
   const updateDocumentTab = useDocumentStore((s) => s.updateDocumentTab);
   const [localSelectedClient, setLocalSelectedClient] = useState<ClientSearchResult | null>(null);
   const selectedClient = tabId ? activeTab?.selected_client ?? null : localSelectedClient;
-  const setSelectedClient = (c: ClientSearchResult | null) => {
+  // Per-tab receiver (in InvoiceFormData.data.receiver) with local fallback
+  const currentReceiver: SaleReceiver =
+    (tabId ? (activeTab?.data?.receiver as SaleReceiver | undefined) : undefined) ?? localReceiver;
+  const handleSaveReceiver = (next: SaleReceiver) => {
     if (tabId) {
-      updateDocumentTab(tabId, { selected_client: c });
+      const data = (activeTab?.data ?? {}) as Partial<InvoiceFormData>;
+      updateDocumentTab(tabId, { data: { ...data, receiver: next }, is_dirty: true });
+    } else {
+      setLocalReceiver(next);
+    }
+  };
+
+  const setSelectedClient = (c: ClientSearchResult | null) => {
+    // Clear the per-sale receiver whenever the client changes so the drawer
+    // re-derives from the new client instead of keeping the prior client's edits.
+    const isDifferent = c?.client_id !== selectedClient?.client_id;
+    if (tabId) {
+      const patch: Parameters<typeof updateDocumentTab>[1] = { selected_client: c };
+      if (isDifferent) {
+        const data = (activeTab?.data ?? {}) as Partial<InvoiceFormData>;
+        patch.data = { ...data, receiver: {} };
+      }
+      updateDocumentTab(tabId, patch);
     } else {
       setLocalSelectedClient(c);
+      if (isDifferent) setLocalReceiver({});
     }
   };
 
@@ -128,17 +152,17 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
 
   // Called by CheckoutModal — throws on error so the modal can show the error state
   const handleConfirm = async (invoiceData: any) => {
-    if (!assignment || !org || !user) throw new Error("Sesión incompleta.");
-    const branchCode = sessionCtx.branch_code;
-    const terminalCode = sessionCtx.terminal_code;
-    if (!branchCode || !terminalCode) throw new Error("Selecciona sucursal y terminal.");
+    if (!assignment || !org || !user) throw new Error(t("checkout.error.sessionIncomplete"));
+    const branchNumber = sessionCtx.branch_code;
+    const terminalNumber = sessionCtx.terminal_code;
+    if (!branchNumber || !terminalNumber) throw new Error(t("checkout.error.missingBranchTerminal"));
 
     const result = await flow.handleConfirmPayment({
       assignmentId: assignment.assignment_id,
       orgId: org.id,
       userId: user.userId,
-      branchCode,
-      terminalCode,
+      branchNumber,
+      terminalNumber,
       selectedClient,
       invoiceData,
     });
@@ -188,6 +212,7 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
       onCheckout={() => setShowCheckout(true)}
       onSelectClient={() => setLeftTab("clients")}
       onClearClient={() => setSelectedClient(null)}
+      onEditReceiver={() => setReceiverDrawerOpen(true)}
     />
   );
 
@@ -221,7 +246,7 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
           <PosHeader
             branchName={sessionCtx.branch_name ?? ""}
             terminalCode={sessionCtx.terminal_code ?? 0}
-            userName={user?.firstName ?? user?.name ?? "Cajero"}
+            userName={user?.firstName ?? user?.name ?? t("pos.cashier")}
             syncStatus={syncStatus}
           />
           <div className="flex-1 grid overflow-hidden" style={{ gridTemplateColumns: "1fr 360px" }}>
@@ -236,7 +261,7 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
         <div className="flex flex-col bg-background overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
           <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
             <span className="font-display font-bold text-[18px]">
-              {sessionCtx.branch_name ?? "POS"}
+              {sessionCtx.branch_name ?? t("pos.header.fallbackTitle")}
             </span>
             <div className="flex items-center gap-2">
               <span className={cn(
@@ -259,9 +284,9 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
           <div className="flex bg-card border-t border-border shrink-0">
             {(
               [
-                { id: "products" as const, label: t("tabs.products") },
-                { id: "cart" as const, label: t("tabs.cart"), badge: flow.cartCount },
-              ] as const
+                { id: "products", label: t("tabs.products") },
+                { id: "cart", label: t("tabs.cart"), badge: flow.cartCount },
+              ] as { id: "products" | "cart"; label: string; badge?: number }[]
             ).map(({ id, label, badge }) => (
               <button
                 key={id}
@@ -291,18 +316,30 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
         </div>
       )}
 
-      {showCheckout && (
-        <CheckoutModal
-          cartItems={flow.cartItems}
-          cartTotal={flow.cartTotal}
-          subtotal={flow.subtotal}
-          taxAmount={flow.taxAmount}
-          selectedClient={selectedClient}
-          tabId={tabId}
-          onClose={() => setShowCheckout(false)}
-          onConfirm={handleConfirm}
-        />
-      )}
+      <CheckoutDrawer
+        open={showCheckout}
+        cartItems={flow.cartItems}
+        cartTotal={flow.cartTotal}
+        subtotal={flow.subtotal}
+        taxAmount={flow.taxAmount}
+        selectedClient={selectedClient}
+        orgId={org.id}
+        tabId={tabId}
+        onClose={() => setShowCheckout(false)}
+        onConfirm={async (d) => { await handleConfirm(d); }}
+        onEditReceiver={() => setReceiverDrawerOpen(true)}
+        onSelectClient={setSelectedClient}
+      />
+
+      <ClientDrawerForm
+        open={receiverDrawerOpen}
+        onClose={() => setReceiverDrawerOpen(false)}
+        orgId={org.id}
+        mode="receiver"
+        receiver={currentReceiver}
+        selectedClient={selectedClient}
+        onSaveReceiver={handleSaveReceiver}
+      />
     </>
   );
 }

@@ -3,7 +3,7 @@ import type { Product } from "../types";
 import type { DocTypeCode } from "../types/invoice";
 import type { LineDetail } from "../types/lineDetail";
 
-interface CartItem {
+export interface CartItem {
   product: Product;
   qty: number;
   lineDiscount?: number; // percentage override for this line (e.g. 10 = 10%)
@@ -31,7 +31,7 @@ interface CartStore {
 
 export const useCart = create<CartStore>((set, get) => ({
   items: {},
-  doc_type: 4, // default: Tiquete Electrónico
+  doc_type: '04', // default: Tiquete Electrónico (Hacienda code "04")
 
   setDocType: (code) => set({ doc_type: code }),
 

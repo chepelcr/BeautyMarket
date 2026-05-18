@@ -1,5 +1,6 @@
 import { Icon } from "@/components/ui";
 import { ProductImage } from "@/components/ui/ProductImage";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
@@ -21,6 +22,7 @@ interface CartRowProps {
 }
 
 export function CartRow({ item, onIncrease, onDecrease, onEdit }: CartRowProps) {
+  const { t } = useLanguage();
   const displayPrice = item.price * (1 - (item.lineDiscount ?? 0) / 100);
 
   return (
@@ -41,7 +43,7 @@ export function CartRow({ item, onIncrease, onDecrease, onEdit }: CartRowProps) 
       </div>
       <button
         onClick={onEdit}
-        title="Editar línea"
+        title={t('lineEditor.editLine')}
         className="w-7 h-7 border-0 bg-transparent text-muted-foreground cursor-pointer rounded-lg flex items-center justify-center flex-shrink-0"
       >
         <Icon name="edit" size={12} />

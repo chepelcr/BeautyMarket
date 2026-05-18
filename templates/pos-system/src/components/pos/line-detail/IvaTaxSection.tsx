@@ -3,6 +3,7 @@ import { Icon, FormLabel } from '@/components/ui';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineTax } from '@/types/lineDetail';
 import type { GetAllFactoryTaxChargesParams } from '@/services/data-api/dtos';
 
@@ -35,6 +36,7 @@ export function IvaTaxSection({
   detail,
   onDetailChange,
 }: IvaTaxSectionProps) {
+  const { t } = useLanguage();
   const { data: taxesData } = useAllTaxes({ iso_code: ISO });
   const { data: taxRatesData } = useAllTaxRates({ iso_code: ISO });
   const { data: taxFactorsData } = useAllTaxFactors({ iso_code: ISO });
@@ -94,7 +96,7 @@ export function IvaTaxSection({
 
   return (
     <SectionWrapper
-      title="IVA"
+      title={t('lineDetail.taxesIvaTitle')}
       icon={Percent}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -113,7 +115,7 @@ export function IvaTaxSection({
             >
               <div className={`flex items-center gap-2 ${isIvarbu ? "mb-2" : ""}`}>
                 <div className="flex-1 text-[13px] font-semibold">
-                  {tt?.description ?? 'IVA'}
+                  {tt?.description ?? t('lineDetail.taxesIvaTitle')}
                 </div>
 
                 {!isIvarbu && (
@@ -151,13 +153,13 @@ export function IvaTaxSection({
 
               {isIvarbu && (
                 <div>
-                  <FormLabel>Factor IVARBU</FormLabel>
+                  <FormLabel>{t('lineDetail.ivarbu')}</FormLabel>
                   <select
                     className="pp-input text-[13px]"
                     value={tax.tax_factor_id ?? ''}
                     onChange={(e) => updateIva(tax.tax_type_id, { tax_factor_id: Number(e.target.value) })}
                   >
-                    <option value="">Seleccionar factor</option>
+                    <option value="">{t('lineDetail.selectFactor')}</option>
                     {factorList.map((f: any) => (
                       <option key={f.id} value={String(f.id)}>
                         {f.description}
@@ -178,7 +180,7 @@ export function IvaTaxSection({
               if (e.target.value) addIva(Number(e.target.value));
             }}
           >
-            <option value="">Agregar IVA</option>
+            <option value="">{t('lineDetail.addIva')}</option>
             {ivaTaxTypes.map((tt: any) => (
               <option key={tt.id} value={String(tt.id)}>
                 {tt.description}
@@ -189,7 +191,7 @@ export function IvaTaxSection({
 
         {showBaseAmount && (
           <div className="mt-1 px-3 py-2.5 bg-accent/10 rounded-lg border border-border">
-            <FormLabel required={hasIvace}>Monto base</FormLabel>
+            <FormLabel required={hasIvace}>{t('lineDetail.baseAmount')}</FormLabel>
             <input
               className="pp-input"
               type="number"
@@ -197,7 +199,7 @@ export function IvaTaxSection({
               onChange={(e) => onDetailChange({ base_amount: parseFloat(e.target.value) || undefined })}
               min={0}
               step={0.01}
-              placeholder="Ingrese el monto base"
+              placeholder={t('lineDetail.baseAmountPlaceholder')}
             />
             <div className="t-xs text-muted-foreground mt-1">
               {hasIvace
@@ -209,7 +211,7 @@ export function IvaTaxSection({
 
         {factoryCharges.length > 0 && (
           <div className="mt-1 px-3 py-2.5 bg-muted/25 rounded-lg border border-dashed border-border">
-            <FormLabel>Cargo por fábrica</FormLabel>
+            <FormLabel>{t('lineDetail.factoryCharge')}</FormLabel>
             <select
               className="pp-input"
               value={factoryTaxChargeId ?? ''}
@@ -218,7 +220,7 @@ export function IvaTaxSection({
                 onFactoryTaxChargeChange(id);
               }}
             >
-              <option value="">Sin cargo de fábrica</option>
+              <option value="">{t('lineDetail.noFactoryCharge')}</option>
               {factoryCharges.map((c: any) => (
                 <option key={c.id} value={String(c.id)}>
                   {c.description}

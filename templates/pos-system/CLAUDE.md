@@ -365,14 +365,104 @@ Drawer components manage `document.body.style.overflow` themselves. Don't duplic
 
 ## 10. Internationalization
 
-- `LanguageContext` provides `t(key, params?)`. Spanish and English keys; default ES.
-- All user-facing strings should go through `t()`. Examples: `t("common.cancel")`, `t("products.searchPlaceholder")`, `t("session.assignedCount", { n, total })`.
-- Toggle via `useLanguageSwitch().toggle()`.
+**Hard rule: every user-visible string goes through `t()`.** Spanish literals in JSX/props are bugs — they'll show up untranslated when the user switches language. Treat hardcoded user text the same way you treat a hardcoded hex color.
+
+### 10.1 The basics
+
+```tsx
+import { useLanguage } from '@/contexts/LanguageContext';
+
+export function MyComponent() {
+  const { t } = useLanguage();
+  return <button title={t('common.save')}>{t('common.save')}</button>;
+}
+```
+
+- `t(key)` → returns the string for the current language
+- `t(key, params)` → interpolates `{name}`-style placeholders. Example: `t("products.confirmDelete", { name })` for `"¿Eliminar \"{name}\"?"`
+- Missing keys fall back to the key string itself (so a bad key shows up clearly in the UI) — never use `t(key) || 'fallback'`, just add the key
+- All keys live in `src/contexts/LanguageContext.tsx`. Both `es` and `en` blocks must define the key — adding to only one is a bug
+- Default language is ES; toggle via `useLanguageSwitch().toggle()`
+
+### 10.2 What needs `t()`
+
+Everything the user reads. In practice:
+
+| Surface | Pattern |
+|---|---|
+| Visible text in JSX | `<span>{t('cart.total')}</span>` |
+| `placeholder`, `title`, `aria-label`, `alt` | `<input placeholder={t('clients.searchPlaceholder')} />` |
+| `confirm()` / modal `title`, `message`, `confirmLabel`, `cancelLabel` | see §9 confirm modal |
+| `<Drawer title=…>`, `<SectionWrapper title=…>` | pass `t('...')`, not a literal |
+| Error messages thrown that bubble to the UI | `throw new Error(t('checkout.error.notPaid'))` |
+| Validation messages returned from `validate()` helpers | `return t('checkout.error.receiverRequired')` |
+| Toast / notification text | `toast(t('...'))` |
+
+### 10.3 What does NOT need `t()`
+
+- Backend/Hacienda codes (`'01'`, `'CRC'`, `'USD'`, doc type codes) — these are identifiers, not text
+- `console.log`, dev-only debug output
+- `key` prop, internal route paths, event names, CSS class names, `data-*` attributes
+- Hex/CSS values — use the design system instead (see §3)
+- Currency symbols inside money formatters (`'₡'`) — they're part of the locale formatter, not translatable copy
+- API field names and DTO keys
+
+### 10.4 Key naming
+
+Use dot-separated `namespace.thing` keys. The namespace tells future readers where the text lives:
+
+```
+common.*         shared verbs/nouns (save, cancel, delete, loading, noResults, …)
+status.*         online / syncing / offline
+docTypes.{code}  invoice document type names by Hacienda code
+pos.*            POS shell-level strings (header title, cashier, …)
+cart.*           cart sidebar
+checkout.*       checkout modal (further nested: checkout.payment.*, checkout.document.*, …)
+checkout.error.* user-facing checkout validation/processing errors
+lineEditor.*     cart-line modal
+lineDetail.*     line-detail drawer + its tab sections
+products.*       product catalog + product form sections (reused in line-detail tabs)
+clients.*        client list + selector
+session.*        session create/list/detail
+documents.*      documents page list + drawer
+docs / branch / terminal / shell / orgs / auth / app / time / tabs / time / empty …
+```
+
+When adding a new component, search `LanguageContext.tsx` for a key that already says what you need before inventing a new one. Reuse is preferred — for example, line-detail tabs reuse `products.discounts`, `products.otherTaxes`, `products.percentage`, `products.cabysHelp` instead of duplicating.
+
+Param interpolation uses curly braces: `"Eliminar \"{name}\"?"` → `t(key, { name })`. Keep params named, not positional.
+
+### 10.5 Persisted state with language-derived labels
+
+Some stores persist a `label`/`title` field captured at creation time (e.g. older `DocumentTab.title` was set from `docType.label`). When language toggles, those stale labels stay in the old language. **Don't render persisted labels directly** — derive at render time from a stable identifier:
+
+```tsx
+// ✅ Render-time derivation — language toggle reflows immediately
+<span>{t(`docTypes.${tab.doc_type}`)}</span>
+
+// ❌ Renders the language the tab was created in, even after toggle
+<span>{tab.title}</span>
+```
+
+Persist the code (`doc_type`, `payment_type_id`, etc.); look up the label via `t()` when rendering.
+
+### 10.6 Helpers that render text
+
+If you write a helper component or render function that produces user-visible text, the helper itself must call `useLanguage()` — don't reach for the parent's `t` via a hidden closure. Example: `OtherTaxSection.TaxCard` is its own function component, so it calls `useLanguage()` directly. Inline render-helpers defined inside a component already have closure access to the outer `t`.
+
+### 10.7 Workflow when adding a new component
+
+1. Write the JSX with the strings you want.
+2. Open `src/contexts/LanguageContext.tsx`. For each string, either pick an existing key (grep first) or add a new one in **both** the `es` and `en` blocks under the right namespace.
+3. Replace the literal with `t('key')`. For dynamic substrings, use param interpolation (`t('key', { n: count })`).
+4. Toggle the language in the running app and visually confirm both renders.
 
 ---
 
 ## 11. Things NOT to do
 
+- ❌ Don't hardcode user-visible strings in JSX, props (`placeholder`, `title`, `aria-label`), confirm/modal labels, validation messages, or thrown error messages — route every visible string through `t()` and define keys in both `es` and `en` blocks of `LanguageContext.tsx`. See §10.
+- ❌ Don't render persisted label/title fields directly when a stable code is available (e.g. `tab.title` vs `t(\`docTypes.${tab.doc_type}\`)`) — persisted labels freeze in the language they were created in. See §10.5.
 - ❌ Don't bypass `getToken()` — always use `api/crossAppApi/ordersApi/salesApi` from `src/lib/api.ts`
 - ❌ Don't hardcode org IDs, user IDs, terminal/branch codes — pull them from contexts/stores
 - ❌ Don't write `style={{ color: "hsl(var(--muted-foreground))" }}` — use `className="text-muted-foreground"`. See §3.

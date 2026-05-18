@@ -7,6 +7,7 @@ import { ROUTES, documentEditorPath } from "@/routePaths";
 import { getDocumentTypeInfo } from "@/types/invoice";
 import { Icon } from "@/components/ui";
 import { NewDocumentButton } from "@/components/documents/NewDocumentButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DocumentsMobileDrawerProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function DocumentsMobileDrawer({
   const [location, setLocation] = useLocation();
   const isDesktop = useIsDesktop(769);
   const maxVisible = useMaxVisibleTabs();
+  const { t } = useLanguage();
 
   const editorMatch = location.match(/^\/dashboard\/documents\/new\/([^/?#]+)/);
   const activeTabId = editorMatch?.[1] ?? null;
@@ -122,11 +124,11 @@ export function DocumentsMobileDrawer({
             className="btn btn-outline btn-sm flex-1 min-w-0 justify-start gap-2"
           >
             <Icon name="fileText" size={16} />
-            <span className="font-display font-bold">Documentos</span>
+            <span className="font-display font-bold">{t('documents.title')}</span>
           </button>
           <button
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t('common.close')}
             className="btn btn-outline btn-icon btn-sm flex-shrink-0"
           >
             <Icon name="close" size={14} />
@@ -137,7 +139,7 @@ export function DocumentsMobileDrawer({
         {visibleDrafts.length > 0 ? (
           <>
             <div className="label-section px-4 pt-3 pb-1 shrink-0">
-              {isDesktop ? "Sin pestaña" : "Abiertos"}
+              {isDesktop ? t('documents.drawer.untabbedHeader') : t('documents.drawer.openHeader')}
             </div>
             <div className="flex-1 overflow-y-auto px-3 pt-1 pb-3 flex flex-col gap-1">
               {visibleDrafts.map((tab) => {
@@ -163,18 +165,18 @@ export function DocumentsMobileDrawer({
                         {tab.is_dirty && (
                           <span
                             className="inline-block w-1.5 h-1.5 rounded-full bg-warning ml-1.5 align-middle"
-                            title="Cambios sin guardar"
+                            title={t('documents.unsavedChanges')}
                           />
                         )}
                       </div>
                       <div className="text-xs font-semibold whitespace-nowrap overflow-hidden text-ellipsis text-foreground">
-                        {tab.title}
+                        {t(`docTypes.${tab.doc_type}`)}
                       </div>
                     </div>
                     <button
                       onClick={(e) => handleTabClose(tab.id, e)}
                       className="btn-icon-ghost-sm flex-shrink-0"
-                      title="Cerrar pestaña"
+                      title={t('documents.closeTab')}
                     >
                       <Icon name="close" size={12} />
                     </button>
@@ -186,8 +188,8 @@ export function DocumentsMobileDrawer({
         ) : (
           <div className="flex-1 flex items-center justify-center p-5 text-center text-muted-foreground text-xs">
             {isDesktop
-              ? "Todos los documentos abiertos ya están en la barra superior."
-              : "No hay documentos abiertos"}
+              ? t('documents.drawer.emptyDesktop')
+              : t('documents.drawer.emptyMobile')}
           </div>
         )}
 

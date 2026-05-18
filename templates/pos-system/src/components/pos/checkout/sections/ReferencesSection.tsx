@@ -1,23 +1,35 @@
+import { Link as LinkIcon } from 'lucide-react';
 import { useAllReferences, useAllReferenceCodes } from '@/hooks/useDataApi';
+import type { GetAllReferencesParams, GetAllReferenceCodesParams } from '@/services/data-api';
 import { CountryISO } from '@/lib/enums';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { SectionWrapper } from '@/components/common/SectionWrapper';
 import type { SaleReference } from '@/types/reference';
 
-interface ReferencesTabProps {
+interface ReferencesSectionProps {
+  isExpanded: boolean;
+  onToggle: () => void;
   references: SaleReference[];
   onChange: (refs: SaleReference[]) => void;
 }
 
 const BLANK_REF: SaleReference = {
-  reference_type_id: 1,
-  document_number: '',
-  reference_date: new Date().toISOString().slice(0, 10),
-  reference_code: 1,
+  type: '01',
+  number: '',
+  date: new Date().toISOString().slice(0, 10),
+  code: '01',
   reason: '',
 };
 
-export function ReferencesTab({ references, onChange }: ReferencesTabProps) {
-  const { data: referenceTypes } = useAllReferences({ iso_code: CountryISO.COSTA_RICA });
-  const { data: referenceCodes } = useAllReferenceCodes({ iso_code: CountryISO.COSTA_RICA });
+export function ReferencesSection({
+  isExpanded,
+  onToggle,
+  references,
+  onChange,
+}: ReferencesSectionProps) {
+  const { t } = useLanguage();
+  const { data: referenceTypes } = useAllReferences({ iso_code: CountryISO.COSTA_RICA } as GetAllReferencesParams);
+  const { data: referenceCodes } = useAllReferenceCodes({ iso_code: CountryISO.COSTA_RICA } as GetAllReferenceCodesParams);
 
   const add = () => onChange([...references, { ...BLANK_REF }]);
   const remove = (i: number) => onChange(references.filter((_, idx) => idx !== i));
@@ -25,51 +37,61 @@ export function ReferencesTab({ references, onChange }: ReferencesTabProps) {
     onChange(references.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
   return (
-    <div className="space-y-3">
+    <SectionWrapper
+      title={t('checkout.tab.references')}
+      icon={LinkIcon}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+      badge={references.length || undefined}
+    >
       {references.length === 0 && (
         <div className="text-center py-6 text-muted-foreground text-sm">
-          No hay referencias. Las referencias son requeridas para Notas de Crédito y Débito.
+          {t('checkout.references.empty')}
         </div>
       )}
 
       {references.map((ref, i) => (
         <div key={i} className="rounded-md border border-border p-3 space-y-3 bg-muted/20">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold">Referencia #{i + 1}</span>
+            <span className="text-[12px] font-semibold">{t('checkout.references.referenceN', { n: i + 1 })}</span>
             <button
               onClick={() => remove(i)}
               className="text-[11px] text-muted-foreground hover:text-destructive"
             >
-              Eliminar
+              {t('common.delete')}
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Tipo *
+                {t('checkout.references.type')}
               </label>
               <select
-                value={ref.reference_type_id}
-                onChange={(e) => update(i, { reference_type_id: Number(e.target.value) })}
+                value={ref.type}
+                onChange={(e) => update(i, { type: e.target.value })}
                 className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
               >
                 {(referenceTypes ?? []).map((rt: any) => (
-                  <option key={rt.id} value={rt.id}>{rt.description}</option>
+                  <option key={rt.code ?? rt.id} value={rt.code ?? String(rt.id).padStart(2, '0')}>
+                    {rt.description}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Código *
+                {t('checkout.references.code')}
               </label>
               <select
-                value={ref.reference_code}
-                onChange={(e) => update(i, { reference_code: Number(e.target.value) })}
+                value={ref.code}
+                onChange={(e) => update(i, { code: e.target.value })}
                 className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
               >
                 {(referenceCodes ?? []).map((rc: any) => (
-                  <option key={rc.id} value={rc.id}>{rc.description}</option>
+                  <option key={rc.code ?? rc.id} value={rc.code ?? String(rc.id).padStart(2, '0')}>
+                    {rc.description}
+                  </option>
                 ))}
               </select>
             </div>
@@ -78,23 +100,23 @@ export function ReferencesTab({ references, onChange }: ReferencesTabProps) {
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Número documento *
+                {t('checkout.references.documentNumber')}
               </label>
               <input
-                value={ref.document_number}
-                onChange={(e) => update(i, { document_number: e.target.value })}
+                value={ref.number}
+                onChange={(e) => update(i, { number: e.target.value })}
                 className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
                 placeholder="50601…"
               />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Fecha *
+                {t('checkout.references.date')}
               </label>
               <input
                 type="date"
-                value={ref.reference_date}
-                onChange={(e) => update(i, { reference_date: e.target.value })}
+                value={ref.date}
+                onChange={(e) => update(i, { date: e.target.value })}
                 className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
               />
             </div>
@@ -102,13 +124,13 @@ export function ReferencesTab({ references, onChange }: ReferencesTabProps) {
 
           <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Razón
+              {t('checkout.references.reason')}
             </label>
             <input
               value={ref.reason || ''}
               onChange={(e) => update(i, { reason: e.target.value })}
               className="w-full h-9 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:border-primary"
-              placeholder="Motivo de la referencia"
+              placeholder={t('checkout.references.reasonPlaceholder')}
             />
           </div>
         </div>
@@ -118,8 +140,8 @@ export function ReferencesTab({ references, onChange }: ReferencesTabProps) {
         onClick={add}
         className="w-full h-9 rounded-md border border-dashed border-border text-[12px] text-muted-foreground hover:border-primary hover:text-primary transition-colors"
       >
-        + Agregar referencia
+        {t('checkout.references.add')}
       </button>
-    </div>
+    </SectionWrapper>
   );
 }

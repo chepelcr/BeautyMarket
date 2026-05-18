@@ -1,44 +1,47 @@
+/**
+ * Document list + validation types (canonical Hacienda shape).
+ *
+ * AtvValidation / ReceiverValidation / DocumentSummary are re-exported from
+ * `invoice.ts` to avoid two parallel definitions of the same canonical types.
+ * This file owns the list-view-specific projections (DocumentListItem,
+ * ComplexSearchFilters, etc.) used by the documents page.
+ */
+
 import type { PaginationResponse } from './pagination';
+import type {
+  AtvValidation,
+  DocTypeCode,
+  DocumentSummary,
+  ReceiverValidation,
+} from './invoice';
 
-export interface AtvValidation {
-  validation_status: number; // 1=Validated 2=Pending 3=Rejected
-  validation_message?: string;
-  validation_date?: string;
-}
-
-export interface ReceiverValidation {
-  status: number; // 1=Accepted 2=PartialAccept 3=Rejected
-  message?: string;
-  validation_date?: string;
-}
+export type { AtvValidation, DocumentSummary, ReceiverValidation };
 
 export interface InvoiceValidation {
   atv_validation?: AtvValidation;
   receiver_validation?: ReceiverValidation;
 }
 
-export interface DocumentSummary {
-  subtotal: number;
-  discount_amount: number;
-  tax_amount: number;
-  voucher_total: number;
-}
-
+/**
+ * Compact projection for list views (DocumentsListView, DocumentCard, ...).
+ * Subset of SaleDocument with only the fields the list UI needs.
+ */
 export interface DocumentListItem {
   sale_id: string;
   organization_id: string;
-  document_type: number;
+  /** Hacienda document type code as string (was numeric). */
+  document_type: DocTypeCode;
   sale_date: string;
   consecutive_number?: string;
   document_key?: string;
   is_received: boolean;
-  summary: DocumentSummary;
+  summary?: DocumentSummary;
   atv_validation?: AtvValidation;
   receiver_validation?: ReceiverValidation;
   pdf_url?: string;
   xml_url?: string;
   json_url?: string;
-  created_at?: string;
+  created_on?: string;
 }
 
 export interface DocumentListResponse {

@@ -198,11 +198,13 @@ export function IdentitySection({
             <input
               className={`pp-input ${
                 idComplete || lookingUpTaxpayer ? "!pr-9" : ""
-              } ${idComplete && isCR ? "!bg-primary/[0.06] !border-[1.5px] !border-primary/35" : ""}`}
+              } ${idComplete && isCR ? "!bg-primary/[0.06] !border-[1.5px] !border-primary/35" : ""} ${
+                !canEditCriticalFields ? "cursor-not-allowed opacity-60" : ""
+              }`}
               value={form.identification?.number ?? ""}
-              onChange={(e) => handleIdNumberChange(e.target.value)}
+              onChange={canEditCriticalFields ? (e) => handleIdNumberChange(e.target.value) : undefined}
               placeholder={getIdPlaceholder(idCode)}
-              disabled={idComplete || lookingUpTaxpayer}
+              disabled={!canEditCriticalFields || idComplete || lookingUpTaxpayer}
             />
             {lookingUpTaxpayer && (
               <div className="absolute right-2.5 top-0 bottom-0 flex items-center justify-center pointer-events-none">

@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils';
 import { ProductsPanel } from './ProductsPanel';
 import { CustomerPanel } from './CustomerPanel';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/types';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 
-type LeftTab = 'products' | 'clients';
+export type LeftTab = 'products' | 'clients' | 'cart';
 
 interface CartItem { id: string; qty: number; }
 
@@ -22,11 +23,6 @@ interface PosLeftPaneProps {
   onSelectClient: (c: ClientSearchResult) => void;
 }
 
-const TABS: { id: LeftTab; label: string }[] = [
-  { id: 'products', label: 'Productos' },
-  { id: 'clients', label: 'Clientes' },
-];
-
 export function PosLeftPane({
   orgId,
   activeTab,
@@ -40,6 +36,11 @@ export function PosLeftPane({
   onClientQueryChange,
   onSelectClient,
 }: PosLeftPaneProps) {
+  const { t } = useLanguage();
+  const TABS: { id: LeftTab; label: string }[] = [
+    { id: 'products', label: t('tabs.products') },
+    { id: 'clients', label: t('tabs.clients') },
+  ];
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Tab bar */}

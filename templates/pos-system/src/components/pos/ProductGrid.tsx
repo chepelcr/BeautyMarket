@@ -71,7 +71,7 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
               {/* Stock badge */}
               {isOut && (
                 <div className="absolute top-1.5 right-1.5">
-                  <Badge variant="destructive">Agotado</Badge>
+                  <Badge variant="destructive">{t('productGrid.outOfStock')}</Badge>
                 </div>
               )}
               {isLow && !isOut && (

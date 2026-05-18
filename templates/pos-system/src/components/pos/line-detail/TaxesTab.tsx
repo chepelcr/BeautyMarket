@@ -3,6 +3,7 @@ import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { FormLabel } from '@/components/ui';
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineTax } from '@/types/lineDetail';
 
 interface TaxesTabProps {
@@ -31,6 +32,7 @@ export function TaxesTab({
   isExpanded,
   onToggle
 }: TaxesTabProps) {
+  const { t } = useLanguage();
   const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
   const { data: taxRates } = useAllTaxRates({ iso_code: CountryISO.COSTA_RICA });
   const { data: taxFactors } = useAllTaxFactors({ iso_code: CountryISO.COSTA_RICA });
@@ -85,7 +87,7 @@ export function TaxesTab({
 
   return (
     <SectionWrapper
-      title="Impuestos"
+      title={t('lineDetail.taxes')}
       icon={Percent}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -95,19 +97,19 @@ export function TaxesTab({
         {/* IVA Section (required) */}
         <div className="border border-border rounded-lg p-3">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold">IVA (requerido)</span>
+            <span className="text-xs font-semibold">{t('lineDetail.taxesIvaTitle')}</span>
             <span className="text-[10px] text-destructive">*</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div>
-              <FormLabel required>Tipo IVA</FormLabel>
+              <FormLabel required>{t('lineDetail.ivaType')}</FormLabel>
               <select
                 className="pp-input"
                 value={ivaTax?.tax_type_id ?? ''}
                 onChange={(e) => setIva({ tax_type_id: Number(e.target.value) || undefined })}
               >
-                <option value="">Seleccionar…</option>
+                <option value="">{t('checkout.receiver.idTypePlaceholder')}</option>
                 {(taxTypes ?? [])
                   .filter((tt: any) => IVA_CODES.includes(tt.code))
                   .map((tt: any) => (
@@ -116,7 +118,7 @@ export function TaxesTab({
               </select>
             </div>
             <div>
-              <FormLabel required>Tarifa</FormLabel>
+              <FormLabel required>{t('lineDetail.ivaRate')}</FormLabel>
               <select
                 className="pp-input"
                 value={ivaTax?.tax_rate_id ?? ''}
@@ -135,13 +137,13 @@ export function TaxesTab({
 
           {ivaTypeCode && IVA_NEEDS_FACTOR.includes(ivaTypeCode) && (
             <div className="mb-2">
-              <FormLabel required>Factor (IVARBU)</FormLabel>
+              <FormLabel required>{t('lineDetail.ivarbu')}</FormLabel>
               <select
                 className="pp-input"
                 value={ivaTax?.tax_factor_id ?? ''}
                 onChange={(e) => setIva({ tax_factor_id: Number(e.target.value) || undefined })}
               >
-                <option value="">Seleccionar…</option>
+                <option value="">{t('lineDetail.selectFactor')}</option>
                 {(taxFactors ?? []).map((f: any) => (
                   <option key={f.id} value={f.id}>{f.description}</option>
                 ))}
@@ -151,13 +153,13 @@ export function TaxesTab({
 
           {/* Factory Tax Charge */}
           <div>
-            <FormLabel>Cargo por fábrica</FormLabel>
+            <FormLabel>{t('lineDetail.factoryCharge')}</FormLabel>
             <select
               className="pp-input"
               value={factoryTaxChargeId ?? ''}
               onChange={(e) => onFactoryTaxChargeChange(Number(e.target.value) || undefined)}
             >
-              <option value="">Sin cargo de fábrica</option>
+              <option value="">{t('lineDetail.noFactoryCharge')}</option>
               {(factoryTaxCharges ?? []).map((f: any) => (
                 <option key={f.id} value={f.id}>{f.description}</option>
               ))}
@@ -167,23 +169,23 @@ export function TaxesTab({
 
         {/* Other taxes */}
         <div>
-          <div className="label-section mb-2">Otros impuestos</div>
+          <div className="label-section mb-2">{t('products.otherTaxes')}</div>
           {otherTaxes.map((tax, idx) => {
             const tt = (taxTypes ?? []).find((x: any) => x.id === tax.tax_type_id);
             return (
               <div key={idx} className="border border-border rounded-lg p-3 mb-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold">{tt?.code ?? '?'} — {tt?.description ?? 'Impuesto'}</span>
+                  <span className="text-[11px] font-semibold">{tt?.code ?? '?'} — {tt?.description ?? t('lineDetail.taxes')}</span>
                   <button
                     onClick={() => removeOther(idx)}
                     className="text-[11px] text-muted-foreground bg-transparent border-0 cursor-pointer hover:text-destructive transition-colors"
                   >
-                    Quitar
+                    {t('common.delete')}
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <FormLabel>Tipo</FormLabel>
+                    <FormLabel>{t('lineDetail.discountType')}</FormLabel>
                     <select
                       className="pp-input"
                       value={tax.tax_type_id}
@@ -197,7 +199,7 @@ export function TaxesTab({
                     </select>
                   </div>
                   <div>
-                    <FormLabel>Tarifa %</FormLabel>
+                    <FormLabel>{t('lineDetail.ivaRate')} %</FormLabel>
                     <input
                       className="pp-input"
                       type="number"
@@ -217,7 +219,7 @@ export function TaxesTab({
             onClick={addOther}
             className="w-full h-9 rounded-md border border-dashed border-border text-xs text-muted-foreground bg-transparent cursor-pointer transition-colors hover:border-primary hover:text-primary"
           >
-            + Agregar impuesto
+            {t('products.addTax')}
           </button>
         </div>
 
@@ -225,12 +227,12 @@ export function TaxesTab({
         <div className="border-t border-border pt-3 flex flex-col gap-1 text-xs">
           {factoryAssumedTax > 0 && (
             <div className="flex justify-between text-muted-foreground">
-              <span>Asumido por fábrica</span>
+              <span>{t('lineDetail.factoryAssumed')}</span>
               <span className="font-mono">₡{factoryAssumedTax.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
             </div>
           )}
           <div className="flex justify-between font-semibold">
-            <span>Total impuestos</span>
+            <span>{t('lineDetail.totalTaxes')}</span>
             <span className="font-mono">₡{totalTaxes.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>

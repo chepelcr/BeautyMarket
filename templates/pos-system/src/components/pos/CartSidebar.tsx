@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useCart } from '@/store/cart';
+import { Icon } from '@/components/ui';
+import { useCart, type CartItem as StoreCartItem } from '@/store/cart';
 import { LineDetailDrawer } from './line-detail/LineDetailDrawer';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { getDocumentTypeInfo } from '@/types/invoice';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 import type { Product } from '@/types';
 
@@ -25,7 +27,7 @@ interface CartSidebarProps {
   cartTotal: number;
   subtotal: number;
   taxAmount: number;
-  items: Record<string, { product: Product; qty: number; lineDiscount?: number; lineNote?: string }>;
+  items: Record<string, StoreCartItem>;
   selectedClient: ClientSearchResult | null;
   onAdd: (product: Product) => void;
   onRemove: (id: string) => void;
@@ -38,6 +40,7 @@ interface CartSidebarProps {
   onCheckout: () => void;
   onSelectClient: () => void;
   onClearClient: () => void;
+  onEditReceiver: () => void;
 }
 
 export function CartSidebar({
@@ -53,25 +56,27 @@ export function CartSidebar({
   onCheckout,
   onSelectClient,
   onClearClient,
+  onEditReceiver,
 }: CartSidebarProps) {
   const { doc_type } = useCart();
   const docInfo = getDocumentTypeInfo(doc_type);
   const [editingId, setEditingId] = useState<string | null>(null);
   const { confirm, ConfirmModal } = useConfirmModal();
+  const { t } = useLanguage();
   const editingItem = editingId ? items[editingId] : null;
 
   const handleRemove = (itemId: string) => {
     const item = items[itemId];
     if (!item) return;
-    
+
     // If quantity is 1, confirm before removing
     if (item.qty <= 1) {
       confirm({
-        title: "Eliminar producto",
-        message: `¿Eliminar "${item.product.name}" del carrito?`,
+        title: t("cart.removeTitle"),
+        message: t("cart.removeMessage", { name: item.product.name }),
         variant: "destructive",
-        confirmLabel: "Eliminar",
-        cancelLabel: "Cancelar",
+        confirmLabel: t("common.delete"),
+        cancelLabel: t("common.cancel"),
         icon: "trash",
         onConfirm: () => onRemove(itemId),
       });
@@ -84,13 +89,13 @@ export function CartSidebar({
   const handleDelete = (itemId: string) => {
     const item = items[itemId];
     if (!item) return;
-    
+
     confirm({
-      title: "Eliminar producto",
-      message: `¿Eliminar "${item.product.name}" del carrito?`,
+      title: t("cart.removeTitle"),
+      message: t("cart.removeMessage", { name: item.product.name }),
       variant: "destructive",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      confirmLabel: t("common.delete"),
+      cancelLabel: t("common.cancel"),
       icon: "trash",
       onConfirm: () => onUpdateLine(itemId, { qty: 0 }),
     });
@@ -102,7 +107,7 @@ export function CartSidebar({
         {/* Header — title + doc-type badge (read-only; set from launch URL) */}
         <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-display font-bold text-[15px]">Orden</span>
+            <span className="font-display font-bold text-[15px]">{t('cart.order')}</span>
             <span className="px-1.5 h-5 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold t-num">
               {cartItems.length}
             </span>
@@ -112,7 +117,7 @@ export function CartSidebar({
                   'ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-display font-bold uppercase tracking-wider text-white bg-gradient-to-r',
                   docInfo.tabGradient
                 )}
-                title={docInfo.label}
+                title={t(`docTypes.${doc_type}`)}
               >
                 {docInfo.short}
               </span>
@@ -123,39 +128,55 @@ export function CartSidebar({
               onClick={() => useCart.getState().clear()}
               className="text-[11px] text-muted-foreground hover:text-destructive flex items-center gap-1 shrink-0"
             >
-              Limpiar
+              {t('cart.clear')}
             </button>
           )}
         </div>
 
         {/* Customer button */}
         <div className="px-3 py-2 border-b border-border shrink-0">
-          <button
-            onClick={onSelectClient}
-            className={cn(
-              'w-full h-9 rounded-md border border-dashed text-[12px] flex items-center justify-between px-3 hover:bg-muted transition-colors',
-              selectedClient ? 'border-primary text-primary' : 'border-border text-muted-foreground'
-            )}
-          >
-            <span className="truncate flex items-center gap-2">
-              <span className="shrink-0">👤</span>
-              <span className="truncate">
-                {selectedClient
-                  ? selectedClient.client_name || selectedClient.business_name || 'Cliente'
-                  : 'Cliente (opcional)'}
-              </span>
-            </span>
-            {selectedClient ? (
+          {selectedClient ? (
+            <div className="w-full h-9 rounded-md border border-primary/40 bg-primary/[0.04] text-[12px] flex items-center px-3 gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); onClearClient(); }}
-                className="text-muted-foreground hover:text-destructive shrink-0 ml-1"
+                type="button"
+                onClick={onSelectClient}
+                className="flex-1 min-w-0 flex items-center gap-2 text-left text-primary"
               >
-                ✕
+                <span className="shrink-0">👤</span>
+                <span className="truncate font-semibold">
+                  {selectedClient.client_name || selectedClient.business_name || t('cart.client')}
+                </span>
               </button>
-            ) : (
+              <button
+                type="button"
+                onClick={onEditReceiver}
+                title={t('cart.editClient')}
+                className="w-6 h-6 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 flex items-center justify-center shrink-0"
+              >
+                <Icon name="edit" size={11} />
+              </button>
+              <button
+                type="button"
+                onClick={onClearClient}
+                title={t('common.delete')}
+                className="w-6 h-6 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center shrink-0"
+              >
+                <Icon name="close" size={11} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onSelectClient}
+              className="w-full h-9 rounded-md border border-dashed border-border text-[12px] flex items-center justify-between px-3 hover:bg-muted transition-colors text-muted-foreground"
+            >
+              <span className="truncate flex items-center gap-2">
+                <span className="shrink-0">👤</span>
+                <span className="truncate">{t('cart.clientOptional')}</span>
+              </span>
               <span className="text-muted-foreground shrink-0">›</span>
-            )}
-          </button>
+            </button>
+          )}
         </div>
 
         {/* Items */}
@@ -163,7 +184,7 @@ export function CartSidebar({
           {cartItems.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-8 gap-2">
               <span className="text-3xl opacity-40">🛒</span>
-              <div className="text-[12px]">Carrito vacío<br />Selecciona productos del catálogo</div>
+              <div className="text-[12px]">{t('cart.empty')}<br />{t('cart.emptyHint')}</div>
             </div>
           ) : (
             cartItems.map((item) => (
@@ -209,15 +230,15 @@ export function CartSidebar({
         {/* Totals */}
         <div className="px-4 py-3 border-t border-border space-y-1 text-[12px] shrink-0">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-muted-foreground">{t('cart.subtotal')}</span>
             <span className="font-mono t-num">{fmt(subtotal)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">I.V.A.</span>
+            <span className="text-muted-foreground">{t('cart.iva')}</span>
             <span className="font-mono t-num">{fmt(taxAmount)}</span>
           </div>
           <div className="flex justify-between text-[15px] font-display font-extrabold pt-1">
-            <span>Total</span>
+            <span>{t('cart.total')}</span>
             <span className="font-mono t-num text-primary">{fmt(cartTotal)}</span>
           </div>
           <button
@@ -225,7 +246,7 @@ export function CartSidebar({
             disabled={cartItems.length === 0}
             className="mt-2 w-full h-11 rounded-md bg-primary text-primary-foreground text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-sm shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Cobrar · {fmt(cartTotal)}
+            {t('cart.checkoutWith', { amount: fmt(cartTotal) })}
             <span>›</span>
           </button>
         </div>

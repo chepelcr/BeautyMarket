@@ -4,6 +4,7 @@ import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useAllTaxes, useAllTaxAmounts } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
 import { getTaxConfig } from '@/types/taxTypeConfig';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineTax } from '@/types/lineDetail';
 
 const ISO = CountryISO.COSTA_RICA;
@@ -27,9 +28,10 @@ export function OtherTaxSection({
   basePrice,
   cabys,
   detailQuantity,
-  isExpanded, 
-  onToggle 
+  isExpanded,
+  onToggle
 }: OtherTaxSectionProps) {
+  const { t } = useLanguage();
   const { data: taxesData } = useAllTaxes({ iso_code: ISO });
   const allTaxTypes = taxesData ?? [];
   
@@ -145,7 +147,7 @@ export function OtherTaxSection({
 
   return (
     <SectionWrapper
-      title="Otros Impuestos"
+      title={t('products.otherTaxes')}
       icon={Receipt}
       isExpanded={isExpanded}
       onToggle={onToggle}
@@ -165,14 +167,11 @@ export function OtherTaxSection({
               key={tax.tax_type_id}
               tax={tax}
               taxType={tt}
-              cfg={cfg}
               code={code}
               isFixed={isFixed}
               requireRate={requireRate}
               needsSpecialFields={needsSpecialFields}
               basePrice={basePrice}
-              cabys={cabys}
-              detailQuantity={detailQuantity}
               calculateTaxAmount={calculateTaxAmount}
               onUpdate={(patch) => updateOther(tax.tax_type_id, patch)}
               onRemove={() => removeOther(tax.tax_type_id)}
@@ -188,7 +187,7 @@ export function OtherTaxSection({
             if (e.target.value) addOther(Number(e.target.value));
           }}
         >
-          <option value="">Agregar impuesto</option>
+          <option value="">{t('lineDetail.addTax')}</option>
           {otherTaxTypes
             .filter((tt: any) => {
               // OTHERS (99) can be repeated
@@ -211,53 +210,42 @@ export function OtherTaxSection({
 function TaxCard({
   tax,
   taxType,
-  cfg,
   code,
   isFixed,
   requireRate,
   needsSpecialFields,
   basePrice,
-  cabys,
-  detailQuantity,
   calculateTaxAmount,
   onUpdate,
   onRemove,
 }: {
   tax: LineTax;
   taxType: any;
-  cfg: any;
   code: string;
   isFixed: boolean;
   requireRate: boolean;
   needsSpecialFields: boolean;
   basePrice: number;
-  cabys?: string;
-  detailQuantity: number;
   calculateTaxAmount: (tax: LineTax, taxAmounts: any[]) => number;
   onUpdate: (patch: Partial<LineTax>) => void;
   onRemove: () => void;
 }) {
+  const { t } = useLanguage();
   const { data: taxAmountsData } = useAllTaxAmounts(
     { iso_code: ISO, tax_id: tax.tax_type_id },
     { enabled: needsSpecialFields }
   );
   const taxAmounts = taxAmountsData ?? [];
-  
+
   // Calculate tax amount
   const taxAmount = calculateTaxAmount(tax, taxAmounts);
-  
-  // ISEBEC (05): beverages — alcoholic (3401) or non-alcoholic (2202)
-  const isIsebec = code === '05';
-  const isAlcoholic = cabys?.startsWith('3401');
-  const isNonAlcoholic = cabys?.startsWith('2202');
-  const isBeverage = isAlcoholic || isNonAlcoholic;
 
   return (
     <div className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border">
       {/* Header */}
       <div className={`flex items-center gap-2 ${needsSpecialFields ? "mb-2" : ""}`}>
         <div className="flex-1 text-xs font-semibold">
-          {taxType?.description ?? 'Impuesto'}
+          {taxType?.description ?? t('lineDetail.taxes')}
         </div>
 
         {requireRate && !isFixed && !needsSpecialFields && (
@@ -308,7 +296,7 @@ function TaxCard({
             {/* Tax Amount dropdown - shown for all special field taxes */}
           {taxAmounts.length > 0 && (
             <div>
-              <FormLabel>Monto impuesto</FormLabel>
+              <FormLabel>{t('lineDetail.taxAmount')}</FormLabel>
               <select
                 className="pp-input text-xs"
                 value={tax.special_fields?.tax_amount_id ?? ''}
@@ -316,15 +304,15 @@ function TaxCard({
                   const selectedId = Number(e.target.value);
                   const selectedTaxAmount = taxAmounts.find((ta: any) => ta.id === selectedId);
                   onUpdate({
-                    special_fields: { 
-                      ...tax.special_fields, 
+                    special_fields: {
+                      ...tax.special_fields,
                       tax_amount_id: selectedId,
                       amount: selectedTaxAmount?.amount || 0 // Store the amount value
                     },
                   });
                 }}
               >
-                <option value="">Seleccionar</option>
+                <option value="">{t('lineDetail.selectAmount')}</option>
                 {taxAmounts.map((ta: any) => (
                   <option key={ta.id} value={ta.id}>
                     {ta.description} — ₡{ta.amount.toLocaleString('es-CR')}
@@ -338,7 +326,7 @@ function TaxCard({
           {['03', '04', '05', '06'].includes(code) && (
             <div>
               <FormLabel>
-                Cantidad UdM
+                {t('products.quantityUdm')}
               </FormLabel>
               <input
                 type="number"
@@ -358,7 +346,7 @@ function TaxCard({
           {/* ISEBA percentage - manual input, no auto-select */}
           {code === '04' && (
             <div>
-              <FormLabel>Porcentaje</FormLabel>
+              <FormLabel>{t('products.percentage')}</FormLabel>
               <input
                 type="number"
                 className="pp-input text-xs"
@@ -379,7 +367,7 @@ function TaxCard({
           {/* ISEBEC volume per unit */}
           {code === '05' && (
             <div>
-              <FormLabel>Volumen/unidad</FormLabel>
+              <FormLabel>{t('products.volumePerUnit')}</FormLabel>
               <input
                 type="number"
                 className="pp-input text-xs"
@@ -401,7 +389,7 @@ function TaxCard({
           taxAmount > 0 ? "bg-primary/[0.08]" : "bg-muted/30"
         }`}>
           <span className="text-[11px] font-semibold text-muted-foreground">
-            Monto calculado
+            {t('lineDetail.taxAmount')}
           </span>
           <span className={`text-[13px] font-bold font-mono ${
             taxAmount > 0 ? "text-primary" : "text-muted-foreground"
