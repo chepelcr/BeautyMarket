@@ -79,6 +79,7 @@ export function createClient(baseUrl: string) {
   return {
     get: <T>(path: string) => request<T>("GET", path, undefined, baseUrl),
     post: <T>(path: string, body: unknown) => request<T>("POST", path, body, baseUrl),
+    put: <T>(path: string, body: unknown) => request<T>("PUT", path, body, baseUrl),
     patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body, baseUrl),
     delete: <T>(path: string) => request<T>("DELETE", path, undefined, baseUrl),
   };
@@ -87,6 +88,7 @@ export function createClient(baseUrl: string) {
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body: unknown) => request<T>("POST", path, body),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, body),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),
   delete: <T>(path: string) => request<T>("DELETE", path),
 };
@@ -94,6 +96,7 @@ export const api = {
 export const crossAppApi = {
   get: <T>(path: string) => request<T>("GET", path, undefined, CROSS_APP_API_BASE),
   post: <T>(path: string, body: unknown) => request<T>("POST", path, body, CROSS_APP_API_BASE),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, body, CROSS_APP_API_BASE),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body, CROSS_APP_API_BASE),
   delete: <T>(path: string) => request<T>("DELETE", path, undefined, CROSS_APP_API_BASE),
 };

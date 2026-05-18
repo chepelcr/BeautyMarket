@@ -6,7 +6,7 @@ import { DocumentsMobileDrawer } from "./DocumentsMobileDrawer";
 import { DashboardToggleButton } from "./DashboardToggleButton";
 import { useUIStore } from "@/store/uiStore";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients" | "organization";
 
 interface DashboardShellProps {
   children: React.ReactNode;

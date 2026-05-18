@@ -7,7 +7,7 @@ import { OrgProvider } from "@/contexts/OrgContext";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import DashboardShell from "@/components/layout/DashboardShell";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients" | "organization";
 
 interface Session {
   name: string;
@@ -26,6 +26,7 @@ function getActiveNav(location: string): NavId {
   // Legacy /dashboard/pos route also maps to documents (POS is now an editor view)
   if (location.startsWith(ROUTES.DASHBOARD_POS))      return "documents";
   if (location.startsWith(ROUTES.DASHBOARD_CLIENTS))  return "clients";
+  if (location.startsWith(ROUTES.DASHBOARD_ORG_SETTINGS)) return "organization"; // covers /hacienda and /notifications sub-paths too
   return "dashboard";
 }
 
@@ -38,6 +39,7 @@ const NAV_PATHS: Record<NavId, string> = {
   pos:       ROUTES.DASHBOARD_POS,
   documents: ROUTES.DASHBOARD_DOCUMENTS,
   clients:   ROUTES.DASHBOARD_CLIENTS,
+  organization: ROUTES.DASHBOARD_ORG_SETTINGS,
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

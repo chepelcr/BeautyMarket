@@ -10,6 +10,9 @@ export const ROUTES = {
   DASHBOARD_POS: "/dashboard/pos",
   DASHBOARD_DOCUMENTS: "/dashboard/documents",
   DASHBOARD_CLIENTS: "/dashboard/clients",
+  DASHBOARD_ORG_SETTINGS: "/dashboard/organization",
+  DASHBOARD_ORG_HACIENDA: "/dashboard/organization/hacienda",
+  DASHBOARD_ORG_NOTIFICATIONS: "/dashboard/organization/notifications",
 } as const;
 
 /** Build editor URL for a specific tab id */

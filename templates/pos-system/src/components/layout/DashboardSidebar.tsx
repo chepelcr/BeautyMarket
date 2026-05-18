@@ -9,7 +9,7 @@ import { DOCUMENT_TYPES } from "@/types/invoice";
 import type { DocTypeCode } from "@/types/invoice";
 import { Icon, Logo } from "@/components/ui";
 
-type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients";
+type NavId = "dashboard" | "config" | "puestos" | "productos" | "reporte" | "pos" | "documents" | "clients" | "organization";
 
 interface DashboardSidebarProps {
   active: NavId;
@@ -33,6 +33,7 @@ export function DashboardSidebar({ active, onNav, onClose }: DashboardSidebarPro
     { id: "productos", icon: "package", label: t("shell.products") },
     { id: "clients", icon: "user", label: t("shell.clients") },
     { id: "reporte", icon: "trending", label: t("shell.reports") },
+    { id: "organization", icon: "settings", label: t("shell.orgSettings") },
   ];
 
   const docsActive = active === "documents";
