@@ -53,34 +53,28 @@ interface ConfirmPaymentArgs {
   invoiceData: InvoiceCheckoutData;
 }
 
-// ── code-string fallbacks until cross-app-be product API returns canonical codes ──
-const pad2 = (n: number | string | undefined): string | undefined => {
-  if (n === undefined || n === null || n === "") return undefined;
-  const s = String(n);
-  return s.length === 1 ? `0${s}` : s;
-};
-
-const DEFAULT_UNIT_MEASURE = "Unid";
-
 export function useCartFlow() {
   const { items, add, remove, updateLine, clear, total, count } = useCart();
   const { decrement } = useInventory();
 
-  // Enrich cart items with full product data for fiscal payload
-  const cartItems = Object.values(items).map(({ product, qty, lineDiscount, lineNote }) => ({
-    id: product.product_id,
-    name: product.name,
-    price: product.sale_price ?? product.price,
-    netPrice: product.price,
-    image_url: product.image_url ?? null,
-    qty,
-    lineDiscount: lineDiscount ?? 0,
-    lineNote: lineNote ?? "",
-    cabys: product.cabys ?? undefined,
-    taxes: product.taxes ?? [],
-    discounts: product.discounts ?? [],
-    product,
-  }));
+  // Enrich cart items with the canonical LineDetail (built by LineDetailDrawer
+  // when the line was created/edited — that's where the catalog id→code
+  // resolution happens, since the catalogs are already loaded there).
+  const cartItems = Object.values(items).map(
+    ({ product, qty, lineDiscount, lineNote, lineDetail }) => ({
+      id: product.product_id,
+      name: product.name,
+      price: product.sale_price ?? product.price,
+      netPrice: product.price,
+      image_url: product.image_url ?? null,
+      qty,
+      lineDiscount: lineDiscount ?? 0,
+      lineNote: lineNote ?? "",
+      cabys: product.cabys ?? undefined,
+      lineDetail,
+      product,
+    })
+  );
 
   const cartTotal = total();
   const cartCount = count();
@@ -183,17 +177,14 @@ export function useCartFlow() {
       receiver,
       references: invoiceData.references ?? [],
 
-      // Cart lines → canonical DetailDTO[] (Hacienda code strings throughout)
+      // Cart lines → canonical DetailDTO[]. By the time a line lands here,
+      // LineDetailDrawer + its sections have already resolved every catalog
+      // id (tax_type_id / discount_type_id / unit_id) to the canonical
+      // Hacienda code string via their own loaded catalogs — no lookups here.
       details: cartItems.map((item, index) => {
+        const ld = item.lineDetail;
         const lineDiscounts = [
-          ...item.discounts.map((d: any) => ({
-            discount_type:
-              d.discount_code ??
-              d.discount_type ??
-              pad2(d.discount_type_id ?? d.discountTypeId) ??
-              "01",
-            percentage: d.rate ?? d.percentage ?? 0,
-          })),
+          ...((ld?.discounts as any[]) ?? []),
           ...(item.lineDiscount > 0
             ? [{ discount_type: "01", percentage: item.lineDiscount }]
             : []),
@@ -204,18 +195,10 @@ export function useCartFlow() {
           product_id: item.id,
           description: item.lineNote || item.name,
           quantity: item.qty,
-          unit_measure:
-            (item.product as any).unit_code ??
-            (item.product as any).unit_measure ??
-            DEFAULT_UNIT_MEASURE,
+          unit_measure: ld?.unit_measure,
           net_price: item.netPrice,
-          cabys: item.cabys,
-          taxes: item.taxes.map((t: any) => ({
-            code: t.tax_code ?? t.code ?? pad2(t.tax_type_id ?? t.taxId) ?? "01",
-            rate: t.rate,
-            rate_code: t.rate_code ?? t.tax_rate_code ?? undefined,
-            special_fields: t.special_fields ?? t.specialFields ?? undefined,
-          })),
+          cabys: item.cabys ?? ld?.cabys,
+          taxes: (ld?.taxes as any[]) ?? [],
           discounts: lineDiscounts,
         };
       }),

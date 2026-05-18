@@ -39,7 +39,16 @@
       "Bash(MSYS_NO_PATHCONV=1 aws logs describe-log-groups --log-group-name-prefix '/aws/lambda/jcampos-dev-hacienda-history-lambda' --profile J-CAMPOS --query 'logGroups[].logGroupName' --output text)",
       "Bash(git fetch *)",
       "Bash(git stash *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs tail '/aws/codebuild/jcampos-dev-api-gateway-update' --since 30m --profile J-CAMPOS --format short)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs describe-log-streams --log-group-name '/aws/codebuild/jcampos-dev-api-gateway-update' --order-by LastEventTime --descending --limit 1 --profile J-CAMPOS --query 'logStreams[0].logStreamName' --output text)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs get-log-events --log-group-name '/aws/codebuild/jcampos-dev-api-gateway-update' --log-stream-name '27b67318-9446-4d54-abf9-f79b1605a748' --profile J-CAMPOS --query 'events[*].message' --output text)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs get-log-events --log-group-name '/aws/codebuild/jcampos-dev-auth-api' --log-stream-name 'build/6c7dd1b9-9f14-41ed-996f-e740fc6d977e' --profile J-CAMPOS --query 'events[*].message' --output text)",
+      "Read(//e/tmp/**)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs get-log-events --log-group-name '/aws/codebuild/jcampos-dev-auth-api' --log-stream-name 'build/6c7dd1b9-9f14-41ed-996f-e740fc6d977e' --profile J-CAMPOS --output text)",
+      "Bash(MSYS_NO_PATHCONV=1 aws logs describe-log-streams --log-group-name '/aws/codebuild/jcampos-dev-auth-api' --order-by LastEventTime --descending --limit 1 --profile J-CAMPOS --query 'logStreams[0].logStreamName' --output text)",
+      "Bash(grep -B1 -A20 \"CREATE_FAILED.*ApiGatewayLogGroup\\\\|CREATE_FAILED.*Logs::LogGroup\" /tmp/apilog.txt 2>&1 | head -40 | sed 's/[^[:print:][:space:]]//g')",
+      "Read(//tmp/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\chepe\\.claude\\skills\\be-builder"

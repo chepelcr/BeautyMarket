@@ -14,8 +14,9 @@ const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 interface IvaTaxSectionProps {
   taxes: LineTax[];
   onChange: (taxes: LineTax[]) => void;
-  factoryTaxChargeId?: number;
-  onFactoryTaxChargeChange: (chargeId: number | undefined) => void;
+  /** Hacienda factory-tax-charge code (string) instead of numeric id. */
+  factoryTaxChargeCode?: string;
+  onFactoryTaxChargeChange: (chargeCode: string | undefined) => void;
   baseAmount: number;
   factoryAssumedTax: number;
   isExpanded: boolean;
@@ -27,7 +28,7 @@ interface IvaTaxSectionProps {
 export function IvaTaxSection({
   taxes,
   onChange,
-  factoryTaxChargeId,
+  factoryTaxChargeCode,
   onFactoryTaxChargeChange,
   baseAmount,
   factoryAssumedTax,
@@ -53,45 +54,40 @@ export function IvaTaxSection({
     (IVA_CODES as readonly string[]).includes(t.code ?? '')
   );
 
-  const addedIvaTaxes = taxes.filter((t) => {
-    const tt = allTaxTypes.find((x: any) => x.id === t.tax_type_id);
-    return (IVA_CODES as readonly string[]).includes(tt?.code ?? '');
-  });
+  // Canonical: tax.code is the Hacienda tax type code string ("01" IVA, ...).
+  const addedIvaTaxes = taxes.filter((t) =>
+    (IVA_CODES as readonly string[]).includes(t.code ?? '')
+  );
 
   const hasIva = addedIvaTaxes.length > 0;
+  const hasIvace = addedIvaTaxes.some((t) => t.code === '07');
+  const showBaseAmount = hasIvace || !!factoryTaxChargeCode;
 
-  const hasIvace = addedIvaTaxes.some((t) => {
-    const tt = allTaxTypes.find((x: any) => x.id === t.tax_type_id);
-    return tt?.code === '07';
-  });
-
-  const showBaseAmount = hasIvace || !!factoryTaxChargeId;
-
-  const addIva = (taxTypeId: number) => {
-    const tt = ivaTaxTypes.find((t: any) => t.id === taxTypeId);
+  const addIva = (taxCode: string) => {
+    const tt = ivaTaxTypes.find((t: any) => t.code === taxCode);
     if (!tt) return;
-
-    const defaultRate = rateList[0];
-    const newTax: LineTax = {
-      tax_type_id: tt.id,
-      rate: (defaultRate as any)?.percentage ?? 13,
-      tax_rate_id: (defaultRate as any)?.id,
-      special_fields: {},
-    };
-
-    onChange([...taxes, newTax]);
+    const defaultRate = rateList[0] as any;
+    onChange([
+      ...taxes,
+      {
+        code: taxCode,
+        rate: defaultRate?.percentage ?? 13,
+        rate_code: defaultRate?.code,
+        special_fields: {},
+      },
+    ]);
   };
 
-  const removeIva = (taxTypeId: number) => {
-    onChange(taxes.filter((t) => t.tax_type_id !== taxTypeId));
+  const removeIva = (taxCode: string) => {
+    onChange(taxes.filter((t) => t.code !== taxCode));
   };
 
-  const updateIva = (taxTypeId: number, patch: Partial<LineTax>) => {
-    onChange(taxes.map((t) => (t.tax_type_id === taxTypeId ? { ...t, ...patch } : t)));
+  const updateIva = (taxCode: string, patch: Partial<LineTax>) => {
+    onChange(taxes.map((t) => (t.code === taxCode ? { ...t, ...patch } : t)));
   };
 
   const selectedCharge = factoryCharges.find(
-    (c: { id: number }) => c.id === factoryTaxChargeId
+    (c: { code?: string }) => c.code === factoryTaxChargeCode
   );
 
   return (
@@ -104,16 +100,16 @@ export function IvaTaxSection({
     >
       <div className="flex flex-col gap-2">
         {addedIvaTaxes.map((tax) => {
-          const tt = allTaxTypes.find((x: any) => x.id === tax.tax_type_id);
-          const isIvarbu = tt?.code === '08';
-          const ivaAmount = baseAmount > 0 && tax.rate ? baseAmount * tax.rate / 100 : 0;
+          const tt = allTaxTypes.find((x: any) => x.code === tax.code);
+          const isIvarbu = tax.code === '08';
+          const ivaAmount = baseAmount > 0 && tax.rate ? (baseAmount * tax.rate) / 100 : 0;
 
           return (
             <div
-              key={tax.tax_type_id}
+              key={tax.code}
               className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border"
             >
-              <div className={`flex items-center gap-2 ${isIvarbu ? "mb-2" : ""}`}>
+              <div className={`flex items-center gap-2 ${isIvarbu ? 'mb-2' : ''}`}>
                 <div className="flex-1 text-[13px] font-semibold">
                   {tt?.description ?? t('lineDetail.taxesIvaTitle')}
                 </div>
@@ -121,15 +117,15 @@ export function IvaTaxSection({
                 {!isIvarbu && (
                   <select
                     className="pp-input w-20 !h-auto !px-2 !py-1 text-[13px]"
-                    value={tax.tax_rate_id ?? ''}
+                    value={tax.rate_code ?? ''}
                     onChange={(e) => {
-                      const r = rateList.find((r: any) => String(r.id) === e.target.value);
-                      if (r) updateIva(tax.tax_type_id, { tax_rate_id: r.id, rate: (r as any).percentage });
+                      const r = rateList.find((r: any) => r.code === e.target.value) as any;
+                      if (r) updateIva(tax.code!, { rate_code: r.code, rate: r.percentage });
                     }}
                   >
                     <option value="">%</option>
                     {rateList.map((r: any) => (
-                      <option key={r.id} value={String(r.id)}>
+                      <option key={r.code ?? r.id} value={r.code}>
                         {r.percentage}%
                       </option>
                     ))}
@@ -145,7 +141,7 @@ export function IvaTaxSection({
                 <button
                   type="button"
                   className="btn btn-ghost btn-icon btn-sm"
-                  onClick={() => removeIva(tax.tax_type_id)}
+                  onClick={() => removeIva(tax.code!)}
                 >
                   <Icon name="xCircle" size={14} />
                 </button>
@@ -156,12 +152,14 @@ export function IvaTaxSection({
                   <FormLabel>{t('lineDetail.ivarbu')}</FormLabel>
                   <select
                     className="pp-input text-[13px]"
-                    value={tax.tax_factor_id ?? ''}
-                    onChange={(e) => updateIva(tax.tax_type_id, { tax_factor_id: Number(e.target.value) })}
+                    value={(tax as any).factor_code ?? ''}
+                    onChange={(e) =>
+                      updateIva(tax.code!, { factor: parseFloat(e.target.value) || undefined } as Partial<LineTax>)
+                    }
                   >
                     <option value="">{t('lineDetail.selectFactor')}</option>
                     {factorList.map((f: any) => (
-                      <option key={f.id} value={String(f.id)}>
+                      <option key={f.code ?? f.id} value={f.code}>
                         {f.description}
                       </option>
                     ))}
@@ -177,12 +175,12 @@ export function IvaTaxSection({
             className="pp-input"
             value=""
             onChange={(e) => {
-              if (e.target.value) addIva(Number(e.target.value));
+              if (e.target.value) addIva(e.target.value);
             }}
           >
             <option value="">{t('lineDetail.addIva')}</option>
             {ivaTaxTypes.map((tt: any) => (
-              <option key={tt.id} value={String(tt.id)}>
+              <option key={tt.code ?? tt.id} value={tt.code}>
                 {tt.description}
               </option>
             ))}
@@ -196,7 +194,9 @@ export function IvaTaxSection({
               className="pp-input"
               type="number"
               value={detail.base_amount ?? ''}
-              onChange={(e) => onDetailChange({ base_amount: parseFloat(e.target.value) || undefined })}
+              onChange={(e) =>
+                onDetailChange({ base_amount: parseFloat(e.target.value) || undefined })
+              }
               min={0}
               step={0.01}
               placeholder={t('lineDetail.baseAmountPlaceholder')}
@@ -214,15 +214,12 @@ export function IvaTaxSection({
             <FormLabel>{t('lineDetail.factoryCharge')}</FormLabel>
             <select
               className="pp-input"
-              value={factoryTaxChargeId ?? ''}
-              onChange={(e) => {
-                const id = e.target.value ? Number(e.target.value) : undefined;
-                onFactoryTaxChargeChange(id);
-              }}
+              value={factoryTaxChargeCode ?? ''}
+              onChange={(e) => onFactoryTaxChargeChange(e.target.value || undefined)}
             >
               <option value="">{t('lineDetail.noFactoryCharge')}</option>
               {factoryCharges.map((c: any) => (
-                <option key={c.id} value={String(c.id)}>
+                <option key={c.code ?? c.id} value={c.code}>
                   {c.description}
                 </option>
               ))}

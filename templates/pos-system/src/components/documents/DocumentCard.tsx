@@ -54,7 +54,7 @@ export function DocumentCard({ doc, isReceived, onAction, delay = 0 }: DocumentC
       {/* Total */}
       <div className="flex justify-between items-center">
         <span className="text-[12px] text-muted-foreground">Total</span>
-        <span className="font-mono font-bold t-num">{fmt(doc.summary.voucher_total)}</span>
+        <span className="font-mono font-bold t-num">{fmt(doc.summary?.voucher_total ?? 0)}</span>
       </div>
 
       {/* Actions */}

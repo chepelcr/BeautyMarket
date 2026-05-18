@@ -17,26 +17,18 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
   const { t } = useLanguage();
   const { data: measurementUnits } = useAllMeasurementUnits();
   
-  // Find the selected unit
-  const selectedUnit = (measurementUnits ?? []).find((u: any) => u.id === detail.unit_id);
-  const selectedUnitCode = selectedUnit?.code;
-  
-  // Show commercial unit field only if unit code is "Otros"
-  const showCommercialUnit = selectedUnitCode === 'Otros';
-  
-  // Handle unit change - auto-set commercial_unit_measure to unit code if not "Otros"
-  const handleUnitChange = (unitId: number | undefined) => {
-    const unit = (measurementUnits ?? []).find((u: any) => u.id === unitId);
-    const unitCode = unit?.code;
-    
+  // Canonical: detail.unit_measure is the Hacienda unit-of-measure code string.
+  // Show commercial unit field only when the user picked "Otros".
+  const showCommercialUnit = detail.unit_measure === 'Otros';
+
+  const handleUnitChange = (unitCode: string | undefined) => {
     if (unitCode === 'Otros') {
-      // Keep existing commercial_unit_measure or clear it
-      onChange({ unit_id: unitId });
+      onChange({ unit_measure: unitCode });
     } else {
-      // Auto-set commercial_unit_measure to unit code
-      onChange({ 
-        unit_id: unitId, 
-        commercial_unit_measure: unitCode || undefined 
+      // Auto-mirror commercial_unit_measure to the picked code unless "Otros".
+      onChange({
+        unit_measure: unitCode,
+        commercial_unit_measure: unitCode || undefined,
       });
     }
   };
@@ -97,12 +89,12 @@ export function GeneralTab({ detail, onChange, isExpanded, onToggle, isExportInv
             </FormLabel>
             <select
               className="pp-input"
-              value={detail.unit_id ?? ''}
-              onChange={(e) => handleUnitChange(Number(e.target.value) || undefined)}
+              value={detail.unit_measure ?? ''}
+              onChange={(e) => handleUnitChange(e.target.value || undefined)}
             >
               <option value="">—</option>
               {(measurementUnits ?? []).map((u: any) => (
-                <option key={u.id} value={u.id}>{u.code} — {u.description}</option>
+                <option key={u.code ?? u.id} value={u.code}>{u.code} — {u.description}</option>
               ))}
             </select>
           </div>

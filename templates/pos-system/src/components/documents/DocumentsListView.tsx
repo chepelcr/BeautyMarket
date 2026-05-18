@@ -147,7 +147,7 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
               {docs.map((doc, i) => (
                 <FadeIn key={doc.sale_id} delay={i * 0.04} duration={0.3}>
                   <DocumentCard
-                    doc={doc}
+                    doc={doc as any}
                     isReceived={is_received}
                     onAction={(d, action) => setActionModal({ doc: d, action })}
                     delay={i * 0.04}

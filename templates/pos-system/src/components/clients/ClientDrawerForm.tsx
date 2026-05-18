@@ -45,45 +45,63 @@ function isReceiverTouched(r: SaleReceiver | undefined): boolean {
   );
 }
 
+/**
+ * Map a canonical SaleReceiver (nested CustomerDTO) back into the flat
+ * client-create form. The form uses `business_name`, flat `state_id`, etc;
+ * the canonical receiver uses `name` + nested `identification`/`residence`/`phone`.
+ */
 function receiverToForm(
   r: SaleReceiver | undefined,
   c: ClientSearchResult | null | undefined,
-  idTypes: IdentificationResponse[],
+  _idTypes: IdentificationResponse[],
 ): CreateClientDto {
   const base = buildForm(null);
-  // Once the receiver has user edits, it is the sole source of truth — don't merge
-  // back in client fields (they'd mask the user's deliberate changes).
   const useReceiverOnly = isReceiverTouched(r);
   const src = useReceiverOnly ? null : c;
 
-  const idCodeFromReceiver = r?.id_type != null ? idTypes.find((t) => t.id === r.id_type)?.code : undefined;
-  const idCode = idCodeFromReceiver ?? src?.identification?.code ?? base.identification?.code;
-  const customerType = r?.customer_type ?? inferCustomerTypeFromIdCode(idCode);
+  const idCode = r?.identification?.code ?? src?.identification?.code ?? base.identification?.code;
+  // customer_type_code is a Hacienda string ("01"-"05"). Client form uses
+  // the numeric CustomerType enum — convert via the code's leading int.
+  const customerType = r?.customer_type_code
+    ? Number(r.customer_type_code) || inferCustomerTypeFromIdCode(idCode)
+    : inferCustomerTypeFromIdCode(idCode);
 
   return {
     ...base,
-    business_name: r?.business_name ?? src?.business_name ?? "",
-    client_name: r?.business_name ?? src?.client_name ?? src?.business_name ?? "",
+    business_name: r?.name ?? src?.business_name ?? "",
+    client_name: r?.name ?? src?.client_name ?? src?.business_name ?? "",
     client_gln: src?.client_gln ?? "",
     email: r?.email ?? src?.email ?? "",
     nationality: r?.nationality ?? base.nationality,
     customer_type: customerType,
     identification: {
       code: idCode,
-      number: r?.id_number ?? src?.identification?.number ?? "",
+      number: r?.identification?.number ?? src?.identification?.number ?? "",
     },
-    phone: r?.personal_phone
-      ? { country_code: r.personal_phone.country_code || base.phone?.country_code, area_code: "", number: r.personal_phone.number || "", description: "" }
+    phone: r?.phone
+      ? {
+          country_code: r.phone.country_code || base.phone?.country_code,
+          area_code: r.phone.area_code ?? "",
+          number: r.phone.number || "",
+          description: r.phone.description ?? "",
+        }
       : src?.phone
-        ? { country_code: base.phone?.country_code, area_code: src.phone.area_code || "", number: src.phone.number || "", description: "" }
+        ? {
+            country_code: base.phone?.country_code,
+            area_code: src.phone.area_code || "",
+            number: src.phone.number || "",
+            description: "",
+          }
         : base.phone,
     residence: useReceiverOnly
       ? {
-          state_id: r?.state_id ?? undefined,
-          county_id: r?.county_id ?? undefined,
-          district_id: r?.district_id ?? undefined,
-          neighborhood_id: r?.neighborhood_id ?? undefined,
-          address: r?.address ?? "",
+          state_id: r?.residence?.state_id ?? undefined,
+          county_id: r?.residence?.county_id ?? undefined,
+          district_id: r?.residence?.district_id ?? undefined,
+          // Client form keeps neighborhood_id locally (LocationSelect cascade);
+          // the canonical receiver doesn't carry it (Hacienda wants the name).
+          neighborhood_id: undefined,
+          address: r?.residence?.address ?? "",
         }
       : {
           state_id: src?.residence?.state_id ?? undefined,
@@ -95,35 +113,48 @@ function receiverToForm(
   };
 }
 
+/**
+ * Project the client-create form back into a canonical SaleReceiver. The
+ * residence drops `neighborhood_id` (FE-only) — the checkout form must
+ * later resolve it to `neighborhood_name` before submitting to sales-api.
+ */
 function formToReceiver(
   f: CreateClientDto,
-  idTypes: IdentificationResponse[],
+  _idTypes: IdentificationResponse[],
   carryOver?: SaleReceiver,
 ): SaleReceiver {
-  const idType = f.identification?.code ? idTypes.find((t) => t.code === f.identification!.code)?.id : undefined;
-  // Residence is rewritten in full so toggling a state→county→district chain back
-  // to "none" actually persists as cleared, not falls back to the carry-over.
+  const customerTypeNum = f.customer_type ?? inferCustomerTypeFromIdCode(f.identification?.code);
   return {
+    name: f.business_name?.trim() || f.client_name?.trim() || "",
     trade_name: carryOver?.trade_name,
-    business_phone: carryOver?.business_phone,
-    economic_activity: carryOver?.economic_activity,
-    fiscal_record_8707: carryOver?.fiscal_record_8707,
-    taxpayer_id: carryOver?.taxpayer_id,
-    business_name: f.business_name?.trim() || f.client_name?.trim() || "",
     email: f.email?.trim() || undefined,
     nationality: f.nationality,
-    customer_type: f.customer_type ?? inferCustomerTypeFromIdCode(f.identification?.code),
-    id_type: idType,
-    id_code: f.identification?.code,
-    id_number: f.identification?.number?.trim() || undefined,
-    personal_phone: f.phone?.number
-      ? { country_code: f.phone.country_code || CountryISO.COSTA_RICA, number: f.phone.number }
+    customer_type_code: String(customerTypeNum).padStart(2, "0"),
+    identification: {
+      code: f.identification?.code,
+      number: f.identification?.number?.trim() || undefined,
+    },
+    fax: carryOver?.fax,
+    economic_activity: carryOver?.economic_activity,
+    foreign_id_number: carryOver?.foreign_id_number,
+    foreign_address: carryOver?.foreign_address,
+    phone: f.phone?.number
+      ? {
+          country_code: f.phone.country_code || CountryISO.COSTA_RICA,
+          area_code: f.phone.area_code || undefined,
+          number: f.phone.number,
+          description: f.phone.description || undefined,
+        }
       : undefined,
-    state_id: f.residence?.state_id ?? undefined,
-    county_id: f.residence?.county_id ?? undefined,
-    district_id: f.residence?.district_id ?? undefined,
-    neighborhood_id: f.residence?.neighborhood_id ?? undefined,
-    address: f.residence?.address?.trim() || undefined,
+    residence: {
+      state_id: f.residence?.state_id ?? undefined,
+      county_id: f.residence?.county_id ?? undefined,
+      district_id: f.residence?.district_id ?? undefined,
+      // Canonical receiver carries the NAME, not the id. The checkout drawer
+      // resolves neighborhood_id → neighborhood_name from the data-api cache.
+      neighborhood_name: undefined,
+      address: f.residence?.address?.trim() || undefined,
+    },
   };
 }
 
@@ -155,7 +186,7 @@ export function ClientDrawerForm({
   const { t } = useLanguage();
   const isReceiver = mode === "receiver";
   const isEdit = isReceiver
-    ? !!receiver?.business_name || !!selectedClient
+    ? !!receiver?.name || !!selectedClient
     : !!client;
 
   const createMutation = useCreateClient(orgId);
@@ -197,7 +228,7 @@ export function ClientDrawerForm({
       setAddressExpanded(false);
       setHaciendaSuccess(
         isReceiver
-          ? !!receiver?.business_name || !!selectedClient?.business_name || !!selectedClient?.client_name
+          ? !!receiver?.name || !!selectedClient?.business_name || !!selectedClient?.client_name
           : !!client?.business_name || !!client?.client_name,
       );
     }

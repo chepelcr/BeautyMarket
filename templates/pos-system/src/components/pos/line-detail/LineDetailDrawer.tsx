@@ -2,7 +2,14 @@ import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Drawer, Button } from '@/components/ui';
 import { FadeIn } from '@/components/ui/FadeIn';
-import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges, useAllDiscountTypes } from '@/hooks/useDataApi';
+import {
+  useAllTaxes,
+  useAllTaxRates,
+  useAllTaxFactors,
+  useAllFactoryTaxCharges,
+  useAllDiscountTypes,
+  useAllMeasurementUnits,
+} from '@/hooks/useDataApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { CountryISO } from '@/lib/enums';
 import type { GetAllFactoryTaxChargesParams } from '@/services/data-api/dtos';
@@ -63,6 +70,11 @@ export function LineDetailDrawer({
   const { data: taxFactors } = useAllTaxFactors({ iso_code: CountryISO.COSTA_RICA });
   const { data: factoryTaxCharges } = useAllFactoryTaxCharges({ iso_code: CountryISO.COSTA_RICA } as GetAllFactoryTaxChargesParams);
   const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
+  // Measurement units catalog — needed to resolve product.unit_id (data-api
+  // numeric id) → unit_measure (Hacienda code string) when initializing a
+  // line. React Query caches by queryKey, so this is the same fetch
+  // GeneralTab uses; no duplicate BE call.
+  const { data: measurementUnits } = useAllMeasurementUnits();
   // Note: taxAmounts requires tax_id, so we don't fetch it here - it's fetched per-tax when needed
   const { confirm, ConfirmModal } = useConfirmModal();
   const { t } = useLanguage();
@@ -77,6 +89,58 @@ export function LineDetailDrawer({
   });
 
   // Build initial LineDetail from product - reset when product changes
+  /**
+   * Translate product-catalog taxes (cross-app-be) → canonical LineTax[].
+   * cross-app-be products carry numeric data-api catalog ids
+   * (`tax_type_id`, `tax_rate_id`). The canonical downstream shape needs
+   * Hacienda code strings. We look up each id in the already-loaded
+   * catalogs (`taxTypes`, `taxRates`) — that's the single seam where the
+   * id→code resolution happens.
+   */
+  const productTaxesToLineTaxes = (productTaxes: any[] | undefined): LineTax[] =>
+    (productTaxes ?? []).map((t: any) => {
+      const taxTypeEntry = (taxTypes ?? []).find(
+        (tt: any) => tt.id === (t.tax_type_id ?? t.taxId)
+      );
+      const rateEntry = (taxRates ?? []).find(
+        (r: any) => r.id === (t.tax_rate_id ?? t.taxRateId)
+      );
+      return {
+        code: (taxTypeEntry as any)?.code ?? t.tax_code ?? t.code,
+        rate: t.rate,
+        rate_code: (rateEntry as any)?.code ?? t.rate_code ?? t.tax_rate_code,
+        special_fields: t.special_fields ?? t.specialFields,
+      };
+    });
+
+  /**
+   * Translate product-catalog discounts → canonical LineDiscount[]. The
+   * data-api `discountTypes` catalog resolves numeric `discount_type_id`
+   * to the Hacienda discount-type code string.
+   */
+  const productDiscountsToLineDiscounts = (
+    productDiscounts: any[] | undefined
+  ): LineDiscount[] =>
+    (productDiscounts ?? []).map((d: any) => {
+      const entry = (discountTypes ?? []).find(
+        (dt: any) => dt.id === (d.discount_type_id ?? d.discountTypeId)
+      );
+      return {
+        discount_type: (entry as any)?.code ?? d.discount_code ?? d.discount_type,
+        percentage: d.rate ?? d.percentage ?? 0,
+      };
+    });
+
+  /**
+   * Resolve product.unit_id (data-api numeric id) → unit_measure (Hacienda
+   * code string) via the measurementUnits catalog.
+   */
+  const productUnitToCode = (unitId: number | undefined): string | undefined => {
+    if (unitId == null) return undefined;
+    const entry = (measurementUnits ?? []).find((u: any) => u.id === unitId);
+    return (entry as any)?.code;
+  };
+
   const [detail, setDetail] = useState<LineDetail>(() => {
     if (!product) {
       return {
@@ -85,17 +149,16 @@ export function LineDetailDrawer({
         quantity: 1,
         net_price: 0,
         base_amount: undefined,
-        unit_id: undefined,
+        product_type: undefined,
+        unit_measure: undefined,
         commercial_unit_measure: undefined,
         customs_part: undefined,
-        factory_tax_charge_id: undefined,
         cabys: undefined,
         taxes: [],
         discounts: [],
       };
     }
-    
-    // If we have existing line detail, use it
+
     if (existingLineDetail) {
       return {
         product_id: product.product_id,
@@ -103,55 +166,39 @@ export function LineDetailDrawer({
         quantity: existingLineDetail.quantity ?? qty,
         net_price: existingLineDetail.net_price ?? product.price ?? 0,
         base_amount: existingLineDetail.base_amount,
-        unit_id: existingLineDetail.unit_id,
+        product_type: existingLineDetail.product_type,
+        unit_measure: existingLineDetail.unit_measure,
         commercial_unit_measure: existingLineDetail.commercial_unit_measure,
         customs_part: existingLineDetail.customs_part,
-        factory_tax_charge_id: existingLineDetail.factory_tax_charge_id,
         cabys: existingLineDetail.cabys ?? product.cabys ?? undefined,
         taxes: existingLineDetail.taxes ?? [],
         discounts: existingLineDetail.discounts ?? [],
       };
     }
-    
-    // Otherwise, build from product defaults
+
     return {
       product_id: product.product_id,
       description: lineNote || product.name,
       quantity: qty,
       net_price: product.price ?? 0,
       base_amount: undefined,
-      unit_id: undefined,
+      product_type: undefined,
+      // Resolve the data-api unit id → Hacienda unit_measure code via catalog.
+      unit_measure: productUnitToCode((product as any).unit_id),
       commercial_unit_measure: undefined,
       customs_part: undefined,
-      factory_tax_charge_id: undefined,
       cabys: product.cabys ?? undefined,
-      taxes: (product.taxes ?? []).map((t: any) => ({
-        tax_type_id: t.tax_type_id ?? t.taxId,
-        rate: t.rate,
-        special_fields: t.special_fields ?? t.specialFields,
-      })) as LineTax[],
+      taxes: productTaxesToLineTaxes(product.taxes),
       discounts: lineDiscount
-        ? [{ 
-            discount_type_id: 1, 
-            discount_code: '01', // Regalía code
-            percentage: lineDiscount 
-          }]
-        : ((product.discounts ?? []).map((d: any) => {
-            const dt = (discountTypes ?? []).find((dt: any) => dt.id === (d.discount_type_id ?? d.discountTypeId));
-            return {
-              discount_type_id: d.discount_type_id ?? d.discountTypeId,
-              discount_code: dt?.code ?? d.discount_code,
-              percentage: d.rate ?? d.percentage ?? 0,
-            };
-          }) as LineDiscount[]),
+        ? [{ discount_type: '01', percentage: lineDiscount }]
+        : productDiscountsToLineDiscounts(product.discounts),
     };
   });
 
   // Reset detail when product changes (but NOT when data loads)
   useEffect(() => {
     if (!product) return;
-    
-    // If we have existing line detail, use it
+
     if (existingLineDetail) {
       setDetail({
         product_id: product.product_id,
@@ -159,63 +206,46 @@ export function LineDetailDrawer({
         quantity: existingLineDetail.quantity ?? qty,
         net_price: existingLineDetail.net_price ?? product.price ?? 0,
         base_amount: existingLineDetail.base_amount,
-        unit_id: existingLineDetail.unit_id,
+        product_type: existingLineDetail.product_type,
+        unit_measure: existingLineDetail.unit_measure,
         commercial_unit_measure: existingLineDetail.commercial_unit_measure,
         customs_part: existingLineDetail.customs_part,
-        factory_tax_charge_id: existingLineDetail.factory_tax_charge_id,
         cabys: existingLineDetail.cabys ?? product.cabys ?? undefined,
         taxes: existingLineDetail.taxes ?? [],
         discounts: existingLineDetail.discounts ?? [],
       });
       return;
     }
-    
-    // Otherwise, build from product defaults
+
     setDetail({
       product_id: product.product_id,
       description: lineNote || product.name,
       quantity: qty,
       net_price: product.price ?? 0,
       base_amount: undefined,
-      unit_id: undefined,
+      product_type: undefined,
+      // Resolve the data-api unit id → Hacienda unit_measure code via catalog.
+      unit_measure: productUnitToCode((product as any).unit_id),
       commercial_unit_measure: undefined,
       customs_part: undefined,
-      factory_tax_charge_id: undefined,
       cabys: product.cabys ?? undefined,
-      taxes: (product.taxes ?? []).map((t: any) => ({
-        tax_type_id: t.tax_type_id ?? t.taxId,
-        rate: t.rate,
-        special_fields: t.special_fields ?? t.specialFields,
-      })) as LineTax[],
+      taxes: productTaxesToLineTaxes(product.taxes),
       discounts: lineDiscount
-        ? [{ 
-            discount_type_id: 1, 
-            discount_code: '01', // Regalía code
-            percentage: lineDiscount 
-          }]
-        : ((product.discounts ?? []).map((d: any) => {
-            const dt = (discountTypes ?? []).find((dt: any) => dt.id === (d.discount_type_id ?? d.discountTypeId));
-            return {
-              discount_type_id: d.discount_type_id ?? d.discountTypeId,
-              discount_code: dt?.code ?? d.discount_code,
-              percentage: d.rate ?? d.percentage ?? 0,
-            };
-          }) as LineDiscount[]),
+        ? [{ discount_type: '01', percentage: lineDiscount }]
+        : productDiscountsToLineDiscounts(product.discounts),
     });
-  }, [product?.product_id, qty, lineDiscount, lineNote, existingLineDetail]); // Only reset when these specific values change
+  }, [product?.product_id, qty, lineDiscount, lineNote, existingLineDetail]);
   
   // Auto-expand sections based on content (separate effect)
   useEffect(() => {
     if (!taxTypes) return;
-    
-    const ivaTaxes = detail.taxes.filter((t) => {
-      const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
-      return ['01', '07', '08'].includes(tt?.code ?? '');
-    });
-    const otherTaxes = detail.taxes.filter((t) => {
-      const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
-      return !['01', '07', '08'].includes(tt?.code ?? '');
-    });
+
+    const ivaTaxes = detail.taxes.filter((t) =>
+      ['01', '07', '08'].includes(t.code ?? '')
+    );
+    const otherTaxes = detail.taxes.filter(
+      (t) => !['01', '07', '08'].includes(t.code ?? '')
+    );
     
     setExpanded((prev) => ({
       ...prev,
@@ -231,18 +261,12 @@ export function LineDetailDrawer({
 
   const patch = (p: Partial<LineDetail>) => setDetail((d) => ({ ...d, ...p }));
 
-  // Get the selected factory charge to check its code
+  // Get the selected factory charge to check its code. `detail.factory_tax`
+  // holds the Hacienda factory-tax-charge code (string) — canonical.
   const selectedFactoryCharge = (factoryTaxCharges ?? []).find(
-    (c: any) => c.id === detail.factory_tax_charge_id
+    (c: any) => c.code === detail.factory_tax
   );
   const hasFactoryTaxAssumed = selectedFactoryCharge?.code === '01';
-  
-  console.log('Factory Charge Debug:', {
-    factory_tax_charge_id: detail.factory_tax_charge_id,
-    selectedFactoryCharge,
-    hasFactoryTaxAssumed,
-    allFactoryCharges: factoryTaxCharges,
-  });
 
   const subtotalAfterDiscount = useMemo(
     () =>
@@ -271,26 +295,12 @@ export function LineDetailDrawer({
         has_factory_tax: hasFactoryTaxAssumed,
       });
       
-      const hasBonusGiftDiscount = detail.discounts.some(
-        (d) => d.discount_code === '01' || d.discount_code === '03'
+      // hasBonusGiftDiscount left here for future calc tweaks (factory tax / IVA);
+      // discount_type "01" = Regalía and "03" = Bonificación per Hacienda.
+      void detail.discounts.some(
+        (d) => d.discount_type === '01' || d.discount_type === '03'
       );
-      
-      console.log('LineDetailDrawer - Tax Calculation:', {
-        subtotal: subtotalAfterDiscount,
-        taxes: detail.taxes,
-        discounts: detail.discounts,
-        hasFactoryTaxAssumed,
-        selectedFactoryCharge,
-        factory_tax_charge_id: detail.factory_tax_charge_id,
-        hasBonusGiftDiscount,
-        discountCodes: detail.discounts.map(d => ({ id: d.discount_type_id, code: d.discount_code })),
-        taxCodes: detail.taxes.map(t => {
-          const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
-          return { id: t.tax_type_id, code: tt?.code, description: tt?.description, special_fields: t.special_fields };
-        }),
-        result,
-      });
-      
+
       return result;
     },
     [subtotalAfterDiscount, detail, taxTypes, hasFactoryTaxAssumed, factoryTaxCharges, selectedFactoryCharge]
@@ -420,8 +430,8 @@ export function LineDetailDrawer({
             <IvaTaxSection
               taxes={detail.taxes}
               onChange={(taxes) => patch({ taxes })}
-              factoryTaxChargeId={detail.factory_tax_charge_id}
-              onFactoryTaxChargeChange={(chargeId) => patch({ factory_tax_charge_id: chargeId })}
+              factoryTaxChargeCode={detail.factory_tax}
+              onFactoryTaxChargeChange={(code) => patch({ factory_tax: code })}
               baseAmount={lineAmounts.base_amount}
               factoryAssumedTax={lineAmounts.factory_assumed_tax}
               isExpanded={expanded.ivaTax}

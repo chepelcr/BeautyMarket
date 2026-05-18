@@ -4,8 +4,9 @@ import { cn } from '@/lib/utils';
 import { DOCUMENT_TYPES } from '@/types/invoice';
 
 interface DocumentTypesFilterProps {
-  selectedTypes: number[];
-  onChange: (types: number[]) => void;
+  /** Hacienda document type codes ("01", "04", ...). */
+  selectedTypes: string[];
+  onChange: (types: string[]) => void;
 }
 
 /**
@@ -36,7 +37,7 @@ export function DocumentTypesFilter({ selectedTypes, onChange }: DocumentTypesFi
       ? DOCUMENT_TYPES.find((d) => d.code === selectedTypes[0])?.short ?? 'Tipos'
       : `${selectedTypes.length} tipos`;
 
-  const toggle = (code: number) => {
+  const toggle = (code: string) => {
     onChange(
       selectedTypes.includes(code)
         ? selectedTypes.filter((c) => c !== code)

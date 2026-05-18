@@ -35,7 +35,12 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
   const productTypes = productTypesData ?? [];
   const taxTypes = taxTypesData ?? [];
 
-  const productTypeId = detail.unit_id || (productTypes.length > 0 ? productTypes[0].id : undefined);
+  // detail.product_type holds the data-api product-type catalog id (numeric).
+  // It is internal to the FE — not sent to Hacienda; the canonical DocumentDTO
+  // only carries Hacienda-specific fields downstream.
+  const productTypeId =
+    detail.product_type ||
+    (productTypes.length > 0 ? productTypes[0].id : undefined);
 
   const { refetch: runSearch, isFetching: isFetchingSearch } = useCabysSearch(
     {
@@ -95,40 +100,29 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
 
     if (item.tax_rate?.percentage) {
       const suggestedRate = item.tax_rate.percentage;
+      const suggestedRateCode = (item.tax_rate as any).code;
 
-      const existingIvaTax = detail.taxes.find((t) => {
-        const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
-        return ['01', '07', '08'].includes(tt?.code ?? '');
-      });
+      const existingIvaTax = detail.taxes.find((t) =>
+        ['01', '07', '08'].includes(t.code ?? '')
+      );
 
       const ivaTaxType = (taxTypes ?? []).find((t: any) => t.code === '01');
-
       if (ivaTaxType) {
         if (existingIvaTax) {
           onChange({
             cabys: item.code,
-            taxes: detail.taxes.map((t) => {
-              const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
-              if (['01', '07', '08'].includes(tt?.code ?? '')) {
-                return {
-                  ...t,
-                  rate: suggestedRate,
-                  tax_rate_id: item.tax_rate?.id,
-                };
-              }
-              return t;
-            }),
+            taxes: detail.taxes.map((t) =>
+              ['01', '07', '08'].includes(t.code ?? '')
+                ? { ...t, rate: suggestedRate, rate_code: suggestedRateCode }
+                : t
+            ),
           });
         } else {
           onChange({
             cabys: item.code,
             taxes: [
               ...detail.taxes,
-              {
-                tax_type_id: ivaTaxType.id,
-                rate: suggestedRate,
-                tax_rate_id: item.tax_rate?.id,
-              },
+              { code: '01', rate: suggestedRate, rate_code: suggestedRateCode },
             ],
           });
         }
@@ -146,17 +140,17 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
   };
 
   const handleProductTypeClick = (id: number) => {
-    if (detail.cabys && detail.unit_id !== id) {
+    if (detail.cabys && detail.product_type !== id) {
       setPendingProductTypeId(id);
       setShowConfirm(true);
     } else {
-      onChange({ unit_id: id });
+      onChange({ product_type: id });
     }
   };
 
   const confirmProductTypeChange = () => {
     clearCabys();
-    onChange({ unit_id: pendingProductTypeId, cabys: undefined });
+    onChange({ product_type: pendingProductTypeId, cabys: undefined });
     setPendingProductTypeId(undefined);
     setShowConfirm(false);
   };

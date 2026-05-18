@@ -66,13 +66,13 @@ export function QuickDocActionsCard() {
           label="Crear factura"
           icon="fileText"
           accent="hsl(var(--success))"
-          onClick={() => openNewDoc(1)}
+          onClick={() => openNewDoc('01')}
         />
         <ActionButton
           label="Crear tiquete"
           icon="cash"
           accent="hsl(var(--info))"
-          onClick={() => openNewDoc(4)}
+          onClick={() => openNewDoc('04')}
         />
         <ActionButton
           label="Ver documentos"

@@ -22,19 +22,13 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
   const add = () => {
     const first = (discountTypes ?? [])[0];
     onChange([...discounts, {
-      discount_type_id: first?.id ?? 1,
-      discount_code: first?.code ?? '01',
-      percentage: 0
+      discount_type: first?.code ?? '01',
+      percentage: 0,
     }]);
   };
   const remove = (i: number) => onChange(discounts.filter((_, idx) => idx !== i));
-  const update = (i: number, patch: Partial<LineDiscount>) => {
-    if (patch.discount_type_id !== undefined) {
-      const dt = (discountTypes ?? []).find((d: any) => d.id === patch.discount_type_id);
-      patch.discount_code = dt?.code;
-    }
+  const update = (i: number, patch: Partial<LineDiscount>) =>
     onChange(discounts.map((d, idx) => (idx === i ? { ...d, ...patch } : d)));
-  };
 
   const total_pct = discounts.reduce((s, d) => s + (d.percentage || 0), 0);
   const total_amt = discounts.reduce(
@@ -52,8 +46,8 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
     >
       <div className="flex flex-col gap-3">
         {discounts.map((disc, i) => {
-          const dt = (discountTypes ?? []).find((d: any) => d.id === disc.discount_type_id);
-          const needs_reason = dt?.code === '99';
+          const dt = (discountTypes ?? []).find((d: any) => d.code === disc.discount_type);
+          const needs_reason = disc.discount_type === '99';
           const disc_amount = (netPrice * quantity * (disc.percentage || 0)) / 100;
 
           return (
@@ -73,11 +67,11 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
                   <FormLabel required>{t('lineDetail.discountType')}</FormLabel>
                   <select
                     className="pp-input"
-                    value={disc.discount_type_id}
-                    onChange={(e) => update(i, { discount_type_id: Number(e.target.value) })}
+                    value={disc.discount_type ?? ''}
+                    onChange={(e) => update(i, { discount_type: e.target.value })}
                   >
                     {(discountTypes ?? []).map((d: any) => (
-                      <option key={d.id} value={d.id}>{d.description}</option>
+                      <option key={d.code ?? d.id} value={d.code}>{d.description}</option>
                     ))}
                   </select>
                 </div>

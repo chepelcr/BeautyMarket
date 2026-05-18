@@ -1,7 +1,5 @@
 import { DollarSign } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
-import { useAllTaxes } from '@/hooks/useDataApi';
-import { CountryISO } from '@/lib/enums';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDetail } from '@/types/lineDetail';
 
@@ -31,7 +29,6 @@ export function CommercialValueSection({
   onToggle
 }: CommercialValueSectionProps) {
   const { t } = useLanguage();
-  const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
 
   const basePrice = detail.net_price * detail.quantity;
   const discountAmount = basePrice - subtotalAfterDiscount;
@@ -41,10 +38,7 @@ export function CommercialValueSection({
   const ivaTaxTotal = lineAmounts.iva_tax_total;
   const otherTaxTotal = lineAmounts.other_tax_total;
 
-  const hasIvaTaxes = detail.taxes.some((t) => {
-    const tt = (taxTypes ?? []).find((x: any) => x.id === t.tax_type_id);
-    return IVA_CODES.includes(tt?.code ?? '');
-  });
+  const hasIvaTaxes = detail.taxes.some((t) => IVA_CODES.includes(t.code ?? ''));
 
   return (
     <SectionWrapper
