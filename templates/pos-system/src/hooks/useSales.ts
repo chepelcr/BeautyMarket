@@ -5,7 +5,8 @@ import type { ComplexSearchFilters } from '@/types/document';
 
 interface UseSalesParams {
   orgId: string;
-  document_types?: number[];
+  /** Hacienda document type codes ("01", "04", ...). */
+  document_types?: string[];
   issued?: boolean;
   search?: ComplexSearchFilters;
   page?: number;
