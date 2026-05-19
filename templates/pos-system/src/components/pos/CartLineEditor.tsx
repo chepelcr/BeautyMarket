@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Icon } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDocumentCurrencyOptional } from "@/contexts/DocumentCurrencyContext";
 import type { Product } from "@/types";
 
 interface CartLineEditorProps {
@@ -12,10 +13,9 @@ interface CartLineEditorProps {
   onClose: () => void;
 }
 
-const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
-
 export function CartLineEditor({ product, qty, lineDiscount = 0, lineNote = "", onSave, onClose }: CartLineEditorProps) {
   const { t } = useLanguage();
+  const { fmt } = useDocumentCurrencyOptional();
   const [editQty, setEditQty] = useState(String(qty));
   const [editDiscount, setEditDiscount] = useState(String(lineDiscount));
   const [editNote, setEditNote] = useState(lineNote);

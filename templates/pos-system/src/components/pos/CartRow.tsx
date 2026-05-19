@@ -1,8 +1,7 @@
 import { Icon } from "@/components/ui";
 import { ProductImage } from "@/components/ui/ProductImage";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
+import { useDocumentCurrencyOptional } from "@/contexts/DocumentCurrencyContext";
 
 interface CartRowItem {
   id: string;
@@ -23,6 +22,7 @@ interface CartRowProps {
 
 export function CartRow({ item, onIncrease, onDecrease, onEdit }: CartRowProps) {
   const { t } = useLanguage();
+  const { fmtConverted: fmt } = useDocumentCurrencyOptional();
   const displayPrice = item.price * (1 - (item.lineDiscount ?? 0) / 100);
 
   return (

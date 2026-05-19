@@ -6,10 +6,9 @@ import { LineDetailDrawer } from './line-detail/LineDetailDrawer';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { getDocumentTypeInfo } from '@/types/invoice';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDocumentCurrencyOptional } from '@/contexts/DocumentCurrencyContext';
 import type { ClientSearchResult } from '@/hooks/useClientSearch';
 import type { Product } from '@/types';
-
-const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 
 interface CartItem {
   id: string;
@@ -63,6 +62,7 @@ export function CartSidebar({
   const [editingId, setEditingId] = useState<string | null>(null);
   const { confirm, ConfirmModal } = useConfirmModal();
   const { t } = useLanguage();
+  const { fmtConverted: fmt } = useDocumentCurrencyOptional();
   const editingItem = editingId ? items[editingId] : null;
 
   const handleRemove = (itemId: string) => {

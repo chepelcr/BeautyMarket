@@ -3,6 +3,7 @@ import { Drawer } from '@/components/ui/Drawer';
 import { useCart } from '@/store/cart';
 import { useDocumentStore } from '@/store/documentStore';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDocumentCurrencyOptional } from '@/contexts/DocumentCurrencyContext';
 import type {
   SalePayment,
   CurrencyCode,
@@ -19,7 +20,6 @@ import { ReferencesSection } from './sections/ReferencesSection';
 import { CopiesSection } from './sections/CopiesSection';
 import { Receipt } from './Receipt';
 
-const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 
 type Step = 'payment' | 'processing' | 'done';
 type SectionId = 'payment' | 'receiver' | 'document' | 'references' | 'copies';
@@ -65,6 +65,7 @@ export function CheckoutDrawer({
 }: CheckoutDrawerProps) {
   const { doc_type } = useCart();
   const { t } = useLanguage();
+  const { fmtConverted: fmt } = useDocumentCurrencyOptional();
   const [step, setStep] = useState<Step>('payment');
   const [sale] = useState<SaleResponse | undefined>();
   const [error, setError] = useState<string | null>(null);

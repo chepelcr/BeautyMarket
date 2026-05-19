@@ -3,14 +3,13 @@ import { createPortal } from 'react-dom';
 import { Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDocumentCurrencyOptional } from '@/contexts/DocumentCurrencyContext';
 import { useAllPayments } from '@/hooks/useDataApi';
 import { CountryISO } from '@/lib/enums';
 import { Icon } from '@/components/ui';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import type { GetAllPaymentsParams, PaymentResponse } from '@/services/data-api';
 import type { SalePayment } from '@/types/invoice';
-
-const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 
 const OTHER_PAYMENT_CODE = '99';
 
@@ -67,6 +66,7 @@ export function PaymentSection({
   onChange,
 }: PaymentSectionProps) {
   const { t } = useLanguage();
+  const { fmtConverted: fmt } = useDocumentCurrencyOptional();
   const [cashInput, setCashInput] = useState<Record<string, string>>({});
   const [visibleCodes, setVisibleCodes] = useState<string[]>([...PRIMARY_CODES]);
   const [overflowOpen, setOverflowOpen] = useState(false);

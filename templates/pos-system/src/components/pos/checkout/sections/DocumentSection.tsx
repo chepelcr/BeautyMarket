@@ -1,8 +1,10 @@
+import { useEffect, useMemo } from 'react';
 import { FileText } from 'lucide-react';
-import { useAllSaleConditions } from '@/hooks/useDataApi';
+import { useAllCurrencies, useAllSaleConditions } from '@/hooks/useDataApi';
 import type { GetAllSaleConditionsParams } from '@/services/data-api';
 import { CountryISO } from '@/lib/enums';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import type { CurrencyCode } from '@/types/invoice';
 
@@ -22,16 +24,72 @@ interface DocumentSectionProps {
   onChange: (patch: Partial<DocumentSectionData>) => void;
 }
 
+/** Codes whose rate is supplied by the Hacienda endpoint (locked input). */
+const AUTO_RATE_CODES = new Set(['CRC', 'USD', 'EUR']);
+const PINNED_ORDER = ['CRC', 'USD', 'EUR'];
+
 export function DocumentSection({
   isExpanded,
   onToggle,
   data,
   onChange,
 }: DocumentSectionProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: saleConditions } = useAllSaleConditions({
     iso_code: CountryISO.COSTA_RICA,
   } as GetAllSaleConditionsParams);
+  const { data: currencies } = useAllCurrencies();
+  const { getRateFor, isLoading: rateLoading, isError: rateError } = useExchangeRate();
+
+  const currentCode = (data.currency.currency_code || 'CRC').toUpperCase();
+  const isAuto = AUTO_RATE_CODES.has(currentCode);
+
+  // Sort currencies: CRC, USD, EUR pinned first; rest alphabetical by code.
+  const sortedCurrencies = useMemo(() => {
+    const list = currencies ?? [];
+    return [...list].sort((a, b) => {
+      const ai = PINNED_ORDER.indexOf(a.code);
+      const bi = PINNED_ORDER.indexOf(b.code);
+      if (ai !== -1 || bi !== -1) {
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      }
+      return a.code.localeCompare(b.code);
+    });
+  }, [currencies]);
+
+  // Whether an auto-rate code can be selected right now. USD/EUR are blocked
+  // when the Hacienda rate is still loading or failed to load.
+  const isCodeDisabled = (code: string): boolean => {
+    if (code === 'CRC') return false;
+    if (!AUTO_RATE_CODES.has(code)) return false;
+    return rateLoading || rateError || getRateFor(code) == null;
+  };
+
+  // Keep auto-rate in sync with the selected currency. When the rate arrives
+  // after the user selected USD/EUR this pulls it in; for CRC it pins to 1.
+  useEffect(() => {
+    if (!isAuto) return;
+    const auto = getRateFor(currentCode);
+    if (auto == null) return;
+    if (data.currency.exchange_rate !== auto) {
+      onChange({ currency: { ...data.currency, exchange_rate: auto } });
+    }
+  }, [currentCode, isAuto, getRateFor, data.currency, onChange]);
+
+  const handleSelectChange = (next: string) => {
+    const auto = getRateFor(next);
+    onChange({
+      currency: {
+        currency_code: next,
+        // Auto-rate codes lock to the fetched value; manual codes start blank.
+        exchange_rate: auto ?? undefined,
+      },
+    });
+  };
+
+  // Fallback option for the case where the catalog hasn't loaded yet — keeps
+  // the current selection rendered instead of resetting to the first option.
+  const hasCurrentInList = sortedCurrencies.some((c) => c.code === currentCode);
 
   return (
     <SectionWrapper
@@ -79,13 +137,23 @@ export function DocumentSection({
             {t('checkout.document.currency')}
           </label>
           <select
-            value={data.currency.currency_code}
-            onChange={(e) => onChange({ currency: { ...data.currency, currency_code: e.target.value } })}
+            value={currentCode}
+            onChange={(e) => handleSelectChange(e.target.value)}
             className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
           >
-            <option value="CRC">{t('checkout.document.currency.crc')}</option>
-            <option value="USD">{t('checkout.document.currency.usd')}</option>
-            <option value="EUR">{t('checkout.document.currency.eur')}</option>
+            {!hasCurrentInList && (
+              <option value={currentCode}>{currentCode}</option>
+            )}
+            {sortedCurrencies.map((c) => {
+              const disabled = isCodeDisabled(c.code);
+              const name = language === 'es' ? c.currency_name_es : c.currency_name_en;
+              const suffix = disabled ? ` (${t('checkout.document.currency.rateUnavailable')})` : '';
+              return (
+                <option key={c.code} value={c.code} disabled={disabled}>
+                  {c.code} — {name}{suffix}
+                </option>
+              );
+            })}
           </select>
         </div>
         <div className="space-y-1">
@@ -94,11 +162,19 @@ export function DocumentSection({
           </label>
           <input
             type="number"
-            value={data.currency.exchange_rate ?? 1}
+            value={data.currency.exchange_rate ?? ''}
             onChange={(e) =>
-              onChange({ currency: { ...data.currency, exchange_rate: parseFloat(e.target.value) || 1 } })
+              onChange({
+                currency: {
+                  ...data.currency,
+                  exchange_rate: parseFloat(e.target.value) || 0,
+                },
+              })
             }
-            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono"
+            readOnly={isAuto}
+            disabled={isAuto}
+            placeholder={isAuto ? '' : t('checkout.document.exchangeRate.manualPlaceholder')}
+            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono disabled:opacity-60 disabled:cursor-not-allowed"
             min={0}
             step={0.01}
           />

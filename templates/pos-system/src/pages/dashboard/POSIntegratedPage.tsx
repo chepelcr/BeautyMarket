@@ -8,6 +8,7 @@ import { useCartFlow } from "@/hooks/useCartFlow";
 import { useClientSearch } from "@/hooks/useClientSearch";
 import { useSync } from "@/hooks/useSync";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { DocumentCurrencyProvider } from "@/contexts/DocumentCurrencyContext";
 import { useCart } from "@/store/cart";
 import { useDocumentStore } from "@/store/documentStore";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ import { CheckoutDrawer } from "@/components/pos/checkout/CheckoutDrawer";
 import { ClientDrawerForm } from "@/components/clients/ClientDrawerForm";
 import { POSPageSkeleton } from "@/components/pos/POSPageSkeleton";
 import SessionSetupScreen from "@/pages/pos/SessionSetupScreen";
-import type { DocTypeCode, InvoiceFormData } from "@/types/invoice";
+import type { CurrencyCode, DocTypeCode, InvoiceFormData } from "@/types/invoice";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
 import type { SaleReceiver } from "@/types/receiver";
 
@@ -148,7 +149,10 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
   const { query: clientQuery, setQuery: setClientQuery, clients, isLoading: clientsLoading } =
     useClientSearch(org?.id, clientsEnabled);
 
-  const flow = useCartFlow();
+  // Document currency lives in the active tab's form data (DocumentSection
+  // writes it). Conversion of line totals happens inside useCartFlow.
+  const currency: CurrencyCode | undefined = (activeTab?.data as Partial<InvoiceFormData> | undefined)?.currency;
+  const flow = useCartFlow({ currency });
 
   // Called by CheckoutModal — throws on error so the modal can show the error state
   const handleConfirm = async (invoiceData: any) => {
@@ -239,7 +243,7 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
   );
 
   return (
-    <>
+    <DocumentCurrencyProvider currency={currency}>
       {/* Desktop layout */}
       {isDesktop ? (
         <div className="flex flex-col bg-background overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
@@ -340,6 +344,6 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
         selectedClient={selectedClient}
         onSaveReceiver={handleSaveReceiver}
       />
-    </>
+    </DocumentCurrencyProvider>
   );
 }

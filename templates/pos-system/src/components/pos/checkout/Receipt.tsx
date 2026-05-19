@@ -1,7 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDocumentCurrencyOptional } from '@/contexts/DocumentCurrencyContext';
 import type { SaleResponse } from '@/types/invoice';
-
-const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 
 interface ReceiptProps {
   sale?: SaleResponse;
@@ -12,6 +11,7 @@ interface ReceiptProps {
 
 export function Receipt({ sale, cartTotal, itemCount, onClose }: ReceiptProps) {
   const { t } = useLanguage();
+  const { fmtConverted: fmt } = useDocumentCurrencyOptional();
   return (
     <div className="px-5 py-6 flex flex-col items-center gap-4 text-center">
       <div className="w-16 h-16 rounded-full bg-success/10 border-2 border-success/30 flex items-center justify-center text-3xl">

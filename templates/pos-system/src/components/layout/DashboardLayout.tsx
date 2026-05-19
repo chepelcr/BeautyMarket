@@ -4,6 +4,8 @@ import { ROUTES } from "@/routePaths";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { OrgProvider } from "@/contexts/OrgContext";
+import { ExchangeRateProvider } from "@/contexts/ExchangeRateContext";
+import { CountryISO } from "@/lib/enums";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import DashboardShell from "@/components/layout/DashboardShell";
 
@@ -74,14 +76,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <OrgProvider orgId={org.id} orgName={org.name ?? ""}>
-      <DashboardShell
-        active={active}
-        onNav={handleNav}
-        sessionName={activeSession?.name}
-        sessionLocation={activeSession?.context}
-      >
-        {children}
-      </DashboardShell>
+      <ExchangeRateProvider orgId={org.id} isoCode={CountryISO.COSTA_RICA}>
+        <DashboardShell
+          active={active}
+          onNav={handleNav}
+          sessionName={activeSession?.name}
+          sessionLocation={activeSession?.context}
+        >
+          {children}
+        </DashboardShell>
+      </ExchangeRateProvider>
     </OrgProvider>
   );
 }

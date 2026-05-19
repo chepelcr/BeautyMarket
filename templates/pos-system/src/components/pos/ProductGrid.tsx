@@ -3,6 +3,7 @@ import { ProductImage } from "@/components/ui/ProductImage";
 import type { Product } from "@/hooks/useProducts";
 import { useInventory } from "@/store/inventory";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDocumentCurrencyOptional } from "@/contexts/DocumentCurrencyContext";
 
 interface ProductGridProps {
   products: Product[];
@@ -15,6 +16,7 @@ interface ProductGridProps {
 export default function ProductGrid({ products, cart, onAdd, category, onCategoryChange }: ProductGridProps) {
   const getStock = useInventory((s) => s.getStock);
   const { t } = useLanguage();
+  const { fmt } = useDocumentCurrencyOptional();
 
   const CATEGORIES = [
     { id: "Todos", label: t("pos.allCategories") },
@@ -99,7 +101,7 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
                   inCart > 0 ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                ₡{p.price.toLocaleString("es-CR")}
+                {fmt(p.price)}
               </span>
             </button>
           );

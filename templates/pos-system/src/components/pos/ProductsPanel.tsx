@@ -5,9 +5,8 @@ import { ProductImage } from "@/components/ui/ProductImage";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ProductGridSkeleton } from "./ProductGridSkeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDocumentCurrencyOptional } from "@/contexts/DocumentCurrencyContext";
 import type { Product } from "@/types";
-
-const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
 interface CartItem { id: string; qty: number; }
 
@@ -20,6 +19,7 @@ interface ProductsPanelProps {
 
 export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPanelProps) {
   const { t } = useLanguage();
+  const { fmt } = useDocumentCurrencyOptional();
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [page, setPage] = useState(1);

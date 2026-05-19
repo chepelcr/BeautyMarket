@@ -53,9 +53,29 @@ interface ConfirmPaymentArgs {
   invoiceData: InvoiceCheckoutData;
 }
 
-export function useCartFlow() {
-  const { items, add, remove, updateLine, clear, total, count } = useCart();
+export interface UseCartFlowOptions {
+  /**
+   * Document-level currency. Base prices in the cart are CRC (organization
+   * base). When the doc currency is non-CRC, line values and totals are
+   * divided by `currency.exchange_rate` so the UI and outbound payload reflect
+   * the chosen currency. CRC is treated as rate=1.
+   */
+  currency?: CurrencyCode;
+}
+
+export function useCartFlow(options: UseCartFlowOptions = {}) {
+  const { items, add, remove, updateLine, clear, count } = useCart();
   const { decrement } = useInventory();
+
+  // Conversion factor: divide CRC base prices by this rate. CRC or missing
+  // rate → 1 (no conversion).
+  const rate =
+    options.currency?.currency_code &&
+    options.currency.currency_code !== "CRC" &&
+    options.currency.exchange_rate &&
+    options.currency.exchange_rate > 0
+      ? options.currency.exchange_rate
+      : 1;
 
   // Enrich cart items with the canonical LineDetail (built by LineDetailDrawer
   // when the line was created/edited — that's where the catalog id→code
@@ -64,8 +84,8 @@ export function useCartFlow() {
     ({ product, qty, lineDiscount, lineNote, lineDetail }) => ({
       id: product.product_id,
       name: product.name,
-      price: product.sale_price ?? product.price,
-      netPrice: product.price,
+      price: Number(product.sale_price ?? product.price ?? 0) / rate,
+      netPrice: Number(product.price ?? 0) / rate,
       image_url: product.image_url ?? null,
       qty,
       lineDiscount: lineDiscount ?? 0,
@@ -76,7 +96,7 @@ export function useCartFlow() {
     })
   );
 
-  const cartTotal = total();
+  const cartTotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   const cartCount = count();
   const subtotal = cartItems.reduce(
     (s, i) => s + i.netPrice * i.qty * (1 - i.lineDiscount / 100),
