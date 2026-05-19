@@ -661,13 +661,13 @@ const translations: Record<Language, Record<string, string>> = {
     "documents.drawer.openAria": "Abrir documentos",
     "documents.drawer.closeAria": "Cerrar documentos",
 
-    // Document types (Hacienda codes)
-    "docTypes.1": "Factura Electrónica",
-    "docTypes.2": "Nota de Débito",
-    "docTypes.3": "Nota de Crédito",
-    "docTypes.4": "Tiquete Electrónico",
-    "docTypes.8": "Factura de Compra",
-    "docTypes.9": "Factura de Exportación",
+    // Document types (Hacienda codes — zero-padded strings: "01"-"09")
+    "docTypes.01": "Factura Electrónica",
+    "docTypes.02": "Nota de Débito",
+    "docTypes.03": "Nota de Crédito",
+    "docTypes.04": "Tiquete Electrónico",
+    "docTypes.08": "Factura de Compra",
+    "docTypes.09": "Factura de Exportación",
 
     // POS — header / status
     "pos.header.title": "Punto de venta",
@@ -752,6 +752,8 @@ const translations: Record<Language, Record<string, string>> = {
     "checkout.document.currency.crc": "CRC — Colón",
     "checkout.document.currency.usd": "USD — Dólar",
     "checkout.document.currency.eur": "EUR — Euro",
+    "checkout.document.currency.rateUnavailable": "tipo de cambio no disponible",
+    "checkout.document.exchangeRate.manualPlaceholder": "Ingrese el tipo de cambio",
     "checkout.document.notes": "Observaciones",
     "checkout.document.notesPlaceholder": "Observaciones opcionales…",
 
@@ -1524,13 +1526,13 @@ const translations: Record<Language, Record<string, string>> = {
     "documents.drawer.openAria": "Open documents",
     "documents.drawer.closeAria": "Close documents",
 
-    // Document types (Hacienda codes)
-    "docTypes.1": "Electronic Invoice",
-    "docTypes.2": "Debit Note",
-    "docTypes.3": "Credit Note",
-    "docTypes.4": "Electronic Ticket",
-    "docTypes.8": "Purchase Invoice",
-    "docTypes.9": "Export Invoice",
+    // Document types (Hacienda codes — zero-padded strings: "01"-"09")
+    "docTypes.01": "Electronic Invoice",
+    "docTypes.02": "Debit Note",
+    "docTypes.03": "Credit Note",
+    "docTypes.04": "Electronic Ticket",
+    "docTypes.08": "Purchase Invoice",
+    "docTypes.09": "Export Invoice",
 
     // POS — header / status
     "pos.header.title": "Point of sale",
@@ -1615,6 +1617,8 @@ const translations: Record<Language, Record<string, string>> = {
     "checkout.document.currency.crc": "CRC — Colón",
     "checkout.document.currency.usd": "USD — Dollar",
     "checkout.document.currency.eur": "EUR — Euro",
+    "checkout.document.currency.rateUnavailable": "rate unavailable",
+    "checkout.document.exchangeRate.manualPlaceholder": "Enter the exchange rate",
     "checkout.document.notes": "Notes",
     "checkout.document.notesPlaceholder": "Optional notes…",
 
