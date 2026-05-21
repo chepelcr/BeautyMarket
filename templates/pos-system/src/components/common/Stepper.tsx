@@ -99,11 +99,20 @@ export function Stepper({
 
   return (
     <div className="flex flex-col gap-6" onKeyDown={handleKeyDown}>
-      {/* Step rail */}
+      {/* Step rail
+       *
+       * Mobile (default): chips wrap onto multiple rows via `flex-wrap` —
+       * 5 steps land naturally on 2 rows on phones without horizontal scroll
+       * or overlap. Connector lines are hidden in this mode because wrap
+       * leaves them dangling at row ends.
+       *
+       * ≥640px: chips line up in a single row with the connector segments
+       * between them, like the original wider-viewport layout.
+       */}
       {!hideRail && visibleSteps.length > 1 && (
         <nav
           aria-label={t("common.steps")}
-          className="flex items-center gap-2 overflow-x-auto pb-2"
+          className="flex flex-wrap items-center gap-x-2 gap-y-2 pb-1"
         >
           {visibleSteps.map((step, idx) => {
             const isActive = idx === visibleIndex;
@@ -148,7 +157,7 @@ export function Stepper({
 
                 {idx < visibleSteps.length - 1 && (
                   <div
-                    className={`h-px w-6 ${
+                    className={`hidden sm:block h-px w-6 ${
                       isUpcoming ? "bg-border" : "bg-success/40"
                     }`}
                     aria-hidden="true"
