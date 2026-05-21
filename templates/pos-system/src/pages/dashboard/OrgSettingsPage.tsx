@@ -5,7 +5,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
 import { useRegisteredOrganization } from "@/hooks/useRegisteredOrganization";
-import { Icon, Badge } from "@/components/ui";
+import { Icon, Badge, Spinner } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ROUTES } from "@/routePaths";
 import { FiscalInfoStepper } from "@/components/org-settings/registered-org/FiscalInfoStepper";
@@ -27,7 +27,7 @@ import { FiscalInfoStepper } from "@/components/org-settings/registered-org/Fisc
 export default function OrgSettingsPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
-  const { data: org } = useDefaultOrganization(user?.userId);
+  const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
   const [, navigate] = useLocation();
 
@@ -39,12 +39,23 @@ export default function OrgSettingsPage() {
   const [setupStarted, setSetupStarted] = useState(false);
 
   // ── Initial loading ──────────────────────────────────────────────────────
-  if (regLoading) {
+  // Wait until we actually know whether the org has a registered_organization
+  // row before deciding between welcome-ghost and cards. Otherwise the welcome
+  // ghost flashes for a frame on every page mount before the queries resolve.
+  //
+  // We also wait for `configLoading` so the cards (which depend on
+  // `config.notificationSettings`) don't flicker their "Pendiente" badges
+  // into "Configurado".
+  //
+  // `useRegisteredOrganization` / `useOrgConfigurations` are gated by
+  // `enabled: !!orgId`, so before `org` resolves their `isLoading` is `false`
+  // — `!org` is the real signal that we're still on the first hop.
+  if (orgLoading || !org || regLoading || configLoading) {
     return (
-      <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
-        <div className="space-y-3">
-          <div className="skeleton-block h-8 w-64 rounded animate-pulse" />
-          <div className="skeleton-block h-4 w-96 rounded animate-pulse" />
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-6 py-12">
+        <div className="text-center text-muted-foreground">
+          <Spinner size={28} />
+          <p className="t-sm mt-3">{t("common.loading")}</p>
         </div>
       </div>
     );
