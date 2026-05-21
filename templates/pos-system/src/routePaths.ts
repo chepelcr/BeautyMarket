@@ -13,6 +13,7 @@ export const ROUTES = {
   DASHBOARD_ORG_SETTINGS: "/dashboard/organization",
   DASHBOARD_ORG_HACIENDA: "/dashboard/organization/hacienda",
   DASHBOARD_ORG_NOTIFICATIONS: "/dashboard/organization/notifications",
+  DASHBOARD_ORG_FISCAL_INFO: "/dashboard/organization/fiscal-info",
 } as const;
 
 /** Build editor URL for a specific tab id */

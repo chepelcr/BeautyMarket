@@ -173,18 +173,6 @@ export function HaciendaConfigDrawer({ open, onClose, config, orgId }: HaciendaC
               />
             </div>
 
-            <div>
-              <label className="pp-label">{t("orgSettings.hacienda.status")}</label>
-              <select
-                className="pp-input w-full mt-1"
-                value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: Number(e.target.value) }))}
-              >
-                <option value={1}>{t("orgSettings.hacienda.statusActive")}</option>
-                <option value={2}>{t("orgSettings.hacienda.statusInactive")}</option>
-              </select>
-            </div>
-
             {/* Verify button + status */}
             <div className="flex items-center gap-3 pt-1">
               <button

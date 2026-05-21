@@ -1,12 +1,29 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
+import { useRegisteredOrganization } from "@/hooks/useRegisteredOrganization";
 import { Icon, Badge } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ROUTES } from "@/routePaths";
+import { FiscalInfoStepper } from "@/components/org-settings/registered-org/FiscalInfoStepper";
 
+/**
+ * Organization settings landing.
+ *
+ * Behaviour depends on whether the org has its Hacienda taxpayer profile
+ * configured yet:
+ *   • Loading       → skeleton.
+ *   • No reg-org    → Windows-setup style welcome ghost takes over the main
+ *                     content area. On "Comenzar", the FiscalInfoStepper
+ *                     renders inline (no separate route). The dashboard
+ *                     sidebar/header stay accessible — the welcome only
+ *                     replaces the page body. Cards are HIDDEN until
+ *                     fiscal info is saved.
+ *   • Reg-org set   → Hacienda / Notifications / Fiscal-info cards as before.
+ */
 export default function OrgSettingsPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
@@ -14,9 +31,76 @@ export default function OrgSettingsPage() {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
 
-  const { data: config, isLoading } = useOrgConfigurations(org?.id);
+  const { data: config, isLoading: configLoading } = useOrgConfigurations(org?.id);
+  const { data: reg, isLoading: regLoading } = useRegisteredOrganization(org?.id);
 
+  // Whether the user has dismissed the welcome ghost and is now inside the
+  // inline stepper. Resets back to welcome on every page mount.
+  const [setupStarted, setSetupStarted] = useState(false);
+
+  // ── Initial loading ──────────────────────────────────────────────────────
+  if (regLoading) {
+    return (
+      <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
+        <div className="space-y-3">
+          <div className="skeleton-block h-8 w-64 rounded animate-pulse" />
+          <div className="skeleton-block h-4 w-96 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Onboarding: no fiscal info yet ───────────────────────────────────────
+  // The cards stay hidden until the org has a registered_organization row.
+  if (!reg) {
+    if (!setupStarted) {
+      return (
+        <WelcomeGhost
+          onStart={() => setSetupStarted(true)}
+          title={t("orgSettings.fiscalInfo.welcome.title")}
+          subtitle={t("orgSettings.fiscalInfo.welcome.subtitle")}
+          cta={t("orgSettings.fiscalInfo.welcome.cta")}
+        />
+      );
+    }
+    return (
+      <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
+        <FadeIn duration={0.35}>
+          <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h1 className="t-h2 mb-1">{t("orgSettings.fiscalInfo.setupTitle")}</h1>
+              <p className="t-sm text-muted-foreground">
+                {t("orgSettings.fiscalInfo.setupSubtitle")}
+              </p>
+            </div>
+          </div>
+          {org && (
+            <FiscalInfoStepper
+              orgId={org.id}
+              onSaved={() => {
+                // The query invalidates and `reg` flips truthy on the next
+                // render → cards take over automatically.
+                setSetupStarted(false);
+              }}
+            />
+          )}
+        </FadeIn>
+      </div>
+    );
+  }
+
+  // ── Configured: card grid ────────────────────────────────────────────────
   const cards = [
+    {
+      id: "fiscal-info",
+      icon: "user",
+      iconClass: "icon-pill-primary-soft",
+      title: t("orgSettings.tab.fiscalInfo"),
+      description: t("orgSettings.fiscalInfo.empty.desc"),
+      configured: true,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_FISCAL_INFO,
+    },
     {
       id: "hacienda",
       icon: "lock",
@@ -24,6 +108,7 @@ export default function OrgSettingsPage() {
       title: t("orgSettings.tab.hacienda"),
       description: t("orgSettings.hacienda.empty.desc"),
       configured: config !== null && config !== undefined,
+      loading: configLoading,
       route: ROUTES.DASHBOARD_ORG_HACIENDA,
     },
     {
@@ -33,6 +118,7 @@ export default function OrgSettingsPage() {
       title: t("orgSettings.tab.notifications"),
       description: t("orgSettings.notifications.empty.desc"),
       configured: !!(config?.notificationSettings),
+      loading: configLoading,
       route: ROUTES.DASHBOARD_ORG_NOTIFICATIONS,
     },
   ];
@@ -57,14 +143,16 @@ export default function OrgSettingsPage() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="t-h4 !mb-0">{card.title}</span>
-                  {!isLoading && (
-                    <Badge variant={card.configured ? "success" : "secondary"}>
-                      {card.configured ? "Configurado" : "Sin configurar"}
+                  {!card.loading && (
+                    <Badge variant={card.configured ? "success" : "warning"}>
+                      {card.configured
+                        ? t("orgSettings.badge.configured")
+                        : t("orgSettings.badge.pending")}
                     </Badge>
                   )}
-                  {isLoading && (
+                  {card.loading && (
                     <div className="skeleton-block h-5 w-20 rounded-full animate-pulse" />
                   )}
                 </div>
@@ -78,6 +166,62 @@ export default function OrgSettingsPage() {
           ))}
         </div>
       </FadeIn>
+    </div>
+  );
+}
+
+/**
+ * Windows-setup-style welcome takeover for the org-settings page body. No back
+ * button — the dashboard chrome (sidebar/header) remains for navigating away,
+ * but inside the main panel there's no escape: the user either starts setup
+ * or leaves via the global nav.
+ *
+ * Slow fade-in + scale-up gives the "ghost arriving" feel.
+ */
+function WelcomeGhost({
+  onStart,
+  title,
+  subtitle,
+  cta,
+}: {
+  onStart: () => void;
+  title: string;
+  subtitle: string;
+  cta: string;
+}) {
+  return (
+    <div
+      className="min-h-[calc(100vh-64px)] flex items-center justify-center px-6 py-12"
+      style={{
+        animation: "welcome-ghost 0.8s cubic-bezier(0.16, 1, 0.3, 1) both",
+      }}
+    >
+      <div className="text-center max-w-[560px]">
+        <div className="icon-pill icon-pill-lg icon-pill-primary-soft w-24 h-24 mx-auto mb-7">
+          <Icon name="user" size={42} />
+        </div>
+
+        <h1 className="t-h1 mb-3">{title}</h1>
+        <p className="t-body text-muted-foreground leading-relaxed mb-8">
+          {subtitle}
+        </p>
+
+        <button
+          type="button"
+          onClick={onStart}
+          className="btn btn-primary btn-lg"
+        >
+          <Icon name="arrowRight" size={16} />
+          {cta}
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes welcome-ghost {
+          from { opacity: 0; transform: scale(0.96) translateY(8px); filter: blur(4px); }
+          to   { opacity: 1; transform: scale(1) translateY(0);    filter: blur(0); }
+        }
+      `}</style>
     </div>
   );
 }

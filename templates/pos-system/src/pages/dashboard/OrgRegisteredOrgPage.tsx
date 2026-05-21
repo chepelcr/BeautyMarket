@@ -3,15 +3,15 @@ import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
+import { useRegisteredOrganization } from "@/hooks/useRegisteredOrganization";
 import { Icon } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { HaciendaTab } from "@/components/org-settings/tabs/HaciendaTab";
-import { HaciendaConfigDrawer } from "@/components/org-settings/HaciendaConfigDrawer";
-import { HaciendaCredentialsStepper } from "@/components/org-settings/hacienda/HaciendaCredentialsStepper";
+import { FiscalInfoStepper } from "@/components/org-settings/registered-org/FiscalInfoStepper";
+import { FiscalInfoSummaryCard } from "@/components/org-settings/registered-org/FiscalInfoSummaryCard";
+import { FiscalInfoEditDrawer } from "@/components/org-settings/registered-org/FiscalInfoEditDrawer";
 import { ROUTES } from "@/routePaths";
 
-export default function OrgHaciendaPage() {
+export default function OrgRegisteredOrgPage() {
   const { user } = useAuthContext();
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
@@ -21,11 +21,7 @@ export default function OrgHaciendaPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [savedNoticeVisible, setSavedNoticeVisible] = useState(false);
 
-  const { data: config, isLoading } = useOrgConfigurations(org?.id);
-
-  // First-time setup branch: render the stepper. Once a config exists we swap
-  // to the existing summary tab + edit drawer, unchanged.
-  const showStepper = !isLoading && config === null;
+  const { data: reg, isLoading } = useRegisteredOrganization(org?.id);
 
   return (
     <div className="px-6 pt-6 pb-12 max-w-[900px] mx-auto">
@@ -39,9 +35,9 @@ export default function OrgHaciendaPage() {
             <Icon name="arrowLeft" size={15} />
             {t("orgSettings.title")}
           </button>
-          <h1 className="t-h1 mb-1">{t("orgSettings.tab.hacienda")}</h1>
+          <h1 className="t-h1 mb-1">{t("orgSettings.tab.fiscalInfo")}</h1>
           <p className="t-body text-muted-foreground">
-            {t("orgSettings.hacienda.empty.desc")}
+            {t("orgSettings.fiscalInfo.empty.desc")}
           </p>
         </div>
 
@@ -52,29 +48,41 @@ export default function OrgHaciendaPage() {
           </div>
         )}
 
-        {showStepper && org ? (
-          <HaciendaCredentialsStepper
+        {/* Loading */}
+        {isLoading && (
+          <div className="space-y-3">
+            <div className="skeleton-block h-16 rounded-lg animate-pulse" />
+            <div className="skeleton-block h-32 rounded-lg animate-pulse" />
+            <div className="skeleton-block h-24 rounded-lg animate-pulse" />
+          </div>
+        )}
+
+        {/* Empty → stepper */}
+        {!isLoading && org && !reg && (
+          <FiscalInfoStepper
             orgId={org.id}
             onSaved={() => {
               setSavedNoticeVisible(true);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
-        ) : (
-          <HaciendaTab
-            config={config}
-            isLoading={isLoading}
+        )}
+
+        {/* Configured → summary card */}
+        {!isLoading && org && reg && (
+          <FiscalInfoSummaryCard
+            reg={reg}
             onEdit={() => setDrawerOpen(true)}
           />
         )}
       </FadeIn>
 
       {org && (
-        <HaciendaConfigDrawer
+        <FiscalInfoEditDrawer
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          config={config}
           orgId={org.id}
+          reg={reg}
         />
       )}
     </div>

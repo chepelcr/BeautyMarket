@@ -1,4 +1,4 @@
-import { Icon, Badge, Button, EmptyState } from "@/components/ui";
+import { Icon, Badge, EmptyState } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { OrgConfiguration } from "@/types/orgConfigurations";
 
@@ -30,7 +30,11 @@ export function HaciendaTab({ config, isLoading, onEdit }: HaciendaTabProps) {
     );
   }
 
-  if (config === null) {
+  // `null` here means the BE returned a 404 (no configuration saved yet);
+  // `undefined` means the query result hasn't materialised (e.g. an early
+  // render before `enabled` flips true). Both should land the user in the
+  // empty state so the rest of the component can read `config!.*` safely.
+  if (!config) {
     return (
       <div className="p-6">
         <EmptyState

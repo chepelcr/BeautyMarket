@@ -21,6 +21,7 @@ import ProductDetailPage from "@/pages/dashboard/ProductDetailPage";
 import OrgSettingsPage from "@/pages/dashboard/OrgSettingsPage";
 import OrgHaciendaPage from "@/pages/dashboard/OrgHaciendaPage";
 import OrgNotificationsPage from "@/pages/dashboard/OrgNotificationsPage";
+import OrgRegisteredOrgPage from "@/pages/dashboard/OrgRegisteredOrgPage";
 
 const DASHBOARD_ROLES = ["gerente", "supervisor", "customer", "cajero"];
 
@@ -180,6 +181,10 @@ export default function Routes() {
       <Route
         path={ROUTES.DASHBOARD_ORG_NOTIFICATIONS}
         component={() => <DashboardPage><OrgNotificationsPage /></DashboardPage>}
+      />
+      <Route
+        path={ROUTES.DASHBOARD_ORG_FISCAL_INFO}
+        component={() => <DashboardPage><OrgRegisteredOrgPage /></DashboardPage>}
       />
       <Route
         path={ROUTES.DASHBOARD_ORG_SETTINGS}
