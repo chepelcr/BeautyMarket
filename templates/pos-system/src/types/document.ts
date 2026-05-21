@@ -49,11 +49,50 @@ export interface DocumentListResponse {
   pagination: PaginationResponse;
 }
 
+export type DateMode = 'single' | 'range';
+export type NumericMode = 'single' | 'range';
+/**
+ * Inclusive operator for `single`-mode date filters — per-day precision so the
+ * sales-api can map them straight to `start_date` / `end_date` bounds.
+ */
+export type DateOperator = '=' | '>=' | '<=';
+/**
+ * Strict operator for `single`-mode numeric filters (e.g. voucher total).
+ * Matches the cross-app-be `SearchOperations` set (`:`, `>`, `<`).
+ */
+export type NumericOperator = '=' | '>' | '<';
+
 export interface ComplexSearchFilters {
+  /**
+   * Free-text term from the main toolbar. The wire layer fans this out into
+   * an OR across `consecutive_number`, `document_key`, `receiver_name` via
+   * the `search_fields` payload — see `useSales.toWireSearch`.
+   */
   searchTerm?: string;
   status?: 'validated' | 'pending' | 'rejected';
+
+  // ── Date filter (single value with operator OR range) ────────────────────
+  dateMode?: DateMode;
+  /** Single-mode only. */
+  dateOp?: DateOperator;
+  /** Single-mode only. */
+  dateValue?: string;
+  /** Range-mode lower bound (also used as the resolved single-mode `>=` bound). */
   start_date?: string;
+  /** Range-mode upper bound (also used as the resolved single-mode `<=` bound). */
   end_date?: string;
+
+  // ── Voucher total filter (single value with operator OR range) ───────────
+  totalMode?: NumericMode;
+  /** Single-mode only. */
+  totalOp?: NumericOperator;
+  /** Single-mode only. */
+  totalValue?: number;
+  /** Range-mode lower bound. */
+  totalMin?: number;
+  /** Range-mode upper bound. */
+  totalMax?: number;
+
   sort?: string;
 }
 

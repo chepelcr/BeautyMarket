@@ -104,6 +104,7 @@ export const crossAppApi = {
 export const ordersApi = {
   get: <T>(path: string) => request<T>("GET", path, undefined, CROSS_APP_API_BASE),
   post: <T>(path: string, body: unknown) => request<T>("POST", path, body, CROSS_APP_API_BASE),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, body, CROSS_APP_API_BASE),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body, CROSS_APP_API_BASE),
   delete: <T>(path: string) => request<T>("DELETE", path, undefined, CROSS_APP_API_BASE),
 };
@@ -143,6 +144,22 @@ export const salesApi = createClient(SALES_API_BASE);
 /** /api/organizations/{org}/sales[suffix] */
 export function salesOrgPath(orgId: string, suffix: string = '') {
   return `/api/organizations/${orgId}/sales${suffix}`;
+}
+
+/**
+ * Path builder for the auth/organization-configurations Lambda — deployed on
+ * the *same* API Gateway as the sales-api Lambda (`sales-api.jcampos.dev`),
+ * but mounted at the root (`/organizations/{org}/...`) without the `/api/`
+ * prefix the sales endpoints use. Routes covered:
+ *   • GET    /configurations
+ *   • PUT    /configurations
+ *   • PATCH  /configurations/notifications
+ *   • POST   /credentials
+ *   • GET    /hacienda-token
+ */
+export function authOrgPath(orgId: string, endpoint: string) {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `/organizations/${orgId}${cleanEndpoint}`;
 }
 
 /** /api/organizations/{org}/sales/{id}/invoice-validation[suffix] */

@@ -20,8 +20,8 @@ interface IvaTaxSectionProps {
   onToggle: () => void;
   disabled?: boolean;
   onAdd: (entry: TaxFormEntry) => void;
-  onRemove: (taxTypeId: number) => void;
-  onUpdate: (taxTypeId: number, patch: Partial<TaxFormEntry>) => void;
+  onRemove: (taxCode: string) => void;
+  onUpdate: (taxCode: string, patch: Partial<TaxFormEntry>) => void;
   onFactoryTaxChargeChange: (chargeId: number | undefined, hasFactoryTax: boolean) => void;
 }
 
@@ -81,7 +81,7 @@ export function IvaTaxSection({
           const ivaAmount = baseAmount > 0 ? baseAmount * tax.rate / 100 : 0;
           return (
             <div
-              key={tax.taxTypeId}
+              key={tax.taxCode}
               className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border"
             >
               <div className={`flex items-center gap-2 ${isIvarbu ? "mb-2" : ""}`}>
@@ -96,7 +96,7 @@ export function IvaTaxSection({
                     value={tax.taxRateId ?? ""}
                     onChange={(e) => {
                       const r = rateList.find((r: { id: number }) => String(r.id) === e.target.value);
-                      if (r) onUpdate(tax.taxTypeId, { taxRateId: r.id, rate: (r as { percentage: number }).percentage });
+                      if (r) onUpdate(tax.taxCode, { taxRateId: r.id, rate: (r as { percentage: number }).percentage });
                     }}
                   >
                     <option value="">{t("products.taxRate")}</option>
@@ -118,7 +118,7 @@ export function IvaTaxSection({
                 <button
                   type="button"
                   className="btn btn-ghost btn-icon btn-sm"
-                  onClick={() => onRemove(tax.taxTypeId)}
+                  onClick={() => onRemove(tax.taxCode)}
                 >
                   <Icon name="xCircle" size={14} />
                 </button>
@@ -130,10 +130,19 @@ export function IvaTaxSection({
                   <select
                     className="pp-input text-[13px]"
                     value={tax.taxFactorId ?? ""}
-                    onChange={(e) => onUpdate(tax.taxTypeId, { taxFactorId: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const id = Number(e.target.value);
+                      const f = factorList.find((f: { id: number }) => f.id === id) as
+                        | { id: number; factor: number }
+                        | undefined;
+                      onUpdate(tax.taxCode, {
+                        taxFactorId: id,
+                        taxFactor: f?.factor,
+                      });
+                    }}
                   >
                     <option value="">{t("products.selectFactor")}</option>
-                    {factorList.map((f: { id: number; description: string }) => (
+                    {factorList.map((f: { id: number; factor: number; description: string }) => (
                       <option key={f.id} value={String(f.id)}>
                         {f.description}
                       </option>
@@ -151,11 +160,12 @@ export function IvaTaxSection({
             className="pp-input"
             value=""
             onChange={(e) => {
-              const tt = ivaTaxTypes.find((t: { id: number }) => String(t.id) === e.target.value);
+              const tt = ivaTaxTypes.find(
+                (t: { code?: string }) => (t.code ?? "") === e.target.value
+              );
               if (tt) {
                 const defaultRate = rateList[0];
                 onAdd({
-                  taxTypeId: tt.id,
                   taxCode: (tt as { code?: string }).code ?? "",
                   taxDescription: tt.description,
                   rate: (defaultRate as { percentage: number })?.percentage ?? 13,
@@ -165,8 +175,8 @@ export function IvaTaxSection({
             }}
           >
             <option value="">{t("products.addIva")}</option>
-            {ivaTaxTypes.map((tt: { id: number; description: string }) => (
-              <option key={tt.id} value={String(tt.id)}>
+            {ivaTaxTypes.map((tt: { code?: string; description: string }) => (
+              <option key={tt.code ?? ""} value={tt.code ?? ""}>
                 {tt.description}
               </option>
             ))}

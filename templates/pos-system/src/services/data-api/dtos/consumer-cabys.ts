@@ -22,6 +22,8 @@ export interface CabysTaxRate {
 }
 
 export interface CabysItem {
+  /** UUID of the canonical data-services cabys row. Use this when linking products. */
+  id: string;
   code: string;
   description: string | null;
   categories: string[];

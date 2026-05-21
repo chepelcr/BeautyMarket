@@ -64,7 +64,7 @@ export function DocumentTypesFilter({ selectedTypes, onChange }: DocumentTypesFi
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+4px)] z-tooltip w-60 rounded-lg border border-border bg-card shadow-dropdown py-1">
+        <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-tooltip min-w-[14rem] rounded-lg border border-border bg-card shadow-dropdown py-1">
           <button
             onClick={() => onChange([])}
             className="w-full px-3 py-2 text-left text-xs hover:bg-muted flex items-center gap-2 transition-colors"

@@ -9,10 +9,33 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionDetailDrawer } from "@/components/sessions/SessionDetailDrawer";
 import { SessionSkeletonCard } from "@/components/sessions/SessionSkeletonCard";
+import { ListToolbar, type StatusOption } from "@/components/common/ListToolbar";
 import SessionConfig from "./SessionConfig";
 import type { Session, Assignment, DashboardData } from "@/types";
 
-type SessionFilter = "all" | "active" | "closed";
+/**
+ * Session.status: 1 = Active, 2 = Closed, 3 = Deleted. The filter exposes
+ * Active / Closed / All — `all` skips the BE filter segment entirely.
+ */
+type SessionStatusValue = "1" | "2" | "all";
+const SESSION_STATUS_OPTIONS: readonly StatusOption<SessionStatusValue>[] = [
+  { value: "1", labelKey: "session.statusActive" },
+  { value: "2", labelKey: "session.statusClosed" },
+  { value: "all", labelKey: "session.statusAll" },
+];
+
+// Map URL filter param ↔ status value so the page-state stays bookmarkable.
+const URL_TO_STATUS: Record<string, SessionStatusValue> = {
+  active: "1",
+  closed: "2",
+  all: "all",
+};
+const STATUS_TO_URL: Record<SessionStatusValue, string> = {
+  "1": "active",
+  "2": "closed",
+  all: "all",
+};
+
 type DrawerTab = "overview" | "assignments" | "sales" | "report";
 
 export default function SessionsPage() {
@@ -39,26 +62,39 @@ export default function SessionsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page]);
 
-  const filter = (new URLSearchParams(searchParams).get("filter") as SessionFilter) || "all";
+  // Status filter is in the URL so links are shareable. Default to active.
+  const urlFilter = new URLSearchParams(searchParams).get("filter") ?? "active";
+  const statusFilter: SessionStatusValue = URL_TO_STATUS[urlFilter] ?? "1";
+  const [term, setTerm] = useState("");
 
-  const setFilter = (f: SessionFilter) => {
+  const setStatusFilter = (next: SessionStatusValue) => {
     const params = new URLSearchParams(searchParams);
-    if (f === "all") params.delete("filter");
-    else params.set("filter", f);
+    const urlVal = STATUS_TO_URL[next];
+    if (urlVal === "active") params.delete("filter"); // active is default
+    else params.set("filter", urlVal);
     setLocation(`?${params.toString()}`, { replace: true });
-    setPage(1); // Reset to first page when filter changes
+    setPage(1);
   };
 
+  // Compose BE filter — see SessionSearchFilters in cross-app-be: status,
+  // type, context, branch_id, name (always_like).
+  const searchFilter = (() => {
+    const segs: string[] = [];
+    if (statusFilter !== "all") segs.push(`status:${statusFilter}`);
+    const tt = term.trim();
+    if (tt) segs.push(`name:${tt}`);
+    return segs.join(",");
+  })();
+
   const { data: sessionsData, isLoading } = useQuery({
-    queryKey: ["sessions", org?.id, filter, page, pageSize],
+    queryKey: ["sessions", org?.id, searchFilter, page, pageSize],
     enabled: !!org,
     queryFn: () => {
       const qs = new URLSearchParams({
         page: String(page),
         page_size: String(pageSize),
       });
-      if (filter === "active") qs.set("search", "status:1");
-      if (filter === "closed") qs.set("search", "status:2");
+      if (searchFilter) qs.set("search", searchFilter);
       return crossAppApi.get<{ data: Session[]; pagination: any }>(crossAppOrgPath(org!.id, `/sessions?${qs}`));
     },
   });
@@ -124,14 +160,15 @@ export default function SessionsPage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-5">
-        {(["all", "active", "closed"] as const).map((f) => (
-          <button key={f} onClick={() => setFilter(f)} className={filter === f ? "btn btn-primary btn-sm" : "btn btn-outline btn-sm"}>
-            {f === "all" ? t("session.allSessions") : f === "active" ? t("session.activeSessions") : t("session.closedSessions")}
-          </button>
-        ))}
-      </div>
+      <ListToolbar<SessionStatusValue>
+        searchValue={term}
+        onSearchChange={(next) => { setTerm(next); setPage(1); }}
+        searchPlaceholderKey="session.searchPlaceholder"
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusOptions={SESSION_STATUS_OPTIONS}
+        statusAriaLabelKey="session.statusFilter"
+      />
 
       {/* Sessions list */}
       {isLoading ? (

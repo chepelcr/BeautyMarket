@@ -175,27 +175,32 @@
 .card-primary { background: hsl(var(--card)); border: 1px solid hsl(var(--primary) / 0.3); border-radius: calc(var(--radius) + 4px); }
 
 /* ============ Inputs ============ */
-.pp-input { width: 100%; height: 40px; padding: 0 12px; background: hsl(var(--card)); border: 1px solid hsl(var(--input)); border-radius: var(--radius); font-size: 14px; color: hsl(var(--foreground)); transition: border-color .15s, box-shadow .15s; font-family: var(--font-sans); }
-.pp-input:focus { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
-.pp-input:disabled { background: hsl(var(--muted)); cursor: not-allowed; }
+/* Wrapped in @layer components so Tailwind side-padding utilities (`pl-9`,
+   `pl-6`, `pr-3`) — which live in @layer utilities — can override the
+   default padding when a leading icon needs room. */
+@layer components {
+  .pp-input { width: 100%; height: 40px; padding: 0 12px; background: hsl(var(--card)); border: 1px solid hsl(var(--input)); border-radius: var(--radius); font-size: 14px; color: hsl(var(--foreground)); transition: border-color .15s, box-shadow .15s; font-family: var(--font-sans); }
+  .pp-input:focus { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
+  .pp-input:disabled { background: hsl(var(--muted)); cursor: not-allowed; }
+  textarea.pp-input { height: auto; padding: 10px 12px; resize: vertical; min-height: 80px; }
+  .pp-input-sm { height: 32px; font-size: 13px; }
+  .pp-input-lg { height: 48px; font-size: 16px; padding: 0 16px; }
+  .pp-label { display: block; font-size: 13px; font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 6px; }
+  .input { width: 100%; height: 40px; padding: 0 12px; background: hsl(var(--card)); border: 1px solid hsl(var(--input)); border-radius: var(--radius); font-size: 14px; color: hsl(var(--foreground)); transition: border-color .15s, box-shadow .15s; font-family: var(--font-sans); }
+  .input:focus { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
+  .input:disabled { background: hsl(var(--muted)); cursor: not-allowed; }
+  textarea.input { height: auto; padding: 10px 12px; resize: vertical; min-height: 80px; }
+  .input-sm { height: 32px; font-size: 13px; }
+  .input-lg { height: 48px; font-size: 15px; padding: 0 16px; }
+  select.input, select.pp-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 36px; cursor: pointer; }
+  .label { display: block; font-size: 13px; font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 6px; font-family: var(--font-sans); }
+}
 
 /* ============ Animations ============ */
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-textarea.pp-input { height: auto; padding: 10px 12px; resize: vertical; min-height: 80px; }
-.pp-input-sm { height: 32px; font-size: 13px; }
-.pp-input-lg { height: 48px; font-size: 16px; padding: 0 16px; }
-.pp-label { display: block; font-size: 13px; font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 6px; }
-.input { width: 100%; height: 40px; padding: 0 12px; background: hsl(var(--card)); border: 1px solid hsl(var(--input)); border-radius: var(--radius); font-size: 14px; color: hsl(var(--foreground)); transition: border-color .15s, box-shadow .15s; font-family: var(--font-sans); }
-.input:focus { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
-.input:disabled { background: hsl(var(--muted)); cursor: not-allowed; }
-textarea.input { height: auto; padding: 10px 12px; resize: vertical; min-height: 80px; }
-.input-sm { height: 32px; font-size: 13px; }
-.input-lg { height: 48px; font-size: 15px; padding: 0 16px; }
-select.input, select.pp-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 36px; cursor: pointer; }
-.label { display: block; font-size: 13px; font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 6px; font-family: var(--font-sans); }
 
 /* ============ Badges ============ */
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 1.5; border: 1px solid transparent; font-family: var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
@@ -398,13 +403,19 @@ select.input, select.pp-input { appearance: none; -webkit-appearance: none; back
 .docs-toolbar-grid { display: flex; flex-direction: column; gap: 0.5rem; }
 .docs-toolbar-row-1 { display: flex; align-items: center; gap: 0.5rem; width: 100%; }
 .docs-toolbar-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; }
+.docs-toolbar-row-2-solo { grid-template-columns: 1fr; }
 .docs-toolbar-search { flex: 1; min-width: 0; }
+/* ListToolbar responsive status: pill group ≥620px, native select <620px. */
+.docs-toolbar .status-pills { display: none; }
+.docs-toolbar .status-select { display: inline-block; }
 @container docs-toolbar (min-width: 620px) {
   .docs-toolbar-grid { flex-direction: row; align-items: center; flex-wrap: nowrap; }
   .docs-toolbar-row-1, .docs-toolbar-row-2 { display: contents; }
   .docs-toolbar-search { min-width: 180px; }
   .docs-types-filter { flex-shrink: 0; }
   .docs-types-filter .docs-types-filter-trigger, .docs-toolbar-filtros { width: auto; }
+  .docs-toolbar .status-pills { display: inline-flex; }
+  .docs-toolbar .status-select { display: none; }
 }
 
 /* Documents fadeIn animation entry */
@@ -469,6 +480,49 @@ select.input, select.pp-input { appearance: none; -webkit-appearance: none; back
 @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slideOutLeft { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* Dual-handle range slider — two stacked native ranges sharing a track. The
+   handles are clickable while the rest of each input is transparent so
+   neither one blocks the other. */
+.range-slider { width: 100%; }
+.range-slider-track { position: relative; height: 24px; }
+.range-slider-track::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%;
+  transform: translateY(-50%); height: 4px; border-radius: 999px;
+  background: hsl(var(--muted));
+}
+.range-slider-fill {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  height: 4px; border-radius: 999px; background: hsl(var(--primary));
+  pointer-events: none;
+}
+.range-slider-input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: transparent; appearance: none; -webkit-appearance: none;
+  pointer-events: none; margin: 0;
+}
+.range-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; pointer-events: auto;
+  width: 16px; height: 16px; border-radius: 999px;
+  background: hsl(var(--card)); border: 2px solid hsl(var(--primary));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.15); cursor: grab;
+}
+.range-slider-input::-webkit-slider-thumb:active { cursor: grabbing; }
+.range-slider-input::-moz-range-thumb {
+  pointer-events: auto; width: 16px; height: 16px; border-radius: 999px;
+  background: hsl(var(--card)); border: 2px solid hsl(var(--primary));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.15); cursor: grab;
+}
+.range-slider-input::-webkit-slider-runnable-track { background: transparent; border: none; }
+.range-slider-input::-moz-range-track { background: transparent; border: none; }
+
+/* Centered modal animations (used by the shared FiltersModal shell) */
+.modal-overlay-enter { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modal-overlay-exit { animation: fadeOut 0.18s cubic-bezier(0.4, 0, 1, 1) both; }
+.modal-panel-enter { animation: modalPanelIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modal-panel-exit { animation: modalPanelOut 0.18s cubic-bezier(0.4, 0, 1, 1) both; }
+@keyframes modalPanelIn  { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes modalPanelOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(6px) scale(0.97); } }
 
 /* Soft-tinted icon containers (paired with text-* color when needed) */
 .icon-pill-primary-soft { display: inline-flex; align-items: center; justify-content: center; background: hsl(var(--primary) / 0.15); color: hsl(var(--primary)); border: 1px solid hsl(var(--primary) / 0.3); border-radius: var(--radius); }

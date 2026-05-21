@@ -3,15 +3,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
-import { Icon, Input, Button, Drawer, EmptyState, Pagination } from "@/components/ui";
+import { Button, Drawer, EmptyState, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BranchCard } from "@/components/puestos/BranchCard";
 import { BranchForm } from "@/components/puestos/BranchForm";
 import { TerminalForm } from "@/components/puestos/TerminalForm";
 import { BranchSkeletonCard } from "@/components/puestos/BranchSkeletonCard";
+import {
+  BranchAdvancedFiltersModal,
+  type BranchAdvancedFilters,
+} from "@/components/puestos/BranchAdvancedFiltersModal";
+import { ListToolbar, type StatusOption } from "@/components/common/ListToolbar";
 import type {
-  Branch, BranchListResponse, CreateBranchRequest, CreateTerminalRequest, BranchType, BranchStatus,
+  Branch, BranchListResponse, CreateBranchRequest, CreateTerminalRequest, BranchStatus,
 } from "@/types";
+
+type BranchStatusValue = "1" | "2" | "all";
+const BRANCH_STATUS_OPTIONS: readonly StatusOption<BranchStatusValue>[] = [
+  { value: "1", labelKey: "puestos.statusActive" },
+  { value: "2", labelKey: "puestos.statusInactive" },
+  { value: "all", labelKey: "puestos.statusAll" },
+];
 
 export default function PuestosPage() {
   const qc = useQueryClient();
@@ -20,9 +32,11 @@ export default function PuestosPage() {
   const { data: org } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
 
-  const [filter, setFilter] = useState<"all" | BranchType>("all");
-  const [showOnlyActive, setShowOnlyActive] = useState(false);
-  const [search, setSearch] = useState("");
+  const [term, setTerm] = useState("");
+  // Land on active branches by default — mirrors products/clients.
+  const [statusFilter, setStatusFilter] = useState<BranchStatusValue>("1");
+  const [advanced, setAdvanced] = useState<BranchAdvancedFilters>({});
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(24);
   const [branchDrawer, setBranchDrawer] = useState(false);
@@ -35,25 +49,35 @@ export default function PuestosPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page]);
 
-  const searchParam = showOnlyActive ? "status:1" : "";
+  // Compose BE filter — see BranchSearchFilters in cross-app-be:
+  // `status:`, `type:`, `name:` (always_like off but allows_like on so
+  // we wildcard explicitly), `code:` (same). Free-text matches name OR
+  // code via the BE's (a,b) OR group.
+  const searchFilter = (() => {
+    const segs: string[] = [];
+    if (statusFilter !== "all") segs.push(`status:${statusFilter}`);
+    if (advanced.type) segs.push(`type:${advanced.type}`);
+    const tt = term.trim();
+    if (tt) segs.push(`(name:*${tt}*,code:*${tt}*)`);
+    if (advanced.sort) segs.push(`orderBy${advanced.sort}`);
+    return segs.join(",");
+  })();
+
   const { data: branchesData, isLoading } = useQuery({
-    queryKey: ["branches", org?.id, searchParam, page, pageSize],
+    queryKey: ["branches", org?.id, searchFilter, page, pageSize],
     enabled: !!org,
     queryFn: () => {
       const params = new URLSearchParams({
         page: String(page),
         page_size: String(pageSize),
-        ...(searchParam && { search: searchParam }),
+        ...(searchFilter && { search: searchFilter }),
       });
       return crossAppApi.get<BranchListResponse>(crossAppOrgPath(org!.id, `/branches?${params}`));
     },
   });
 
-  const branches = (branchesData?.data ?? []).filter((b) => {
-    if (filter !== "all" && b.type !== filter) return false;
-    if (search && !b.name.toLowerCase().includes(search.toLowerCase()) && !String(b.code).includes(search)) return false;
-    return true;
-  });
+  const branches = branchesData?.data ?? [];
+  const hasAdvancedFilters = !!advanced.type || !!advanced.sort;
 
   const pagination = branchesData?.pagination;
 
@@ -108,32 +132,25 @@ export default function PuestosPage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2.5 mb-5 flex-wrap items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-[340px]">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-            <Icon name="search" size={14} />
-          </div>
-          <Input
-            inputSize="sm"
-            className="!pl-9"
-            placeholder="Buscar por nombre o código…"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          />
-        </div>
-        <div className="flex gap-1.5">
-          {(["all", "stand", "restaurant"] as const).map((f) => (
-            <button key={f} type="button" onClick={() => { setFilter(f); setPage(1); }} className={`btn btn-sm ${filter === f ? "btn-primary" : "btn-outline"}`}>
-              {f === "all" ? t("puestos.all") : f === "stand" ? t("puestos.stand") : t("puestos.restaurant")}
-            </button>
-          ))}
-        </div>
-        <button type="button" onClick={() => { setShowOnlyActive((v) => !v); setPage(1); }} className={`btn btn-sm flex items-center gap-1.5 ${showOnlyActive ? "btn-success" : "btn-outline"}`}>
-          <Icon name={showOnlyActive ? "checkCircle" : "eye"} size={14} />
-          {t("puestos.onlyActive")}
-        </button>
-      </div>
+      <ListToolbar<BranchStatusValue>
+        searchValue={term}
+        onSearchChange={(next) => { setTerm(next); setPage(1); }}
+        searchPlaceholderKey="puestos.searchPlaceholder"
+        statusValue={statusFilter}
+        onStatusChange={(next) => { setStatusFilter(next); setPage(1); }}
+        statusOptions={BRANCH_STATUS_OPTIONS}
+        statusAriaLabelKey="puestos.statusFilter"
+        onAdvancedClick={() => setShowAdvanced(true)}
+        hasAdvancedFilters={hasAdvancedFilters}
+        advancedLabelKey="puestos.advancedFilters"
+      />
+
+      <BranchAdvancedFiltersModal
+        open={showAdvanced}
+        filters={advanced}
+        onApply={(next) => { setAdvanced(next); setPage(1); }}
+        onClose={() => setShowAdvanced(false)}
+      />
 
       {/* Content */}
       {isLoading ? (
@@ -143,9 +160,9 @@ export default function PuestosPage() {
       ) : branches.length === 0 ? (
         <EmptyState
           icon="store"
-          title={search || filter !== "all" ? t("common.noResults") : t("puestos.title")}
-          description={search || filter !== "all" ? t("common.noResults") : t("puestos.newStation")}
-          action={!search && filter === "all" ? (
+          title={term || hasAdvancedFilters ? t("common.noResults") : t("puestos.title")}
+          description={term || hasAdvancedFilters ? t("common.noResults") : t("puestos.newStation")}
+          action={!term && !hasAdvancedFilters ? (
             <Button variant="primary" icon="plus" onClick={() => { setEditingBranch(null); setBranchDrawer(true); }}>
               {t("puestos.newStation")}
             </Button>

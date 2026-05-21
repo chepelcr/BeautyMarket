@@ -14,6 +14,28 @@ interface UseProductsOptions {
   enabled?: boolean;
 }
 
+export interface ProductPriceBounds {
+  net_min: number | null;
+  net_max: number | null;
+  sale_min: number | null;
+  sale_max: number | null;
+}
+
+/**
+ * Fetch min/max price bounds across the org's non-deleted products so the
+ * filter slider can size its thumbs to reality. Cached aggressively — these
+ * shift slowly relative to a filter session.
+ */
+export function useProductPriceBounds(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-price-bounds", orgId],
+    enabled: !!orgId,
+    staleTime: 1000 * 60 * 10,
+    queryFn: () =>
+      ordersApi.get<ProductPriceBounds>(ordersOrgPath(orgId!, "/products/price-bounds")),
+  });
+}
+
 export function useProducts(options: UseProductsOptions = {}) {
   const { search, category_id, page = 1, page_size = 24, enabled = true } = options;
   const { user } = useAuthContext();

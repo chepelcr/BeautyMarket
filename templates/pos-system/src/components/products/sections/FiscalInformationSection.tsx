@@ -96,6 +96,7 @@ export function FiscalInformationSection({
 
   const selectCabys = (item: CabysItem) => {
     onChange({
+      cabysId: item.id,
       cabys: item.code,
       cabysDescription: item.description ?? item.code,
     });
@@ -105,7 +106,7 @@ export function FiscalInformationSection({
   };
 
   const clearCabys = () => {
-    onChange({ cabys: "", cabysDescription: "" });
+    onChange({ cabysId: "", cabys: "", cabysDescription: "" });
     setSearchTerm("");
     setSearchResults([]);
   };
@@ -121,7 +122,7 @@ export function FiscalInformationSection({
 
   const confirmProductTypeChange = () => {
     clearCabys();
-    onChange({ productTypeId: pendingProductTypeId, cabys: "", cabysDescription: "" });
+    onChange({ productTypeId: pendingProductTypeId, cabysId: "", cabys: "", cabysDescription: "" });
     setPendingProductTypeId(undefined);
     setShowConfirm(false);
   };

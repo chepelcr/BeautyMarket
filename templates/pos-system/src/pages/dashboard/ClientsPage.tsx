@@ -8,7 +8,19 @@ import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { ClientSkeletonCard } from "@/components/clients/ClientSkeletonCard";
 import { ClientDrawerForm } from "@/components/clients/ClientDrawerForm";
+import {
+  ClientAdvancedFiltersModal,
+  type ClientAdvancedFilters,
+} from "@/components/clients/ClientAdvancedFiltersModal";
+import { ListToolbar, type StatusOption } from "@/components/common/ListToolbar";
 import { Icon, Button, Pagination } from "@/components/ui";
+
+type ClientStatusValue = "1" | "2" | "all";
+const CLIENT_STATUS_OPTIONS: readonly StatusOption<ClientStatusValue>[] = [
+  { value: "1", labelKey: "clients.statusActive" },
+  { value: "2", labelKey: "clients.statusInactive" },
+  { value: "all", labelKey: "clients.statusAll" },
+];
 
 export default function ClientsPage() {
   const { orgId } = useOrgContext();
@@ -17,19 +29,49 @@ export default function ClientsPage() {
   const { t } = useLanguage();
   const statusMutation = useUpdateClientStatus(orgId);
 
-  const [search, setSearch] = useState("");
+  const [term, setTerm] = useState("");
+  // Default to status:1 (Active) on first load — matches the products page.
+  const [statusFilter, setStatusFilter] = useState<ClientStatusValue>("1");
+  const [advanced, setAdvanced] = useState<ClientAdvancedFilters>({});
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   // Scroll to top when page changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  const { data: listData, isLoading } = useClients(orgId, { search: search || undefined, page, page_size: 24 });
+  // Compose the BE search filter string. See ClientSearchFilters in
+  // cross-app-be: `status:`, `client_name:`, `business_name:`, `id_number:`,
+  // `orderBy>field`. The free-text term searches name OR business_name OR
+  // identification number via a parenthesised OR group (handled by
+  // SearchUtils._split_tokens). client_name and business_name are
+  // always_like on the BE so the term doesn't need wildcard wrapping.
+  const searchFilter = (() => {
+    const segs: string[] = [];
+    if (statusFilter !== "all") segs.push(`status:${statusFilter}`);
+    if (advanced.customerType !== undefined) {
+      segs.push(`customer_type:${advanced.customerType}`);
+    }
+    const tt = term.trim();
+    if (tt) {
+      segs.push(`(client_name:${tt},business_name:${tt},id_number:${tt})`);
+    }
+    if (advanced.sort) segs.push(`orderBy${advanced.sort}`);
+    return segs.join(",");
+  })();
+
+  const { data: listData, isLoading } = useClients(orgId, {
+    search: searchFilter || undefined,
+    page,
+    page_size: 24,
+  });
   const clients = listData?.data ?? [];
   const pagination = listData?.pagination;
+
+  const hasAdvancedFilters = advanced.customerType !== undefined || !!advanced.sort;
 
   const goToDetail = (clientId: string) => navigate(`${ROUTES.DASHBOARD_CLIENTS}/${clientId}`);
   const openCreate = () => { setEditingClient(null); setDrawerOpen(true); };
@@ -64,17 +106,18 @@ export default function ClientsPage() {
         <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>{t("clients.newClient")}</Button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6 max-w-[400px]">
-        <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder={t("placeholder.searchByNameId")}
-          className="pp-input w-full pl-9"
-        />
-      </div>
+      <ListToolbar<ClientStatusValue>
+        searchValue={term}
+        onSearchChange={(next) => { setTerm(next); setPage(1); }}
+        searchPlaceholderKey="clients.searchPlaceholder"
+        statusValue={statusFilter}
+        onStatusChange={(next) => { setStatusFilter(next); setPage(1); }}
+        statusOptions={CLIENT_STATUS_OPTIONS}
+        statusAriaLabelKey="clients.statusFilter"
+        onAdvancedClick={() => setShowAdvanced(true)}
+        hasAdvancedFilters={hasAdvancedFilters}
+        advancedLabelKey="clients.advancedFilters"
+      />
 
       {/* Grid */}
       {isLoading ? (
@@ -87,12 +130,12 @@ export default function ClientsPage() {
             <Icon name="users" size={28} className="text-accent-rose" />
           </div>
           <div className="t-h2 mb-1.5">
-            {search ? t("clients.noResultsFor", { query: search }) : t("clients.noClients")}
+            {term ? t("clients.noResultsFor", { query: term }) : t("clients.noClients")}
           </div>
-          <div className={`t-body text-muted-foreground ${search ? "" : "mb-5"}`}>
-            {search ? t("clients.tryOtherSearch") : t("empty.addFirst")}
+          <div className={`t-body text-muted-foreground ${term ? "" : "mb-5"}`}>
+            {term ? t("clients.tryOtherSearch") : t("empty.addFirst")}
           </div>
-          {!search && <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>{t("clients.addClient")}</Button>}
+          {!term && <Button variant="primary" size="sm" icon="userPlus" onClick={openCreate}>{t("clients.addClient")}</Button>}
         </div>
       ) : (
         <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(265px, 1fr))" }}>
@@ -114,16 +157,23 @@ export default function ClientsPage() {
         />
       )}
 
-      <ClientDrawerForm 
-        open={drawerOpen} 
+      <ClientDrawerForm
+        open={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
           setEditingClient(null);
-        }} 
-        client={editingClient} 
-        orgId={orgId} 
+        }}
+        client={editingClient}
+        orgId={orgId}
       />
-      
+
+      <ClientAdvancedFiltersModal
+        open={showAdvanced}
+        filters={advanced}
+        onApply={(next) => { setAdvanced(next); setPage(1); }}
+        onClose={() => setShowAdvanced(false)}
+      />
+
       {/* Confirmation Modal */}
       <ConfirmModal />
     </div>

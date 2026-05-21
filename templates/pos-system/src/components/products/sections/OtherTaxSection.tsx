@@ -21,8 +21,8 @@ interface OtherTaxSectionProps {
   onToggle: () => void;
   disabled?: boolean;
   onAdd: (entry: TaxFormEntry) => void;
-  onRemove: (taxTypeId: number) => void;
-  onUpdate: (taxTypeId: number, patch: Partial<TaxFormEntry>) => void;
+  onRemove: (taxCode: string) => void;
+  onUpdate: (taxCode: string, patch: Partial<TaxFormEntry>) => void;
 }
 
 function SpecialTaxRow({
@@ -35,16 +35,23 @@ function SpecialTaxRow({
   tax: TaxFormEntry;
   cabys?: string;
   basePrice?: number;
-  onUpdate: (taxTypeId: number, patch: Partial<TaxFormEntry>) => void;
-  onRemove: (taxTypeId: number) => void;
+  onUpdate: (taxCode: string, patch: Partial<TaxFormEntry>) => void;
+  onRemove: (taxCode: string) => void;
 }) {
   const { t } = useLanguage();
   const cfg = getTaxConfig(tax.taxCode);
   const needsAmounts = SPECIAL_AMOUNT_CODES.includes(tax.taxCode);
 
+  // The data-api tax-amounts endpoint filters by the data-services numeric
+  // tax_id; resolve it from the Hacienda code via the tax-types catalog.
+  const { data: allTaxesData } = useAllTaxes({ iso_code: ISO });
+  const taxTypeRow = (allTaxesData ?? []).find(
+    (tt: { code?: string }) => tt.code === tax.taxCode
+  ) as { id?: number } | undefined;
+
   const { data: taxAmountsData } = useAllTaxAmounts(
-    { iso_code: ISO, tax_id: tax.taxTypeId },
-    { enabled: needsAmounts }
+    { iso_code: ISO, tax_id: taxTypeRow?.id ?? 0 },
+    { enabled: needsAmounts && !!taxTypeRow?.id }
   );
   const taxAmounts: TaxAmountResponse[] = taxAmountsData ?? [];
 
@@ -61,11 +68,12 @@ function SpecialTaxRow({
         pct >= ta.min_percentage &&
         pct <= ta.max_percentage
     );
-    onUpdate(tax.taxTypeId, {
+    onUpdate(tax.taxCode, {
       specialFields: {
         ...tax.specialFields,
         percentage: pct,
         taxAmountId: match?.id ?? tax.specialFields?.taxAmountId,
+        taxAmount: match?.amount ?? tax.specialFields?.taxAmount,
       },
     });
   };
@@ -82,11 +90,15 @@ function SpecialTaxRow({
             <input
               type="number"
               className="pp-input w-[72px] !h-auto !px-2 !py-[3px] text-xs"
-              placeholder="%"
+              placeholder="0"
               min={0}
               max={100}
-              value={tax.rate}
-              onChange={(e) => onUpdate(tax.taxTypeId, { rate: Number(e.target.value) })}
+              value={tax.rate || ""}
+              onChange={(e) =>
+                onUpdate(tax.taxCode, {
+                  rate: e.target.value === "" ? 0 : Number(e.target.value),
+                })
+              }
             />
             {basePrice > 0 && tax.rate > 0 && (
               <span className="text-xs font-semibold text-primary min-w-[64px] text-right">
@@ -111,7 +123,7 @@ function SpecialTaxRow({
         <button
           type="button"
           className="btn btn-ghost btn-icon btn-sm"
-          onClick={() => onRemove(tax.taxTypeId)}
+          onClick={() => onRemove(tax.taxCode)}
         >
           <Icon name="xCircle" size={14} />
         </button>
@@ -156,11 +168,17 @@ function SpecialTaxRow({
                   <select
                     className="pp-input text-xs"
                     value={tax.specialFields?.taxAmountId ?? ""}
-                    onChange={(e) =>
-                      onUpdate(tax.taxTypeId, {
-                        specialFields: { ...tax.specialFields, taxAmountId: Number(e.target.value) },
-                      })
-                    }
+                    onChange={(e) => {
+                      const id = Number(e.target.value);
+                      const ta = taxAmounts.find((a) => a.id === id);
+                      onUpdate(tax.taxCode, {
+                        specialFields: {
+                          ...tax.specialFields,
+                          taxAmountId: id,
+                          taxAmount: ta?.amount,
+                        },
+                      });
+                    }}
                   >
                     <option value="">{t("products.selectAmount")}</option>
                     {taxAmounts.map((ta) => (
@@ -180,11 +198,17 @@ function SpecialTaxRow({
               <select
                 className="pp-input text-xs"
                 value={tax.specialFields?.taxAmountId ?? ""}
-                onChange={(e) =>
-                  onUpdate(tax.taxTypeId, {
-                    specialFields: { ...tax.specialFields, taxAmountId: Number(e.target.value) },
-                  })
-                }
+                onChange={(e) => {
+                  const id = Number(e.target.value);
+                  const ta = taxAmounts.find((a) => a.id === id);
+                  onUpdate(tax.taxCode, {
+                    specialFields: {
+                      ...tax.specialFields,
+                      taxAmountId: id,
+                      taxAmount: ta?.amount,
+                    },
+                  });
+                }}
               >
                 <option value="">{t("products.selectAmount")}</option>
                 {taxAmounts.map((ta) => (
@@ -206,7 +230,7 @@ function SpecialTaxRow({
                 min={0}
                 value={tax.specialFields?.quantity ?? ""}
                 onChange={(e) =>
-                  onUpdate(tax.taxTypeId, {
+                  onUpdate(tax.taxCode, {
                     specialFields: { ...tax.specialFields, quantity: Number(e.target.value) },
                   })
                 }
@@ -225,7 +249,7 @@ function SpecialTaxRow({
                 max={100}
                 value={tax.specialFields?.percentage ?? ""}
                 onChange={(e) =>
-                  onUpdate(tax.taxTypeId, {
+                  onUpdate(tax.taxCode, {
                     specialFields: { ...tax.specialFields, percentage: Number(e.target.value) },
                   })
                 }
@@ -243,7 +267,7 @@ function SpecialTaxRow({
                 min={0}
                 value={tax.specialFields?.volumeConsumption ?? ""}
                 onChange={(e) =>
-                  onUpdate(tax.taxTypeId, {
+                  onUpdate(tax.taxCode, {
                     specialFields: { ...tax.specialFields, volumeConsumption: Number(e.target.value) },
                   })
                 }
@@ -288,7 +312,7 @@ export function OtherTaxSection({
       <div className="flex flex-col gap-2">
         {addedOtherTaxes.map((tax) => (
           <SpecialTaxRow
-            key={tax.taxTypeId}
+            key={tax.taxCode}
             tax={tax}
             cabys={cabys}
             basePrice={basePrice}
@@ -302,23 +326,28 @@ export function OtherTaxSection({
           value=""
           onChange={(e) => {
             const tt = otherTaxTypes.find(
-              (t: { id: number }) => String(t.id) === e.target.value
+              (t: { code?: string }) => (t.code ?? "") === e.target.value
             );
             if (tt) {
+              const code = (tt as { code?: string }).code ?? "";
               onAdd({
-                taxTypeId: tt.id,
-                taxCode: (tt as { code?: string }).code ?? "",
+                taxCode: code,
                 taxDescription: tt.description,
-                rate: (tt as { code?: string }).code === "12" ? 5 : 0,
+                // ISEC (12) has a fixed 5% rate; others start empty so the
+                // input shows the "0" placeholder until the user types.
+                rate: code === "12" ? 5 : 0,
               });
             }
           }}
         >
           <option value="">{t("products.addTax")}</option>
           {otherTaxTypes
-            .filter((tt: { id: number }) => !taxes.some((ft) => ft.taxTypeId === tt.id))
-            .map((tt: { id: number; description: string }) => (
-              <option key={tt.id} value={String(tt.id)}>
+            .filter(
+              (tt: { code?: string }) =>
+                !taxes.some((ft) => ft.taxCode === (tt.code ?? ""))
+            )
+            .map((tt: { code?: string; description: string }) => (
+              <option key={tt.code ?? ""} value={tt.code ?? ""}>
                 {tt.description}
               </option>
             ))}

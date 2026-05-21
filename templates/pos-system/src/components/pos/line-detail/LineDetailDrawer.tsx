@@ -7,8 +7,6 @@ import {
   useAllTaxRates,
   useAllTaxFactors,
   useAllFactoryTaxCharges,
-  useAllDiscountTypes,
-  useAllMeasurementUnits,
 } from '@/hooks/useDataApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { CountryISO } from '@/lib/enums';
@@ -69,13 +67,7 @@ export function LineDetailDrawer({
   const { data: taxRates } = useAllTaxRates({ iso_code: CountryISO.COSTA_RICA });
   const { data: taxFactors } = useAllTaxFactors({ iso_code: CountryISO.COSTA_RICA });
   const { data: factoryTaxCharges } = useAllFactoryTaxCharges({ iso_code: CountryISO.COSTA_RICA } as GetAllFactoryTaxChargesParams);
-  const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
-  // Measurement units catalog — needed to resolve product.unit_id (data-api
-  // numeric id) → unit_measure (Hacienda code string) when initializing a
-  // line. React Query caches by queryKey, so this is the same fetch
-  // GeneralTab uses; no duplicate BE call.
-  const { data: measurementUnits } = useAllMeasurementUnits();
-  // Note: taxAmounts requires tax_id, so we don't fetch it here - it's fetched per-tax when needed
+  // Note: tax-amounts requires tax_id, so we don't fetch it here - it's fetched per-tax when needed
   const { confirm, ConfirmModal } = useConfirmModal();
   const { t } = useLanguage();
   
@@ -88,58 +80,28 @@ export function LineDetailDrawer({
     commercial: true,
   });
 
-  // Build initial LineDetail from product - reset when product changes
-  /**
-   * Translate product-catalog taxes (cross-app-be) → canonical LineTax[].
-   * cross-app-be products carry numeric data-api catalog ids
-   * (`tax_type_id`, `tax_rate_id`). The canonical downstream shape needs
-   * Hacienda code strings. We look up each id in the already-loaded
-   * catalogs (`taxTypes`, `taxRates`) — that's the single seam where the
-   * id→code resolution happens.
-   */
+  // The product catalog stores Hacienda code strings throughout (tax_type_id,
+  // discount_type_id, unit_measure). Project field names from the product
+  // response shape to the canonical LineTax / LineDiscount shape — no catalog
+  // lookups needed.
   const productTaxesToLineTaxes = (productTaxes: any[] | undefined): LineTax[] =>
-    (productTaxes ?? []).map((t: any) => {
-      const taxTypeEntry = (taxTypes ?? []).find(
-        (tt: any) => tt.id === (t.tax_type_id ?? t.taxId)
-      );
-      const rateEntry = (taxRates ?? []).find(
-        (r: any) => r.id === (t.tax_rate_id ?? t.taxRateId)
-      );
-      return {
-        code: (taxTypeEntry as any)?.code ?? t.tax_code ?? t.code,
-        rate: t.rate,
-        rate_code: (rateEntry as any)?.code ?? t.rate_code ?? t.tax_rate_code,
-        special_fields: t.special_fields ?? t.specialFields,
-      };
-    });
+    (productTaxes ?? []).map((t: any) => ({
+      code: t.tax_type_id,
+      rate: t.tax_rate?.percentage ?? t.rate ?? 0,
+      rate_code: t.tax_rate?.code,
+      factor: t.tax_factor?.factor,
+      other_tax_type: t.other_tax_type,
+      special_fields: t.special_fields,
+    }));
 
-  /**
-   * Translate product-catalog discounts → canonical LineDiscount[]. The
-   * data-api `discountTypes` catalog resolves numeric `discount_type_id`
-   * to the Hacienda discount-type code string.
-   */
   const productDiscountsToLineDiscounts = (
     productDiscounts: any[] | undefined
   ): LineDiscount[] =>
-    (productDiscounts ?? []).map((d: any) => {
-      const entry = (discountTypes ?? []).find(
-        (dt: any) => dt.id === (d.discount_type_id ?? d.discountTypeId)
-      );
-      return {
-        discount_type: (entry as any)?.code ?? d.discount_code ?? d.discount_type,
-        percentage: d.rate ?? d.percentage ?? 0,
-      };
-    });
-
-  /**
-   * Resolve product.unit_id (data-api numeric id) → unit_measure (Hacienda
-   * code string) via the measurementUnits catalog.
-   */
-  const productUnitToCode = (unitId: number | undefined): string | undefined => {
-    if (unitId == null) return undefined;
-    const entry = (measurementUnits ?? []).find((u: any) => u.id === unitId);
-    return (entry as any)?.code;
-  };
+    (productDiscounts ?? []).map((d: any) => ({
+      discount_type: d.discount_type_id,
+      percentage: d.percentage ?? d.rate ?? 0,
+      reason: d.reason,
+    }));
 
   const [detail, setDetail] = useState<LineDetail>(() => {
     if (!product) {
@@ -170,7 +132,7 @@ export function LineDetailDrawer({
         unit_measure: existingLineDetail.unit_measure,
         commercial_unit_measure: existingLineDetail.commercial_unit_measure,
         customs_part: existingLineDetail.customs_part,
-        cabys: existingLineDetail.cabys ?? product.cabys ?? undefined,
+        cabys: existingLineDetail.cabys ?? product.cabys?.code ?? undefined,
         taxes: existingLineDetail.taxes ?? [],
         discounts: existingLineDetail.discounts ?? [],
       };
@@ -184,10 +146,10 @@ export function LineDetailDrawer({
       base_amount: undefined,
       product_type: undefined,
       // Resolve the data-api unit id → Hacienda unit_measure code via catalog.
-      unit_measure: productUnitToCode((product as any).unit_id),
+      unit_measure: (product as any).unit_measure,
       commercial_unit_measure: undefined,
       customs_part: undefined,
-      cabys: product.cabys ?? undefined,
+      cabys: product.cabys?.code ?? undefined,
       taxes: productTaxesToLineTaxes(product.taxes),
       discounts: lineDiscount
         ? [{ discount_type: '01', percentage: lineDiscount }]
@@ -210,7 +172,7 @@ export function LineDetailDrawer({
         unit_measure: existingLineDetail.unit_measure,
         commercial_unit_measure: existingLineDetail.commercial_unit_measure,
         customs_part: existingLineDetail.customs_part,
-        cabys: existingLineDetail.cabys ?? product.cabys ?? undefined,
+        cabys: existingLineDetail.cabys ?? product.cabys?.code ?? undefined,
         taxes: existingLineDetail.taxes ?? [],
         discounts: existingLineDetail.discounts ?? [],
       });
@@ -225,10 +187,10 @@ export function LineDetailDrawer({
       base_amount: undefined,
       product_type: undefined,
       // Resolve the data-api unit id → Hacienda unit_measure code via catalog.
-      unit_measure: productUnitToCode((product as any).unit_id),
+      unit_measure: (product as any).unit_measure,
       commercial_unit_measure: undefined,
       customs_part: undefined,
-      cabys: product.cabys ?? undefined,
+      cabys: product.cabys?.code ?? undefined,
       taxes: productTaxesToLineTaxes(product.taxes),
       discounts: lineDiscount
         ? [{ discount_type: '01', percentage: lineDiscount }]

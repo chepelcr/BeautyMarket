@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { useDocumentStore } from '@/store/documentStore';
 import { useSales } from '@/hooks/useSales';
 import { FadeIn, EmptyState, Pagination } from '@/components/ui';
@@ -9,6 +8,7 @@ import { ComplexSearchModal } from './ComplexSearchModal';
 import { DocumentCard } from './DocumentCard';
 import { DocumentCardSkeleton } from './DocumentCardSkeleton';
 import { DocumentActionModal } from './DocumentActionModal';
+import { ListToolbar } from '@/components/common/ListToolbar';
 import type { DocumentListItem, ComplexSearchFilters } from '@/types/document';
 
 const SKELETON_COUNT = 6;
@@ -54,46 +54,38 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
     setPage(0);
   };
 
-  const hasAdvancedFilters =
-    !!(search.status || search.start_date || search.end_date || search.sort);
+  const hasAdvancedFilters = !!(
+    search.status ||
+    search.start_date ||
+    search.end_date ||
+    search.dateValue ||
+    search.totalValue !== undefined ||
+    search.totalMin !== undefined ||
+    search.totalMax !== undefined ||
+    search.sort
+  );
 
   return (
     <div className="flex flex-col h-full overflow-hidden fade-in">
-      {/* Unified toolbar — see .docs-toolbar in index.css for container-query responsiveness */}
-      <div className="docs-toolbar px-4 py-2.5 border-b border-border bg-card shrink-0">
-        <div className="docs-toolbar-grid">
-          {/* Row 1 — toggle + search */}
-          <div className="docs-toolbar-row-1">
-            <IssuedReceivedToggle />
-            <input
-              type="text"
-              value={term}
-              onChange={(e) => handleSearchTermChange(e.target.value)}
-              placeholder="Buscar por número, nombre…"
-              className="docs-toolbar-search input-search"
-            />
-          </div>
-
-          {/* Row 2 — types + filtros (50/50 on narrow toolbars) */}
-          <div className="docs-toolbar-row-2">
-            <DocumentTypesFilter
-              selectedTypes={selectedTypes}
-              onChange={handleTypesChange}
-            />
-            <button
-              onClick={() => setShowAdvanced(true)}
-              className={cn(
-                'docs-toolbar-filtros h-10 px-3 rounded-md border text-xs font-semibold transition-colors w-full',
-                hasAdvancedFilters
-                  ? 'border-primary bg-primary/5 text-primary'
-                  : 'border-border bg-card text-muted-foreground hover:border-primary/40'
-              )}
-            >
-              Filtros{hasAdvancedFilters ? ' ●' : ''}
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Shared ListToolbar layout — Emitidos/Recibidos lives in the
+          custom statusSlot since it's not a standard status filter,
+          and the document types multi-select fills the secondary slot. */}
+      <ListToolbar
+        className="border-b !rounded-none !mb-0 shrink-0"
+        searchValue={term}
+        onSearchChange={handleSearchTermChange}
+        searchPlaceholderKey="documents.searchPlaceholder"
+        statusSlot={<IssuedReceivedToggle />}
+        secondary={
+          <DocumentTypesFilter
+            selectedTypes={selectedTypes}
+            onChange={handleTypesChange}
+          />
+        }
+        onAdvancedClick={() => setShowAdvanced(true)}
+        hasAdvancedFilters={hasAdvancedFilters}
+        advancedLabelKey="documents.advancedFilters"
+      />
 
       {/* Content area — the ONLY scrollable region */}
       <div className="flex-1 min-h-0 overflow-y-auto">
@@ -182,18 +174,19 @@ export function DocumentsListView({ orgId }: DocumentsListViewProps) {
         />
       )}
 
-      {/* Advanced filters modal */}
-      {showAdvanced && (
-        <ComplexSearchModal
-          filters={search}
-          onApply={(next) => {
-            setSearch(next);
-            setTerm(next.searchTerm ?? '');
-            setPage(0);
-          }}
-          onClose={() => setShowAdvanced(false)}
-        />
-      )}
+      {/* Advanced filters modal — rendered unconditionally so the close
+          animation plays. The shell handles mount/unmount around the
+          `open` prop. */}
+      <ComplexSearchModal
+        open={showAdvanced}
+        filters={search}
+        onApply={(next) => {
+          setSearch(next);
+          setTerm(next.searchTerm ?? '');
+          setPage(0);
+        }}
+        onClose={() => setShowAdvanced(false)}
+      />
     </div>
   );
 }

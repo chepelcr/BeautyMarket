@@ -7,13 +7,24 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import type { Product, Category } from "@/types";
-import { Icon, Button, EmptyState, Pagination } from "@/components/ui";
+import { Button, EmptyState, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProductGridView } from "@/components/products/ProductGridView";
-import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductBulkBar } from "@/components/products/ProductBulkBar";
 import { ProductDrawerForm, EMPTY_FORM, type ProductFormState } from "@/components/products/ProductDrawerForm";
 import { ProductSkeletonCard } from "@/components/products/ProductSkeletonCard";
+import {
+  ProductAdvancedFiltersModal,
+  type ProductAdvancedFilters,
+} from "@/components/products/ProductAdvancedFiltersModal";
+import { ListToolbar, type StatusOption } from "@/components/common/ListToolbar";
+
+type ProductStatusValue = "1" | "2" | "all";
+const PRODUCT_STATUS_OPTIONS: readonly StatusOption<ProductStatusValue>[] = [
+  { value: "1", labelKey: "products.statusActive" },
+  { value: "2", labelKey: "products.statusInactive" },
+  { value: "all", labelKey: "products.statusAll" },
+];
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -33,11 +44,16 @@ export default function ProductsPage() {
   const { confirm, ConfirmModal } = useConfirmModal();
   const [, navigate] = useLocation();
 
-  const [view, setView] = useState<"grid" | "table">("grid");
-  const [search, setSearch] = useState("");
+  const [term, setTerm] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(24);
-  const [categoryFilter, setCategoryFilter] = useState("Todos");
+  // Most-used filters live on the toolbar: status defaults to "1" (Active) so
+  // the page lands on the active catalog by default — same UX the documents
+  // page provides for issued/received.
+  const [statusFilter, setStatusFilter] = useState<ProductStatusValue>("1");
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [advanced, setAdvanced] = useState<ProductAdvancedFilters>({});
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState("");
@@ -52,14 +68,50 @@ export default function ProductsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page]);
 
+  // Compose the BE search filter string (see ProductSearchFilters in
+  // cross-app-be: `status:`, `category_id:`, `name:*term*`, `price:`,
+  // `orderBy>field`). Filters are joined with commas; only non-empty
+  // segments are included.
+  const searchFilter = (() => {
+    const segs: string[] = [];
+    if (statusFilter !== "all") segs.push(`status:${statusFilter}`);
+    if (categoryId) segs.push(`category_id:${categoryId}`);
+    const t = term.trim();
+    if (t) {
+      // OR match: partial name OR exact code. BE supports `(...)` groups —
+      // the term is wildcard-wrapped for `name` (LIKE) and passed bare to
+      // `code` so JSONB containment matches the full barcode/internal code.
+      segs.push(`(name:*${t}*,code:${t})`);
+    }
+    // Price filter — two shapes:
+    //   • Single mode: operator + value → `price:X` / `price>X` / `price<X`.
+    //   • Range mode:  both bounds → `price:X~Y`; one bound only falls back
+    //     to `>` / `<` so the user can still e.g. type only a min.
+    if (advanced.priceMode === "single") {
+      if (advanced.priceValue !== undefined) {
+        const op = advanced.priceOp ?? "=";
+        const beOp = op === "=" ? ":" : op; // ":" is the BE equality operator.
+        segs.push(`price${beOp}${advanced.priceValue}`);
+      }
+    } else if (advanced.priceMin !== undefined && advanced.priceMax !== undefined) {
+      segs.push(`price:${advanced.priceMin}~${advanced.priceMax}`);
+    } else if (advanced.priceMin !== undefined) {
+      segs.push(`price>${advanced.priceMin}`);
+    } else if (advanced.priceMax !== undefined) {
+      segs.push(`price<${advanced.priceMax}`);
+    }
+    if (advanced.sort) segs.push(`orderBy${advanced.sort}`);
+    return segs.join(",");
+  })();
+
   const { data: productsResponse, isLoading } = useQuery({
-    queryKey: ["products", org?.id, search, page, pageSize],
+    queryKey: ["products", org?.id, searchFilter, page, pageSize],
     enabled: !!user && !!org,
     queryFn: async () => {
       const params = new URLSearchParams({
         page: String(page),
-        page_size: String(pageSize), // Backend uses snake_case
-        ...(search && { search }),
+        page_size: String(pageSize),
+        ...(searchFilter && { search: searchFilter }),
       });
       const result = await ordersApi.get<{ data: Product[] } | Product[]>(
         `${ordersOrgPath(org!.id, "/products")}?${params}`
@@ -98,7 +150,7 @@ export default function ProductsPage() {
 
   const updateProduct = useMutation({
     mutationFn: ({ id, body }: { id: string; body: object }) =>
-      ordersApi.patch(ordersOrgPath(org!.id, `/products/${id}`), body),
+      ordersApi.put(ordersOrgPath(org!.id, `/products/${id}`), body),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["products", org?.id] }); setDrawerProduct(null); },
   });
 
@@ -111,7 +163,7 @@ export default function ProductsPage() {
   const openNew = () => { setForm({ ...EMPTY_FORM }); setImageFile(null); setUnitsPerBox(""); setDrawerProduct("new"); };
 
   const openEdit = (p: Product) => {
-    const hasCabys = !!(p.cabys?.trim());
+    const hasCabys = !!p.cabys?.id;
     const hasTaxes = (p.taxes ?? []).length > 0;
     setForm({
       name: p.name,
@@ -122,31 +174,39 @@ export default function ProductsPage() {
       has_fiscal_info: hasCabys || hasTaxes,
       has_package_info: !!(p.units_per_box && p.units_per_box > 0),
       low_stock_threshold: p.low_stock_threshold ? String(p.low_stock_threshold) : "",
-      cabys: p.cabys ?? "",
-      cabysDescription: "",
-      productTypeId: undefined,
+      cabysId: p.cabys?.id ?? "",
+      cabys: p.cabys?.code ?? "",
+      cabysDescription: p.cabys?.description ?? "",
+      productTypeId: p.cabys?.product_type_id ?? undefined,
       factoryTaxChargeId: undefined,
       hasFactoryTax: false,
+      // BE returns Hacienda code strings in *_type_id fields (see _map_product in cross-app-be).
+      // Form entries carry the code only — numeric data-services catalog ids are looked up by
+      // section components when needed (e.g. tax-amounts filter by data-services tax_id).
       codes: (p.codes ?? []).map((c: any) => ({
-        codeTypeId: Number(c.code_type_id),
-        codeTypeCode: c.code_type_id,
+        codeTypeCode: String(c.code_type_id ?? ""),
         codeTypeDescription: "",
         value: c.number,
         reason: c.description,
       })),
       taxes: (p.taxes ?? []).map((t: any) => ({
-        taxTypeId: t.tax_type_id,
-        taxCode: t.tax_code ?? "",
+        taxCode: String(t.tax_type_id ?? ""),
         taxDescription: "",
-        rate: t.rate,
+        rate: t.tax_rate?.percentage ?? t.rate ?? 0,
         taxRateId: t.tax_rate?.id,
         taxFactorId: t.tax_factor?.id,
-        specialFields: t.special_fields as any,
+        taxFactor: t.tax_factor?.factor,
+        specialFields: t.special_fields ? {
+          quantity: t.special_fields.quantity,
+          percentage: t.special_fields.percentage,
+          volumeConsumption: t.special_fields.volume_consumption,
+          taxAmountId: t.special_fields.tax_amount?.id,
+          taxAmount: t.special_fields.tax_amount?.amount,
+        } : undefined,
       })),
       discounts: (p.discounts ?? []).map((d: any, i: number) => ({
         id: `edit-${d.discount_type_id}-${i}`,
-        discountTypeId: d.discount_type_id,
-        discountCode: "",
+        discountCode: String(d.discount_type_id ?? ""),
         description: "",
         rate: d.percentage ?? d.rate,
         reason: d.reason,
@@ -173,45 +233,42 @@ export default function ProductsPage() {
         // Packaging
         units_per_box: unitsPerBox ? Number(unitsPerBox) : undefined,
         
-        // Fiscal - CABYS (backend expects object with code, name, type)
-        cabys: form.cabys && form.productTypeId ? {
-          code: form.cabys,
-          name: form.cabysDescription || form.cabys,
-          type: form.productTypeId,
-        } : undefined,
+        // CABYS — single UUID referencing an existing data-services cabys row.
+        cabys_id: form.cabysId || undefined,
         
-        // Product codes (barcode, manufacturer, etc.)
+        // Product codes — Hacienda code strings (01/02/03/04/99).
         codes: form.codes.length > 0 ? form.codes.map(c => ({
-          code_type_id: String(c.codeTypeId).padStart(2, '0'),
+          code_type_id: c.codeTypeCode,
           number: c.value,
           description: c.reason || undefined,
         })) : undefined,
-        
-        // Taxes with full structure
+
+        // Taxes — BE keys taxes by Hacienda code (01 IVA, 02 ISC, ...). tax_factor.factor and
+        // special_fields.tax_amount.amount carry real catalog values captured at select time.
         taxes: form.taxes.length > 0 ? form.taxes.map(t => ({
-          tax_type_id: String(t.taxTypeId).padStart(2, '0'),
+          tax_type_id: t.taxCode,
           tax_rate: t.taxRateId ? {
             id: String(t.taxRateId),
             percentage: t.rate,
           } : undefined,
           tax_factor: t.taxFactorId ? {
             id: String(t.taxFactorId),
-            factor: 1, // Factor value is looked up by backend
+            factor: t.taxFactor ?? 0,
           } : undefined,
           special_fields: t.specialFields ? {
             quantity: t.specialFields.quantity,
             percentage: t.specialFields.percentage,
             tax_amount: t.specialFields.taxAmountId ? {
               id: String(t.specialFields.taxAmountId),
-              amount: 0, // Amount is looked up by backend
+              amount: t.specialFields.taxAmount ?? 0,
             } : undefined,
             volume_consumption: t.specialFields.volumeConsumption,
           } : undefined,
         })) : undefined,
-        
-        // Discounts with reason field
+
+        // Discounts — Hacienda discount type code (01/02/03/99).
         discounts: form.discounts.length > 0 ? form.discounts.map(d => ({
-          discount_type_id: String(d.discountTypeId).padStart(2, '0'),
+          discount_type_id: d.discountCode,
           percentage: d.rate,
           reason: d.reason || undefined,
         })) : undefined,
@@ -228,16 +285,15 @@ export default function ProductsPage() {
     } finally { setSaving(false); }
   };
 
-  const categoryLabels = ["Todos", ...allCategories.map(c => c.name)];
-
-  const filtered = products.filter((p) => {
-    const matchCat = categoryFilter === "Todos" || p.category?.name === categoryFilter;
-    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  });
-
+  // Filters now run BE-side via `searchFilter`. The list rendered here is
+  // already filtered by status/category/term/advanced.
   const toggleSelect = (id: string) => setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
-  const toggleAll = () => setSelected((s) => s.length === filtered.length ? [] : filtered.map((p) => p.product_id));
+
+  const hasAdvancedFilters =
+    advanced.priceValue !== undefined ||
+    advanced.priceMin !== undefined ||
+    advanced.priceMax !== undefined ||
+    !!advanced.sort;
   
   // Navigate to product detail page
   const goToDetail = (productId: string) => navigate(`${ROUTES.DASHBOARD_PRODUCTS}/${productId}`);
@@ -284,33 +340,30 @@ export default function ProductsPage() {
         <Button variant="primary" size="sm" icon="plus" onClick={openNew}>{t("products.newProduct")}</Button>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex gap-2.5 mb-6 flex-wrap items-center">
-        <div className="relative max-w-[400px]" style={{ flex: "1 1 280px" }}>
-          <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-          <input
-            className="pp-input w-full pl-9"
-            placeholder={t("products.searchPlaceholder")}
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          />
-        </div>
-        <select
-          className="pp-input w-[180px]"
-          value={categoryFilter}
-          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-        >
-          {categoryLabels.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <div className="tabs">
-          <button className="tab" aria-selected={view === "grid"} onClick={() => setView("grid")}>
-            <Icon name="grid" size={12} /> {t("products.cards")}
-          </button>
-          <button className="tab" aria-selected={view === "table"} onClick={() => setView("table")}>
-            <Icon name="sort" size={12} /> {t("products.table")}
-          </button>
-        </div>
-      </div>
+      <ListToolbar<ProductStatusValue>
+        searchValue={term}
+        onSearchChange={(next) => { setTerm(next); setPage(1); }}
+        searchPlaceholderKey="products.searchPlaceholder"
+        statusValue={statusFilter}
+        onStatusChange={(next) => { setStatusFilter(next); setPage(1); }}
+        statusOptions={PRODUCT_STATUS_OPTIONS}
+        statusAriaLabelKey="products.statusFilter"
+        secondary={
+          <select
+            className="pp-input h-10 w-full"
+            value={categoryId}
+            onChange={(e) => { setCategoryId(e.target.value); setPage(1); }}
+          >
+            <option value="">{t("products.allCategories")}</option>
+            {allCategories.map((c) => (
+              <option key={c.category_id} value={c.category_id}>{c.name}</option>
+            ))}
+          </select>
+        }
+        onAdvancedClick={() => setShowAdvanced(true)}
+        hasAdvancedFilters={hasAdvancedFilters}
+        advancedLabelKey="products.advancedFilters"
+      />
 
       {/* Bulk actions bar */}
       {selected.length > 0 && (
@@ -321,35 +374,18 @@ export default function ProductsPage() {
         <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
           {Array.from({ length: pageSize }).map((_, i) => <ProductSkeletonCard key={i} />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : products.length === 0 ? (
         <EmptyState icon="package" title={t("products.noProducts")} description={t("products.noResults")} />
       ) : (
-        <>
-          {view === "grid" && (
-            <ProductGridView
-              products={filtered}
-              selected={selected}
-              onToggleSelect={toggleSelect}
-              onEdit={openEdit}
-              onToggleActive={handleToggleActive}
-              onNavigate={goToDetail}
-              {...priceEditorProps}
-            />
-          )}
-          {view === "table" && (
-            <ProductTableView
-              products={filtered}
-              allProducts={products}
-              selected={selected}
-              onToggleSelect={toggleSelect}
-              onToggleAll={toggleAll}
-              onEdit={openEdit}
-              onToggleActive={handleToggleActive}
-              onNavigate={goToDetail}
-              {...priceEditorProps}
-            />
-          )}
-        </>
+        <ProductGridView
+          products={products}
+          selected={selected}
+          onToggleSelect={toggleSelect}
+          onEdit={openEdit}
+          onToggleActive={handleToggleActive}
+          onNavigate={goToDetail}
+          {...priceEditorProps}
+        />
       )}
 
       {/* Pagination */}
@@ -385,6 +421,14 @@ export default function ProductsPage() {
         onUnitsPerBoxChange={setUnitsPerBox}
         onSave={handleSave}
         onDelete={() => { if (drawerProduct && drawerProduct !== "new") deleteProduct.mutate(drawerProduct.product_id); }}
+      />
+
+      <ProductAdvancedFiltersModal
+        open={showAdvanced}
+        orgId={org!.id}
+        filters={advanced}
+        onApply={(next) => { setAdvanced(next); setPage(1); }}
+        onClose={() => setShowAdvanced(false)}
       />
 
       {/* Confirmation Modal */}

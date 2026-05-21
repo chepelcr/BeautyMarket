@@ -38,12 +38,12 @@ export function DiscountsSection({
   const totalExceeds = totalPct > 100;
   const totalAmount = basePrice * totalPct / 100;
 
-  const grouped = discounts.reduce<Record<number, DiscountFormEntry[]>>((acc, d) => {
-    if (!acc[d.discountTypeId]) acc[d.discountTypeId] = [];
-    acc[d.discountTypeId].push(d);
+  const grouped = discounts.reduce<Record<string, DiscountFormEntry[]>>((acc, d) => {
+    if (!acc[d.discountCode]) acc[d.discountCode] = [];
+    acc[d.discountCode].push(d);
     return acc;
   }, {});
-  const typeIds = Object.keys(grouped).map(Number);
+  const groupCodes = Object.keys(grouped);
 
   return (
     <SectionWrapper
@@ -61,13 +61,13 @@ export function DiscountsSection({
           </div>
         )}
 
-        {typeIds.map((typeId) => {
-          const group = grouped[typeId];
+        {groupCodes.map((typeCode) => {
+          const group = grouped[typeCode];
           const typeName = group[0].description;
-          const isOtros = group[0].discountCode === "99";
+          const isOtros = typeCode === "99";
 
           return (
-            <div key={typeId}>
+            <div key={typeCode}>
               <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.05em] mb-1">
                 {typeName}
               </div>
@@ -84,11 +84,15 @@ export function DiscountsSection({
                         <input
                           type="number"
                           className="pp-input w-[72px] !h-auto !px-2 !py-[3px] text-xs"
-                          placeholder="%"
+                          placeholder="0"
                           min={0}
                           max={100}
-                          value={disc.rate ?? 0}
-                          onChange={(e) => onUpdate(disc.id, { rate: Number(e.target.value) })}
+                          value={disc.rate ?? ""}
+                          onChange={(e) =>
+                            onUpdate(disc.id, {
+                              rate: e.target.value === "" ? undefined : Number(e.target.value),
+                            })
+                          }
                         />
                         <span className="text-[11px] text-muted-foreground">%</span>
 
@@ -151,22 +155,23 @@ export function DiscountsSection({
           value=""
           onChange={(e) => {
             const dt = discountTypeList.find(
-              (d: { id: number }) => String(d.id) === e.target.value
+              (d: { code?: string }) => (d.code ?? "") === e.target.value
             );
             if (dt) {
               onAdd({
                 id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                discountTypeId: dt.id,
                 discountCode: (dt as { code?: string }).code ?? "",
                 description: dt.description,
-                rate: 0,
+                // Leave rate undefined so the input shows its placeholder
+                // until the user actually types a value.
+                rate: undefined,
               });
             }
           }}
         >
           <option value="">{t("products.addDiscount")}</option>
-          {discountTypeList.map((dt: { id: number; description: string }) => (
-            <option key={dt.id} value={String(dt.id)}>
+          {discountTypeList.map((dt: { code?: string; description: string }) => (
+            <option key={dt.code ?? ""} value={dt.code ?? ""}>
               {dt.description}
             </option>
           ))}

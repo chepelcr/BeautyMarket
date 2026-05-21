@@ -40,12 +40,19 @@ export function CommercialValueSection({
   const taxEntries = taxes.map((tx) => ({
     code: tx.taxCode,
     rate: tx.rate,
-    special_fields: tx.specialFields,
+    factor: tx.taxFactor,
+    special_fields: tx.specialFields
+      ? {
+          quantity: tx.specialFields.quantity,
+          percentage: tx.specialFields.percentage,
+          volume_consumption: tx.specialFields.volumeConsumption,
+          tax_amount_id: tx.specialFields.taxAmountId,
+          tax_unit_amount: tx.specialFields.taxAmount,
+        }
+      : undefined,
   })) as LineTax[];
   const discountEntries = discounts.map((d) => ({
-    discount_type:
-      ((d as any).discountCode as string) ??
-      String(d.discountTypeId).padStart(2, '0'),
+    discount_type: d.discountCode,
     percentage: d.rate ?? 0,
   })) as LineDiscount[];
 
@@ -101,12 +108,12 @@ export function CommercialValueSection({
       <div>
         <FormLabel required>{t("products.basePriceNoTax")}</FormLabel>
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground pointer-events-none">
             ₡
           </span>
           <input
             type="number"
-            className="pp-input pl-6"
+            className="pp-input pl-8"
             placeholder="0"
             min={0}
             value={form.price}

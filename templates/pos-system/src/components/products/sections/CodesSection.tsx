@@ -33,7 +33,7 @@ export function CodesSection({
   const codeTypes = codesData ?? [];
 
   const availableTypes = codeTypes.filter(
-    (ct: { id: number }) => !codes.some((c) => c.codeTypeId === ct.id)
+    (ct: { code?: string }) => !codes.some((c) => c.codeTypeCode === (ct.code ?? ""))
   );
 
   return (
@@ -96,11 +96,10 @@ export function CodesSection({
             value=""
             onChange={(e) => {
               const ct = codeTypes.find(
-                (c: { id: number }) => String(c.id) === e.target.value
+                (c: { code?: string }) => (c.code ?? "") === e.target.value
               );
               if (ct) {
                 onAdd({
-                  codeTypeId: ct.id,
                   codeTypeCode: (ct as { code?: string }).code ?? "",
                   codeTypeDescription: ct.description,
                   value: "",
@@ -109,8 +108,8 @@ export function CodesSection({
             }}
           >
             <option value="">{t("products.addCodeType")}</option>
-            {availableTypes.map((ct: { id: number; description: string }) => (
-              <option key={ct.id} value={String(ct.id)}>
+            {availableTypes.map((ct: { code?: string; description: string }) => (
+              <option key={ct.code ?? ""} value={ct.code ?? ""}>
                 {ct.description}
               </option>
             ))}

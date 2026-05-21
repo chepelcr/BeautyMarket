@@ -96,7 +96,7 @@ export default function ProductDetailPage({ productId }: Props) {
 
   const updateProduct = useMutation({
     mutationFn: ({ id, body }: { id: string; body: object }) =>
-      ordersApi.patch(ordersOrgPath(org!.id, `/products/${id}`), body),
+      ordersApi.put(ordersOrgPath(org!.id, `/products/${id}`), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["product", org?.id, productId] });
       qc.invalidateQueries({ queryKey: ["products", org?.id] });
@@ -122,7 +122,7 @@ export default function ProductDetailPage({ productId }: Props) {
 
   const openEdit = () => {
     if (!product) return;
-    const hasCabys = !!(product.cabys?.trim());
+    const hasCabys = !!product.cabys?.id;
     const hasTaxes = (product.taxes ?? []).length > 0;
     setForm({
       name: product.name,
@@ -133,31 +133,36 @@ export default function ProductDetailPage({ productId }: Props) {
       has_fiscal_info: hasCabys || hasTaxes,
       has_package_info: !!(product.units_per_box && product.units_per_box > 0),
       low_stock_threshold: product.low_stock_threshold ? String(product.low_stock_threshold) : "",
-      cabys: product.cabys ?? "",
-      cabysDescription: "",
-      productTypeId: undefined,
+      cabysId: product.cabys?.id ?? "",
+      cabys: product.cabys?.code ?? "",
+      cabysDescription: product.cabys?.description ?? "",
+      productTypeId: product.cabys?.product_type_id ?? undefined,
       factoryTaxChargeId: undefined,
       hasFactoryTax: false,
       codes: (product.codes ?? []).map((c: any) => ({
-        codeTypeId: Number(c.code_type_id),
-        codeTypeCode: c.code_type_id,
+        codeTypeCode: String(c.code_type_id ?? ""),
         codeTypeDescription: "",
         value: c.number,
         reason: c.description,
       })),
       taxes: (product.taxes ?? []).map((t: any) => ({
-        taxTypeId: t.tax_type_id,
-        taxCode: t.tax_code ?? "",
+        taxCode: String(t.tax_type_id ?? ""),
         taxDescription: "",
-        rate: t.rate,
+        rate: t.tax_rate?.percentage ?? t.rate ?? 0,
         taxRateId: t.tax_rate?.id,
         taxFactorId: t.tax_factor?.id,
-        specialFields: t.special_fields as any,
+        taxFactor: t.tax_factor?.factor,
+        specialFields: t.special_fields ? {
+          quantity: t.special_fields.quantity,
+          percentage: t.special_fields.percentage,
+          volumeConsumption: t.special_fields.volume_consumption,
+          taxAmountId: t.special_fields.tax_amount?.id,
+          taxAmount: t.special_fields.tax_amount?.amount,
+        } : undefined,
       })),
       discounts: (product.discounts ?? []).map((d: any, i: number) => ({
         id: `edit-${d.discount_type_id}-${i}`,
-        discountTypeId: d.discount_type_id,
-        discountCode: "",
+        discountCode: String(d.discount_type_id ?? ""),
         description: "",
         rate: d.percentage ?? d.rate,
         reason: d.reason,
@@ -180,38 +185,34 @@ export default function ProductDetailPage({ productId }: Props) {
         track_inventory: form.track_inventory,
         low_stock_threshold: form.track_inventory && form.low_stock_threshold ? Number(form.low_stock_threshold) : undefined,
         units_per_box: unitsPerBox ? Number(unitsPerBox) : undefined,
-        cabys: form.cabys && form.productTypeId ? {
-          code: form.cabys,
-          name: form.cabysDescription || form.cabys,
-          type: form.productTypeId,
-        } : undefined,
+        cabys_id: form.cabysId || undefined,
         codes: form.codes.length > 0 ? form.codes.map(c => ({
-          code_type_id: String(c.codeTypeId).padStart(2, '0'),
+          code_type_id: c.codeTypeCode,
           number: c.value,
           description: c.reason || undefined,
         })) : undefined,
         taxes: form.taxes.length > 0 ? form.taxes.map(t => ({
-          tax_type_id: String(t.taxTypeId).padStart(2, '0'),
+          tax_type_id: t.taxCode,
           tax_rate: t.taxRateId ? {
             id: String(t.taxRateId),
             percentage: t.rate,
           } : undefined,
           tax_factor: t.taxFactorId ? {
             id: String(t.taxFactorId),
-            factor: 1,
+            factor: t.taxFactor ?? 0,
           } : undefined,
           special_fields: t.specialFields ? {
             quantity: t.specialFields.quantity,
             percentage: t.specialFields.percentage,
             tax_amount: t.specialFields.taxAmountId ? {
               id: String(t.specialFields.taxAmountId),
-              amount: 0,
+              amount: t.specialFields.taxAmount ?? 0,
             } : undefined,
             volume_consumption: t.specialFields.volumeConsumption,
           } : undefined,
         })) : undefined,
         discounts: form.discounts.length > 0 ? form.discounts.map(d => ({
-          discount_type_id: String(d.discountTypeId).padStart(2, '0'),
+          discount_type_id: d.discountCode,
           percentage: d.rate,
           reason: d.reason || undefined,
         })) : undefined,
@@ -379,7 +380,9 @@ export default function ProductDetailPage({ productId }: Props) {
         {/* Fiscal Info */}
         {hasFiscalInfo && (
           <Section title="Información fiscal" icon="fileText">
-            {product.cabys && <InfoRow icon="hash" label="Código CABYS" value={product.cabys} />}
+            {product.cabys && (
+              <InfoRow icon="hash" label="Código CABYS" value={product.cabys.code} />
+            )}
             {product.taxes && product.taxes.length > 0 && (
               <InfoRow icon="percent" label="Impuestos" value={`${product.taxes.length} configurado(s)`} />
             )}

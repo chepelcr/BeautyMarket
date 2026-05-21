@@ -119,9 +119,16 @@ export class TaxCalculationService {
       if (!tax_type) return;
 
       const tax_amount_id = tax.special_fields?.tax_amount_id;
-      const tax_amount = tax_amounts[tax.code ?? '']?.find(
+      // Prefer the inline unit amount captured at select time (product form path).
+      // Fall back to a catalog lookup (cart line-detail path, which passes tax_amounts).
+      const catalog_amount = tax_amounts[tax.code ?? '']?.find(
         (ta) => ta.id === tax_amount_id
       );
+      const inline_unit_amount = tax.special_fields?.tax_unit_amount;
+      const tax_amount: TaxAmount | undefined =
+        inline_unit_amount !== undefined
+          ? { id: tax_amount_id ?? 0, amount: inline_unit_amount }
+          : catalog_amount;
       const tax_config = getTaxConfig(tax_type.code);
 
       const amount = this.calculateTaxAmount({

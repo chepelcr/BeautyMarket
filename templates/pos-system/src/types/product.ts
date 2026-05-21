@@ -40,8 +40,17 @@ export interface Product {
   track_inventory?: boolean;
   low_stock_threshold?: number;
   units_per_box?: number;
-  unit_id?: number;
-  cabys?: string | null;
+  /** Canonical Hacienda unit-of-measure code ("Unid", "Sp", "kg", ...). */
+  unit_measure?: string;
+  /** Nested CABYS object returned by the BE — `{id, code, description?, ...}`. */
+  cabys?: {
+    id: string;
+    code: string;
+    description?: string | null;
+    product_type_id?: number | null;
+    tax_rate_id?: number | null;
+    country_code?: string | null;
+  } | null;
   codes?: Array<{
     code_type_id: string;
     number: string;

@@ -30,6 +30,7 @@ export const EMPTY_FORM: ProductFormState = {
   has_fiscal_info: false,
   has_package_info: false,
   low_stock_threshold: "",
+  cabysId: "",
   cabys: "",
   cabysDescription: "",
   productTypeId: undefined,
@@ -172,21 +173,21 @@ export function ProductDrawerForm({
     if (generalStarted) setExpanded((p) => ({ ...p, commercial: true, discounts: true }));
   }, [generalStarted]);
 
-  // Tax management
+  // Tax management — keyed by Hacienda tax code
   const addTax = (entry: TaxFormEntry) => {
-    const already = form.taxes.some((t) => t.taxTypeId === entry.taxTypeId);
+    const already = form.taxes.some((t) => t.taxCode === entry.taxCode);
     if (already) return;
     onFormChange({ taxes: [...form.taxes, entry] });
   };
 
-  const removeTax = (taxTypeId: number) => {
-    onFormChange({ taxes: form.taxes.filter((t) => t.taxTypeId !== taxTypeId) });
+  const removeTax = (taxCode: string) => {
+    onFormChange({ taxes: form.taxes.filter((t) => t.taxCode !== taxCode) });
   };
 
-  const updateTax = (taxTypeId: number, patch: Partial<TaxFormEntry>) => {
+  const updateTax = (taxCode: string, patch: Partial<TaxFormEntry>) => {
     onFormChange({
       taxes: form.taxes.map((t) =>
-        t.taxTypeId === taxTypeId ? { ...t, ...patch } : t
+        t.taxCode === taxCode ? { ...t, ...patch } : t
       ),
     });
   };
@@ -205,7 +206,6 @@ export function ProductDrawerForm({
     ) ?? allRates[0];
 
     const ivaEntry: TaxFormEntry = {
-      taxTypeId: ivaTaxType.id,
       taxCode: ivaTaxType.code ?? "01",
       taxDescription: ivaTaxType.description,
       rate: (matchingRate as { percentage: number })?.percentage ?? suggestedPct,
@@ -234,6 +234,7 @@ export function ProductDrawerForm({
     if ("has_fiscal_info" in patch && !patch.has_fiscal_info) {
       fullPatch = {
         ...fullPatch,
+        cabysId: "",
         cabys: "",
         cabysDescription: "",
         productTypeId: undefined,
@@ -316,17 +317,22 @@ export function ProductDrawerForm({
         taxes: form.taxes.map((tx) => ({
           code: tx.taxCode,
           rate: tx.rate,
-          special_fields: tx.specialFields,
+          // Inline factor (IVARBU) and unit amount (special-amount taxes) so the
+          // preview matches what the BE will compute from the same payload.
+          factor: tx.taxFactor,
+          special_fields: tx.specialFields
+            ? {
+                quantity: tx.specialFields.quantity,
+                percentage: tx.specialFields.percentage,
+                volume_consumption: tx.specialFields.volumeConsumption,
+                tax_amount_id: tx.specialFields.taxAmountId,
+                tax_unit_amount: tx.specialFields.taxAmount,
+              }
+            : undefined,
         })) as LineTax[],
         tax_types: (taxesData ?? []) as any,
-        // The product-edit form holds discountTypeId internally; project
-        // to the canonical Hacienda code string when feeding the calc
-        // service. (ProductDrawerForm has its own discounts catalog loaded
-        // elsewhere — use the form's `discountCode` field when present.)
         discounts: form.discounts.map((d) => ({
-          discount_type:
-            ((d as any).discountCode as string) ??
-            String(d.discountTypeId).padStart(2, '0'),
+          discount_type: d.discountCode,
           percentage: d.rate ?? 0,
         })) as LineDiscount[],
         detail_quantity: 1,

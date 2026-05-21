@@ -217,7 +217,12 @@ export function useCartFlow(options: UseCartFlowOptions = {}) {
           quantity: item.qty,
           unit_measure: ld?.unit_measure,
           net_price: item.netPrice,
-          cabys: item.cabys ?? ld?.cabys,
+          // BE Product.cabys is now an object {id, code, ...} but the sales-line
+          // payload expects the bare code string. Tolerate both shapes here.
+          cabys:
+            (typeof (item as any).cabys === 'string'
+              ? (item as any).cabys
+              : (item as any).cabys?.code) ?? ld?.cabys,
           taxes: (ld?.taxes as any[]) ?? [],
           discounts: lineDiscounts,
         };

@@ -1,33 +1,59 @@
+/**
+ * Hacienda-code-only entry shapes.
+ *
+ * The BE keys taxes/discounts/codes by their Hacienda code STRING (e.g. "01" IVA,
+ * "99" Otros) — see `app/utils/product_calculations.py` and the `TaxType` /
+ * `DiscountType` / `ProductCodeType` enums in cross-app-be. The numeric DB ids
+ * from data-services are not part of that contract and were a source of
+ * round-trip bugs (sending DB id "17" as discount_type_id, etc.), so the form
+ * stores only the canonical code.
+ *
+ * The remaining numeric ids on these entries (taxRateId, taxFactorId,
+ * taxAmountId) are intentionally kept — they reference data-services catalog
+ * rows that have no Hacienda equivalent, and the BE accepts them as opaque
+ * string references on `tax_rate.id` / `tax_factor.id` / `tax_amount.id`.
+ */
+
 export interface TaxFormEntry {
-  taxTypeId: number;
+  /** Hacienda tax type code: "01" IVA, "02" ISC, "07" IVACE, "08" IVARBU, "99" OTROS, etc. */
   taxCode: string;
   taxDescription: string;
   rate: number;
+  /** data-services tax-rate catalog id (opaque). */
   taxRateId?: number;
+  /** data-services tax-factor catalog id (opaque). */
   taxFactorId?: number;
+  /** IVARBU factor value (e.g. 0.13). Captured at select time so the BE receives the real number. */
+  taxFactor?: number;
   specialFields?: {
     quantity?: number;
     percentage?: number;
+    /** data-services tax-amount catalog id (opaque). */
     taxAmountId?: number;
+    /** Unit amount from the tax-amounts catalog. Captured at select time so the BE receives the real number. */
+    taxAmount?: number;
     volumeConsumption?: number;
   };
 }
 
 export interface DiscountFormEntry {
-  id: string; // unique key (uuid-lite, e.g. Date.now+random)
-  discountTypeId: number;
+  /** Stable client-side key (Hacienda allows multiple discounts of the same type). */
+  id: string;
+  /** Hacienda discount type code: "01" TRADE, "02" VOLUME, "03" PROMOTIONAL, "99" OTROS. */
   discountCode: string;
   description: string;
   rate?: number;
-  reason?: string; // required when discountCode === "99" (Otros)
+  /** Required when discountCode === "99" (Otros). */
+  reason?: string;
 }
 
 export interface CodeFormEntry {
-  codeTypeId: number;
+  /** Hacienda product-code type: "01" VENDOR, "02" BUYER, "03" MANUFACTURER, "04" INTERNAL, "99" OTROS. */
   codeTypeCode: string;
   codeTypeDescription: string;
   value: string;
-  reason?: string; // required when codeTypeCode === "99" (Otros)
+  /** Required when codeTypeCode === "99" (Otros). */
+  reason?: string;
 }
 
 export interface ProductFormState {
@@ -45,6 +71,9 @@ export interface ProductFormState {
   low_stock_threshold: string;
 
   // Fiscal
+  /** UUID of the data-services cabys row — this is what the BE wants for linking. */
+  cabysId: string;
+  /** 13-digit Hacienda code — kept for display + local tax calc branching (ISEBEC "2202"/"3401"). */
   cabys: string;
   cabysDescription: string;
   productTypeId?: number;
@@ -75,6 +104,7 @@ export const EMPTY_PRODUCT_FORM: ProductFormState = {
   has_fiscal_info: false,
   has_package_info: false,
   low_stock_threshold: "",
+  cabysId: "",
   cabys: "",
   cabysDescription: "",
   productTypeId: undefined,
