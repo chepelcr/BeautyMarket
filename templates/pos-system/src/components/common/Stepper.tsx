@@ -101,73 +101,87 @@ export function Stepper({
     <div className="flex flex-col gap-6" onKeyDown={handleKeyDown}>
       {/* Step rail
        *
-       * Mobile (default): chips wrap onto multiple rows via `flex-wrap` —
-       * 5 steps land naturally on 2 rows on phones without horizontal scroll
-       * or overlap. Connector lines are hidden in this mode because wrap
-       * leaves them dangling at row ends.
+       * Mobile (default): 6-column CSS grid that splits the steps into two
+       * tidy rows. `topCount = ceil(N/2)` chips share the top row and
+       * `N - topCount` chips share the bottom row, each chip spanning
+       * `6 / rowCount` columns so the rows are evenly divided. For our 5-step
+       * fiscal flow that lands 3 chips on top + 2 chips on the bottom (each
+       * top chip span 2, each bottom chip span 3). No horizontal scroll, no
+       * dangling connectors.
        *
-       * ≥640px: chips line up in a single row with the connector segments
-       * between them, like the original wider-viewport layout.
+       * ≥640px: the outer container switches to `flex flex-wrap` and the
+       * `gridColumn` inline style on each chip becomes a no-op, so the chips
+       * revert to the inline single-row layout with connector segments.
        */}
-      {!hideRail && visibleSteps.length > 1 && (
-        <nav
-          aria-label={t("common.steps")}
-          className="flex flex-wrap items-center gap-x-2 gap-y-2 pb-1"
-        >
-          {visibleSteps.map((step, idx) => {
-            const isActive = idx === visibleIndex;
-            const isComplete = idx < visibleIndex;
-            const isUpcoming = idx > visibleIndex;
+      {!hideRail && visibleSteps.length > 1 && (() => {
+        const topCount = Math.ceil(visibleSteps.length / 2);
+        const bottomCount = visibleSteps.length - topCount;
+        const topSpan = Math.max(1, Math.floor(6 / topCount));
+        const bottomSpan = bottomCount > 0 ? Math.max(1, Math.floor(6 / bottomCount)) : 6;
 
-            return (
-              <div
-                key={step.id}
-                className="flex items-center gap-2 flex-shrink-0"
-                aria-current={isActive ? "step" : undefined}
-              >
+        return (
+          <nav
+            aria-label={t("common.steps")}
+            className="grid grid-cols-6 gap-2 pb-1 sm:flex sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-2"
+          >
+            {visibleSteps.map((step, idx) => {
+              const isActive = idx === visibleIndex;
+              const isComplete = idx < visibleIndex;
+              const isUpcoming = idx > visibleIndex;
+              const isTopRow = idx < topCount;
+              const span = isTopRow ? topSpan : bottomSpan;
+
+              return (
                 <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${
-                    isActive
-                      ? "border-primary bg-primary/10 text-primary"
-                      : isComplete
-                        ? "border-success/40 bg-success/10 text-success"
-                        : "border-border bg-muted/30 text-muted-foreground"
-                  }`}
+                  key={step.id}
+                  className="flex items-center gap-2 min-w-0 sm:flex-shrink-0"
+                  style={{ gridColumn: `span ${span} / span ${span}` }}
+                  aria-current={isActive ? "step" : undefined}
                 >
-                  <span
-                    className={`flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-semibold ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : isComplete
-                          ? "bg-success text-success-foreground"
-                          : "bg-muted text-muted-foreground"
-                    }`}
-                    aria-label={`${t("common.step")} ${idx + 1}`}
-                  >
-                    {isComplete ? (
-                      <Icon name="check" size={12} strokeWidth={3} />
-                    ) : (
-                      idx + 1
-                    )}
-                  </span>
-                  <span className="t-sm font-medium whitespace-nowrap">
-                    {t(step.titleKey)}
-                  </span>
-                </div>
-
-                {idx < visibleSteps.length - 1 && (
                   <div
-                    className={`hidden sm:block h-px w-6 ${
-                      isUpcoming ? "bg-border" : "bg-success/40"
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors w-full justify-center sm:w-auto sm:justify-start ${
+                      isActive
+                        ? "border-primary bg-primary/10 text-primary"
+                        : isComplete
+                          ? "border-success/40 bg-success/10 text-success"
+                          : "border-border bg-muted/30 text-muted-foreground"
                     }`}
-                    aria-hidden="true"
-                  />
-                )}
-              </div>
-            );
-          })}
-        </nav>
-      )}
+                  >
+                    <span
+                      className={`flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-semibold flex-shrink-0 ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : isComplete
+                            ? "bg-success text-success-foreground"
+                            : "bg-muted text-muted-foreground"
+                      }`}
+                      aria-label={`${t("common.step")} ${idx + 1}`}
+                    >
+                      {isComplete ? (
+                        <Icon name="check" size={12} strokeWidth={3} />
+                      ) : (
+                        idx + 1
+                      )}
+                    </span>
+                    <span className="t-sm font-medium truncate sm:whitespace-nowrap">
+                      {t(step.titleKey)}
+                    </span>
+                  </div>
+
+                  {idx < visibleSteps.length - 1 && (
+                    <div
+                      className={`hidden sm:block h-px w-6 flex-shrink-0 ${
+                        isUpcoming ? "bg-border" : "bg-success/40"
+                      }`}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        );
+      })()}
 
       {/* Step body */}
       <div ref={bodyRef} className="fade-in">
