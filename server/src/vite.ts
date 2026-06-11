@@ -1,12 +1,14 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
-import viteConfig from "../../vite.config";
 import { nanoid } from "nanoid";
 
-const viteLogger = createLogger();
+// The SPA dev middleware below only exists for the monorepo (it serves the
+// legacy dashboard/store apps). In the standalone tsuru-platform-api checkout
+// the monorepo-root vite.config does not exist, so both setupVite and
+// serveStatic degrade to API-only mode instead of crashing.
+const MONOREPO_VITE_CONFIG = "../../vite.config";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -20,6 +22,18 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
+  let createViteServer: typeof import("vite").createServer;
+  let createLogger: typeof import("vite").createLogger;
+  let viteConfig: Record<string, unknown>;
+  try {
+    ({ createServer: createViteServer, createLogger } = await import("vite"));
+    viteConfig = (await import(/* @vite-ignore */ MONOREPO_VITE_CONFIG)).default;
+  } catch {
+    log("vite / monorepo vite.config not available — running in API-only mode");
+    return;
+  }
+  const viteLogger = createLogger();
+
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
@@ -115,9 +129,10 @@ export function serveStatic(app: Express) {
   const landingDistPath = path.resolve(import.meta.dirname, "landing");
 
   if (!fs.existsSync(storeDistPath)) {
-    throw new Error(
-      `Could not find the store build directory: ${storeDistPath}, make sure to build the client first`,
+    log(
+      `store build directory not found (${storeDistPath}) — running in API-only mode`,
     );
+    return;
   }
 
   const hasLandingApp = fs.existsSync(landingDistPath);

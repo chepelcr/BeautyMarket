@@ -23,3 +23,9 @@ templates/pos-system/
 # paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
 # (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
 landing-client/
+# Repo split (in progress): server now lives in its own repo
+# → https://github.com/chepelcr/tsuru-platform-api (private)
+# Files remain tracked here for now because CI/CD pipelines still reference these
+# paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
+# (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
+server/

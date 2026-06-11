@@ -10,11 +10,12 @@ This monorepo is being split into separate repositories. **Status of extracted c
 |---|---|---|
 | `templates/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted to its own public repo. Develop it there. |
 | `landing-client` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted to its own public repo. Develop it there. |
+| `server` (Tsuru platform API — users, orgs, RBAC, CMS, multi-tenant backend; Express on Lambda) | [`chepelcr/tsuru-platform-api`](https://github.com/chepelcr/tsuru-platform-api) | Extracted to its own **private** repo. Develop it there. |
 
 **Rules during the split:**
 - `templates/pos-system/` and `landing-client/` are listed in this repo's `.gitignore` and should be treated as **owned by their standalone repos**, not the monorepo.
 - Their files are **intentionally still tracked here** — do **NOT** `git rm` / untrack them yet. The CI/CD pipelines still reference these paths; removal happens only after pipelines are migrated.
-- New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing` — not here.
+- New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing`; new work on the Express platform API belongs in `chepelcr/tsuru-platform-api` — not here.
 
 ## ⚠️ Security Guidelines
 
