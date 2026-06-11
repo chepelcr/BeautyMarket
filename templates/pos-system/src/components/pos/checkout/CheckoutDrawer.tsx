@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Drawer } from '@/components/ui/Drawer';
+import { useAccordionSections } from '@/hooks/useAccordionSections';
 import { useCart } from '@/store/cart';
 import { useDocumentStore } from '@/store/documentStore';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -101,22 +102,20 @@ export function CheckoutDrawer({
   const needsReceiver = doc_type !== '04'; // All except Tiquete
   const needsReferences = doc_type === '03' || doc_type === '02'; // NC / ND
   const isPaid = payments.reduce((s, p) => s + p.amount, 0) >= cartTotal;
-  const hasReceiver = !!receiver.name;
+  const hasReceiver = !!(receiver.name || selectedClient?.business_name || selectedClient?.client_name);
 
   // ─── Section expansion (drawer is orchestrator only) ───────────────────
-  const [expanded, setExpanded] = useState<Record<SectionId, boolean>>({
+  const { expanded, toggle } = useAccordionSections<SectionId>({
     payment: true,
     receiver: needsReceiver && !hasReceiver,
     document: false,
     references: needsReferences && references.length === 0,
     copies: false,
   });
-  const toggle = (id: SectionId) =>
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const validate = (): string | null => {
     if (!isPaid) return t('checkout.error.notPaid');
-    if (needsReceiver && !receiver.name) return t('checkout.error.receiverRequired');
+    if (needsReceiver && !hasReceiver) return t('checkout.error.receiverRequired');
     if (needsReferences && references.length === 0) return t('checkout.error.referencesRequired');
     // Hacienda payment code "99" (Otros) requires `other_type` description.
     const otherWithoutType = payments.find(

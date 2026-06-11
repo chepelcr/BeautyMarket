@@ -6,19 +6,11 @@ import { ordersApi, ordersOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import type { Product, Category } from "@/types";
 import { Card, Icon, Button, Badge, Menu } from "@/components/ui";
 import { ProductDrawerForm, EMPTY_FORM, type ProductFormState } from "@/components/products/ProductDrawerForm";
-
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve((reader.result as string).split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 function InfoRow({ icon, label, value }: { icon: string; label: string; value: string | number }) {
   return (
@@ -62,7 +54,7 @@ export default function ProductDetailPage({ productId }: Props) {
 
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState<ProductFormState>({ ...EMPTY_FORM });
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [unitsPerBox, setUnitsPerBox] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -75,6 +67,11 @@ export default function ProductDetailPage({ productId }: Props) {
       return result;
     },
   });
+
+  usePageTitle([
+    t("shell.products"),
+    product?.name || (isLoading ? undefined : t("common.new")),
+  ]);
 
   // Fetch categories for edit form
   const { data: categoriesResponse } = useQuery({
@@ -137,17 +134,14 @@ export default function ProductDetailPage({ productId }: Props) {
       cabys: product.cabys?.code ?? "",
       cabysDescription: product.cabys?.description ?? "",
       productTypeId: product.cabys?.product_type_id ?? undefined,
-      factoryTaxChargeId: undefined,
-      hasFactoryTax: false,
+      factoryTaxChargeId: (product as any).factory_tax_charge_id ?? undefined,
+      hasFactoryTax: !!(product as any).factory_tax || !!(product as any).factory_tax_charge_id,
       codes: (product.codes ?? []).map((c: any) => ({
         codeTypeCode: String(c.code_type_id ?? ""),
-        codeTypeDescription: "",
         value: c.number,
-        reason: c.description,
       })),
       taxes: (product.taxes ?? []).map((t: any) => ({
         taxCode: String(t.tax_type_id ?? ""),
-        taxDescription: "",
         rate: t.tax_rate?.percentage ?? t.rate ?? 0,
         taxRateId: t.tax_rate?.id,
         taxFactorId: t.tax_factor?.id,
@@ -160,16 +154,15 @@ export default function ProductDetailPage({ productId }: Props) {
           taxAmount: t.special_fields.tax_amount?.amount,
         } : undefined,
       })),
-      discounts: (product.discounts ?? []).map((d: any, i: number) => ({
+      discounts: (product.discounts ?? []).map((d, i) => ({
         id: `edit-${d.discount_type_id}-${i}`,
         discountCode: String(d.discount_type_id ?? ""),
-        description: "",
         rate: d.percentage ?? d.rate,
         reason: d.reason,
       })),
     });
     setUnitsPerBox(product.units_per_box ? String(product.units_per_box) : "");
-    setImageFile(null);
+    setImageUrl(product.image_url ?? "");
     setEditOpen(true);
   };
 
@@ -186,10 +179,11 @@ export default function ProductDetailPage({ productId }: Props) {
         low_stock_threshold: form.track_inventory && form.low_stock_threshold ? Number(form.low_stock_threshold) : undefined,
         units_per_box: unitsPerBox ? Number(unitsPerBox) : undefined,
         cabys_id: form.cabysId || undefined,
+        // Factory-tax charge id (data-services numeric id) — see ProductsPage.
+        factory_tax_charge_id: form.factoryTaxChargeId || undefined,
         codes: form.codes.length > 0 ? form.codes.map(c => ({
           code_type_id: c.codeTypeCode,
           number: c.value,
-          description: c.reason || undefined,
         })) : undefined,
         taxes: form.taxes.length > 0 ? form.taxes.map(t => ({
           tax_type_id: t.taxCode,
@@ -211,17 +205,18 @@ export default function ProductDetailPage({ productId }: Props) {
             volume_consumption: t.specialFields.volumeConsumption,
           } : undefined,
         })) : undefined,
+        // Hacienda Nota 20: `reason` is the canonical free-text descriptor —
+        // auto-filled for codes 01/02/03, required for code 99 (validated FE-side).
         discounts: form.discounts.length > 0 ? form.discounts.map(d => ({
           discount_type_id: d.discountCode,
           percentage: d.rate,
-          reason: d.reason || undefined,
+          reason: d.reason?.trim() || undefined,
         })) : undefined,
       };
 
-      if (imageFile) {
-        const data = await fileToBase64(imageFile);
-        body.image = { data, name: imageFile.name, contentType: imageFile.type };
-      }
+      // Image already uploaded to the org S3 bucket by the MediaPicker — send
+      // the resulting URL (empty string clears it).
+      body.image_url = imageUrl || null;
 
       await updateProduct.mutateAsync({ id: productId, body });
     } finally {
@@ -422,11 +417,11 @@ export default function ProductDetailPage({ productId }: Props) {
         form={form}
         categories={allCategories}
         saving={saving}
-        imageFile={imageFile}
+        imageUrl={imageUrl}
         unitsPerBox={unitsPerBox}
         onClose={() => setEditOpen(false)}
         onFormChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
-        onImageChange={setImageFile}
+        onImageChange={setImageUrl}
         onUnitsPerBoxChange={setUnitsPerBox}
         onSave={handleSave}
         onDelete={handleDelete}

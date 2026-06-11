@@ -4,7 +4,7 @@ import { FileCheck, Search, X, AlertTriangle } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { Spinner, FormLabel } from '@/components/ui';
 import { useCabysSearch, useAllProductTypes, useAllTaxes } from '@/hooks/useDataApi';
-import { CountryISO } from '@/lib/enums';
+import { CountryISO, TaxTypeCode } from '@/lib/enums';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDetail } from '@/types/lineDetail';
 import type { CabysItem } from '@/services/data-api';
@@ -100,19 +100,26 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
 
     if (item.tax_rate?.percentage) {
       const suggestedRate = item.tax_rate.percentage;
-      const suggestedRateCode = (item.tax_rate as any).code;
+      const suggestedRateCode = (item.tax_rate as { code?: string }).code;
 
+      const ivaCodes: readonly string[] = [
+        TaxTypeCode.IVA,
+        TaxTypeCode.IVACE,
+        TaxTypeCode.IVARBU,
+      ];
       const existingIvaTax = detail.taxes.find((t) =>
-        ['01', '07', '08'].includes(t.code ?? '')
+        ivaCodes.includes(t.code ?? '')
       );
 
-      const ivaTaxType = (taxTypes ?? []).find((t: any) => t.code === '01');
+      const ivaTaxType = (taxTypes ?? []).find(
+        (t: { code?: string }) => t.code === TaxTypeCode.IVA,
+      );
       if (ivaTaxType) {
         if (existingIvaTax) {
           onChange({
             cabys: item.code,
             taxes: detail.taxes.map((t) =>
-              ['01', '07', '08'].includes(t.code ?? '')
+              ivaCodes.includes(t.code ?? '')
                 ? { ...t, rate: suggestedRate, rate_code: suggestedRateCode }
                 : t
             ),
@@ -122,7 +129,7 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
             cabys: item.code,
             taxes: [
               ...detail.taxes,
-              { code: '01', rate: suggestedRate, rate_code: suggestedRateCode },
+              { code: TaxTypeCode.IVA, rate: suggestedRate, rate_code: suggestedRateCode },
             ],
           });
         }
@@ -255,13 +262,12 @@ export function FiscalInfoSection({ detail, isExpanded, onToggle, onChange }: Fi
                 {showResults && (searchResults.length > 0 || (!loading && searchResults.length === 0)) && createPortal(
                   <div
                     ref={dropdownRef}
-                    className="docs-fade-in bg-card border border-border rounded-lg shadow-dropdown overflow-hidden max-h-[260px] overflow-y-auto"
+                    className="docs-fade-in z-popover bg-card border border-border rounded-lg shadow-dropdown overflow-hidden max-h-[260px] overflow-y-auto"
                     style={{
                       position: "absolute",
                       top: dropdownPosition.top,
                       left: dropdownPosition.left,
                       width: dropdownPosition.width,
-                      zIndex: 9999,
                     }}
                   >
                     {searchResults.length > 0 ? (

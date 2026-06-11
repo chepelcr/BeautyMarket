@@ -6,12 +6,25 @@ import {
   actions,
   roles,
   rolePermissions,
+  submoduleActions,
   type InsertModule,
   type InsertSubmodule,
   type InsertAction,
   type InsertRole,
   type InsertRolePermission,
 } from '../entities';
+
+// Default module set assigned to every new organization
+// (hooked into OrganizationService.create + org-modules-backfill seed)
+export const DEFAULT_ORG_MODULE_NAMES = [
+  'products',
+  'orders',
+  'customers',
+  'content',
+  'settings',
+  'team',
+  'analytics',
+];
 
 // Default modules with lucide-react icons
 const defaultModules: InsertModule[] = [
@@ -123,7 +136,35 @@ const defaultActions: InsertAction[] = [
   { name: 'remove', displayName: 'Remove', description: 'Remove team members' },
   { name: 'refund', displayName: 'Refund', description: 'Process refunds' },
   { name: 'cancel', displayName: 'Cancel', description: 'Cancel orders' },
+  { name: 'upload', displayName: 'Upload', description: 'Upload or import files' }, // legacy 'subir'
 ];
+
+// Which actions are grantable per submodule (submodule_actions matrix).
+// Format: 'module/submodule' → action names. '*' = baseline CRUD for every
+// submodule of every module unless an explicit override entry exists.
+const BASELINE_SUBMODULE_ACTIONS = ['create', 'read', 'update', 'delete'];
+
+const submoduleActionMatrix: Record<string, string[]> = {
+  // Extras on top of baseline CRUD
+  'orders/processing': [...BASELINE_SUBMODULE_ACTIONS, 'refund', 'cancel', 'export'],
+  'orders/shipping': [...BASELINE_SUBMODULE_ACTIONS, 'export'],
+  'orders/returns': [...BASELINE_SUBMODULE_ACTIONS, 'refund'],
+  'products/inventory': [...BASELINE_SUBMODULE_ACTIONS, 'upload', 'export'],
+  'products/pricing': [...BASELINE_SUBMODULE_ACTIONS, 'export'],
+  'customers/profiles': [...BASELINE_SUBMODULE_ACTIONS, 'export', 'upload'],
+  'customers/segments': [...BASELINE_SUBMODULE_ACTIONS, 'export'],
+  'content/pages': [...BASELINE_SUBMODULE_ACTIONS, 'publish'],
+  'content/banners': [...BASELINE_SUBMODULE_ACTIONS, 'publish', 'upload'],
+  'team/members': [...BASELINE_SUBMODULE_ACTIONS, 'invite', 'remove'],
+  'team/invitations': [...BASELINE_SUBMODULE_ACTIONS, 'invite'],
+  // Restricted sets (override the baseline entirely)
+  'analytics/dashboard': ['read'],
+  'analytics/reports': ['read', 'export'],
+  'settings/general': ['read', 'update'],
+  'settings/payments': ['read', 'update'],
+  'settings/shipping': ['read', 'update'],
+  'settings/taxes': ['read', 'update'],
+};
 
 // System roles
 const systemRoles: InsertRole[] = [
@@ -309,6 +350,56 @@ export async function seedActions(db: PostgresJsDatabase): Promise<Map<string, s
 }
 
 /**
+ * Seed the submodule_actions matrix (which actions are grantable per
+ * submodule). Idempotent: skips existing (submoduleId, actionId) pairs.
+ */
+export async function seedSubmoduleActions(
+  db: PostgresJsDatabase,
+  moduleIdMap: Map<string, string>,
+  actionIdMap: Map<string, string>
+): Promise<void> {
+  const allSubmodules = await db.select().from(submodules);
+  const existingPairs = await db.select().from(submoduleActions);
+  const existingSet = new Set(existingPairs.map((row) => `${row.submoduleId}|${row.actionId}`));
+
+  // moduleId → module name reverse lookup
+  const moduleNameById = new Map<string, string>();
+  moduleIdMap.forEach((id, name) => {
+    moduleNameById.set(id, name);
+  });
+
+  const toInsert: { submoduleId: string; actionId: string }[] = [];
+
+  for (const submodule of allSubmodules) {
+    const moduleName = moduleNameById.get(submodule.moduleId);
+    if (!moduleName) continue;
+
+    const key = `${moduleName}/${submodule.name}`;
+    const actionNames = submoduleActionMatrix[key] ?? BASELINE_SUBMODULE_ACTIONS;
+
+    for (const actionName of actionNames) {
+      const actionId = actionIdMap.get(actionName);
+      if (!actionId) {
+        console.warn(`Action '${actionName}' not found, skipping for ${key}...`);
+        continue;
+      }
+
+      if (existingSet.has(`${submodule.id}|${actionId}`)) continue;
+
+      toInsert.push({ submoduleId: submodule.id, actionId });
+      existingSet.add(`${submodule.id}|${actionId}`);
+    }
+  }
+
+  if (toInsert.length > 0) {
+    await db.insert(submoduleActions).values(toInsert);
+    console.log(`Created ${toInsert.length} submodule_actions rows`);
+  } else {
+    console.log('submodule_actions matrix already up to date, skipping...');
+  }
+}
+
+/**
  * Seed system roles into the database
  */
 export async function seedRoles(db: PostgresJsDatabase): Promise<Map<string, string>> {
@@ -416,6 +507,10 @@ export async function seedRBAC(db: PostgresJsDatabase<any>): Promise<void> {
     // Seed actions
     console.log('\n--- Seeding Actions ---');
     const actionIdMap = await seedActions(db);
+
+    // Seed submodule_actions matrix
+    console.log('\n--- Seeding Submodule Actions ---');
+    await seedSubmoduleActions(db, moduleIdMap, actionIdMap);
 
     // Seed roles
     console.log('\n--- Seeding Roles ---');

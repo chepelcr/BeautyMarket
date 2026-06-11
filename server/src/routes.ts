@@ -18,7 +18,10 @@ import {
   sectionController,
   sectionContentController,
   componentController,
-  publicOrgController
+  publicOrgController,
+  platformAdminController,
+  requirePlatformAdmin,
+  attachUserId
 } from './dependency_injection';
 
 export function setupRoutes(app: Express): void {
@@ -27,6 +30,11 @@ export function setupRoutes(app: Express): void {
   // Security: API Gateway validates JWT + userId matches path, queries enforce user-scoping
   // ============================================
   const orgScopedRouter = Router({ mergeParams: true });
+
+  // Populate req.userId from the :userId path param (API-Gateway-validated),
+  // with bearer-payload-sub fallback for local dev — required by the RBAC
+  // permission middleware (requirePermission / requireMembership)
+  orgScopedRouter.use(attachUserId());
 
   // Mount organization-scoped controllers
   orgScopedRouter.use('/deployments', deploymentController.getRouter());
@@ -89,6 +97,17 @@ export function setupRoutes(app: Express): void {
 
   // Mount user-scoped router
   app.use('/api/users/:userId', userScopedRouter);
+
+  // ============================================
+  // Platform-admin routes: /api/admin/...
+  // Security: JWT signature validated at API Gateway; req.userId resolved from
+  // the bearer payload (no :userId path here); requirePlatformAdmin enforces
+  // users.role === 'platform_admin' server-side (the real gate)
+  // ============================================
+  const adminRouter = Router({ mergeParams: true });
+  adminRouter.use(attachUserId(), requirePlatformAdmin);
+  adminRouter.use('/', platformAdminController.getRouter());
+  app.use('/api/admin', adminRouter);
 
   // ============================================
   // Global routes (auth required, not org-scoped)

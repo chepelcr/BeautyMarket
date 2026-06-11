@@ -1,6 +1,8 @@
 import { Route, Switch } from "wouter";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import ui from "@/content/ui.json";
 
 // Lazy load all pages for better code splitting
 const Landing = lazy(() => import("@/pages/Landing"));
@@ -14,6 +16,7 @@ const Contact = lazy(() => import("@/pages/Contact"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Cookies = lazy(() => import("@/pages/Cookies"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
 interface RouterProps {
   displayLocation: string;
@@ -21,11 +24,12 @@ interface RouterProps {
 
 // Loading fallback component
 function LoadingFallback() {
+  const { language: lang } = useLanguage();
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="flex flex-col items-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Cargando...</p>
+        <p className="text-sm text-muted-foreground">{ui.loading[lang] ?? ui.loading.es}</p>
       </div>
     </div>
   );
@@ -50,7 +54,7 @@ export function Router({ displayLocation }: RouterProps) {
         <Route path="/privacidad" component={Privacy} />
         <Route path="/privacy" component={Privacy} />
         <Route path="/cookies" component={Cookies} />
-        <Route>404 - Page not found</Route>
+        <Route><NotFound /></Route>
       </Switch>
     </Suspense>
   );

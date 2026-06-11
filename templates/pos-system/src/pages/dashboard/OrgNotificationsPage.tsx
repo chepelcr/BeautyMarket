@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
 import { Icon } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -15,6 +16,7 @@ export default function OrgNotificationsPage() {
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
+  usePageTitle([t("shell.orgSettings"), t("orgSettings.tab.notifications")]);
   const [, navigate] = useLocation();
 
   const [drawerOpen, setDrawerOpen] = useState(false);

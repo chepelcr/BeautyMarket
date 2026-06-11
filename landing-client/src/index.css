@@ -33,10 +33,24 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 20 14% 16%;
     --border: 60 20% 86%;
     --input: 60 20% 86%;
     --ring: 123 46% 34%;
     --radius: 0.5rem;
+
+    /* Sidebar surface family (admin chrome) - Light Mode */
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 20 14% 16%;
+    --sidebar-border: 60 20% 86%;
+    --sidebar-primary: 123 46% 34%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 60 20% 94%;
+    --sidebar-accent-foreground: 20 14% 16%;
+    --sidebar-ring: 123 46% 34%;
   }
 
   .dark {
@@ -69,9 +83,23 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+    --success: 142 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 90% 55%;
+    --warning-foreground: 20 14% 16%;
     --border: 20 10% 20%;
     --input: 20 10% 20%;
     --ring: 122 39% 49%;
+
+    /* Sidebar surface family (admin chrome) - Dark Mode */
+    --sidebar: 20 14% 5%;
+    --sidebar-foreground: 60 30% 90%;
+    --sidebar-border: 20 10% 14%;
+    --sidebar-primary: 122 39% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 10% 12%;
+    --sidebar-accent-foreground: 60 30% 85%;
+    --sidebar-ring: 122 39% 49%;
   }
 
   * {

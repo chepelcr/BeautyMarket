@@ -88,28 +88,34 @@ export function NewDocumentButton({
           <span className="flex-1 text-left">{t('documents.newShort')}</span>
         </button>
       ) : (
-        // Navbar / desktop: square icon-only button, mirrors main sidebar's inline `+`.
+        // Navbar: shows `+ Nuevo` on mobile and shrinks to an icon-only square on
+        // sm+. Always visible — the create flow must be reachable on any size.
         <button
           onClick={() => setOpen((v) => !v)}
           aria-label={t('documents.newDocument')}
           title={t('documents.newDocument')}
           className={cn(
-            'inline-flex items-center justify-center w-9 h-9 rounded-md transition-colors',
+            'inline-flex items-center justify-center gap-1.5 h-9 px-2.5 sm:px-0 sm:w-9 rounded-md transition-colors',
             open
               ? 'bg-primary/10 text-primary border border-primary'
               : 'bg-primary text-primary-foreground border border-transparent shadow-sm shadow-primary/20'
           )}
         >
-          <Plus size={16} />
+          <Plus size={16} className="shrink-0" />
+          <span className="text-[13px] font-semibold sm:hidden">
+            {t('documents.newShort')}
+          </span>
         </button>
       )}
 
       {open && (
         <div
           className={cn(
-            'absolute z-[110] w-60 rounded-lg border border-border bg-card shadow-lg py-1',
+            'absolute z-dropdown w-60 rounded-lg border border-border bg-card shadow-lg py-1',
             direction === 'up' ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]',
-            fullWidth ? 'left-0 right-0 w-auto' : 'right-0'
+            // Mobile: anchor LEFT so the panel drops left→right and isn't clipped
+            // off the screen edge. sm+: keep the original right-anchored placement.
+            fullWidth ? 'left-0 right-0 w-auto' : 'left-0 sm:left-auto sm:right-0'
           )}
         >
           {DOCUMENT_TYPES.map((dt) => (

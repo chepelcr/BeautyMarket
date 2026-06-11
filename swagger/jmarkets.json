@@ -506,6 +506,77 @@
         }
       }
     },
+    "/api/users/{userId}/invitations/pending": {
+      "get": {
+        "summary": "Get pending invitations for the authenticated user",
+        "tags": [
+          "Invitations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The authenticated user's ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of pending invitations with organization details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "organizationId": {
+                        "type": "string"
+                      },
+                      "organizationName": {
+                        "type": "string"
+                      },
+                      "organizationSlug": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "token": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending"
+                        ]
+                      },
+                      "expiresAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to fetch pending invitations"
+          }
+        }
+      }
+    },
     "/api/users/{userId}/organization/{orgId}/invitations/pending/{email}": {
       "get": {
         "summary": "Get pending invitations for an email",
@@ -1851,6 +1922,398 @@
         }
       }
     },
+    "/api/admin/organizations": {
+      "get": {
+        "summary": "Search/list organizations for the platform admin UI",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "isActive",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paged organization list with module counts"
+          }
+        }
+      }
+    },
+    "/api/admin/organizations/{orgId}/modules": {
+      "get": {
+        "summary": "Get the full-catalog module assignment state for an organization",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orgId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assignment state per module (incl. unassigned/inactive)"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/admin/organizations/{orgId}/modules/{moduleId}": {
+      "put": {
+        "summary": "Assign / unassign / enable / disable a module for an organization",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "assigned"
+                ],
+                "properties": {
+                  "assigned": {
+                    "type": "boolean"
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated assignment state for the module"
+          },
+          "404": {
+            "description": "Organization or module not found"
+          }
+        }
+      }
+    },
+    "/api/admin/organizations/{orgId}/submodules/{submoduleId}": {
+      "put": {
+        "summary": "Set a per-org submodule override (null isEnabled deletes the override = inherit)",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isEnabled": {
+                    "type": "boolean",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated submodule state"
+          },
+          "400": {
+            "description": "Parent module not assigned to the organization"
+          },
+          "404": {
+            "description": "Submodule not found"
+          }
+        }
+      }
+    },
+    "/api/admin/organizations/{orgId}/modules/apply-defaults": {
+      "post": {
+        "summary": "Apply the default module set to an organization (idempotent)",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Names of the modules that were added"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/modules": {
+      "get": {
+        "summary": "Get the module catalog with submodules and each submodule's available actions",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "includeInactive",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Module catalog"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a module",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "201": {
+            "description": "Module created"
+          },
+          "400": {
+            "description": "Validation error / duplicate name"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/modules/{moduleId}": {
+      "put": {
+        "summary": "Update a module (isActive soft-disable preferred over delete)",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Module updated"
+          },
+          "404": {
+            "description": "Module not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a module (409 when referenced by role_permissions or organization_modules)",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Module deleted"
+          },
+          "404": {
+            "description": "Module not found"
+          },
+          "409": {
+            "description": "Module is referenced"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/modules/{moduleId}/submodules": {
+      "post": {
+        "summary": "Create a submodule",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "201": {
+            "description": "Submodule created"
+          },
+          "400": {
+            "description": "Duplicate name within module"
+          },
+          "404": {
+            "description": "Module not found"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/submodules/{submoduleId}": {
+      "put": {
+        "summary": "Update a submodule",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Submodule updated"
+          },
+          "404": {
+            "description": "Submodule not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a submodule (409 when referenced)",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Submodule deleted"
+          },
+          "404": {
+            "description": "Submodule not found"
+          },
+          "409": {
+            "description": "Submodule is referenced"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/actions": {
+      "get": {
+        "summary": "Get the action catalog",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of actions"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an action",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "201": {
+            "description": "Action created"
+          },
+          "400": {
+            "description": "Validation error / duplicate name"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/actions/{actionId}": {
+      "put": {
+        "summary": "Update an action",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Action updated"
+          },
+          "404": {
+            "description": "Action not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an action (409 when referenced by role_permissions or submodule_actions)",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Action deleted"
+          },
+          "404": {
+            "description": "Action not found"
+          },
+          "409": {
+            "description": "Action is referenced"
+          }
+        }
+      }
+    },
+    "/api/admin/rbac/submodules/{submoduleId}/actions": {
+      "get": {
+        "summary": "Get a submodule's available actions",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of actions"
+          },
+          "404": {
+            "description": "Submodule not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Bulk replace a submodule's available-action set",
+        "tags": [
+          "PlatformAdmin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "actionIds"
+                ],
+                "properties": {
+                  "actionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Submodule actions replaced"
+          },
+          "400": {
+            "description": "Unknown actionId"
+          },
+          "404": {
+            "description": "Submodule not found"
+          }
+        }
+      }
+    },
     "/api/users/{userId}/organization/{orgId}/pre-deployments": {
       "get": {
         "summary": "Get all pre-deployments",
@@ -2035,9 +2498,38 @@
         }
       }
     },
+    "/api/users/{userId}/organization/{orgId}/rbac/my-permissions": {
+      "get": {
+        "summary": "Get the caller's effective permissions in this organization (nav/action gating)",
+        "tags": [
+          "RBAC"
+        ],
+        "responses": {
+          "200": {
+            "description": "Effective role, modules, and flattened permissions"
+          },
+          "403": {
+            "description": "Not a member of this organization"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/available-matrix": {
+      "get": {
+        "summary": "Get the org-filtered modules → submodules → grantable actions matrix",
+        "tags": [
+          "RBAC"
+        ],
+        "responses": {
+          "200": {
+            "description": "Available matrix for the role-permission UI"
+          }
+        }
+      }
+    },
     "/api/users/{userId}/organization/{orgId}/rbac/roles": {
       "get": {
-        "summary": "Get all system roles",
+        "summary": "Get all system role templates (platform_admin excluded)",
         "tags": [
           "RBAC"
         ],
@@ -2048,7 +2540,7 @@
         }
       },
       "post": {
-        "summary": "Create a new role",
+        "summary": "Create a new organization role (organizationId forced from the path)",
         "tags": [
           "RBAC"
         ],
@@ -2065,10 +2557,10 @@
                   "name": {
                     "type": "string"
                   },
-                  "description": {
+                  "displayName": {
                     "type": "string"
                   },
-                  "organizationId": {
+                  "description": {
                     "type": "string"
                   }
                 }
@@ -2092,16 +2584,6 @@
         "tags": [
           "RBAC"
         ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "List of roles"
@@ -2111,7 +2593,7 @@
     },
     "/api/users/{userId}/organization/{orgId}/rbac/roles/{id}": {
       "get": {
-        "summary": "Get role by ID",
+        "summary": "Get role by ID (404 unless owned by the org or a system template)",
         "tags": [
           "RBAC"
         ],
@@ -2135,7 +2617,7 @@
         }
       },
       "put": {
-        "summary": "Update a role",
+        "summary": "Update an organization role",
         "tags": [
           "RBAC"
         ],
@@ -2159,8 +2641,14 @@
                   "name": {
                     "type": "string"
                   },
+                  "displayName": {
+                    "type": "string"
+                  },
                   "description": {
                     "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
                   }
                 }
               }
@@ -2180,7 +2668,7 @@
         }
       },
       "delete": {
-        "summary": "Delete a role",
+        "summary": "Delete an organization role",
         "tags": [
           "RBAC"
         ],
@@ -2203,13 +2691,16 @@
           },
           "404": {
             "description": "Role not found"
+          },
+          "409": {
+            "description": "Role is assigned to organization members"
           }
         }
       }
     },
     "/api/users/{userId}/organization/{orgId}/rbac/modules": {
       "get": {
-        "summary": "Get all modules with submodules",
+        "summary": "Get all modules with submodules (global catalog — use available-matrix for the role UI)",
         "tags": [
           "RBAC"
         ],
@@ -2251,12 +2742,15 @@
         ],
         "responses": {
           "200": {
-            "description": "List of permissions"
+            "description": "List of permission grant rows"
+          },
+          "404": {
+            "description": "Role not found"
           }
         }
       },
       "put": {
-        "summary": "Set permissions for a role",
+        "summary": "Bulk replace permissions for an org role (subset-validated against the org's available matrix)",
         "tags": [
           "RBAC"
         ],
@@ -2275,18 +2769,24 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "moduleId": {
-                      "type": "string"
-                    },
-                    "actionId": {
-                      "type": "string"
-                    },
-                    "submoduleId": {
-                      "type": "string"
+                "type": "object",
+                "properties": {
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "moduleId": {
+                          "type": "string"
+                        },
+                        "submoduleId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "actionId": {
+                          "type": "string"
+                        }
+                      }
                     }
                   }
                 }
@@ -2299,14 +2799,64 @@
             "description": "Permissions updated"
           },
           "400": {
-            "description": "Cannot modify system role permissions"
+            "description": "Validation error (offending tuples listed) or system role"
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      }
+    },
+    "/api/users/{userId}/organization/{orgId}/rbac/members/{memberId}/role": {
+      "put": {
+        "summary": "Assign a role to an organization member (same-org or system roles only)",
+        "tags": [
+          "RBAC"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "roleId"
+                ],
+                "properties": {
+                  "roleId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member role updated"
+          },
+          "400": {
+            "description": "Role not assignable (cross-org, inactive, platform_admin, or last owner)"
+          },
+          "404": {
+            "description": "Member not found in this organization"
           }
         }
       }
     },
     "/api/users/{userId}/organization/{orgId}/rbac/check-permission": {
       "post": {
-        "summary": "Check if user has permission",
+        "summary": "Check if the caller has a permission (userId/orgId taken from the path)",
         "tags": [
           "RBAC"
         ],
@@ -2317,18 +2867,10 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "userId",
-                  "organizationId",
                   "module",
                   "action"
                 ],
                 "properties": {
-                  "userId": {
-                    "type": "string"
-                  },
-                  "organizationId": {
-                    "type": "string"
-                  },
                   "module": {
                     "type": "string"
                   },
@@ -2352,27 +2894,9 @@
     },
     "/api/users/{userId}/organization/{orgId}/rbac/user-role": {
       "get": {
-        "summary": "Get user's role in an organization",
+        "summary": "Get the caller's role in this organization",
         "tags": [
           "RBAC"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "userId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "organizationId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
         ],
         "responses": {
           "200": {

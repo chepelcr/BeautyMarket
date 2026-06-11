@@ -2,7 +2,9 @@ import type { Organization, InsertOrganization, OrganizationSettings, InsertCont
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { OrganizationMemberRepository } from "../repositories/OrganizationMemberRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
+import type { OrganizationModuleRepository } from "../repositories/OrganizationModuleRepository";
 import type { ContactSettingsRepository } from "../repositories/ContactSettingsRepository";
+import { DEFAULT_ORG_MODULE_NAMES } from "../seeds/rbac-seed";
 import type { TemplateCloneService } from "./TemplateCloneService";
 import type { OrganizationEventPublisher } from "./OrganizationEventPublisher";
 
@@ -28,6 +30,7 @@ export class OrganizationService implements IOrganizationService {
     private organizationRepo: OrganizationRepository,
     private memberRepo: OrganizationMemberRepository,
     private rbacRepo: RBACRepository,
+    private orgModuleRepo: OrganizationModuleRepository,
     private contactSettingsRepo: ContactSettingsRepository,
     private templateCloneService: TemplateCloneService,
     private eventPublisher?: OrganizationEventPublisher
@@ -91,6 +94,20 @@ export class OrganizationService implements IOrganizationService {
       isDefault: true,
       invitedBy: ownerId,
     });
+
+    // Assign the default module set (RBAC org-module assignment; fire-and-forget —
+    // a platform admin can repair via POST /api/admin/organizations/:orgId/modules/apply-defaults)
+    try {
+      const moduleIds: string[] = [];
+      for (const moduleName of DEFAULT_ORG_MODULE_NAMES) {
+        const module = await this.rbacRepo.findModuleByName(moduleName);
+        if (module) moduleIds.push(module.id);
+      }
+      await this.orgModuleRepo.insertMissing(organization.id, moduleIds, null);
+    } catch (err) {
+      console.error('[OrganizationService] Failed to assign default modules:', err);
+      // intentionally swallowed — org creation has already succeeded
+    }
 
     // Publish domain event to trigger infrastructure provisioning (fire-and-forget)
     try {

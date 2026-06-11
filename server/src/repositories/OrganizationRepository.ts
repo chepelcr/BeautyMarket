@@ -1,6 +1,18 @@
-import { eq, and, or, ilike } from "drizzle-orm";
+import { eq, and, or, ilike, sql } from "drizzle-orm";
 import { db } from "../config/database";
 import { organizations, type Organization, type InsertOrganization } from "../entities";
+
+export interface OrganizationSearchParams {
+  search?: string;
+  page: number;
+  pageSize: number;
+  isActive?: boolean;
+}
+
+export interface OrganizationSearchResult {
+  items: Organization[];
+  total: number;
+}
 
 export interface IOrganizationRepository {
   findById(id: string): Promise<Organization | null>;
@@ -14,7 +26,7 @@ export interface IOrganizationRepository {
   checkSubdomainAvailable(subdomain: string, excludeId?: string): Promise<boolean>;
   checkSlugAvailable(slug: string, excludeId?: string): Promise<boolean>;
   search(query: string): Promise<Organization[]>;
-
+  searchPaged(params: OrganizationSearchParams): Promise<OrganizationSearchResult>;
 }
 
 export class OrganizationRepository implements IOrganizationRepository {
@@ -124,6 +136,41 @@ export class OrganizationRepository implements IOrganizationRepository {
         )
       )
       .orderBy(organizations.name);
+  }
+
+  async searchPaged(params: OrganizationSearchParams): Promise<OrganizationSearchResult> {
+    const conditions = [];
+
+    if (params.search) {
+      conditions.push(
+        or(
+          ilike(organizations.name, `%${params.search}%`),
+          ilike(organizations.slug, `%${params.search}%`),
+          ilike(organizations.subdomain, `%${params.search}%`)
+        )!
+      );
+    }
+
+    if (params.isActive !== undefined) {
+      conditions.push(eq(organizations.isActive, params.isActive));
+    }
+
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(organizations)
+      .where(where);
+
+    const items = await db
+      .select()
+      .from(organizations)
+      .where(where)
+      .orderBy(organizations.name)
+      .limit(params.pageSize)
+      .offset((params.page - 1) * params.pageSize);
+
+    return { items, total: totalResult[0]?.count ?? 0 };
   }
 
   async verifyDomain(id: string): Promise<Organization | null> {

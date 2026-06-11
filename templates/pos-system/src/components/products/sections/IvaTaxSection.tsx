@@ -4,11 +4,16 @@ import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllTaxes, useAllTaxRates, useAllTaxFactors, useAllFactoryTaxCharges } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { GetAllFactoryTaxChargesParams } from "@/services/data-api/dtos";
-import { CountryISO } from "@/lib/enums";
+import { CountryISO, IvaCollectedFactory, TaxTypeCode } from "@/lib/enums";
+import { labelByCode } from "@/lib/catalogLabels";
 import type { TaxFormEntry } from "@/types/productForm";
 
 const ISO = CountryISO.COSTA_RICA;
-const IVA_CODES = ["01", "07", "08"] as const;
+const IVA_CODES: readonly string[] = [
+  TaxTypeCode.IVA,
+  TaxTypeCode.IVACE,
+  TaxTypeCode.IVARBU,
+];
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
 
@@ -53,12 +58,10 @@ export function IvaTaxSection({
   const factoryCharges = factoryChargesData ?? [];
 
   const ivaTaxTypes = allTaxTypes.filter((t: { code?: string }) =>
-    (IVA_CODES as readonly string[]).includes(t.code ?? "")
+    IVA_CODES.includes(t.code ?? "")
   );
 
-  const addedIvaTaxes = taxes.filter((t) =>
-    (IVA_CODES as readonly string[]).includes(t.taxCode)
-  );
+  const addedIvaTaxes = taxes.filter((t) => IVA_CODES.includes(t.taxCode));
 
   const hasIva = addedIvaTaxes.length > 0;
 
@@ -77,7 +80,7 @@ export function IvaTaxSection({
     >
       <div className="flex flex-col gap-2">
         {addedIvaTaxes.map((tax) => {
-          const isIvarbu = tax.taxCode === "08";
+          const isIvarbu = tax.taxCode === TaxTypeCode.IVARBU;
           const ivaAmount = baseAmount > 0 ? baseAmount * tax.rate / 100 : 0;
           return (
             <div
@@ -87,7 +90,7 @@ export function IvaTaxSection({
               <div className={`flex items-center gap-2 ${isIvarbu ? "mb-2" : ""}`}>
                 {/* Description only, no code */}
                 <div className="flex-1 text-[13px] font-semibold">
-                  {tax.taxDescription}
+                  {labelByCode(allTaxTypes, tax.taxCode)}
                 </div>
 
                 {!isIvarbu && (
@@ -167,7 +170,6 @@ export function IvaTaxSection({
                 const defaultRate = rateList[0];
                 onAdd({
                   taxCode: (tt as { code?: string }).code ?? "",
-                  taxDescription: tt.description,
                   rate: (defaultRate as { percentage: number })?.percentage ?? 13,
                   taxRateId: defaultRate?.id,
                 });
@@ -193,7 +195,10 @@ export function IvaTaxSection({
               onChange={(e) => {
                 const id = e.target.value ? Number(e.target.value) : undefined;
                 const charge = factoryCharges.find((c: { id: number; code?: string }) => c.id === id);
-                onFactoryTaxChargeChange(id, charge?.code === "01");
+                onFactoryTaxChargeChange(
+                  id,
+                  charge?.code === IvaCollectedFactory.PRE_DETERMINED,
+                );
               }}
             >
               <option value="">{t("products.noFactoryCharge")}</option>
@@ -205,7 +210,7 @@ export function IvaTaxSection({
             </select>
             {selectedCharge && (
               <div className="t-xs text-muted-foreground mt-1">
-                {(selectedCharge as { code?: string }).code === "01"
+                {(selectedCharge as { code?: string }).code === IvaCollectedFactory.PRE_DETERMINED
                   ? t("products.factoryTaxAssumed")
                   : t("products.factoryTaxNotAssumed")}
               </div>

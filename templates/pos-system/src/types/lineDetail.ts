@@ -61,6 +61,11 @@ export interface LineDiscount {
   other_discount_type?: string;
   percentage?: number;
   amount?: number;
+  /**
+   * Canonical Hacienda Nota-20 free-text descriptor.
+   * Auto-filled from the discount-type description for known codes (01/02/03).
+   * REQUIRED for code "99" (Otros) — surfaced as a hard validation error.
+   */
   reason?: string;
 }
 

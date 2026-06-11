@@ -2,6 +2,8 @@ import type { OrganizationMember, InsertOrganizationMember, Organization } from 
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { OrganizationMemberRepository, OrganizationMemberWithDetails } from "../repositories/OrganizationMemberRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
+import { assertAssignableRole } from "./RBACService";
+import { HttpError } from "../utils/HttpError";
 
 export interface IMembershipService {
   getMemberById(id: string): Promise<OrganizationMember | null>;
@@ -11,6 +13,7 @@ export interface IMembershipService {
   getDefaultOrganization(userId: string): Promise<Organization | null>;
   addMember(data: InsertOrganizationMember): Promise<OrganizationMember>;
   updateMemberRole(memberId: string, roleId: string, updatedBy: string): Promise<OrganizationMember | null>;
+  updateMemberRoleScoped(memberId: string, roleId: string, organizationId: string, updatedBy: string): Promise<OrganizationMember | null>;
   removeMember(userId: string, organizationId: string, removedBy: string): Promise<boolean>;
   setDefaultOrganization(userId: string, organizationId: string): Promise<OrganizationMember | null>;
   getMemberCount(organizationId: string): Promise<number>;
@@ -70,11 +73,10 @@ export class MembershipService implements IMembershipService {
       throw new Error("El usuario ya es miembro de esta organización");
     }
 
-    // Validate role exists
+    // V3 — same-org role rule: role must belong to this org or be an active
+    // system template; platform_admin is never org-assignable
     const role = await this.rbacRepo.findRoleById(data.roleId);
-    if (!role) {
-      throw new Error("Rol no encontrado");
-    }
+    assertAssignableRole(role, data.organizationId);
 
     // Check if this is the user's first organization
     const userMemberships = await this.memberRepo.findByUserId(data.userId);
@@ -92,11 +94,9 @@ export class MembershipService implements IMembershipService {
       throw new Error("Miembro no encontrado");
     }
 
-    // Validate role exists
+    // V3 — same-org role rule (closes the cross-org assignment gap)
     const role = await this.rbacRepo.findRoleById(roleId);
-    if (!role) {
-      throw new Error("Rol no encontrado");
-    }
+    assertAssignableRole(role, member.organizationId);
 
     // Check if trying to demote the last owner
     const currentRole = await this.rbacRepo.findRoleById(member.roleId);
@@ -114,6 +114,25 @@ export class MembershipService implements IMembershipService {
     }
 
     return this.memberRepo.updateRole(memberId, roleId);
+  }
+
+  /**
+   * O11 — org-scoped role assignment: the member must belong to the
+   * organization from the path (404 otherwise); V3 + last-owner protection
+   * are enforced by updateMemberRole.
+   */
+  async updateMemberRoleScoped(
+    memberId: string,
+    roleId: string,
+    organizationId: string,
+    updatedBy: string
+  ): Promise<OrganizationMember | null> {
+    const member = await this.memberRepo.findById(memberId);
+    if (!member || member.organizationId !== organizationId) {
+      throw new HttpError(404, "Miembro no encontrado en esta organización");
+    }
+
+    return this.updateMemberRole(memberId, roleId, updatedBy);
   }
 
   async removeMember(userId: string, organizationId: string, removedBy: string): Promise<boolean> {

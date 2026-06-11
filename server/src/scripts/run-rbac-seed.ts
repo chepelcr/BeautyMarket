@@ -1,10 +1,11 @@
 import 'dotenv/config';
-import { db } from '../config/database';
+import { db, initializeDatabase } from '../config/database';
 import { seedRBAC } from '../seeds/rbac-seed';
 
 async function main() {
   try {
     console.log('🌱 Running RBAC seed...\n');
+    await initializeDatabase();
     await seedRBAC(db);
     console.log('\n✅ RBAC seed completed successfully!');
     process.exit(0);

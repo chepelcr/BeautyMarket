@@ -1,5 +1,6 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import community from "@/content/community.json";
 import {
   Scale,
   MapPin,
@@ -12,31 +13,29 @@ import {
   Heart,
 } from "lucide-react";
 
-function ValuePill({ icon: Icon, titleKey, descriptionKey }: {
+function ValuePill({ icon: Icon, title, description }: {
   icon: React.ElementType;
-  titleKey: string;
-  descriptionKey: string;
+  title: string;
+  description: string;
 }) {
-  const { t } = useLanguage();
   return (
     <div className="flex gap-4 p-5 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all group">
       <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <div>
-        <h3 className="font-semibold text-foreground mb-1">{t(titleKey)}</h3>
-        <p className="text-sm text-muted-foreground">{t(descriptionKey)}</p>
+        <h3 className="font-semibold text-foreground mb-1">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
     </div>
   );
 }
 
-function TestimonialCard({ quoteKey, nameKey, businessKey }: {
-  quoteKey: string;
-  nameKey: string;
-  businessKey: string;
+function TestimonialCard({ quote, name, business }: {
+  quote: string;
+  name: string;
+  business: string;
 }) {
-  const { t } = useLanguage();
   return (
     <div className="rounded-2xl p-7 bg-card border border-border hover:border-primary/20 transition-all flex flex-col gap-4">
       {/* Stars */}
@@ -46,38 +45,26 @@ function TestimonialCard({ quoteKey, nameKey, businessKey }: {
         ))}
       </div>
       {/* Quote */}
-      <p className="text-muted-foreground leading-relaxed italic flex-1">{t(quoteKey)}</p>
+      <p className="text-muted-foreground leading-relaxed italic flex-1">{quote}</p>
       {/* Author */}
       <div className="flex items-center gap-3 pt-2 border-t border-border">
         <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
-          <span className="text-primary font-bold text-sm">{t(nameKey)[0]}</span>
+          <span className="text-primary font-bold text-sm">{name[0]}</span>
         </div>
         <div>
-          <p className="font-semibold text-foreground text-sm">{t(nameKey)}</p>
-          <p className="text-xs text-muted-foreground">{t(businessKey)}</p>
+          <p className="font-semibold text-foreground text-sm">{name}</p>
+          <p className="text-xs text-muted-foreground">{business}</p>
         </div>
       </div>
     </div>
   );
 }
 
+const VALUE_ICONS = [Scale, MapPin, ShoppingBag, Eye, Users, ArrowLeftRight];
+
 export default function Comunidad() {
-  const { t } = useLanguage();
-
-  const values = [
-    { icon: Scale, titleKey: 'community.values.1.title', descriptionKey: 'community.values.1.description' },
-    { icon: MapPin, titleKey: 'community.values.2.title', descriptionKey: 'community.values.2.description' },
-    { icon: ShoppingBag, titleKey: 'community.values.3.title', descriptionKey: 'community.values.3.description' },
-    { icon: Eye, titleKey: 'community.values.4.title', descriptionKey: 'community.values.4.description' },
-    { icon: Users, titleKey: 'community.values.5.title', descriptionKey: 'community.values.5.description' },
-    { icon: ArrowLeftRight, titleKey: 'community.values.6.title', descriptionKey: 'community.values.6.description' },
-  ];
-
-  const stories = [
-    { quoteKey: 'community.story1.quote', nameKey: 'community.story1.name', businessKey: 'community.story1.business' },
-    { quoteKey: 'community.story2.quote', nameKey: 'community.story2.name', businessKey: 'community.story2.business' },
-    { quoteKey: 'community.story3.quote', nameKey: 'community.story3.name', businessKey: 'community.story3.business' },
-  ];
+  const { language: lang } = useLanguage();
+  const pick = (f: { es: string; en: string }) => f[lang] ?? f.es;
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,13 +76,13 @@ export default function Comunidad() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
             <Heart className="h-3.5 w-3.5" />
-            {t('community.badge')}
+            {pick(community.badge)}
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
-            {t('community.title')}
+            {pick(community.title)}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {t('community.subtitle')}
+            {pick(community.subtitle)}
           </p>
         </div>
       </section>
@@ -105,13 +92,13 @@ export default function Comunidad() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-3">
-              {t('community.values.title')}
+              {pick(community.valuesTitle)}
             </h2>
-            <p className="text-muted-foreground">{t('community.values.subtitle')}</p>
+            <p className="text-muted-foreground">{pick(community.valuesSubtitle)}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {values.map(({ icon, titleKey, descriptionKey }) => (
-              <ValuePill key={titleKey} icon={icon} titleKey={titleKey} descriptionKey={descriptionKey} />
+            {community.values.map((value, i) => (
+              <ValuePill key={i} icon={VALUE_ICONS[i]} title={pick(value.title)} description={pick(value.description)} />
             ))}
           </div>
         </div>
@@ -126,18 +113,18 @@ export default function Comunidad() {
                 <ArrowLeftRight className="h-7 w-7 text-accent" />
               </div>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                {t('community.barter.title')}
+                {pick(community.barter.title)}
               </h2>
               <p className="text-muted-foreground leading-relaxed text-lg mb-6">
-                {t('community.barter.description')}
+                {pick(community.barter.description)}
               </p>
               <div className="flex flex-col gap-3">
-                {(['community.barter.how1', 'community.barter.how2', 'community.barter.how3'] as const).map((key, i) => (
-                  <div key={key} className="flex items-center gap-3 text-sm">
+                {community.barter.how.map((step, i) => (
+                  <div key={i} className="flex items-center gap-3 text-sm">
                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold flex items-center justify-center">
                       {i + 1}
                     </span>
-                    <span className="text-foreground font-medium">{t(key)}</span>
+                    <span className="text-foreground font-medium">{pick(step)}</span>
                   </div>
                 ))}
               </div>
@@ -146,26 +133,26 @@ export default function Comunidad() {
             <div className="rounded-3xl bg-accent/5 border border-accent/20 p-8 flex flex-col gap-4">
               <div className="flex items-center gap-3 p-4 bg-card rounded-2xl border border-border">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary text-sm font-bold">M</span>
+                  <span className="text-primary text-sm font-bold">{community.barter.exampleCards[0].avatar}</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">María ofrece: Mermeladas</p>
-                  <p className="text-xs text-muted-foreground">Busca: Clases de yoga</p>
+                  <p className="text-sm font-semibold text-foreground">{pick(community.barter.exampleCards[0].offers)}</p>
+                  <p className="text-xs text-muted-foreground">{pick(community.barter.exampleCards[0].seeks)}</p>
                 </div>
                 <ArrowLeftRight className="h-4 w-4 text-accent" />
               </div>
               <div className="flex items-center gap-3 p-4 bg-card rounded-2xl border border-border">
                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                  <span className="text-accent text-sm font-bold">L</span>
+                  <span className="text-accent text-sm font-bold">{community.barter.exampleCards[1].avatar}</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">Laura ofrece: Yoga</p>
-                  <p className="text-xs text-muted-foreground">Busca: Alimentos locales</p>
+                  <p className="text-sm font-semibold text-foreground">{pick(community.barter.exampleCards[1].offers)}</p>
+                  <p className="text-xs text-muted-foreground">{pick(community.barter.exampleCards[1].seeks)}</p>
                 </div>
                 <ArrowLeftRight className="h-4 w-4 text-primary" />
               </div>
               <div className="text-center py-2">
-                <span className="text-xs text-muted-foreground italic">¡Intercambio perfecto sin dinero!</span>
+                <span className="text-xs text-muted-foreground italic">{pick(community.barter.perfectExchange)}</span>
               </div>
             </div>
           </div>
@@ -181,10 +168,10 @@ export default function Comunidad() {
             </div>
             <div>
               <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-3">
-                {t('community.mutual.title')}
+                {pick(community.mutual.title)}
               </h2>
               <p className="text-muted-foreground leading-relaxed text-lg">
-                {t('community.mutual.description')}
+                {pick(community.mutual.description)}
               </p>
             </div>
           </div>
@@ -196,17 +183,17 @@ export default function Comunidad() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-3">
-              {t('community.stories.title')}
+              {pick(community.storiesTitle)}
             </h2>
-            <p className="text-muted-foreground">{t('community.stories.subtitle')}</p>
+            <p className="text-muted-foreground">{pick(community.storiesSubtitle)}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {stories.map(({ quoteKey, nameKey, businessKey }) => (
+            {community.stories.map((story, i) => (
               <TestimonialCard
-                key={quoteKey}
-                quoteKey={quoteKey}
-                nameKey={nameKey}
-                businessKey={businessKey}
+                key={i}
+                quote={pick(story.quote)}
+                name={pick(story.name)}
+                business={pick(story.business)}
               />
             ))}
           </div>
@@ -216,11 +203,11 @@ export default function Comunidad() {
       {/* CTA */}
       <section className="py-16 bg-gradient-to-br from-primary to-primary/80">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-3xl font-bold text-white mb-4">{t('community.cta.title')}</h2>
-          <p className="text-white/80 mb-8">{t('community.cta.subtitle')}</p>
+          <h2 className="font-serif text-3xl font-bold text-white mb-4">{pick(community.cta.title)}</h2>
+          <p className="text-white/80 mb-8">{pick(community.cta.subtitle)}</p>
           <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
             <Button size="lg" className="bg-white text-primary hover:bg-white/90 rounded-full px-10 py-6 text-base font-semibold">
-              {t('community.cta.button')}
+              {pick(community.cta.button)}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </a>

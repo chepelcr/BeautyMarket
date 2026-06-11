@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚧 Repository Split (in progress)
+
+This monorepo is being split into separate repositories. **Status of extracted components:**
+
+| Component | New repo | Status |
+|---|---|---|
+| `templates/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted to its own public repo. Develop it there. |
+| `landing-client` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted to its own public repo. Develop it there. |
+
+**Rules during the split:**
+- `templates/pos-system/` and `landing-client/` are listed in this repo's `.gitignore` and should be treated as **owned by their standalone repos**, not the monorepo.
+- Their files are **intentionally still tracked here** — do **NOT** `git rm` / untrack them yet. The CI/CD pipelines still reference these paths; removal happens only after pipelines are migrated.
+- New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing` — not here.
+
 ## ⚠️ Security Guidelines
 
 **CRITICAL: Never include sensitive information in code or documentation**

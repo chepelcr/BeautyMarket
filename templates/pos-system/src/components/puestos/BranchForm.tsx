@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAccordionSections } from "@/hooks/useAccordionSections";
 import { BranchGeneralSection } from "./sections/BranchGeneralSection";
 import { BranchContactSection } from "./sections/BranchContactSection";
 import { BranchLocationSection } from "./sections/BranchLocationSection";
@@ -35,16 +36,12 @@ export function BranchForm({ editing, onSave, isSaving, onClose, renderButtons }
     address: editing?.location?.address ?? "",
   });
 
-  // Section expansion state
-  const [expandedSections, setExpandedSections] = useState({
+  // Section expansion state (accordion: opening one collapses the others)
+  const { expanded: expandedSections, toggle: toggleSection } = useAccordionSections({
     general: true,
     contact: true,
     location: true,
   });
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
 
   const hasLocation = location.state_id || location.address;
 

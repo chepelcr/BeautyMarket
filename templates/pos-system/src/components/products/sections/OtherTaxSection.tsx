@@ -3,15 +3,30 @@ import { Icon, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllTaxes, useAllTaxAmounts } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CountryISO } from "@/lib/enums";
+import {
+  CabysSpecialPrefix,
+  CountryISO,
+  TaxTypeCode,
+  cabysStartsWith,
+} from "@/lib/enums";
+import { labelByCode } from "@/lib/catalogLabels";
 import { getTaxConfig } from "@/types/taxTypeConfig";
 import type { TaxFormEntry } from "@/types/productForm";
-import type { TaxAmountResponse } from "@/services/data-api/dtos";
+import type { TaxAmountResponse, TaxResponse } from "@/services/data-api/dtos";
 
 const ISO = CountryISO.COSTA_RICA;
-const IVA_CODES = ["01", "07", "08"];
+const IVA_CODES: readonly string[] = [
+  TaxTypeCode.IVA,
+  TaxTypeCode.IVACE,
+  TaxTypeCode.IVARBU,
+];
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
-const SPECIAL_AMOUNT_CODES = ["03", "04", "05", "06"];
+const SPECIAL_AMOUNT_CODES: readonly string[] = [
+  TaxTypeCode.IUC,
+  TaxTypeCode.ISEBA,
+  TaxTypeCode.ISEBEC,
+  TaxTypeCode.IPT,
+];
 
 interface OtherTaxSectionProps {
   taxes: TaxFormEntry[];
@@ -45,9 +60,11 @@ function SpecialTaxRow({
   // The data-api tax-amounts endpoint filters by the data-services numeric
   // tax_id; resolve it from the Hacienda code via the tax-types catalog.
   const { data: allTaxesData } = useAllTaxes({ iso_code: ISO });
-  const taxTypeRow = (allTaxesData ?? []).find(
-    (tt: { code?: string }) => tt.code === tax.taxCode
-  ) as { id?: number } | undefined;
+  const allTaxesRows = (allTaxesData ?? []) as TaxResponse[];
+  const taxTypeRow = allTaxesRows.find((tt) => tt.code === tax.taxCode) as
+    | { id?: number }
+    | undefined;
+  const taxLabel = labelByCode(allTaxesRows, tax.taxCode);
 
   const { data: taxAmountsData } = useAllTaxAmounts(
     { iso_code: ISO, tax_id: taxTypeRow?.id ?? 0 },
@@ -55,9 +72,9 @@ function SpecialTaxRow({
   );
   const taxAmounts: TaxAmountResponse[] = taxAmountsData ?? [];
 
-  const isIsebec = tax.taxCode === "05";
-  const isAlcoholic = cabys?.startsWith("3401");
-  const isNonAlcoholic = cabys?.startsWith("2202");
+  const isIsebec = tax.taxCode === TaxTypeCode.ISEBEC;
+  const isAlcoholic = cabysStartsWith(cabys, CabysSpecialPrefix.ISEBEC_ALCOHOLIC);
+  const isNonAlcoholic = cabysStartsWith(cabys, CabysSpecialPrefix.ISEBEC_NON_ALCOHOLIC);
   const isBeverage = isAlcoholic || isNonAlcoholic;
 
   const handlePercentageChange = (pct: number) => {
@@ -83,9 +100,9 @@ function SpecialTaxRow({
   return (
     <div className="px-3 py-2.5 bg-muted/30 rounded-lg border border-border">
       <div className="flex items-center gap-2 mb-2">
-        <div className="flex-1 text-xs font-semibold">{tax.taxDescription}</div>
+        <div className="flex-1 text-xs font-semibold">{taxLabel}</div>
 
-        {(cfg?.requireRate ?? true) && tax.taxCode !== "12" && !needsAmounts && (
+        {(cfg?.requireRate ?? true) && tax.taxCode !== TaxTypeCode.ISEC && !needsAmounts && (
           <>
             <input
               type="number"
@@ -107,7 +124,7 @@ function SpecialTaxRow({
             )}
           </>
         )}
-        {tax.taxCode === "12" && (
+        {tax.taxCode === TaxTypeCode.ISEC && (
           <>
             <span className="text-xs font-semibold text-muted-foreground px-2 py-[3px]">
               5%
@@ -220,7 +237,7 @@ function SpecialTaxRow({
             </div>
           )}
 
-          {["03", "04", "05", "06"].includes(tax.taxCode) && (
+          {SPECIAL_AMOUNT_CODES.includes(tax.taxCode) && (
             <div>
               <FormLabel>{t("products.quantityUdm")}</FormLabel>
               <input
@@ -238,7 +255,7 @@ function SpecialTaxRow({
             </div>
           )}
 
-          {tax.taxCode === "04" && (
+          {tax.taxCode === TaxTypeCode.ISEBA && (
             <div>
               <FormLabel>{t("products.percentage")}</FormLabel>
               <input
@@ -257,7 +274,7 @@ function SpecialTaxRow({
             </div>
           )}
 
-          {tax.taxCode === "05" && (
+          {tax.taxCode === TaxTypeCode.ISEBEC && (
             <div>
               <FormLabel>{t("products.volumePerUnit")}</FormLabel>
               <input
@@ -332,10 +349,9 @@ export function OtherTaxSection({
               const code = (tt as { code?: string }).code ?? "";
               onAdd({
                 taxCode: code,
-                taxDescription: tt.description,
                 // ISEC (12) has a fixed 5% rate; others start empty so the
                 // input shows the "0" placeholder until the user types.
-                rate: code === "12" ? 5 : 0,
+                rate: code === TaxTypeCode.ISEC ? 5 : 0,
               });
             }
           }}

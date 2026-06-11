@@ -6,9 +6,26 @@ This document gives Claude (or any agent) the context needed to navigate and mod
 
 ---
 
+## 0. Standalone repo (repo split in progress)
+
+This project now lives in its own public repository: **[`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system)**. It is **not a store-front template** — it is a standalone POS + Costa Rica/Hacienda electronic-invoicing system.
+
+During the transition it still physically resides at `BeautyMarket/templates/pos-system/` inside the monorepo (and is gitignored there) because the CI/CD pipelines still reference these paths. **Do new work in the standalone repo.** The monorepo copy will be removed once pipelines are migrated.
+
+### Deployment (GitHub Actions — own repo)
+
+CI/CD now lives in this repo, replacing the monorepo CodePipeline stage:
+- `.github/workflows/deploy.yml` — on push to `main` (or manual dispatch). Builds the SPA (Vite → `dist/`, env from SSM `/jcampos/${ENVIRONMENT}/jmarkets/*`) and runs `scripts/deploy.sh`.
+- `scripts/deploy.sh` — deploys `cloudformation/frontend-site.yml` (stack `jmarkets-${ENVIRONMENT}-frontend-pos-system`), syncs `dist/` → `s3://jmarkets-${ENVIRONMENT}-pos-system`, invalidates CloudFront. Same names as the old monorepo pipeline, so it updates infra in place. Live at `pos.j-markets.jcampos.dev`.
+- AWS auth: GitHub OIDC → IAM role (no static keys). The **OIDC provider** is shared IaC in `biller-apps/Infrastructure/policies/jcampos-iam-roles.yaml` (account-global, dev-stack owned). The **deploy role** (`jcampos-tsuru-pos-system-gha-deploy`, repo-scoped) lives in `cloudformation/frontend-site.yml` — so the site stack owns it. Set its ARN as repo secret `AWS_DEPLOY_ROLE_ARN`. Routine GH deploys are IAM no-ops; changing the role requires an admin (`J-CAMPOS`) deploy.
+- Local deploy: `npm run build && AWS_PROFILE=J-CAMPOS bash scripts/deploy.sh` (uses `--capabilities CAPABILITY_NAMED_IAM`).
+- **Vite `build.outDir` is repo-local `dist/`** (not the old monorepo `../../dist/templates/pos-system`).
+
+---
+
 ## 1. What this is
 
-A Vite + React 18 + TypeScript single-page app that is **one of several store-front templates** in `BeautyMarket/templates/`. It serves as both:
+A Vite + React 18 + TypeScript single-page app — a **standalone POS + electronic-invoicing system** (historically incubated under `BeautyMarket/templates/`, now its own repo `chepelcr/tsuru-pos-system`). It serves as both:
 - **POS workstation** (`/dashboard/pos`, `/pos/*`) — cashier-facing checkout flow
 - **Admin dashboard** (`/dashboard/*`) — products, clients, sessions, stations, electronic invoicing (documents), assignments, reports
 
@@ -265,21 +282,32 @@ POS standalone flow (cashier device):
 
 ## 8. Tax & discount calculation
 
-Business-critical engine lives in `src/services/`:
-- `taxCalculationService.ts` — `TaxCalculationService.getLineAmounts({ subtotal, taxes, discounts, detail_quantity, cabys, tax_types, tax_amounts, has_factory_tax, base_amount })` returns `LineAmountsResult` with snake_case fields: `total_amount_line`, `net_tax`, `factory_assumed_tax`, `base_amount`, `iva_tax_total`, `other_tax_total`
-- `discountCalculationService.ts` — `DiscountCalculationService.calculateSubtotal(amount, discounts)`
+Two-service split (Hacienda v4.4). **Never mix tax and discount logic in the same file.** See `CALCULATION_AUDIT.md` for the spec-vs-implementation status map.
+
+Business-critical engines live in `src/services/`:
+- **`discountCalculationService.ts`** — `DiscountCalculationService.calculate(net_price, discounts)` returns `LineDiscountResult { subtotalAfterDiscount, totalDiscountAmount, perDiscount[], hasRoyaltyOrBonus, discountedNatures[] }`. Implements the Hacienda **sequential cascade** (apply discount 1 → remainder, then discount 2 to remainder…) — *not* a percentage sum. Validates `nature_discount` required when `discountCode === DiscountTypeCode.OTHER` (throws `DiscountValidationError{ code: "NATURE_DISCOUNT_REQUIRED", index }`).
+- **`taxCalculationService.ts`** — `TaxCalculationService.getLineAmounts(params)` pure tax math. Callers run the discount service first and pass `hasRoyaltyOrBonus` + `discountedNatures` in; the tax service uses those flags to route taxes through `factory_assumed_tax`. Returns `LineAmountsResult { total_amount_line, net_tax, factory_assumed_tax, base_amount, iva_tax_total, other_tax_total }` (snake_case).
+
+**Hacienda enums** live in `src/lib/enums/hacienda.ts` and are re-exported from `@/lib/enums`. **Never hard-code `'01'`, `'07'`, `'2202'`, etc.** Use:
+- `TaxTypeCode.IVA` / `IVACE` / `IVARBU` / `ISC` / `IUC` / `ISEBA` / `ISEBEC` / `IPT` / `ISEC` / `OTHERS`
+- `TaxRateCode.GENERAL_13` / `EXEMPT` / `REDUCED_4` / …
+- `DiscountTypeCode.ROYALTY` (`"01"`) / `ROYALTY_BONUS_VAT_CUSTOMER` (`"02"`) / `BONUS` (`"03"`) / `OTHER` (`"99"`) + `FACTORY_ASSUMED_DISCOUNT_NATURES` constant
+- `CabysSpecialPrefix.ISEBEC_NON_ALCOHOLIC` (`"2202"`) / `ISEBEC_ALCOHOLIC` (`"3401"`) + `cabysStartsWith(cabys, prefix)` helper
+- `IvaCollectedFactory.PRE_DETERMINED` / `EXEMPT_BY_FACTORY`
 
 **Tax codes** (Costa Rica Hacienda):
-- IVA: `01` (general IVA), `07` (IVACE — IVA Cobro Especial, requires manual base), `08` (IVARBU — requires tax factor)
+- IVA family: `01` (general), `07` (IVACE — manual base; validator requires `base_amount ≥ subtotalAfterDiscount`), `08` (IVARBU — factor-based)
 - Other: `02` (ISC), `03` (IUC), `04` (ISEBA), `05` (ISEBEC — beverages, CABYS-driven), `06` (IPT), `12` (ISEC fixed 5%), `99` (other)
 
-Special-amount codes (`03/04/05/06`) need `tax_amount_id` + `quantity` + sometimes `percentage`/`volume_consumption` in `special_fields`. Tax amounts come from `useAllTaxAmounts({ iso_code, tax_id })`.
+Special-amount codes (`03/04/05/06`) need `tax_amount_id` + `quantity` + sometimes `percentage`/`volume_consumption` in `special_fields`. Tax amounts come from `useAllTaxAmounts({ iso_code, tax_id })`; `LineDetailDrawer` flattens the selected `tax_unit_amount` into a `TaxAmountsById` lookup before calling the tax service.
 
 CABYS-driven IVA: `useCabysSearch` returns items with `tax_rate.percentage` — auto-applied to IVA on selection. See `FiscalInformationSection` (products) and `FiscalInfoSection` (line-detail) for the search UX.
 
-ISEBEC variants by CABYS prefix: `3401*` = alcoholic (auto-pick rate by alcohol %), `2202*` = non-alcoholic (manual amount select).
+ISEBEC variants by CABYS prefix: `3401*` (alcoholic) auto-picks rate by alcohol %; `2202*` (non-alcoholic) requires manual amount select.
 
-See `TAX_CALCULATION_FLOW.md` and `TAX_TYPES_REFERENCE.md` in this folder for deeper detail.
+Cross-app-be mirrors this split — `app/services/tax_calculation_service.py`, `app/services/discount_calculation_service.py`, `app/services/line_calculation_service.py` orchestrator. The old `app/utils/product_calculations.py` is gone; do not import it.
+
+See `CALCULATION_AUDIT.md`, `TAX_CALCULATION_FLOW.md`, and `TAX_TYPES_REFERENCE.md` for deeper detail.
 
 ---
 

@@ -11,10 +11,10 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
 
   if (variant === "default") {
     style = { backgroundColor: "hsl(var(--primary))" };
-    classes += " border-transparent text-gray-900 dark:text-white";
+    classes += " border-transparent text-foreground";
   } else if (variant === "secondary") {
     style = { backgroundColor: "hsl(var(--secondary))" };
-    classes += " border-transparent text-gray-900 dark:text-white";
+    classes += " border-transparent text-foreground";
   } else if (variant === "destructive") {
     classes += " border-transparent bg-destructive text-destructive-foreground";
   } else if (variant === "outline") {

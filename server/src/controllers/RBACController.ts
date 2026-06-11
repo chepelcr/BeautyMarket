@@ -1,45 +1,111 @@
 import { Router, Request, Response } from 'express';
-import type { IRBACService } from '../services/RBACService';
+import type { IRBACService, PermissionGrantDto } from '../services/RBACService';
+import type { IMembershipService } from '../services/MembershipService';
+import type { createPermissionMiddleware } from '../middleware/permissions';
+import { statusOf } from '../utils/HttpError';
+
+type PermissionMiddleware = ReturnType<typeof createPermissionMiddleware>;
 
 export class RBACController {
   constructor(
-    private rbacService: IRBACService
+    private rbacService: IRBACService,
+    private membershipService: IMembershipService,
+    private guards: PermissionMiddleware
   ) {}
 
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
+    const readRoles = this.guards.requirePermission('team', 'read', 'roles');
+    const membership = this.guards.requireMembership();
+
     // Organization-scoped RBAC routes
     // (mounted at /api/users/:userId/organization/:orgId/rbac)
 
-    // Roles
-    router.get('/roles', this.getSystemRoles.bind(this));
-    router.get('/roles/organization', this.getOrganizationRoles.bind(this));
-    router.get('/roles/:id', this.getRoleById.bind(this));
-    router.post('/roles', this.createRole.bind(this));
-    router.put('/roles/:id', this.updateRole.bind(this));
-    router.delete('/roles/:id', this.deleteRole.bind(this));
+    // Effective permissions / availability (O1, O2)
+    router.get('/my-permissions', membership, this.getMyPermissions.bind(this));
+    router.get('/available-matrix', readRoles, this.getAvailableMatrix.bind(this));
 
-    // Modules and Actions
-    router.get('/modules', this.getAllModules.bind(this));
-    router.get('/actions', this.getAllActions.bind(this));
+    // Roles (O3–O8)
+    router.get('/roles', readRoles, this.getSystemRoles.bind(this));
+    router.get('/roles/organization', readRoles, this.getOrganizationRoles.bind(this));
+    router.get('/roles/:id', readRoles, this.getRoleById.bind(this));
+    router.post('/roles', this.guards.requirePermission('team', 'create', 'roles'), this.createRole.bind(this));
+    router.put('/roles/:id', this.guards.requirePermission('team', 'update', 'roles'), this.updateRole.bind(this));
+    router.delete('/roles/:id', this.guards.requirePermission('team', 'delete', 'roles'), this.deleteRole.bind(this));
 
-    // Permissions
-    router.get('/roles/:id/permissions', this.getRolePermissions.bind(this));
-    router.put('/roles/:id/permissions', this.setRolePermissions.bind(this));
+    // Modules and Actions (O12, O13 — global catalogs, back-compat; POS uses O2)
+    router.get('/modules', readRoles, this.getAllModules.bind(this));
+    router.get('/actions', readRoles, this.getAllActions.bind(this));
 
-    // Permission checks
-    router.post('/check-permission', this.checkPermission.bind(this));
-    router.get('/user-role', this.getUserRole.bind(this));
+    // Permissions (O9, O10)
+    router.get('/roles/:id/permissions', readRoles, this.getRolePermissions.bind(this));
+    router.put('/roles/:id/permissions', this.guards.requirePermission('team', 'update', 'roles'), this.setRolePermissions.bind(this));
+
+    // Member role assignment (O11)
+    router.put('/members/:memberId/role', this.guards.requirePermission('team', 'update', 'members'), this.assignMemberRole.bind(this));
+
+    // Permission checks (O14, O15 — membership-only self checks)
+    router.post('/check-permission', membership, this.checkPermission.bind(this));
+    router.get('/user-role', membership, this.getUserRole.bind(this));
 
     return router;
   }
 
   /**
    * @swagger
+   * /api/users/{userId}/organization/{orgId}/rbac/my-permissions:
+   *   get:
+   *     summary: Get the caller's effective permissions in this organization (nav/action gating)
+   *     tags: [RBAC]
+   *     responses:
+   *       200:
+   *         description: Effective role, modules, and flattened permissions
+   *       403:
+   *         description: Not a member of this organization
+   */
+  async getMyPermissions(req: Request, res: Response) {
+    try {
+      const { userId, orgId } = req.params;
+      const result = await this.rbacService.getMyPermissions(userId, orgId);
+
+      if (!result) {
+        return res.status(403).json({ error: 'You are not a member of this organization' });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching my permissions:', error);
+      res.status(500).json({ error: 'Failed to fetch permissions' });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/{userId}/organization/{orgId}/rbac/available-matrix:
+   *   get:
+   *     summary: Get the org-filtered modules → submodules → grantable actions matrix
+   *     tags: [RBAC]
+   *     responses:
+   *       200:
+   *         description: Available matrix for the role-permission UI
+   */
+  async getAvailableMatrix(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      const matrix = await this.rbacService.getAvailableMatrix(orgId);
+      res.json(matrix);
+    } catch (error) {
+      console.error('Error fetching available matrix:', error);
+      res.status(500).json({ error: 'Failed to fetch available matrix' });
+    }
+  }
+
+  /**
+   * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/roles:
    *   get:
-   *     summary: Get all system roles
+   *     summary: Get all system role templates (platform_admin excluded)
    *     tags: [RBAC]
    *     responses:
    *       200:
@@ -61,20 +127,14 @@ export class RBACController {
    *   get:
    *     summary: Get roles for an organization (includes system roles)
    *     tags: [RBAC]
-   *     parameters:
-   *       - in: path
-   *         name: organizationId
-   *         required: true
-   *         schema:
-   *           type: string
    *     responses:
    *       200:
    *         description: List of roles
    */
   async getOrganizationRoles(req: Request, res: Response) {
     try {
-      const { organizationId } = req.params;
-      const roles = await this.rbacService.getRolesByOrganization(organizationId);
+      const { orgId } = req.params;
+      const roles = await this.rbacService.getRolesByOrganization(orgId);
       res.json(roles);
     } catch (error) {
       console.error('Error fetching organization roles:', error);
@@ -86,7 +146,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}:
    *   get:
-   *     summary: Get role by ID
+   *     summary: Get role by ID (404 unless owned by the org or a system template)
    *     tags: [RBAC]
    *     parameters:
    *       - in: path
@@ -102,8 +162,8 @@ export class RBACController {
    */
   async getRoleById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const role = await this.rbacService.getRoleById(id);
+      const { id, orgId } = req.params;
+      const role = await this.rbacService.getRoleForOrg(id, orgId);
 
       if (!role) {
         return res.status(404).json({ error: 'Role not found' });
@@ -120,7 +180,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/roles:
    *   post:
-   *     summary: Create a new role
+   *     summary: Create a new organization role (organizationId forced from the path)
    *     tags: [RBAC]
    *     requestBody:
    *       required: true
@@ -133,9 +193,9 @@ export class RBACController {
    *             properties:
    *               name:
    *                 type: string
-   *               description:
+   *               displayName:
    *                 type: string
-   *               organizationId:
+   *               description:
    *                 type: string
    *     responses:
    *       201:
@@ -145,24 +205,20 @@ export class RBACController {
    */
   async createRole(req: Request, res: Response) {
     try {
-      const { name, displayName, description, organizationId } = req.body;
+      const { orgId } = req.params;
+      const { name, displayName, description } = req.body;
 
       if (!name) {
         return res.status(400).json({ error: 'Name is required' });
       }
 
-      const role = await this.rbacService.createRole({
-        name,
-        displayName: displayName || name,
-        description,
-        organizationId,
-        isSystem: false,
-      });
+      // organizationId FORCED from the :orgId path param (org-spoof hole fix)
+      const role = await this.rbacService.createOrgRole(orgId, { name, displayName, description });
 
       res.status(201).json(role);
     } catch (error: any) {
       console.error('Error creating role:', error);
-      res.status(400).json({ error: error.message || 'Failed to create role' });
+      res.status(statusOf(error)).json({ error: error.message || 'Failed to create role' });
     }
   }
 
@@ -170,7 +226,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}:
    *   put:
-   *     summary: Update a role
+   *     summary: Update an organization role
    *     tags: [RBAC]
    *     parameters:
    *       - in: path
@@ -187,8 +243,12 @@ export class RBACController {
    *             properties:
    *               name:
    *                 type: string
+   *               displayName:
+   *                 type: string
    *               description:
    *                 type: string
+   *               isActive:
+   *                 type: boolean
    *     responses:
    *       200:
    *         description: Role updated
@@ -199,10 +259,10 @@ export class RBACController {
    */
   async updateRole(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const data = req.body;
+      const { id, orgId } = req.params;
+      const { name, displayName, description, isActive } = req.body;
 
-      const role = await this.rbacService.updateRole(id, data);
+      const role = await this.rbacService.updateOrgRole(id, orgId, { name, displayName, description, isActive });
 
       if (!role) {
         return res.status(404).json({ error: 'Role not found' });
@@ -211,7 +271,7 @@ export class RBACController {
       res.json(role);
     } catch (error: any) {
       console.error('Error updating role:', error);
-      res.status(400).json({ error: error.message || 'Failed to update role' });
+      res.status(statusOf(error)).json({ error: error.message || 'Failed to update role' });
     }
   }
 
@@ -219,7 +279,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}:
    *   delete:
-   *     summary: Delete a role
+   *     summary: Delete an organization role
    *     tags: [RBAC]
    *     parameters:
    *       - in: path
@@ -234,12 +294,14 @@ export class RBACController {
    *         description: Cannot delete system role
    *       404:
    *         description: Role not found
+   *       409:
+   *         description: Role is assigned to organization members
    */
   async deleteRole(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const { id, orgId } = req.params;
 
-      const deleted = await this.rbacService.deleteRole(id);
+      const deleted = await this.rbacService.deleteOrgRole(id, orgId);
 
       if (!deleted) {
         return res.status(404).json({ error: 'Role not found' });
@@ -248,7 +310,7 @@ export class RBACController {
       res.json({ message: 'Role deleted successfully' });
     } catch (error: any) {
       console.error('Error deleting role:', error);
-      res.status(400).json({ error: error.message || 'Failed to delete role' });
+      res.status(statusOf(error)).json({ error: error.message || 'Failed to delete role' });
     }
   }
 
@@ -256,7 +318,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/modules:
    *   get:
-   *     summary: Get all modules with submodules
+   *     summary: Get all modules with submodules (global catalog — use available-matrix for the role UI)
    *     tags: [RBAC]
    *     responses:
    *       200:
@@ -306,12 +368,19 @@ export class RBACController {
    *           type: string
    *     responses:
    *       200:
-   *         description: List of permissions
+   *         description: List of permission grant rows
+   *       404:
+   *         description: Role not found
    */
   async getRolePermissions(req: Request, res: Response) {
     try {
-      const { id: roleId } = req.params;
-      const permissions = await this.rbacService.getRolePermissions(roleId);
+      const { id: roleId, orgId } = req.params;
+      const permissions = await this.rbacService.getRolePermissionsForOrg(roleId, orgId);
+
+      if (!permissions) {
+        return res.status(404).json({ error: 'Role not found' });
+      }
+
       res.json(permissions);
     } catch (error) {
       console.error('Error fetching role permissions:', error);
@@ -323,7 +392,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/roles/{id}/permissions:
    *   put:
-   *     summary: Set permissions for a role
+   *     summary: Bulk replace permissions for an org role (subset-validated against the org's available matrix)
    *     tags: [RBAC]
    *     parameters:
    *       - in: path
@@ -336,37 +405,100 @@ export class RBACController {
    *       content:
    *         application/json:
    *           schema:
-   *             type: array
-   *             items:
-   *               type: object
-   *               properties:
-   *                 moduleId:
-   *                   type: string
-   *                 actionId:
-   *                   type: string
-   *                 submoduleId:
-   *                   type: string
+   *             type: object
+   *             properties:
+   *               permissions:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     moduleId:
+   *                       type: string
+   *                     submoduleId:
+   *                       type: string
+   *                       nullable: true
+   *                     actionId:
+   *                       type: string
    *     responses:
    *       200:
    *         description: Permissions updated
    *       400:
-   *         description: Cannot modify system role permissions
+   *         description: Validation error (offending tuples listed) or system role
+   *       404:
+   *         description: Role not found
    */
   async setRolePermissions(req: Request, res: Response) {
     try {
-      const { id: roleId } = req.params;
-      const permissions = req.body;
+      const { id: roleId, orgId } = req.params;
+
+      // Envelope { permissions: [...] }; legacy bare array accepted for back-compat
+      const permissions: PermissionGrantDto[] | undefined = Array.isArray(req.body)
+        ? req.body
+        : req.body?.permissions;
 
       if (!Array.isArray(permissions)) {
         return res.status(400).json({ error: 'Permissions must be an array' });
       }
 
-      await this.rbacService.setRolePermissions(roleId, permissions);
+      const count = await this.rbacService.setRolePermissionsForOrg(roleId, orgId, permissions);
 
-      res.json({ message: 'Permissions updated successfully' });
+      res.json({ message: 'Permissions updated successfully', count });
     } catch (error: any) {
       console.error('Error setting role permissions:', error);
-      res.status(400).json({ error: error.message || 'Failed to set permissions' });
+      res.status(statusOf(error)).json({ error: error.message || 'Failed to set permissions' });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/{userId}/organization/{orgId}/rbac/members/{memberId}/role:
+   *   put:
+   *     summary: Assign a role to an organization member (same-org or system roles only)
+   *     tags: [RBAC]
+   *     parameters:
+   *       - in: path
+   *         name: memberId
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - roleId
+   *             properties:
+   *               roleId:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Member role updated
+   *       400:
+   *         description: Role not assignable (cross-org, inactive, platform_admin, or last owner)
+   *       404:
+   *         description: Member not found in this organization
+   */
+  async assignMemberRole(req: Request, res: Response) {
+    try {
+      const { memberId, orgId, userId } = req.params;
+      const { roleId } = req.body;
+
+      if (!roleId) {
+        return res.status(400).json({ error: 'roleId is required' });
+      }
+
+      const member = await this.membershipService.updateMemberRoleScoped(memberId, roleId, orgId, userId);
+
+      if (!member) {
+        return res.status(404).json({ error: 'Member not found' });
+      }
+
+      res.json(member);
+    } catch (error: any) {
+      console.error('Error assigning member role:', error);
+      res.status(statusOf(error)).json({ error: error.message || 'Failed to update role' });
     }
   }
 
@@ -374,7 +506,7 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/check-permission:
    *   post:
-   *     summary: Check if user has permission
+   *     summary: Check if the caller has a permission (userId/orgId taken from the path)
    *     tags: [RBAC]
    *     requestBody:
    *       required: true
@@ -383,15 +515,9 @@ export class RBACController {
    *           schema:
    *             type: object
    *             required:
-   *               - userId
-   *               - organizationId
    *               - module
    *               - action
    *             properties:
-   *               userId:
-   *                 type: string
-   *               organizationId:
-   *                 type: string
    *               module:
    *                 type: string
    *               action:
@@ -404,17 +530,19 @@ export class RBACController {
    */
   async checkPermission(req: Request, res: Response) {
     try {
-      const { userId, organizationId, module, action, submodule } = req.body;
+      // userId/organizationId FORCED from path params (body-driven probe hole fix)
+      const { userId, orgId } = req.params;
+      const { module, action, submodule } = req.body;
 
-      if (!userId || !organizationId || !module || !action) {
+      if (!module || !action) {
         return res.status(400).json({
-          error: 'userId, organizationId, module, and action are required'
+          error: 'module and action are required'
         });
       }
 
       const hasPermission = await this.rbacService.hasPermission(
         userId,
-        organizationId,
+        orgId,
         { module, action, submodule }
       );
 
@@ -429,19 +557,8 @@ export class RBACController {
    * @swagger
    * /api/users/{userId}/organization/{orgId}/rbac/user-role:
    *   get:
-   *     summary: Get user's role in an organization
+   *     summary: Get the caller's role in this organization
    *     tags: [RBAC]
-   *     parameters:
-   *       - in: path
-   *         name: userId
-   *         required: true
-   *         schema:
-   *           type: string
-   *       - in: path
-   *         name: organizationId
-   *         required: true
-   *         schema:
-   *           type: string
    *     responses:
    *       200:
    *         description: User's role
@@ -450,9 +567,9 @@ export class RBACController {
    */
   async getUserRole(req: Request, res: Response) {
     try {
-      const { userId, organizationId } = req.params;
+      const { userId, orgId } = req.params;
 
-      const role = await this.rbacService.getUserRole(userId, organizationId);
+      const role = await this.rbacService.getUserRole(userId, orgId);
 
       if (!role) {
         return res.status(404).json({ error: 'User is not a member of this organization' });

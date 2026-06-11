@@ -1,9 +1,15 @@
 /**
  * Tax Type Configuration for Costa Rica (Hacienda)
- * 
+ *
  * This configuration maps each tax type code to its specific requirements and behavior.
  * Based on Costa Rica's Ministerio de Hacienda electronic invoicing specifications.
+ *
+ * Note: this file still uses literal code strings ("01", "02"…) as RECORD KEYS
+ * because the data source itself is keyed by the Hacienda code. Lookups from
+ * application code MUST go through `TaxTypeCode.*` (see `@/lib/enums`) so the
+ * literals never leak into business logic.
  */
+import { TaxTypeCode } from '@/lib/enums';
 
 export interface TaxTypeConfig {
   /** Hacienda tax code (e.g., '01' for IVA) */
@@ -231,7 +237,11 @@ export function getTaxConfig(code?: string): TaxTypeConfig | undefined {
  */
 export function isIvaTax(code?: string): boolean {
   if (!code) return false;
-  return ['01', '07', '08'].includes(code);
+  return (
+    code === TaxTypeCode.IVA ||
+    code === TaxTypeCode.IVACE ||
+    code === TaxTypeCode.IVARBU
+  );
 }
 
 /**
@@ -259,7 +269,7 @@ export function canBeAssumedByFactory(code?: string): boolean {
  * @returns Array of IVA tax codes
  */
 export function getIvaTaxCodes(): string[] {
-  return ['01', '07', '08'];
+  return [TaxTypeCode.IVA, TaxTypeCode.IVACE, TaxTypeCode.IVARBU];
 }
 
 /**
@@ -267,5 +277,10 @@ export function getIvaTaxCodes(): string[] {
  * @returns Array of special tax codes
  */
 export function getSpecialTaxCodes(): string[] {
-  return ['03', '04', '05', '06'];
+  return [
+    TaxTypeCode.IUC,
+    TaxTypeCode.ISEBA,
+    TaxTypeCode.ISEBEC,
+    TaxTypeCode.IPT,
+  ];
 }

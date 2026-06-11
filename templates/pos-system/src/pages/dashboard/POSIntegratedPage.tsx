@@ -8,6 +8,7 @@ import { useCartFlow } from "@/hooks/useCartFlow";
 import { useClientSearch } from "@/hooks/useClientSearch";
 import { useSync } from "@/hooks/useSync";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { DocumentCurrencyProvider } from "@/contexts/DocumentCurrencyContext";
 import { useCart } from "@/store/cart";
 import { useDocumentStore } from "@/store/documentStore";
@@ -49,6 +50,10 @@ export default function POSIntegratedPage({ docType, tabId }: POSIntegratedPageP
   console.log('[POSIntegratedPage] Session context:', sessionCtx);
   
   const { t } = useLanguage();
+  // When rendered as the editor body for a document tab, let DocumentsPage own
+  // the title (`Documents - New - {docType}`). Only set the POS shell title for
+  // the standalone /dashboard/pos route, where `tabId` is undefined.
+  usePageTitle([t("shell.pos")], !tabId);
   const isDesktop = useIsDesktop(768);
 
   const [leftTab, setLeftTab] = useState<LeftTab>("products");

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useRegisteredOrganization } from "@/hooks/useRegisteredOrganization";
 import { Icon } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -16,6 +17,7 @@ export default function OrgRegisteredOrgPage() {
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
+  usePageTitle([t("shell.orgSettings"), t("orgSettings.tab.fiscalInfo")]);
   const [, navigate] = useLocation();
 
   const [drawerOpen, setDrawerOpen] = useState(false);

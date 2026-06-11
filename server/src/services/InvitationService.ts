@@ -4,6 +4,7 @@ import type { OrganizationMemberRepository } from "../repositories/OrganizationM
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { RBACRepository } from "../repositories/RBACRepository";
+import { assertAssignableRole } from "./RBACService";
 import type { EmailService } from "./EmailService";
 import { generateInvitationEmailHtml } from "../templates/emails";
 import { appConfig } from "../config/appConfig";
@@ -80,11 +81,10 @@ export class InvitationService implements IInvitationService {
       throw new Error("Ya existe una invitación pendiente para este email");
     }
 
-    // Validate role
+    // V3 — same-org role rule: role must belong to this org or be an active
+    // system template; platform_admin is never org-assignable
     const role = await this.rbacRepo.findRoleById(data.roleId);
-    if (!role) {
-      throw new Error("Rol no encontrado");
-    }
+    assertAssignableRole(role, data.organizationId);
 
     // Create invitation
     const invitation = await this.invitationRepo.create({
@@ -134,6 +134,11 @@ export class InvitationService implements IInvitationService {
       await this.invitationRepo.updateStatus(invitation.id, "accepted");
       throw new Error("Ya eres miembro de esta organización");
     }
+
+    // V3 — re-validate the invited role at accept time (it may have been
+    // disabled or re-scoped since the invitation was created)
+    const role = await this.rbacRepo.findRoleById(invitation.roleId);
+    assertAssignableRole(role, invitation.organizationId);
 
     // Add user to organization
     await this.memberRepo.create({

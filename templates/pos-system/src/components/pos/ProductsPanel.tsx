@@ -135,7 +135,7 @@ export function ProductsPanel({ orgId, cartItems, isDesktop, onAdd }: ProductsPa
                         )}
                       </div>
                       <div className="font-display text-xl font-semibold text-accent-rose mt-1">
-                        {fmt(p.price ?? 0)}
+                        {fmt(p.sale_price ?? p.price ?? 0)}
                       </div>
                       {inCart && (
                         <div className="text-[10px] text-accent-rose mt-0.5">

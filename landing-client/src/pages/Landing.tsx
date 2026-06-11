@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import landing from "@/content/landing.json";
 import {
   UserPlus,
   Package,
@@ -15,13 +16,12 @@ import {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StepCard({ number, icon: Icon, titleKey, descriptionKey }: {
+function StepCard({ number, icon: Icon, title, description }: {
   number: number;
   icon: React.ElementType;
-  titleKey: string;
-  descriptionKey: string;
+  title: string;
+  description: string;
 }) {
-  const { t } = useLanguage();
   return (
     <div className="relative flex flex-col items-center text-center px-6">
       <div className="relative mb-5">
@@ -32,19 +32,18 @@ function StepCard({ number, icon: Icon, titleKey, descriptionKey }: {
           {number}
         </span>
       </div>
-      <h3 className="font-serif text-lg font-bold text-foreground mb-2">{t(titleKey)}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{t(descriptionKey)}</p>
+      <h3 className="font-serif text-lg font-bold text-foreground mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }
 
-function ValueCard({ icon: Icon, titleKey, descriptionKey, accent }: {
+function ValueCard({ icon: Icon, title, description, accent }: {
   icon: React.ElementType;
-  titleKey: string;
-  descriptionKey: string;
+  title: string;
+  description: string;
   accent?: boolean;
 }) {
-  const { t } = useLanguage();
   return (
     <div className={`group rounded-2xl p-6 border transition-all hover:-translate-y-1 hover:shadow-md ${
       accent
@@ -56,16 +55,26 @@ function ValueCard({ icon: Icon, titleKey, descriptionKey, accent }: {
       }`}>
         <Icon className={`h-5 w-5 ${accent ? 'text-accent' : 'text-primary'}`} />
       </div>
-      <h3 className="font-semibold text-foreground mb-2">{t(titleKey)}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{t(descriptionKey)}</p>
+      <h3 className="font-semibold text-foreground mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+const STEP_ICONS = [UserPlus, Package, Share2];
+const VALUE_ICONS = [Scale, Leaf, MapPin, Eye];
+
 export default function Landing() {
-  const { t } = useLanguage();
+  const { language: lang } = useLanguage();
+  const pick = (f: { es: string; en: string }) => f[lang] ?? f.es;
+
+  const values = landing.values.items;
+  // hero/footer pills reuse the value titles (fair trade, local, transparency)
+  const fairTradeTitle = pick(values[0].title);
+  const localTitle = pick(values[2].title);
+  const transparencyTitle = pick(values[3].title);
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,15 +90,15 @@ export default function Landing() {
 
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
               <Sprout className="h-3.5 w-3.5" />
-              {t('hero.badge')}
+              {pick(landing.hero.badge)}
             </div>
 
             <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight mb-6">
-              {t('hero.title')}
+              {pick(landing.hero.title)}
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-              {t('hero.subtitle')}
+              {pick(landing.hero.subtitle)}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -102,7 +111,7 @@ export default function Landing() {
                   size="lg"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 py-6 text-base font-semibold gap-2 shadow-lg shadow-primary/20"
                 >
-                  {t('hero.cta')}
+                  {pick(landing.hero.cta)}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </a>
@@ -112,7 +121,7 @@ export default function Landing() {
                   size="lg"
                   className="rounded-full px-8 py-6 text-base border-border text-foreground hover:bg-muted/50"
                 >
-                  {t('hero.secondary')}
+                  {pick(landing.hero.secondary)}
                 </Button>
               </Link>
             </div>
@@ -120,17 +129,17 @@ export default function Landing() {
             <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                {t('values.fairTrade.title')}
+                {fairTradeTitle}
               </span>
               <span className="text-border">·</span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                {t('values.local.title')}
+                {localTitle}
               </span>
               <span className="text-border">·</span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                {t('values.transparency.title')}
+                {transparencyTitle}
               </span>
             </div>
 
@@ -143,37 +152,28 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="text-center mb-14">
-            <span className="text-primary font-semibold text-sm uppercase tracking-wider">{t('howItWorks.title')}</span>
+            <span className="text-primary font-semibold text-sm uppercase tracking-wider">{pick(landing.howItWorks.title)}</span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mt-2 mb-4">
-              {t('howItWorks.subtitle')}
+              {pick(landing.howItWorks.subtitle)}
             </h2>
           </div>
 
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6">
-            <StepCard
-              number={1}
-              icon={UserPlus}
-              titleKey="howItWorks.step1.title"
-              descriptionKey="howItWorks.step1.description"
-            />
-            <StepCard
-              number={2}
-              icon={Package}
-              titleKey="howItWorks.step2.title"
-              descriptionKey="howItWorks.step2.description"
-            />
-            <StepCard
-              number={3}
-              icon={Share2}
-              titleKey="howItWorks.step3.title"
-              descriptionKey="howItWorks.step3.description"
-            />
+            {landing.howItWorks.steps.map((step, i) => (
+              <StepCard
+                key={i}
+                number={i + 1}
+                icon={STEP_ICONS[i]}
+                title={pick(step.title)}
+                description={pick(step.description)}
+              />
+            ))}
           </div>
 
           <div className="text-center mt-12">
             <Link href="/funcionalidades">
               <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 gap-2 rounded-full">
-                {t('howItWorks.learnMore')}
+                {pick(landing.howItWorks.learnMore)}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -187,35 +187,22 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="text-center mb-14">
-            <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t('values.title')}</span>
+            <span className="text-accent font-semibold text-sm uppercase tracking-wider">{pick(landing.values.title)}</span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mt-2 mb-4">
-              {t('values.subtitle')}
+              {pick(landing.values.subtitle)}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <ValueCard
-              icon={Scale}
-              titleKey="values.fairTrade.title"
-              descriptionKey="values.fairTrade.description"
-            />
-            <ValueCard
-              icon={Leaf}
-              titleKey="values.conscious.title"
-              descriptionKey="values.conscious.description"
-            />
-            <ValueCard
-              icon={MapPin}
-              titleKey="values.local.title"
-              descriptionKey="values.local.description"
-              accent
-            />
-            <ValueCard
-              icon={Eye}
-              titleKey="values.transparency.title"
-              descriptionKey="values.transparency.description"
-              accent
-            />
+            {values.map((value, i) => (
+              <ValueCard
+                key={i}
+                icon={VALUE_ICONS[i]}
+                title={pick(value.title)}
+                description={pick(value.description)}
+                accent={i >= 2}
+              />
+            ))}
           </div>
 
         </div>
@@ -225,10 +212,10 @@ export default function Landing() {
       <section className="py-20 bg-gradient-to-br from-primary to-primary/80">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mb-4">
-            {t('cta.community.title')}
+            {pick(landing.finalCta.title)}
           </h2>
           <p className="text-lg text-white/80 mb-8">
-            {t('cta.community.subtitle')}
+            {pick(landing.finalCta.subtitle)}
           </p>
           <a
             href="https://admin.j-markets.jcampos.dev/register"
@@ -239,18 +226,18 @@ export default function Landing() {
               size="lg"
               className="bg-white text-primary hover:bg-white/90 rounded-full px-10 py-6 text-base font-semibold shadow-lg"
             >
-              {t('cta.community.button')}
+              {pick(landing.finalCta.button)}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </a>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            {(['values.transparency.title', 'values.fairTrade.title', 'values.local.title'] as const).map((key) => (
+            {[transparencyTitle, fairTradeTitle, localTitle].map((label) => (
               <span
-                key={key}
+                key={label}
                 className="px-4 py-1.5 rounded-full bg-white/15 text-white/90 text-sm font-medium border border-white/20"
               >
-                {t(key)}
+                {label}
               </span>
             ))}
           </div>

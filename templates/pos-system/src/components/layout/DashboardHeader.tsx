@@ -6,6 +6,7 @@ import { useDocumentStore } from "@/store/documentStore";
 import { useMaxVisibleTabs } from "@/store/uiStore";
 import { DocumentsToolbar } from "@/components/documents/DocumentsToolbar";
 import { NewDocumentButton } from "@/components/documents/NewDocumentButton";
+import { NotificationsBell } from "@/components/layout/NotificationsBell";
 
 interface DashboardHeaderProps {
   /** Mobile hamburger → opens left sidebar drawer */
@@ -94,12 +95,13 @@ export function DashboardHeader({
         )}
       </div>
 
-      {/* RIGHT SLOT — + Nuevo (desktop) · flag · dark · sync · 📄 (mobile drawer toggle) */}
+      {/* RIGHT SLOT — + Nuevo · 🔔 · flag · dark · sync · 📄 (mobile drawer toggle) */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        {/* Desktop-only New Document button — sits next to the country flag */}
-        <div className="documents-toolbar-desktop" style={{ display: "none" }}>
-          <NewDocumentButton />
-        </div>
+        {/* New Document button — always visible; collapses to icon-only on sm+ */}
+        <NewDocumentButton />
+
+        {/* Notifications bell */}
+        <NotificationsBell />
 
         {/* Language toggle + Country flag */}
         <button

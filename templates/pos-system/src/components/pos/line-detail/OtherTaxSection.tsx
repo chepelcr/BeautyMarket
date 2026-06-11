@@ -1,15 +1,72 @@
+import { useEffect } from 'react';
 import { Receipt } from 'lucide-react';
 import { Icon, FormLabel } from '@/components/ui';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useAllTaxes, useAllTaxAmounts } from '@/hooks/useDataApi';
-import { CountryISO } from '@/lib/enums';
+import {
+  CabysSpecialPrefix,
+  CountryISO,
+  TaxTypeCode,
+  cabysStartsWith,
+} from '@/lib/enums';
 import { getTaxConfig } from '@/types/taxTypeConfig';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineTax } from '@/types/lineDetail';
+import type { TaxResponse, TaxAmountResponse } from '@/services/data-api/dtos';
+
+/**
+ * Per-code `special_fields` requirements (Hacienda Nota 7 — DatosImpuestoEspecifico).
+ * For ISEBEC the alcoholic-vs-non-alcoholic split is decided by the CABYS
+ * prefix (see `validateSpecialFields` below).
+ */
+type SpecialField =
+  | 'tax_amount_id'
+  | 'quantity'
+  | 'percentage'
+  | 'volume_consumption';
+
+const BASE_SPECIAL_FIELDS_BY_CODE: Record<string, SpecialField[]> = {
+  [TaxTypeCode.IUC]:    ['tax_amount_id', 'quantity'],
+  [TaxTypeCode.IPT]:    ['tax_amount_id', 'quantity'],
+  [TaxTypeCode.ISEC]:   ['tax_amount_id', 'quantity'],
+  [TaxTypeCode.ISEBA]:  ['tax_amount_id', 'quantity', 'percentage'],
+};
+
+function requiredSpecialFields(tax: LineTax, cabys?: string): SpecialField[] {
+  const code = tax.code;
+  if (!code) return [];
+  if (code === TaxTypeCode.ISEBEC) {
+    if (cabysStartsWith(cabys, CabysSpecialPrefix.ISEBEC_ALCOHOLIC)) {
+      return ['tax_amount_id', 'quantity', 'volume_consumption', 'percentage'];
+    }
+    if (cabysStartsWith(cabys, CabysSpecialPrefix.ISEBEC_NON_ALCOHOLIC)) {
+      return ['tax_amount_id', 'quantity', 'volume_consumption'];
+    }
+    return ['tax_amount_id', 'quantity', 'volume_consumption'];
+  }
+  return BASE_SPECIAL_FIELDS_BY_CODE[code] ?? [];
+}
+
+function missingSpecialFields(tax: LineTax, cabys?: string): SpecialField[] {
+  const required = requiredSpecialFields(tax, cabys);
+  return required.filter((field) => {
+    const value = tax.special_fields?.[field];
+    return value === undefined || value === null || value === 0;
+  });
+}
 
 const ISO = CountryISO.COSTA_RICA;
-const IVA_CODES = ['01', '07', '08'];
-const SPECIAL_AMOUNT_CODES = ['03', '04', '05', '06']; // IUC, ISEBA, ISEBEC, IPT
+const IVA_CODES: readonly string[] = [
+  TaxTypeCode.IVA,
+  TaxTypeCode.IVACE,
+  TaxTypeCode.IVARBU,
+];
+const SPECIAL_AMOUNT_CODES: readonly string[] = [
+  TaxTypeCode.IUC,
+  TaxTypeCode.ISEBA,
+  TaxTypeCode.ISEBEC,
+  TaxTypeCode.IPT,
+];
 const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
 
 interface OtherTaxSectionProps {
@@ -20,6 +77,11 @@ interface OtherTaxSectionProps {
   detailQuantity: number;
   isExpanded: boolean;
   onToggle: () => void;
+  /**
+   * Surfaces aggregated `special_fields` validation errors to the parent so
+   * the drawer can render them inline and block save.
+   */
+  onValidationChange?: (errors: string[]) => void;
 }
 
 export function OtherTaxSection({
@@ -30,67 +92,82 @@ export function OtherTaxSection({
   detailQuantity,
   isExpanded,
   onToggle,
+  onValidationChange,
 }: OtherTaxSectionProps) {
   const { t } = useLanguage();
+
+  // Aggregate per-tax `special_fields` validation errors so the drawer can
+  // block save and render them inline. Re-derive on every taxes/cabys change.
+  useEffect(() => {
+    if (!onValidationChange) return;
+    const errors: string[] = [];
+    taxes.forEach((tax) => {
+      const missing = missingSpecialFields(tax, cabys);
+      missing.forEach((field) => {
+        errors.push(t(`lineDetail.specialFields.${field}.required`));
+      });
+    });
+    onValidationChange(errors);
+  }, [taxes, cabys, t, onValidationChange]);
   const { data: taxesData } = useAllTaxes({ iso_code: ISO });
-  const allTaxTypes = taxesData ?? [];
+  const allTaxTypes: TaxResponse[] = taxesData ?? [];
 
   /**
    * Calculate tax amount based on Hacienda code + special fields.
    * `taxAmounts` are catalog lookups keyed by the data-api numeric id, which
    * persists inside `tax.special_fields.tax_amount_id` (Hacienda canonical).
    */
-  const calculateTaxAmount = (tax: LineTax, taxAmounts: any[]): number => {
+  const calculateTaxAmount = (tax: LineTax, taxAmounts: TaxAmountResponse[]): number => {
     const code = tax.code;
     if (!code) return 0;
 
-    // Simple percentage-based taxes
-    if (code === '02' || code === '99') return (basePrice * (tax.rate || 0)) / 100;
-    if (code === '12') return basePrice * 0.05; // ISEC fixed 5%
+    if (code === TaxTypeCode.ISC || code === TaxTypeCode.OTHERS) {
+      return (basePrice * (tax.rate || 0)) / 100;
+    }
+    if (code === TaxTypeCode.ISEC) return basePrice * 0.05;
 
-    // Special-field taxes: look up the configured amount
     const taxAmountId = tax.special_fields?.tax_amount_id;
-    const taxAmountItem = taxAmounts.find((ta: any) => ta.id === taxAmountId);
+    const taxAmountItem = taxAmounts.find((ta) => ta.id === taxAmountId);
     const taxAmountValue = taxAmountItem?.amount || 0;
 
-    if (code === '03') {
+    if (code === TaxTypeCode.IUC) {
       return (tax.special_fields?.quantity || 0) * taxAmountValue;
     }
-    if (code === '04') {
+    if (code === TaxTypeCode.ISEBA) {
       const quantity = tax.special_fields?.quantity || 0;
       const percentage = tax.special_fields?.percentage || 0;
       const proportion = (quantity * percentage) / 100;
       return detailQuantity * proportion * taxAmountValue;
     }
-    if (code === '05') {
+    if (code === TaxTypeCode.ISEBEC) {
       const quantity = tax.special_fields?.quantity || 0;
       const volumeConsumption = tax.special_fields?.volume_consumption || 0;
-      if (cabys?.startsWith('2202')) {
+      if (cabysStartsWith(cabys, CabysSpecialPrefix.ISEBEC_NON_ALCOHOLIC)) {
         const altAmount = taxAmountValue / (volumeConsumption || 1);
         return detailQuantity * quantity * altAmount;
       }
       return quantity * volumeConsumption * taxAmountValue;
     }
-    if (code === '06') {
+    if (code === TaxTypeCode.IPT) {
       return detailQuantity * (tax.special_fields?.quantity || 0) * taxAmountValue;
     }
     return 0;
   };
 
   const otherTaxTypes = allTaxTypes.filter(
-    (t: { code?: string }) => !IVA_CODES.includes(t.code ?? '')
+    (t) => !IVA_CODES.includes(t.code ?? ''),
   );
 
   const addedOtherTaxes = taxes.filter((t) => !IVA_CODES.includes(t.code ?? ''));
 
   const addOther = (taxCode: string) => {
-    const tt = otherTaxTypes.find((t: any) => t.code === taxCode);
+    const tt = otherTaxTypes.find((t) => t.code === taxCode);
     if (!tt) return;
     onChange([
       ...taxes,
       {
         code: taxCode,
-        rate: taxCode === '12' ? 5 : 0,
+        rate: taxCode === TaxTypeCode.ISEC ? 5 : 0,
         special_fields: {},
       },
     ]);
@@ -114,12 +191,13 @@ export function OtherTaxSection({
     >
       <div className="flex flex-col gap-2">
         {addedOtherTaxes.map((tax) => {
-          const tt = allTaxTypes.find((x: any) => x.code === tax.code);
+          const tt = allTaxTypes.find((x) => x.code === tax.code);
           const cfg = getTaxConfig(tax.code);
-          const isFixed = tax.code === '12'; // ISEC fixed 5%
+          const isFixed = tax.code === TaxTypeCode.ISEC;
           const requireRate = cfg?.requireRate ?? true;
           const needsSpecialFields = SPECIAL_AMOUNT_CODES.includes(tax.code ?? '');
 
+          const missing = missingSpecialFields(tax, cabys);
           return (
             <TaxCard
               key={tax.code}
@@ -127,13 +205,14 @@ export function OtherTaxSection({
               taxType={tt}
               // Pass the data-api numeric id so TaxCard can fetch the
               // tax-amounts catalog (tax_id query param on the data-api).
-              taxTypeId={(tt as any)?.id}
+              taxTypeId={tt ? Number(tt.id) : undefined}
               code={tax.code ?? ''}
               isFixed={isFixed}
               requireRate={requireRate}
               needsSpecialFields={needsSpecialFields}
               basePrice={basePrice}
               calculateTaxAmount={calculateTaxAmount}
+              missingFields={missing}
               onUpdate={(patch) => updateOther(tax.code!, patch)}
               onRemove={() => removeOther(tax.code!)}
             />
@@ -150,11 +229,11 @@ export function OtherTaxSection({
         >
           <option value="">{t('lineDetail.addTax')}</option>
           {otherTaxTypes
-            .filter((tt: any) => {
-              if (tt.code === '99') return true; // OTHERS can be repeated
+            .filter((tt) => {
+              if (tt.code === TaxTypeCode.OTHERS) return true;
               return !taxes.some((t) => t.code === tt.code);
             })
-            .map((tt: any) => (
+            .map((tt) => (
               <option key={tt.code ?? tt.id} value={tt.code}>
                 {tt.description}
               </option>
@@ -175,11 +254,12 @@ function TaxCard({
   needsSpecialFields,
   basePrice,
   calculateTaxAmount,
+  missingFields,
   onUpdate,
   onRemove,
 }: {
   tax: LineTax;
-  taxType: any;
+  taxType: TaxResponse | undefined;
   /** Data-api numeric id (only used to fetch the tax-amounts catalog). */
   taxTypeId?: number;
   code: string;
@@ -187,16 +267,17 @@ function TaxCard({
   requireRate: boolean;
   needsSpecialFields: boolean;
   basePrice: number;
-  calculateTaxAmount: (tax: LineTax, taxAmounts: any[]) => number;
+  calculateTaxAmount: (tax: LineTax, taxAmounts: TaxAmountResponse[]) => number;
+  missingFields: SpecialField[];
   onUpdate: (patch: Partial<LineTax>) => void;
   onRemove: () => void;
 }) {
   const { t } = useLanguage();
   const { data: taxAmountsData } = useAllTaxAmounts(
     { iso_code: ISO, tax_id: taxTypeId ?? 0 },
-    { enabled: needsSpecialFields && !!taxTypeId }
+    { enabled: needsSpecialFields && !!taxTypeId },
   );
-  const taxAmounts = taxAmountsData ?? [];
+  const taxAmounts: TaxAmountResponse[] = taxAmountsData ?? [];
   const taxAmount = calculateTaxAmount(tax, taxAmounts);
 
   return (
@@ -255,16 +336,20 @@ function TaxCard({
                   value={tax.special_fields?.tax_amount_id ?? ''}
                   onChange={(e) => {
                     const selectedId = Number(e.target.value);
+                    const ta = taxAmounts.find((a) => a.id === selectedId);
                     onUpdate({
                       special_fields: {
                         ...tax.special_fields,
                         tax_amount_id: selectedId,
+                        // Capture the unit amount inline so the line-detail
+                        // calc can resolve it without re-running this hook.
+                        tax_unit_amount: ta?.amount,
                       },
                     });
                   }}
                 >
                   <option value="">{t('lineDetail.selectAmount')}</option>
-                  {taxAmounts.map((ta: any) => (
+                  {taxAmounts.map((ta) => (
                     <option key={ta.id} value={ta.id}>
                       {ta.description} — ₡{ta.amount.toLocaleString('es-CR')}
                     </option>
@@ -273,7 +358,7 @@ function TaxCard({
               </div>
             )}
 
-            {['03', '04', '05', '06'].includes(code) && (
+            {SPECIAL_AMOUNT_CODES.includes(code) && (
               <div>
                 <FormLabel>{t('products.quantityUdm')}</FormLabel>
                 <input
@@ -291,7 +376,7 @@ function TaxCard({
               </div>
             )}
 
-            {code === '04' && (
+            {code === TaxTypeCode.ISEBA && (
               <div>
                 <FormLabel>{t('products.percentage')}</FormLabel>
                 <input
@@ -311,7 +396,7 @@ function TaxCard({
               </div>
             )}
 
-            {code === '05' && (
+            {code === TaxTypeCode.ISEBEC && (
               <div>
                 <FormLabel>{t('products.volumePerUnit')}</FormLabel>
                 <input
@@ -349,6 +434,16 @@ function TaxCard({
               {taxAmount > 0 ? `+${fmt(taxAmount)}` : '₡0'}
             </span>
           </div>
+
+          {missingFields.length > 0 && (
+            <div className="mt-1 flex flex-col gap-0.5">
+              {missingFields.map((field) => (
+                <div key={field} className="text-[11px] text-destructive">
+                  {t(`lineDetail.specialFields.${field}.required`)}
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>

@@ -9,6 +9,7 @@ import {
   OrganizationInvitationRepository,
   OrganizationSettingsRepository,
   RBACRepository,
+  OrganizationModuleRepository,
   ThemeSettingsRepository,
   ContactSettingsRepository,
   PaymentSettingsRepository,
@@ -35,6 +36,7 @@ import {
   MembershipService,
   InvitationService,
   RBACService,
+  PlatformRBACService,
   EmailService,
   ThemeSettingsService,
   ContactSettingsService,
@@ -60,6 +62,7 @@ import {
   MembershipController,
   InvitationController,
   RBACController,
+  PlatformAdminController,
   ThemeSettingsController,
   ContactSettingsController,
   PaymentSettingsController,
@@ -84,6 +87,7 @@ export const organizationMemberRepository = new OrganizationMemberRepository();
 export const organizationInvitationRepository = new OrganizationInvitationRepository();
 export const organizationSettingsRepository = new OrganizationSettingsRepository();
 export const rbacRepository = new RBACRepository();
+export const organizationModuleRepository = new OrganizationModuleRepository();
 
 // Settings repositories
 export const themeSettingsRepository = new ThemeSettingsRepository();
@@ -132,6 +136,7 @@ export const organizationService = new OrganizationService(
   organizationRepository,
   organizationMemberRepository,
   rbacRepository,
+  organizationModuleRepository,
   contactSettingsRepository,
   templateCloneService,
   organizationEventPublisher
@@ -151,7 +156,15 @@ export const invitationService = new InvitationService(
 );
 export const rbacService = new RBACService(
   rbacRepository,
-  organizationMemberRepository
+  organizationMemberRepository,
+  organizationModuleRepository,
+  userRepository
+);
+export const platformRBACService = new PlatformRBACService(
+  organizationRepository,
+  rbacRepository,
+  organizationModuleRepository,
+  rbacService
 );
 
 // Settings services
@@ -177,6 +190,17 @@ export const sectionContentService = new SectionContentService(sectionContentRep
 export const pageService = new PageService(pageRepository, pageSectionService, sectionContentService);
 export const componentService = new ComponentService(componentRepository);
 
+// Middleware factories (created before controllers — RBACController receives the guards)
+import {
+  createPermissionMiddleware,
+  createRequirePlatformAdmin,
+  attachUserId,
+  requireAuth
+} from './middleware/permissions';
+
+export const permissionMiddleware = createPermissionMiddleware(rbacService);
+export const requirePlatformAdmin = createRequirePlatformAdmin(userRepository);
+
 // Create controllers
 export const deploymentController = new DeploymentController(deploymentService);
 export const preDeploymentController = new PreDeploymentController(preDeploymentRepository, deploymentService);
@@ -192,7 +216,8 @@ export const organizationController = new OrganizationController(
 );
 export const membershipController = new MembershipController(membershipService, rbacService);
 export const invitationController = new InvitationController(invitationService);
-export const rbacController = new RBACController(rbacService);
+export const rbacController = new RBACController(rbacService, membershipService, permissionMiddleware);
+export const platformAdminController = new PlatformAdminController(platformRBACService);
 
 // Settings controllers
 export const themeSettingsController = new ThemeSettingsController(themeSettingsService);
@@ -208,15 +233,8 @@ export const sectionController = new SectionController(pageSectionService, pageS
 export const sectionContentController = new SectionContentController(sectionContentService, pageSectionService, preDeploymentService);
 export const componentController = new ComponentController(componentService);
 
-// Middleware factories
-import {
-  createPermissionMiddleware,
-  requireAuth
-} from './middleware/permissions';
-
-export const permissionMiddleware = createPermissionMiddleware(rbacService);
-
 // Re-export middleware utilities
 export {
-  requireAuth
+  requireAuth,
+  attachUserId
 };

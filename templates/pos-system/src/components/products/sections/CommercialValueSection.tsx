@@ -1,14 +1,25 @@
+import { useEffect } from "react";
 import { DollarSign } from "lucide-react";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { FormLabel } from "@/components/ui";
 import { TaxCalculationService, type LineTax, type LineDiscount } from "@/services/taxCalculationService";
-import { useAllTaxes } from "@/hooks/useDataApi";
-import { CountryISO } from "@/lib/enums";
+import {
+  DiscountCalculationService,
+  DiscountValidationError,
+} from "@/services/discountCalculationService";
+import { useAllTaxes, useAllDiscountTypes } from "@/hooks/useDataApi";
+import { CountryISO, TaxTypeCode } from "@/lib/enums";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { labelByCode } from "@/lib/catalogLabels";
+import type { TaxResponse } from "@/services/data-api/dtos";
 import type { TaxFormEntry, DiscountFormEntry, ProductFormState } from "@/types/productForm";
 
 const fmt = (n: number) => "₡" + Math.round(n).toLocaleString("es-CR");
-const IVA_CODES = ["01", "07", "08"];
+const IVA_CODES: readonly string[] = [
+  TaxTypeCode.IVA,
+  TaxTypeCode.IVACE,
+  TaxTypeCode.IVARBU,
+];
 
 interface CommercialValueSectionProps {
   form: ProductFormState;
@@ -19,6 +30,11 @@ interface CommercialValueSectionProps {
   onToggle: () => void;
   disabled?: boolean;
   onChange: (patch: Partial<ProductFormState>) => void;
+  /**
+   * Surfaces preview discount-validation errors to the parent so the drawer
+   * can render them inline and block save.
+   */
+  onValidationChange?: (errors: string[]) => void;
 }
 
 export function CommercialValueSection({
@@ -30,9 +46,13 @@ export function CommercialValueSection({
   onToggle,
   disabled,
   onChange,
+  onValidationChange,
 }: CommercialValueSectionProps) {
   const { t } = useLanguage();
   const { data: taxTypes } = useAllTaxes({ iso_code: CountryISO.COSTA_RICA });
+  const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
+  const taxTypeRows = (taxTypes ?? []) as TaxResponse[];
+  const discountTypeRows = (discountTypes ?? []) as { code?: string; description: string }[];
   const price = Number(form.price) || 0;
 
   // Project the product-form internal shape into the canonical LineTax /
@@ -51,25 +71,57 @@ export function CommercialValueSection({
         }
       : undefined,
   })) as LineTax[];
-  const discountEntries = discounts.map((d) => ({
+  const discountEntries: LineDiscount[] = discounts.map((d) => ({
     discount_type: d.discountCode,
     percentage: d.rate ?? 0,
-  })) as LineDiscount[];
+    reason: d.reason,
+  }));
+
+  // The product form previews the line total at qty=1, so we feed the
+  // discount cascade with `price` directly. Surface validation errors back
+  // to the parent drawer so save is blocked when a discount is invalid.
+  let discountInfo: ReturnType<typeof DiscountCalculationService.calculate> | null = null;
+  let discountError: DiscountValidationError | null = null;
+  try {
+    discountInfo = price > 0
+      ? DiscountCalculationService.calculate(price, discountEntries)
+      : null;
+  } catch (err) {
+    if (err instanceof DiscountValidationError) {
+      discountError = err;
+      discountInfo = null;
+    } else {
+      throw err;
+    }
+  }
+
+  useEffect(() => {
+    if (!onValidationChange) return;
+    onValidationChange(discountError ? [t(discountError.message)] : []);
+  }, [discountError, onValidationChange, t]);
 
   const calc = price > 0
     ? TaxCalculationService.getLineAmounts({
-        subtotal: price,
+        subtotal: discountInfo?.subtotalAfterDiscount ?? price,
+        monto_total_original: price,
         taxes: taxEntries,
-        tax_types: (taxTypes ?? []) as any,
-        discounts: discountEntries,
+        tax_types: taxTypeRows.map((tt) => ({
+          code: tt.code,
+          tax_id: Number(tt.id),
+          description: tt.description,
+        })),
         detail_quantity: 1,
         cabys: form.cabys || undefined,
         has_factory_tax: hasFactoryTax,
+        hasRoyaltyOrBonus: discountInfo?.hasRoyaltyOrBonus,
+        customer_pays_tax_on_original_base:
+          discountInfo?.customer_pays_tax_on_original_base,
+        discountedNatures: discountInfo?.discountedNatures,
       })
     : null;
 
   const discountLines = discounts.map((d) => ({
-    label: d.description,
+    label: labelByCode(discountTypeRows, d.discountCode),
     rate: d.rate ?? 0,
     amount: price * (d.rate ?? 0) / 100,
   }));
@@ -82,14 +134,14 @@ export function CommercialValueSection({
 
   const baseAmount = calc?.base_amount ?? netPrice;
   const ivaLines = ivaTaxes.map((tx) => ({
-    label: tx.taxDescription,
-    amount: tx.taxCode === "07" || tx.taxCode === "01"
+    label: labelByCode(taxTypeRows, tx.taxCode),
+    amount: tx.taxCode === TaxTypeCode.IVACE || tx.taxCode === TaxTypeCode.IVA
       ? (calc?.iva_tax_total ?? baseAmount * tx.rate / 100) / Math.max(ivaTaxes.length, 1)
       : baseAmount * tx.rate / 100,
   }));
 
   const otherTaxLines = otherTaxes.map((tx) => ({
-    label: tx.taxDescription,
+    label: labelByCode(taxTypeRows, tx.taxCode),
     amount: tx.rate > 0 ? price * tx.rate / 100 : 0,
   }));
 
@@ -124,13 +176,16 @@ export function CommercialValueSection({
 
       {price > 0 && (
         <div className="px-4 py-3.5 bg-primary/[0.06] rounded-lg border-[1.5px] border-primary/30">
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between items-center mb-1">
             <span className="t-label !text-primary !mb-0">
               {t("products.estimatedSalePrice")}
             </span>
             <span className="text-[22px] font-bold text-primary font-display">
               {fmt(salePrice)}
             </span>
+          </div>
+          <div className="t-xs text-muted-foreground mb-3">
+            {t("products.preview.perUnit")}
           </div>
 
           <div className="flex flex-col gap-[3px]">

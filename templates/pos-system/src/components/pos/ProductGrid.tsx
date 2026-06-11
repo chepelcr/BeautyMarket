@@ -101,7 +101,7 @@ export default function ProductGrid({ products, cart, onAdd, category, onCategor
                   inCart > 0 ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                {fmt(p.price)}
+                {fmt(p.sale_price ?? p.price)}
               </span>
             </button>
           );

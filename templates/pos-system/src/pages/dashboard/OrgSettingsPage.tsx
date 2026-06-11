@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useOrgConfigurations } from "@/hooks/useOrgConfigurations";
 import { useRegisteredOrganization } from "@/hooks/useRegisteredOrganization";
 import { Icon, Badge, Spinner } from "@/components/ui";
@@ -29,6 +30,7 @@ export default function OrgSettingsPage() {
   const { useDefaultOrganization } = useOrganization();
   const { data: org, isLoading: orgLoading } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
+  usePageTitle([t("shell.orgSettings")]);
   const [, navigate] = useLocation();
 
   const { data: config, isLoading: configLoading } = useOrgConfigurations(org?.id);
@@ -131,6 +133,72 @@ export default function OrgSettingsPage() {
       configured: !!(config?.notificationSettings),
       loading: configLoading,
       route: ROUTES.DASHBOARD_ORG_NOTIFICATIONS,
+    },
+    {
+      id: "theme",
+      icon: "sparkles",
+      iconClass: "icon-pill-info",
+      title: t("orgSettings.tab.theme"),
+      description: t("theme.card.desc"),
+      configured: !!org.theme,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_THEME,
+    },
+    // ── Storefront / org-settings cards (plan 05) ────────────────────────────
+    // General is always configured — the org always has a name.
+    {
+      id: "general",
+      icon: "settings",
+      iconClass: "icon-pill-primary-soft",
+      title: t("orgSettings.tab.general"),
+      description: t("orgSettings.general.empty.desc"),
+      configured: true,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_GENERAL,
+    },
+    // Branding/Contact/Payment/Shipping derive from `org.settings.{...}`.
+    // TODO(verify-endpoint): if the markets-api org list does NOT include
+    // `settings`, these badges fall back to "pending"; wire the per-section
+    // GETs (useOrgSettings) as the configured source once endpoints confirmed.
+    {
+      id: "branding",
+      icon: "sparkles",
+      iconClass: "icon-pill-rose-soft",
+      title: t("orgSettings.tab.branding"),
+      description: t("orgSettings.branding.empty.desc"),
+      configured: !!org.settings?.theme,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_BRANDING,
+    },
+    {
+      id: "contact",
+      icon: "mapPin",
+      iconClass: "icon-pill-info",
+      title: t("orgSettings.tab.contact"),
+      description: t("orgSettings.contact.empty.desc"),
+      configured: !!org.settings?.contact,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_CONTACT,
+    },
+    {
+      id: "payment",
+      icon: "card",
+      iconClass: "icon-pill-success",
+      title: t("orgSettings.tab.payment"),
+      description: t("orgSettings.payment.empty.desc"),
+      configured: !!org.settings?.payment,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_PAYMENT,
+    },
+    {
+      id: "shipping",
+      icon: "package",
+      iconClass: "icon-pill-warning",
+      title: t("orgSettings.tab.shipping"),
+      description: t("orgSettings.shipping.empty.desc"),
+      configured: !!org.settings?.shipping,
+      loading: false,
+      route: ROUTES.DASHBOARD_ORG_SHIPPING,
     },
   ];
 

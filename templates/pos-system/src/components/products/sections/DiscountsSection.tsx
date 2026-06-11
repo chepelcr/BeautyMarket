@@ -3,7 +3,8 @@ import { Icon, FormLabel } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllDiscountTypes } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CountryISO } from "@/lib/enums";
+import { CountryISO, DiscountTypeCode } from "@/lib/enums";
+import { labelByCode } from "@/lib/catalogLabels";
 import type { DiscountFormEntry } from "@/types/productForm";
 
 const ISO = CountryISO.COSTA_RICA;
@@ -63,8 +64,11 @@ export function DiscountsSection({
 
         {groupCodes.map((typeCode) => {
           const group = grouped[typeCode];
-          const typeName = group[0].description;
-          const isOtros = typeCode === "99";
+          const typeName = labelByCode(
+            discountTypeList as { code?: string; description: string }[],
+            typeCode,
+          );
+          const isOtros = typeCode === DiscountTypeCode.OTHER;
 
           return (
             <div key={typeCode}>
@@ -75,6 +79,8 @@ export function DiscountsSection({
               <div className="flex flex-col gap-1.5">
                 {group.map((disc) => {
                   const discAmount = basePrice * (disc.rate ?? 0) / 100;
+                  const reasonEmpty =
+                    isOtros && !(disc.reason && disc.reason.trim());
                   return (
                     <div
                       key={disc.id}
@@ -111,18 +117,24 @@ export function DiscountsSection({
                         </button>
                       </div>
 
-                      {isOtros && (
-                        <div className="mt-1.5">
-                          <FormLabel required>{t("products.discountReason")}</FormLabel>
-                          <input
-                            type="text"
-                            className="pp-input text-xs"
-                            placeholder={t("products.discountReasonPlaceholder")}
-                            value={disc.reason ?? ""}
-                            onChange={(e) => onUpdate(disc.id, { reason: e.target.value })}
-                          />
-                        </div>
-                      )}
+                      <div className="mt-1.5">
+                        <FormLabel required={isOtros}>{t("discount.reason.label")}</FormLabel>
+                        <input
+                          type="text"
+                          className="pp-input text-xs"
+                          placeholder={t("discount.reason.placeholder")}
+                          value={disc.reason ?? ""}
+                          onChange={(e) =>
+                            onUpdate(disc.id, { reason: e.target.value })
+                          }
+                          required={isOtros}
+                        />
+                        {reasonEmpty && (
+                          <div className="text-[11px] text-destructive mt-1">
+                            {t("discount.reason.required")}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -158,13 +170,18 @@ export function DiscountsSection({
               (d: { code?: string }) => (d.code ?? "") === e.target.value
             );
             if (dt) {
+              const code = (dt as { code?: string }).code ?? "";
+              const isOther = code === DiscountTypeCode.OTHER;
               onAdd({
                 id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                discountCode: (dt as { code?: string }).code ?? "",
-                description: dt.description,
+                discountCode: code,
                 // Leave rate undefined so the input shows its placeholder
                 // until the user actually types a value.
                 rate: undefined,
+                // Auto-fill `reason` for known codes (01/02/03); leave empty
+                // for code 99 (OTHER) so the user enters their own Nota-20
+                // nature text.
+                reason: isOther ? "" : dt.description,
               });
             }
           }}

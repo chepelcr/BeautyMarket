@@ -11,6 +11,7 @@ export * from './OrganizationEventPublisher';
 export * from './MembershipService';
 export * from './InvitationService';
 export * from './RBACService';
+export * from './PlatformRBACService';
 
 // Settings Services
 export * from './ThemeSettingsService';

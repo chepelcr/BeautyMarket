@@ -9,6 +9,7 @@ export const roles = pgTable("roles", {
   displayName: text("display_name").notNull(),
   description: text("description"),
   isSystem: boolean("is_system").default(false).notNull(), // System roles can't be deleted
+  isActive: boolean("is_active").default(true).notNull(), // Soft-disable (legacy roles.estado simplification)
   organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "cascade" }), // null = platform-wide role
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
 }, (table) => [

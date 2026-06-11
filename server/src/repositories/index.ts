@@ -3,6 +3,7 @@ export * from './OrganizationRepository';
 export * from './OrganizationMemberRepository';
 export * from './OrganizationInvitationRepository';
 export * from './RBACRepository';
+export * from './OrganizationModuleRepository';
 
 // Settings repositories
 export * from './ThemeSettingsRepository';

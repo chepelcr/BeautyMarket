@@ -8,6 +8,7 @@ export * from './OrganizationController';
 export * from './MembershipController';
 export * from './InvitationController';
 export * from './RBACController';
+export * from './PlatformAdminController';
 
 // Settings Controllers
 export * from './ThemeSettingsController';

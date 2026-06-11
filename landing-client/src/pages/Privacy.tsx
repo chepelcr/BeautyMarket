@@ -1,25 +1,16 @@
 import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import privacy from "@/content/privacy.json";
 import { Shield } from "lucide-react";
 
 export default function Privacy() {
-  const { t } = useLanguage();
+  const { language: lang } = useLanguage();
+  const pick = (f: { es: string; en: string }) => f[lang] ?? f.es;
 
   useEffect(() => {
-    document.title = t('privacy.title') + " | JMarkets";
+    document.title = pick(privacy.title) + pick(privacy.docTitleSuffix);
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-  }, [t]);
-
-  const sections = [
-    { key: 'information', title: t('privacy.section.information'), content: t('privacy.information.content') },
-    { key: 'usage',       title: t('privacy.section.usage'),       content: t('privacy.usage.content') },
-    { key: 'storage',     title: t('privacy.section.storage'),     content: t('privacy.storage.content') },
-    { key: 'cookies',     title: t('privacy.section.cookies'),     content: t('privacy.cookies.content') },
-    { key: 'third',       title: t('privacy.section.third'),       content: t('privacy.third.content') },
-    { key: 'rights',      title: t('privacy.section.rights'),      content: t('privacy.rights.content') },
-    { key: 'protection',  title: t('privacy.section.protection'),  content: t('privacy.protection.content') },
-    { key: 'contact',     title: t('privacy.section.contact'),     content: t('privacy.contact.content') },
-  ];
+  }, [lang]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,16 +20,16 @@ export default function Privacy() {
           <div className="text-center">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
               <Shield className="h-3.5 w-3.5" />
-              {t('privacy.badge')}
+              {pick(privacy.badge)}
             </span>
             <h1 className="font-serif text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              {t('privacy.title')}
+              {pick(privacy.title)}
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
-              {t('privacy.subtitle')}
+              {pick(privacy.subtitle)}
             </p>
             <p className="text-sm text-muted-foreground">
-              {t('privacy.lastUpdated')}: {t('privacy.lastUpdatedDate')}
+              {pick(privacy.lastUpdated)}: {pick(privacy.lastUpdatedDate)}
             </p>
           </div>
         </div>
@@ -48,17 +39,17 @@ export default function Privacy() {
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-12">
-            {sections.map((section) => (
-              <div key={section.key} className="space-y-4">
-                <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
-                <p className="text-muted-foreground leading-relaxed text-justify">{section.content}</p>
+            {privacy.sections.map((section, i) => (
+              <div key={i} className="space-y-4">
+                <h2 className="text-2xl font-bold text-foreground">{pick(section.title)}</h2>
+                <p className="text-muted-foreground leading-relaxed text-justify">{pick(section.content)}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-16 p-6 bg-primary/10 rounded-xl border border-primary/20">
-            <h3 className="font-semibold text-lg mb-2 text-foreground">{t('privacy.notice')}</h3>
-            <p className="text-sm text-muted-foreground text-justify">{t('privacy.noticeDesc')}</p>
+            <h3 className="font-semibold text-lg mb-2 text-foreground">{pick(privacy.notice)}</h3>
+            <p className="text-sm text-muted-foreground text-justify">{pick(privacy.noticeDesc)}</p>
           </div>
         </div>
       </section>

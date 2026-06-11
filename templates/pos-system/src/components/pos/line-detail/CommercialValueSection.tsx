@@ -1,10 +1,15 @@
 import { DollarSign } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { TaxTypeCode } from '@/lib/enums';
 import type { LineDetail } from '@/types/lineDetail';
 
 const fmt = (n: number) => '₡' + Math.round(n).toLocaleString('es-CR');
-const IVA_CODES = ['01', '07', '08'];
+const IVA_CODES: readonly string[] = [
+  TaxTypeCode.IVA,
+  TaxTypeCode.IVACE,
+  TaxTypeCode.IVARBU,
+];
 
 interface CommercialValueSectionProps {
   detail: LineDetail;

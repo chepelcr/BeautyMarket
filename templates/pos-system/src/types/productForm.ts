@@ -17,7 +17,6 @@
 export interface TaxFormEntry {
   /** Hacienda tax type code: "01" IVA, "02" ISC, "07" IVACE, "08" IVARBU, "99" OTROS, etc. */
   taxCode: string;
-  taxDescription: string;
   rate: number;
   /** data-services tax-rate catalog id (opaque). */
   taxRateId?: number;
@@ -41,19 +40,19 @@ export interface DiscountFormEntry {
   id: string;
   /** Hacienda discount type code: "01" TRADE, "02" VOLUME, "03" PROMOTIONAL, "99" OTROS. */
   discountCode: string;
-  description: string;
   rate?: number;
-  /** Required when discountCode === "99" (Otros). */
+  /**
+   * Canonical Hacienda Nota-20 free-text descriptor.
+   * Auto-filled from the discount-type description for known codes (01/02/03).
+   * REQUIRED for code "99" (Otros) — surfaced as a hard validation error.
+   */
   reason?: string;
 }
 
 export interface CodeFormEntry {
   /** Hacienda product-code type: "01" VENDOR, "02" BUYER, "03" MANUFACTURER, "04" INTERNAL, "99" OTROS. */
   codeTypeCode: string;
-  codeTypeDescription: string;
   value: string;
-  /** Required when codeTypeCode === "99" (Otros). */
-  reason?: string;
 }
 
 export interface ProductFormState {

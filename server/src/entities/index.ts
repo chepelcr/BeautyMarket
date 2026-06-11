@@ -10,6 +10,9 @@ export { submodules, type Submodule, type InsertSubmodule } from "./Submodule";
 export { actions, type Action, type InsertAction } from "./Action";
 export { roles, type Role, type InsertRole } from "./Role";
 export { rolePermissions, type RolePermission, type InsertRolePermission } from "./RolePermission";
+export { submoduleActions, type SubmoduleAction, type InsertSubmoduleAction } from "./SubmoduleAction";
+export { organizationModules, type OrganizationModule, type InsertOrganizationModule } from "./OrganizationModule";
+export { organizationSubmodules, type OrganizationSubmodule, type InsertOrganizationSubmodule } from "./OrganizationSubmodule";
 
 // Settings (Normalized from Organization.settings JSONB)
 export { themeSettings, type ThemeSettings, type InsertThemeSettings } from "./ThemeSettings";

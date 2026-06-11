@@ -5,6 +5,7 @@ import type { GetAllSaleConditionsParams } from '@/services/data-api';
 import { CountryISO } from '@/lib/enums';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useOrgContext } from '@/contexts/OrgContext';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import type { CurrencyCode } from '@/types/invoice';
 
@@ -40,6 +41,22 @@ export function DocumentSection({
   } as GetAllSaleConditionsParams);
   const { data: currencies } = useAllCurrencies();
   const { getRateFor, isLoading: rateLoading, isError: rateError } = useExchangeRate();
+  const { registeredOrg } = useOrgContext();
+
+  // Org's registered Hacienda economic activities — drives the activity_code
+  // select. Filter to active ('A') so revoked codes don't pollute the picker.
+  const activities = useMemo(
+    () => (registeredOrg?.activities ?? []).filter((a) => a.status === 'A'),
+    [registeredOrg],
+  );
+
+  // Auto-pick the first active activity when the field is empty. Mirrors the
+  // currency auto-rate effect below — fills in once the org data arrives.
+  useEffect(() => {
+    if (data.activity_code) return;
+    if (activities.length === 0) return;
+    onChange({ activity_code: activities[0].code });
+  }, [activities, data.activity_code, onChange]);
 
   const currentCode = (data.currency.currency_code || 'CRC').toUpperCase();
   const isAuto = AUTO_RATE_CODES.has(currentCode);
@@ -116,18 +133,34 @@ export function DocumentSection({
         </select>
       </div>
 
-      {/* Activity code */}
+      {/* Activity code — sourced from the org's registered Hacienda activities */}
       <div className="space-y-1">
         <label className="text-[11px] font-display font-bold uppercase tracking-wider text-muted-foreground">
           {t('checkout.document.activityCode')}
         </label>
-        <input
-          value={data.activity_code}
-          onChange={(e) => onChange({ activity_code: e.target.value })}
-          className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary font-mono"
-          placeholder="722000"
-          maxLength={20}
-        />
+        {activities.length > 0 ? (
+          <select
+            value={data.activity_code}
+            onChange={(e) => onChange({ activity_code: e.target.value })}
+            className="w-full h-10 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:border-primary"
+          >
+            {!activities.some((a) => a.code === data.activity_code) && data.activity_code && (
+              <option value={data.activity_code}>{data.activity_code}</option>
+            )}
+            {activities.map((a) => (
+              <option key={a.code} value={a.code}>
+                {a.code}{a.description ? ` — ${a.description}` : ''}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <select
+            disabled
+            className="w-full h-10 rounded-md border border-border bg-muted px-3 text-sm text-muted-foreground"
+          >
+            <option>{t('checkout.document.activityCode.notConfigured')}</option>
+          </select>
+        )}
       </div>
 
       {/* Currency */}

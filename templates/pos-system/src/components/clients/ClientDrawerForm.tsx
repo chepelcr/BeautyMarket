@@ -4,6 +4,7 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCreateClient, useUpdateClient, clientDisplayName, type Client, type CreateClientDto } from "@/hooks/useClients";
 import { useAllIdentifications } from "@/hooks/useDataApi";
+import { useAccordionSections } from "@/hooks/useAccordionSections";
 import type { IdentificationResponse } from "@/services/data-api/dtos/identifications";
 import type { SaleReceiver } from "@/types/receiver";
 import type { ClientSearchResult } from "@/hooks/useClientSearch";
@@ -205,9 +206,11 @@ export function ClientDrawerForm({
   const [form, setForm] = useState<CreateClientDto>(initialForm);
   const [error, setError] = useState<string | null>(null);
 
-  const [identityExpanded, setIdentityExpanded] = useState(true);
-  const [contactExpanded, setContactExpanded] = useState(false);
-  const [addressExpanded, setAddressExpanded] = useState(false);
+  const { expanded, setExpanded, toggle } = useAccordionSections({
+    identity: true,
+    contact: false,
+    address: false,
+  });
   const [haciendaSuccess, setHaciendaSuccess] = useState(false);
   const [drawerReady, setDrawerReady] = useState(false);
 
@@ -223,9 +226,7 @@ export function ClientDrawerForm({
     if (open && dataReady) {
       setForm(isReceiver ? receiverToForm(receiver, selectedClient, idTypes) : buildForm(client));
       setError(null);
-      setIdentityExpanded(true);
-      setContactExpanded(false);
-      setAddressExpanded(false);
+      setExpanded({ identity: true, contact: false, address: false });
       setHaciendaSuccess(
         isReceiver
           ? !!receiver?.name || !!selectedClient?.business_name || !!selectedClient?.client_name
@@ -239,11 +240,9 @@ export function ClientDrawerForm({
   useEffect(() => {
     const isCR = form.nationality === CountryISO.COSTA_RICA;
     if (haciendaSuccess || !isCR) {
-      setContactExpanded(true);
-      setAddressExpanded(true);
+      setExpanded((prev) => ({ ...prev, contact: true, address: true }));
     } else {
-      setContactExpanded(false);
-      setAddressExpanded(false);
+      setExpanded((prev) => ({ ...prev, contact: false, address: false }));
     }
   }, [haciendaSuccess, form.nationality]);
 
@@ -364,8 +363,8 @@ export function ClientDrawerForm({
           <IdentitySection
             form={form}
             setForm={setForm}
-            isExpanded={identityExpanded}
-            onToggle={() => setIdentityExpanded(!identityExpanded)}
+            isExpanded={expanded.identity}
+            onToggle={() => toggle('identity')}
             isEditing={isEdit}
             onHaciendaSuccess={setHaciendaSuccess}
           />
@@ -373,16 +372,16 @@ export function ClientDrawerForm({
           <ContactSection
             form={form}
             setForm={setForm}
-            isExpanded={contactExpanded}
-            onToggle={() => setContactExpanded(!contactExpanded)}
+            isExpanded={expanded.contact}
+            onToggle={() => toggle('contact')}
             disabled={shouldDisableContactAddress}
           />
 
           <AddressSection
             form={form}
             setForm={setForm}
-            isExpanded={addressExpanded}
-            onToggle={() => setAddressExpanded(!addressExpanded)}
+            isExpanded={expanded.address}
+            onToggle={() => toggle('address')}
             disabled={shouldDisableContactAddress}
           />
 

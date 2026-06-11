@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useOrganization } from "@/hooks/useOrganization";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Icon, Card, CardTitle, CardDescription, Badge, Button } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { PaymentBreakdown } from "@/components/sessions/PaymentBreakdown";
@@ -54,6 +55,7 @@ export default function ReportePage({ sessionId }: ReportePageProps = {}) {
   const { useDefaultOrganization } = useOrganization();
   const { data: org } = useDefaultOrganization(user?.userId);
   const { t } = useLanguage();
+  usePageTitle([t("shell.reports")]);
 
   const { data, isLoading } = useQuery<ReportData>({
     queryKey: ["report", org?.id, sessionId],

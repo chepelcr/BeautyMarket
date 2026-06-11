@@ -1,24 +1,35 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Response, NextFunction } from 'express';
 import {
   createPermissionMiddleware,
   requireAuth,
   createRequirePlatformAdmin,
+  attachUserId,
 } from '../permissions';
 import type { IRBACService } from '../../services/RBACService';
+import type { IUserRepository } from '../../types';
 import type { AuthRequest } from '../../types/auth.types';
 
 describe('Permission Middleware', () => {
   let mockRbacService: Partial<IRBACService>;
+  let mockUserRepo: Partial<IUserRepository>;
   let mockReq: Partial<AuthRequest>;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
 
   beforeEach(() => {
+    // Deny paths only respond when the rollout flag enforces (default is 'log')
+    process.env.RBAC_ENFORCEMENT = 'enforce';
+
     mockRbacService = {
       hasPermission: vi.fn(),
       hasAnyPermission: vi.fn(),
       hasAllPermissions: vi.fn(),
+      isMember: vi.fn(),
+    };
+
+    mockUserRepo = {
+      getUser: vi.fn(),
     };
 
     mockReq = {
@@ -32,6 +43,10 @@ describe('Permission Middleware', () => {
     };
 
     mockNext = vi.fn();
+  });
+
+  afterEach(() => {
+    delete process.env.RBAC_ENFORCEMENT;
   });
 
   describe('createPermissionMiddleware', () => {
@@ -389,7 +404,7 @@ describe('Permission Middleware', () => {
       mockReq.userId = undefined;
 
       const middleware = createRequirePlatformAdmin(
-        mockRbacService as IRBACService
+        mockUserRepo as IUserRepository
       );
 
       await middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -404,8 +419,13 @@ describe('Permission Middleware', () => {
     });
 
     it('should return 403 for non-platform admin users', async () => {
+      vi.mocked(mockUserRepo.getUser!).mockResolvedValue({
+        id: 'user-1',
+        role: 'customer',
+      } as any);
+
       const middleware = createRequirePlatformAdmin(
-        mockRbacService as IRBACService
+        mockUserRepo as IUserRepository
       );
 
       await middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
@@ -417,6 +437,118 @@ describe('Permission Middleware', () => {
           message: 'Platform administrator privileges required',
         })
       );
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should call next for users with users.role === platform_admin', async () => {
+      vi.mocked(mockUserRepo.getUser!).mockResolvedValue({
+        id: 'user-1',
+        role: 'platform_admin',
+      } as any);
+
+      const middleware = createRequirePlatformAdmin(
+        mockUserRepo as IUserRepository
+      );
+
+      await middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockRes.status).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('attachUserId', () => {
+    it('should prefer the :userId path param', () => {
+      const req = { params: { userId: 'path-user' }, headers: {} } as unknown as AuthRequest;
+
+      attachUserId()(req, mockRes as Response, mockNext);
+
+      expect(req.userId).toBe('path-user');
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should fall back to the bearer payload sub claim', () => {
+      const payload = Buffer.from(JSON.stringify({ sub: 'token-user' })).toString('base64url');
+      const req = {
+        params: {},
+        headers: { authorization: `Bearer x.${payload}.y` },
+      } as unknown as AuthRequest;
+
+      attachUserId()(req, mockRes as Response, mockNext);
+
+      expect(req.userId).toBe('token-user');
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should leave userId unset on malformed tokens', () => {
+      const req = {
+        params: {},
+        headers: { authorization: 'Bearer not-a-jwt' },
+      } as unknown as AuthRequest;
+
+      attachUserId()(req, mockRes as Response, mockNext);
+
+      expect(req.userId).toBeUndefined();
+      expect(mockNext).toHaveBeenCalled();
+    });
+  });
+
+  describe('RBAC_ENFORCEMENT rollout flag', () => {
+    it("should pass through denials in 'log' mode", async () => {
+      process.env.RBAC_ENFORCEMENT = 'log';
+      vi.mocked(mockRbacService.hasPermission!).mockResolvedValue(false);
+
+      const { requirePermission } = createPermissionMiddleware(
+        mockRbacService as IRBACService
+      );
+      const middleware = requirePermission('products', 'delete');
+
+      await middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockRes.status).not.toHaveBeenCalled();
+    });
+
+    it("should skip evaluation entirely in 'off' mode", async () => {
+      process.env.RBAC_ENFORCEMENT = 'off';
+
+      const { requirePermission } = createPermissionMiddleware(
+        mockRbacService as IRBACService
+      );
+      const middleware = requirePermission('products', 'delete');
+
+      await middleware(mockReq as AuthRequest, mockRes as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockRbacService.hasPermission).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('requireMembership', () => {
+    it('should call next for members', async () => {
+      vi.mocked(mockRbacService.isMember!).mockResolvedValue(true);
+
+      const { requireMembership } = createPermissionMiddleware(
+        mockRbacService as IRBACService
+      );
+
+      await requireMembership()(mockReq as AuthRequest, mockRes as Response, mockNext);
+
+      expect(mockRbacService.isMember).toHaveBeenCalledWith('user-1', 'org-1');
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should return 403 for non-members regardless of the rollout flag', async () => {
+      process.env.RBAC_ENFORCEMENT = 'log';
+      vi.mocked(mockRbacService.isMember!).mockResolvedValue(false);
+
+      const { requireMembership } = createPermissionMiddleware(
+        mockRbacService as IRBACService
+      );
+
+      await requireMembership()(mockReq as AuthRequest, mockRes as Response, mockNext);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
       expect(mockNext).not.toHaveBeenCalled();
     });
   });

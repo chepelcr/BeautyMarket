@@ -4,6 +4,7 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useDocumentStore } from '@/store/documentStore';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { ROUTES } from '@/routePaths';
 import { DocumentsListView } from '@/components/documents/DocumentsListView';
 import { DocumentEditor } from '@/components/documents/DocumentEditor';
@@ -31,6 +32,16 @@ export default function DocumentsPage() {
   const [location, setLocation] = useLocation();
 
   const editorTabId = useMemo(() => parseEditorTabId(location), [location]);
+
+  // Page title: list shows just "Documents"; editor adds "- New - {docType}"
+  // resolved via the existing docTypes.{code} i18n keys (live-updates on
+  // language toggle and tab swap).
+  const activeTab = editorTabId ? open_documents.find((d) => d.id === editorTabId) : undefined;
+  usePageTitle([
+    t('shell.documents'),
+    editorTabId && t('common.new'),
+    activeTab?.doc_type && t(`docTypes.${activeTab.doc_type}`),
+  ]);
 
   // Keep store's active tab synced with URL; redirect to list if URL points to a stale id.
   useEffect(() => {

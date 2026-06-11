@@ -5,6 +5,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { Button, Drawer, EmptyState, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { BranchCard } from "@/components/puestos/BranchCard";
 import { BranchForm } from "@/components/puestos/BranchForm";
 import { TerminalForm } from "@/components/puestos/TerminalForm";
@@ -43,6 +44,11 @@ export default function PuestosPage() {
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [termDrawer, setTermDrawer] = useState(false);
   const [addTermBranch, setAddTermBranch] = useState<Branch | null>(null);
+
+  usePageTitle([
+    t("shell.stations"),
+    branchDrawer ? (editingBranch ? editingBranch.name : t("common.new")) : undefined,
+  ]);
 
   // Scroll to top when page changes
   useEffect(() => {
@@ -242,8 +248,8 @@ export default function PuestosPage() {
         title={t("puestos.addTerminal")}
         subtitle={addTermBranch?.name}
         icon="sliders"
-        iconBg="hsl(220 100% 60% / 0.12)"
-        iconColor="hsl(220 100% 55%)"
+        iconBg="hsl(var(--info) / 0.12)"
+        iconColor="hsl(var(--info))"
         width={400}
         footer={
           <div className="flex gap-2.5 px-6 py-4 justify-end">

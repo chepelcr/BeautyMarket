@@ -1,4 +1,4 @@
-import { eq, and, isNull, or } from "drizzle-orm";
+import { eq, and, isNull, or, sql } from "drizzle-orm";
 import { db } from "../config/database";
 import {
   roles,
@@ -6,11 +6,15 @@ import {
   submodules,
   actions,
   rolePermissions,
+  organizationMembers,
   type Role,
   type InsertRole,
   type Module,
+  type InsertModule,
   type Submodule,
+  type InsertSubmodule,
   type Action,
+  type InsertAction,
   type RolePermission,
   type InsertRolePermission
 } from "../entities";
@@ -31,18 +35,40 @@ export interface IRBACRepository {
 
   // Modules
   findAllModules(): Promise<ModuleWithSubmodules[]>;
+  findAllModulesRaw(includeInactive?: boolean): Promise<Module[]>;
   findModuleById(id: string): Promise<Module | null>;
   findModuleByName(name: string): Promise<Module | null>;
+  createModule(data: InsertModule): Promise<Module>;
+  updateModule(id: string, data: Partial<InsertModule>): Promise<Module | null>;
+  deleteModule(id: string): Promise<boolean>;
+
+  // Submodules
+  findAllSubmodules(includeInactive?: boolean): Promise<Submodule[]>;
+  findSubmoduleById(id: string): Promise<Submodule | null>;
+  findSubmodulesByModule(moduleId: string): Promise<Submodule[]>;
+  createSubmodule(data: InsertSubmodule): Promise<Submodule>;
+  updateSubmodule(id: string, data: Partial<InsertSubmodule>): Promise<Submodule | null>;
+  deleteSubmodule(id: string): Promise<boolean>;
 
   // Actions
   findAllActions(): Promise<Action[]>;
   findActionById(id: string): Promise<Action | null>;
   findActionByName(name: string): Promise<Action | null>;
+  createAction(data: InsertAction): Promise<Action>;
+  updateAction(id: string, data: Partial<InsertAction>): Promise<Action | null>;
+  deleteAction(id: string): Promise<boolean>;
 
   // Permissions
   findPermissionsByRole(roleId: string): Promise<RolePermission[]>;
   setRolePermissions(roleId: string, permissions: InsertRolePermission[]): Promise<void>;
   hasPermission(roleId: string, moduleName: string, actionName: string, submoduleName?: string): Promise<boolean>;
+
+  // Reference counts (409 guards for catalog/role deletes)
+  countMembersByRole(roleId: string): Promise<number>;
+  countPermissionsByModule(moduleId: string): Promise<number>;
+  countPermissionsBySubmodule(submoduleId: string): Promise<number>;
+  countPermissionsByAction(actionId: string): Promise<number>;
+  countPermissionsBySubmoduleAndAction(submoduleId: string, actionId: string): Promise<number>;
 }
 
 export class RBACRepository implements IRBACRepository {
@@ -157,6 +183,17 @@ export class RBACRepository implements IRBACRepository {
     }));
   }
 
+  async findAllModulesRaw(includeInactive = false): Promise<Module[]> {
+    if (includeInactive) {
+      return db.select().from(modules).orderBy(modules.sortOrder);
+    }
+    return db
+      .select()
+      .from(modules)
+      .where(eq(modules.isActive, true))
+      .orderBy(modules.sortOrder);
+  }
+
   async findModuleById(id: string): Promise<Module | null> {
     const result = await db
       .select()
@@ -173,6 +210,79 @@ export class RBACRepository implements IRBACRepository {
       .where(eq(modules.name, name))
       .limit(1);
     return result[0] || null;
+  }
+
+  async createModule(data: InsertModule): Promise<Module> {
+    const result = await db.insert(modules).values(data).returning();
+    return result[0];
+  }
+
+  async updateModule(id: string, data: Partial<InsertModule>): Promise<Module | null> {
+    const result = await db
+      .update(modules)
+      .set(data)
+      .where(eq(modules.id, id))
+      .returning();
+    return result[0] || null;
+  }
+
+  async deleteModule(id: string): Promise<boolean> {
+    const result = await db
+      .delete(modules)
+      .where(eq(modules.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Submodules
+  async findAllSubmodules(includeInactive = false): Promise<Submodule[]> {
+    if (includeInactive) {
+      return db.select().from(submodules).orderBy(submodules.sortOrder);
+    }
+    return db
+      .select()
+      .from(submodules)
+      .where(eq(submodules.isActive, true))
+      .orderBy(submodules.sortOrder);
+  }
+
+  async findSubmoduleById(id: string): Promise<Submodule | null> {
+    const result = await db
+      .select()
+      .from(submodules)
+      .where(eq(submodules.id, id))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  async findSubmodulesByModule(moduleId: string): Promise<Submodule[]> {
+    return db
+      .select()
+      .from(submodules)
+      .where(eq(submodules.moduleId, moduleId))
+      .orderBy(submodules.sortOrder);
+  }
+
+  async createSubmodule(data: InsertSubmodule): Promise<Submodule> {
+    const result = await db.insert(submodules).values(data).returning();
+    return result[0];
+  }
+
+  async updateSubmodule(id: string, data: Partial<InsertSubmodule>): Promise<Submodule | null> {
+    const result = await db
+      .update(submodules)
+      .set(data)
+      .where(eq(submodules.id, id))
+      .returning();
+    return result[0] || null;
+  }
+
+  async deleteSubmodule(id: string): Promise<boolean> {
+    const result = await db
+      .delete(submodules)
+      .where(eq(submodules.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   // Actions
@@ -199,6 +309,74 @@ export class RBACRepository implements IRBACRepository {
       .where(eq(actions.name, name))
       .limit(1);
     return result[0] || null;
+  }
+
+  async createAction(data: InsertAction): Promise<Action> {
+    const result = await db.insert(actions).values(data).returning();
+    return result[0];
+  }
+
+  async updateAction(id: string, data: Partial<InsertAction>): Promise<Action | null> {
+    const result = await db
+      .update(actions)
+      .set(data)
+      .where(eq(actions.id, id))
+      .returning();
+    return result[0] || null;
+  }
+
+  async deleteAction(id: string): Promise<boolean> {
+    const result = await db
+      .delete(actions)
+      .where(eq(actions.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Reference counts (409 guards for catalog/role deletes)
+  async countMembersByRole(roleId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(organizationMembers)
+      .where(eq(organizationMembers.roleId, roleId));
+    return result[0]?.count ?? 0;
+  }
+
+  async countPermissionsByModule(moduleId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rolePermissions)
+      .where(eq(rolePermissions.moduleId, moduleId));
+    return result[0]?.count ?? 0;
+  }
+
+  async countPermissionsBySubmodule(submoduleId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rolePermissions)
+      .where(eq(rolePermissions.submoduleId, submoduleId));
+    return result[0]?.count ?? 0;
+  }
+
+  async countPermissionsByAction(actionId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rolePermissions)
+      .where(eq(rolePermissions.actionId, actionId));
+    return result[0]?.count ?? 0;
+  }
+
+  async countPermissionsBySubmoduleAndAction(submoduleId: string, actionId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(rolePermissions)
+      .where(
+        and(
+          eq(rolePermissions.submoduleId, submoduleId),
+          eq(rolePermissions.actionId, actionId)
+        )
+      );
+    return result[0]?.count ?? 0;
   }
 
   // Permissions

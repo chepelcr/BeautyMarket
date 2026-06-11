@@ -1,5 +1,8 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { dataApiClient } from '@/services/data-api';
+
+export const CATALOG_STALE_TIME = 24 * 60 * 60 * 1000; // 24h
+export const CATALOG_GC_TIME = 7 * 24 * 60 * 60 * 1000; // 7d
 import type {
   DocumentVersionResponse,
   DocumentVersionListResponse,
@@ -162,6 +165,8 @@ export function useAllDocumentVersions(
   return useQuery({
     queryKey: ['documentVersions', params],
     queryFn: () => dataApiClient.getAllDocumentVersions(params),
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -196,7 +201,8 @@ export function useAllCodes(
   return useQuery({
     queryKey: ['codes', params],
     queryFn: () => dataApiClient.getAllCodes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -209,6 +215,8 @@ export function useAllCustomerTypes(
   return useQuery({
     queryKey: ['customerTypes', params],
     queryFn: () => dataApiClient.getAllCustomerTypes(params),
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -243,7 +251,8 @@ export function useAllDiscountTypes(
   return useQuery({
     queryKey: ['discountTypes', params],
     queryFn: () => dataApiClient.getAllDiscountTypes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -267,7 +276,8 @@ export function useAllDocumentTypes(
   return useQuery({
     queryKey: ['documentTypes', params],
     queryFn: () => dataApiClient.getAllDocumentTypes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -291,7 +301,8 @@ export function useAllEconomicActivities(
   return useQuery({
     queryKey: ['economicActivities', params],
     queryFn: () => dataApiClient.getAllEconomicActivities(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -315,7 +326,8 @@ export function useAllExemptions(
   return useQuery({
     queryKey: ['exemptions', params],
     queryFn: () => dataApiClient.getAllExemptions(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -339,7 +351,8 @@ export function useAllExemptionIssuingInstitutions(
   return useQuery({
     queryKey: ['exemptionIssuingInstitutions', params],
     queryFn: () => dataApiClient.getAllExemptionIssuingInstitutions(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -363,7 +376,8 @@ export function useAllFactoryTaxCharges(
   return useQuery({
     queryKey: ['factoryTaxCharges', params],
     queryFn: () => dataApiClient.getAllFactoryTaxCharges(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -387,7 +401,8 @@ export function useAllIdentifications(
   return useQuery({
     queryKey: ['identifications', params],
     queryFn: () => dataApiClient.getAllIdentifications(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -411,7 +426,8 @@ export function useAllMeasurementUnits(
   return useQuery({
     queryKey: ['measurementUnits', params],
     queryFn: () => dataApiClient.getAllMeasurementUnits(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -435,7 +451,8 @@ export function useAllNationalTaxpayerCompanies(
   return useQuery({
     queryKey: ['nationalTaxpayerCompanies', params],
     queryFn: () => dataApiClient.getAllNationalTaxpayerCompanies(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -459,7 +476,8 @@ export function useAllNationalTaxpayerSpecialFields(
   return useQuery({
     queryKey: ['nationalTaxpayerSpecialFields', params],
     queryFn: () => dataApiClient.getAllNationalTaxpayerSpecialFields(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -483,7 +501,8 @@ export function useAllNotificationCodes(
   return useQuery({
     queryKey: ['notificationCodes', params],
     queryFn: () => dataApiClient.getAllNotificationCodes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -507,7 +526,8 @@ export function useAllOtherCharges(
   return useQuery({
     queryKey: ['otherCharges', params],
     queryFn: () => dataApiClient.getAllOtherCharges(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -531,7 +551,8 @@ export function useAllPayments(
   return useQuery({
     queryKey: ['payments', params],
     queryFn: () => dataApiClient.getAllPayments(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -555,7 +576,8 @@ export function useAllPharmaceuticalForms(
   return useQuery({
     queryKey: ['pharmaceuticalForms', params],
     queryFn: () => dataApiClient.getAllPharmaceuticalForms(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -579,7 +601,8 @@ export function useAllProductTypes(
   return useQuery({
     queryKey: ['productTypes', params],
     queryFn: () => dataApiClient.getAllProductTypes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -603,7 +626,8 @@ export function useAllReferenceCodes(
   return useQuery({
     queryKey: ['referenceCodes', params],
     queryFn: () => dataApiClient.getAllReferenceCodes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -627,7 +651,8 @@ export function useAllReferences(
   return useQuery({
     queryKey: ['references', params],
     queryFn: () => dataApiClient.getAllReferences(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -651,7 +676,8 @@ export function useAllRegimes(
   return useQuery({
     queryKey: ['regimes', params],
     queryFn: () => dataApiClient.getAllRegimes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -675,7 +701,8 @@ export function useAllSaleConditions(
   return useQuery({
     queryKey: ['saleConditions', params],
     queryFn: () => dataApiClient.getAllSaleConditions(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -699,7 +726,8 @@ export function useAllTaxAmounts(
   return useQuery({
     queryKey: ['taxAmounts', params],
     queryFn: () => dataApiClient.getAllTaxAmounts(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -723,7 +751,8 @@ export function useAllTaxConditions(
   return useQuery({
     queryKey: ['taxConditions', params],
     queryFn: () => dataApiClient.getAllTaxConditions(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -747,7 +776,8 @@ export function useAllTaxFactors(
   return useQuery({
     queryKey: ['taxFactors', params],
     queryFn: () => dataApiClient.getAllTaxFactors(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -771,7 +801,8 @@ export function useAllTaxRateCodes(
   return useQuery({
     queryKey: ['taxRateCodes', params],
     queryFn: () => dataApiClient.getAllTaxRateCodes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -795,7 +826,8 @@ export function useAllTransactions(
   return useQuery({
     queryKey: ['transactions', params],
     queryFn: () => dataApiClient.getAllTransactions(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -917,7 +949,8 @@ export function useAllTaxes(
   return useQuery({
     queryKey: ['taxes', params],
     queryFn: () => dataApiClient.getAllTaxes(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }
@@ -941,7 +974,8 @@ export function useAllTaxRates(
   return useQuery({
     queryKey: ['taxRates', params],
     queryFn: () => dataApiClient.getAllTaxRates(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
     ...options,
   });
 }

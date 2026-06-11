@@ -79,7 +79,7 @@ export function ProductGridView({
               <div className="flex justify-between items-center mt-2.5">
                 <ProductPriceEditor
                   productId={p.product_id}
-                  price={p.price}
+                  price={p.sale_price ?? p.price}
                   editing={editingPrice === p.product_id}
                   inputValue={priceInput}
                   align="left"

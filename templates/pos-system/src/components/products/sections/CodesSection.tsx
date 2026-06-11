@@ -1,9 +1,10 @@
 import { Barcode } from "lucide-react";
-import { Icon, FormLabel } from "@/components/ui";
+import { Icon } from "@/components/ui";
 import { SectionWrapper } from "@/components/common/SectionWrapper";
 import { useAllCodes } from "@/hooks/useDataApi";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CountryISO } from "@/lib/enums";
+import { labelByCode } from "@/lib/catalogLabels";
 import type { GetAllCodesParams } from "@/services/data-api/dtos";
 import type { CodeFormEntry } from "@/types/productForm";
 
@@ -47,7 +48,6 @@ export function CodesSection({
     >
       <div className="flex flex-col gap-2">
         {codes.map((entry, idx) => {
-          const isOtros = entry.codeTypeCode === "99";
           return (
             <div
               key={idx}
@@ -55,7 +55,7 @@ export function CodesSection({
             >
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="flex-1 text-[11px] font-semibold text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
-                  {entry.codeTypeDescription}
+                  {labelByCode(codeTypes, entry.codeTypeCode)}
                 </span>
                 <button
                   type="button"
@@ -73,19 +73,6 @@ export function CodesSection({
                 value={entry.value}
                 onChange={(e) => onUpdate(idx, { value: e.target.value })}
               />
-
-              {isOtros && (
-                <div className="mt-1.5">
-                  <FormLabel required>{t("products.specifyType")}</FormLabel>
-                  <input
-                    type="text"
-                    className="pp-input text-xs"
-                    placeholder={t("products.codeTypePlaceholder")}
-                    value={entry.reason ?? ""}
-                    onChange={(e) => onUpdate(idx, { reason: e.target.value })}
-                  />
-                </div>
-              )}
             </div>
           );
         })}
@@ -101,7 +88,6 @@ export function CodesSection({
               if (ct) {
                 onAdd({
                   codeTypeCode: (ct as { code?: string }).code ?? "",
-                  codeTypeDescription: ct.description,
                   value: "",
                 });
               }

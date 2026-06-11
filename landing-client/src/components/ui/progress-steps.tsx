@@ -34,7 +34,7 @@ export function ProgressSteps({ steps, currentStep, completedSteps, className }:
                   "w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 relative z-10",
                   isCompleted && "bg-primary border-primary text-white",
                   isCurrent && "border-primary text-primary bg-primary/5 dark:bg-primary/40",
-                  isUpcoming && "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
+                  isUpcoming && "border-muted text-muted-foreground"
                 )}>
                   {isCompleted ? (
                     <Check className="w-5 h-5" />
@@ -50,7 +50,7 @@ export function ProgressSteps({ steps, currentStep, completedSteps, className }:
                       "text-sm font-medium transition-colors leading-tight text-center mb-1",
                       isCompleted && "text-primary",
                       isCurrent && "text-primary",
-                      isUpcoming && "text-gray-500 dark:text-gray-400"
+                      isUpcoming && "text-muted-foreground"
                     )}>
                       {step.title}
                     </p>

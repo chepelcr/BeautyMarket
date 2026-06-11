@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { ROUTES } from "@/routePaths";
 import { useOrgContext } from "@/contexts/OrgContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useClients, useUpdateClientStatus, clientDisplayName, type Client } from "@/hooks/useClients";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { ClientCard } from "@/components/clients/ClientCard";
@@ -37,6 +38,11 @@ export default function ClientsPage() {
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+
+  usePageTitle([
+    t("shell.clients"),
+    drawerOpen && (editingClient ? clientDisplayName(editingClient) : t("common.new")),
+  ]);
 
   // Scroll to top when page changes
   useEffect(() => {

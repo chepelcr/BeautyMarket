@@ -1,0 +1,283 @@
+# TSURU — Master Ecosystem Roadmap & Tracking
+
+**Status:** LIVING DOCUMENT — this is the single tracking doc for the whole Tsuru ecosystem.
+**Created:** 2026-06-11 (by the roadmap workflow, same day as the four approved workstreams).
+**Owner:** jcampos.
+**Upstream sources:** the full audit corpus in `docs/audit/tsuru/` (especially `tsuru_capability_inventory.md`, `tsuru_gap_analysis.md`, `tsuru_reconciliation_report.md`, `tsuru_product_strategy.md`, `tsuru_executive_vision.md`), the workstream specs in `docs/roadmap/` (`tsuru_rebrand_plan.md`, `tsuru_fairs_spec.md`, `tsuru_fairs_architecture.md`, `rbac_express_contract.md`), and `docs/RBAC_ORG_MODULES_PORT.md`.
+
+---
+
+## 1. How to read and update this document
+
+1. **Every tracked item has a stable ID `TSR-NNN`.** IDs are never reused or renumbered, even when an item is closed or split. When splitting, keep the original ID on the parent and add new IDs for children (note the lineage in the row).
+2. **Status values (exactly five):**
+   - **Done** — shipped/verified (for code: implemented + type-checked/tested; deployment-and-rollout steps are tracked as their own items). For specs: the document exists and is approved.
+   - **In progress** — actively being worked, or partially landed.
+   - **Planned** — approved direction with a defined home (a workstream, phase, or spec section), not yet started.
+   - **Not started** — known from the audit, no workstream covers it yet. These are the silent-drop risks — review §6 every update.
+   - **Won't do** — explicit decision not to build (or to reword/retract a marketing claim instead). Always cite the decision source.
+3. **To update:** change the Status + Evidence/next-step cells in §2; if a Not-started item gets a workstream, move its reference into §5 phases; if a promise disposition changes, update §3; append a dated line to the §8 changelog. Do not delete rows — strike through or mark Won't do.
+4. **Source column codes:** `C#/S#/T#/O#` = gap-analysis IDs (`tsuru_gap_analysis.md`); `Top-10 #n` = its prioritized list; `P#n` = promise rows in `tsuru_reconciliation_report.md` §1; `Strat §x` = `tsuru_product_strategy.md`; `Vision` = `tsuru_executive_vision.md` §5; `Decision 2026-06-11` = the owner decisions that created the four workstreams (rebrand, fairs, RBAC-in-Express, trueque MVP).
+5. **Authoritative decisions baked into this doc (2026-06-11):**
+   - **Rebrand**: JMarkets → Tsuru on all user-facing surfaces; FREE e-invoicing becomes the headline pillar; NO domain/infra renames yet. Spec only so far (`tsuru_rebrand_plan.md`).
+   - **Fairs**: real public fairs app (stands, joinable by orgs), own FastAPI backend (`fairs-be`) on the shared Postgres, stand editor as an independent POS section, managed from the Tsuru admin (landing admin) connected to the fairs BE — hybrid model, public landing stays 100% static (`tsuru_fairs_spec.md`, `tsuru_fairs_architecture.md`).
+   - **RBAC**: implemented in the Express server (`E:/dev/BeautyMarket/server`) — overriding the older cross-app-be recommendation in `docs/RBAC_ORG_MODULES_PORT.md` §5. **Implemented as code in this session** (see §2.B), per `docs/roadmap/rbac_express_contract.md`.
+   - **Trueque**: MVP integrated into the fairs spec (offers/proposals/WhatsApp handoff, no ledger/credits in v1; `settlementType` forward-compat column).
+
+---
+
+## 2. Ecosystem status board
+
+Grouped by product pillar (pillar mapping follows `tsuru_product_strategy.md` §4, with rebrand/landing and platform-debt split out for tracking).
+
+### 2.A — E-invoicing & POS core (Strategy pillars P1 + P2: the moat and the daily-use product)
+
+| ID | Item | Status | Source | Evidence / next step |
+|---|---|---|---|---|
+| TSR-001 | Hacienda v4.4 e-invoicing pipeline (clave/consecutive → XML → XAdES sign → ATV submit → validation poll → PDF → email/webhook) | Done | Inventory §3 (Live & mature) | `biller-apps/auth/app/sales-api/src/services/sales_pipeline.py`; SQS FIFO mesh `cloudformation/hacienda-messaging.yml`. Maintain; debt tracked in TSR-002/003/004/009. |
+| TSR-002 | Fiscal credential hardening: encrypt P12/PIN/ATV password (KMS/Secrets Manager), stop returning them in GET | Not started | C4, O6, Top-10 #2 (Critical, legal) | Plaintext today in `auth/app/organization-configurations/src/models/organization_configuration.py`, returned per `auth/api-gateway/endpoints.json`. **No workstream owns this yet** — see §6. |
+| TSR-003 | Env-drive the Hacienda OAuth realm (hardcoded staging `rut-stag` in shared code) | Not started | C4 | Production cutover risk for legal invoices. Pairs with TSR-002. |
+| TSR-004 | Unify fiscal sources of truth: ONE consecutive allocator, explicit `sales`↔`billing_sales` relation, ONE canonical tax engine + cross-language contract tests pinning the POS TS mirror | Not started | C5, Top-10 #3, Strat §5.5 | Two allocators (`cross-app-be/app/models/consecutive.py` vs `jbiller_common/.../consecutive_repository.py`); tax math triplicated (`templates/pos-system/src/services/taxCalculationService.ts` + 2 Python engines). Drift = legally wrong invoices. |
+| TSR-005 | Unblock the cashier loop: register `/pos` route, mount `ClosingFlow.tsx`, server-side shift on session start | Not started | C3, O2, Top-10 #4 | All three blockers are **unwired existing code** (`templates/pos-system/src/Routes.tsx`; `components/pos/ClosingFlow.tsx` is 450 lines of dead code with full backend support). Cheapest critical fix in the ecosystem. |
+| TSR-006 | Wire POS checkout to the org's registered economic activities (replace hardcoded `activity_code='722000'`) | Not started | C8, O3, Vision NOW | One component change: `templates/pos-system/src/components/pos/checkout/CheckoutDrawer.tsx:48` + existing `useRegisteredOrganization.ts`. |
+| TSR-007 | Stop trusting client-supplied `x-user-id` on sales-api (spoofable audit attribution on legal invoices; defaults `"anonymous"`) | Not started | C7, Top-10 #1 (part) | Replicate cross-app-be's gateway mapping `claims.sub → x-user-id` (`cross-app-be/api-gateway/template.yml:127-128`) to the jbiller gateway; also fix cross-app-be `UserIdMiddleware` guarding the wrong prefix. |
+| TSR-008 | Remove plaintext password stash in POS sessionStorage (Register/Login post-OTP auto-login) | Not started | C7 | `templates/pos-system/src/pages/Register.tsx:139-145`, `Login.tsx:48-52` — XSS-readable credential. |
+| TSR-009 | Implement or remove the two jbiller stub endpoints: notification resend, XML regenerate | Not started | Inventory §3 (Scaffolded) | `auth/app/sales-api/.../sale_controller.py` acknowledged stubs. Low priority; track so it doesn't masquerade as Live. |
+| TSR-010 | Enforce closing-approval authorization (`is_manager` currently defaults `True` "for backward compatibility") | Not started | Inventory §2 (Scaffolded) | `cross-app-be/app/services/closing_service.py`; natural follow-on once RBAC enforcement (TSR-027) reaches cross-app-be (TSR-031). |
+| TSR-011 | Strip POS production console logging of full API response payloads | Not started | T7, C6-adjacent | `templates/pos-system/src/lib/api.ts` ("[API] Response data:") — data-leak/noise debt. |
+| TSR-012 | Login/Register redirect handling (`?redirect=`, `redirectAfterLogin`) + invitation Decline no-op | Not started | C7 | `templates/pos-system/src/Routes.tsx:72`, `Login.tsx:42-46` — invitation joins silently drop context. |
+| TSR-013 | Fix `TODO(verify-endpoint)` POS confirmation routes + per-client delivery emails (hardcoded "Modas Laura" branding, static `EMAIL_RECIPIENT`) | Not started | Inventory §2 (Partial) | `cross-app-be/app/services/email_service.py`; substantially resolved by the cross-docking extraction (TSR-093). |
+| TSR-014 | POS analytics endpoints on markets-api "still to verify" | Not started | Inventory §2, memory `project_pos_dashboard_migration.md` | POS `orgPath('/analytics')` consumers exist; backend unverified. |
+
+### 2.B — Security, RBAC & multi-tenancy (Strategy pillar P3: precondition for everything multi-tenant)
+
+**This is the pillar this session changed.** The RBAC-in-Express contract (`docs/roadmap/rbac_express_contract.md`) was fully implemented and verified across three parallel workstreams (server, POS UI, landing admin). All type checks/builds pass; 51/51 RBAC unit tests green; nothing committed; migration generated but NOT applied (see §7 manual steps).
+
+| ID | Item | Status | Source | Evidence / next step |
+|---|---|---|---|---|
+| TSR-020 | RBAC schema port: `submodule_actions`, `organization_modules`, `organization_submodules` entities + `roles.isActive`; migration generated | **Done** (this session; migration apply pending → TSR-026) | Decision 2026-06-11; contract §1; `RBAC_ORG_MODULES_PORT.md` §3-4 | `server/src/entities/{SubmoduleAction,OrganizationModule,OrganizationSubmodule}.ts`, `Role.ts`, `entities/index.ts`; `migrations/0001_new_katie_power.sql` (reviewed; `verification_token` drift made idempotent). |
+| TSR-021 | Org-scoped RBAC endpoints O1–O15 (my-permissions, available-matrix, role CRUD hardened, bulk permission set with V2 subset rule, member-role assignment with V3, check-permission/user-role fixed) + V1/V4/V6 service rules + 60s cache | **Done** (this session) | Contract §3.1, §4 | `server/src/services/RBACService.ts`, `controllers/RBACController.ts`, `repositories/{RBACRepository,OrganizationModuleRepository}.ts`; guards verified mounted per-route; org-spoof and probe holes closed; V3 also enforced in `MembershipService` + `InvitationService`. |
+| TSR-022 | Platform-admin surface P1–P18 (`/api/admin`: org search, module assignment/overrides/apply-defaults, module/submodule/action catalog CRUD, submodule-actions matrix) + real `requirePlatformAdmin` (users.role check) + `attachUserId` | **Done** (this session) | Contract §3.2, §3.0 | `server/src/services/PlatformRBACService.ts`, `controllers/PlatformAdminController.ts`, `middleware/permissions.ts` (orgId param fix at all 3 readers, `RBAC_ENFORCEMENT` flag), `routes.ts` `/api/admin` mount, `dependency_injection.ts` wiring. DI smoke test passed. |
+| TSR-023 | RBAC seeds: `upload` action, `submodule_actions` matrix, `DEFAULT_ORG_MODULE_NAMES` + default assignment on org create, org-modules backfill script | **Done** (this session; seed runs pending → TSR-026) | Contract §5 | `server/src/seeds/rbac-seed.ts`, `seeds/org-modules-backfill.ts`, `scripts/run-org-modules-backfill.ts`; `package.json` `db:generate`/`db:seed:org-modules`. |
+| TSR-024 | POS org-scoped roles management UI: RolesPage + RoleDrawerForm + org-filtered PermissionMatrix (O2-driven), member role assignment (O11), `usePermissions()` gating, sidebar item, full ES/EN i18n (~55 keys/lang) | **Done** (this session; E2E pends backend deploy) | Decision 2026-06-11; contract §6 (POS) | `templates/pos-system/src/{hooks/useRbac.ts,types/rbac.ts,pages/dashboard/RolesPage.tsx,components/roles/*}` + `orgRbacPath` in `lib/api.ts`; tsc + vite build pass; endpoints cross-checked one-for-one against RBACController. FE is fail-open while `RBAC_ENFORCEMENT=log`. |
+| TSR-025 | Landing admin (Tsuru admin) platform RBAC section — the FIRST BE-connected admin section, proving the hybrid model: org list/detail, catalog, actions, matrix pages behind `PlatformAdminGate` (Cognito + `users.role==='platform_admin'`) | **Done** (this session) | Decision 2026-06-11 (hybrid model); contract §6 (landing) | `landing-client/src/{lib/admin-api.ts,repositories/platform-rbac.repository.ts,services/platform-rbac.service.ts,admin/rbac/*,admin/pages/Rbac*.tsx}` + manifest/sidebar/i18n (90 keys); prod-bundle leak check clean (no `api/admin`/`__local` strings); public site untouched. **This unlocks the fairs admin pattern (TSR-063).** |
+| TSR-026 | RBAC rollout step 1 — apply migration `0001_new_katie_power.sql`, run `db:seed` + `db:seed:org-modules`, set ≥1 `users.role='platform_admin'` | Not started (manual; §7) | Contract §1/§5 | `npm run db:migrate` (fallback `db:run-migration` — journal entry `0000_swift_prodigy` has no .sql on disk, pre-existing). NEVER `db:push`. |
+| TSR-027 | RBAC rollout step 2 — flip `RBAC_ENFORCEMENT` from `log` (default) to `enforce` after the POS roles UI is in use; consider switching the POS `usePermissions` to fail-closed at the same time | Planned | Contract §3.0.4; implementer follow-ups | `requireMembership`/`requirePlatformAdmin` are hard gates regardless of the flag. Pre-req: TSR-026 + TSR-035. |
+| TSR-028 | Verify `cloudformation/api-gateway.yml` proxies `/api/admin/*` (and the new `/rbac/*` sub-routes) WITH the Cognito authorizer attached, before any hosted landing-admin build | Planned | Contract §6; verification report | `/api/admin` relies on gateway JWT signature validation + server-side `users.role` check. |
+| TSR-029 | userId↔JWT-`sub` path matching at the markets-api gateway (the documented-but-absent claim-to-path check) | Not started | C1, Top-10 #1; Inventory §4 (Missing-but-promised) | `BeautyMarket/api-gateway/template.yml` has only a plain authorizer. `attachUserId` (TSR-022) *consumes* the path userId trusting this gateway check — closing it is load-bearing for the whole O1–O15 surface in production. **No workstream owns it** — see §6. |
+| TSR-030 | Finish + deploy the jbiller lambda-authorizer membership check on all 4 gateways (the convergence point for ecosystem-wide authorization) | Not started | C1, O1, Top-10 #1; explicitly out of scope in contract §6 | TODO stub at `auth/app/lambda-authorizer/src/validators/organization_auth_checker.py:73-85` (role hardcoded `"member"`). Express now has its own membership checks (TSR-021); sales-api/orders-api/data-api still have none. |
+| TSR-031 | Route-level enforcement in cross-app-be and jbiller against the new RBAC model (per-org modules → POS feature gating beyond markets-api) | Not started | `RBAC_ORG_MODULES_PORT.md` §9; contract "out of scope" | Follows TSR-026/027/030. The `walmart`-style "special module" use case (Modas Laura) is the canonical driver. |
+| TSR-032 | Shared-DB contract hardening: per-service DB roles or real RLS (today permissive `using true`), schema-contract tests across the 4 writer repos, single master for `organizations` | Not started | T3, C5-org, Top-10 #9, Strat §5.9 | The fairs-be `DB_CONTRACT.md` pattern (`tsuru_fairs_architecture.md` §3.1) is the template to retrofit onto existing services. |
+| TSR-033 | Org-membership enforcement across the rest of the Express org-scoped routes (beyond `/rbac/*`) | In progress | C1; this session | `attachUserId` is now mounted on the whole org-scoped router and `requirePermission` honors `RBAC_ENFORCEMENT=log`; hard membership gates currently exist on the RBAC routes only. Completing = mounting guards per-route across products/CMS/settings controllers, then TSR-027. |
+| TSR-034 | Secrets-in-repo hygiene: Cognito pool ID + HostedZoneId committed plaintext in two gateway templates (violates repo's own rule) | Not started | T7 | `auth/api-gateway/template.yml`, `data-services/api-gateway/template.yml`. |
+| TSR-035 | Grant the system `admin` role template the `team` roles permissions (today only `team:['read','invite']`) so non-owner admins can reach the roles UI under enforce mode | Planned | Verification report (design note) | Owners are unaffected (V4 dynamic resolution). Do before/with TSR-027. |
+| TSR-036 | `GET /api/admin/organizations/:orgId` (P1bis) so landing-admin deep links show the org name without list-cache handoff | Planned | Verification report (remaining issue) | Cosmetic; landing falls back to showing the raw orgId today. |
+
+### 2.C — Rebrand & landing (JMarkets → Tsuru; messaging repositioned on the free billing engine)
+
+| ID | Item | Status | Source | Evidence / next step |
+|---|---|---|---|---|
+| TSR-040 | Rebrand plan (identity, messaging architecture, full change inventory, phased checklist, RIBCA gating) | **Done** (document; spec-only per decision) | Decision 2026-06-11; S6, O9, Top-10 #10 | `docs/roadmap/tsuru_rebrand_plan.md`. No content changes applied yet — execution is TSR-041..043. |
+| TSR-041 | Phase R1 — landing content execution: brand swaps (branding/navbar/footer/seo), hero/features/about rework, NEW billing pillar section (free e-invoicing as message #1), honesty pass (fairs→roadmap framing, testimonials/traction/phone/newsletter/24h removed), legal de-claim pass, optional palette swap | Planned | Rebrand plan §3, §5 R1; fixes P#10/16/17/18/19/20 + partial 21–23 | All type-C JSON edits + 3 hardcoded-literal fixes (`navbar.tsx:63`, `footer.tsx:22`, `About.tsx:70`). Acceptance criteria in rebrand plan §6. Work belongs in `chepelcr/tsuru-landing`. |
+| TSR-042 | Phase R2 — POS strings: `index.html` title, `usePageTitle` BRAND, `Logo.tsx` fallback, `auth.login.title` (ES+EN), theme display names ("Tsuru"/"Tsuru Demo"; **IDs unchanged**) | Planned | Rebrand plan §4.3, §5 R2 | Mirror to `chepelcr/tsuru-pos-system` per split policy. |
+| TSR-043 | Phase R3 — docs sweep: "Tsuru (formerly JMarkets)" in living docs; audit corpus untouched (historical record); add a "Brand: Tsuru" note to root CLAUDE.md | Planned | Rebrand plan §5 R3 | Brand-vs-identifier rule: never touch domains/buckets/template IDs. |
+| TSR-044 | Domain/infra renames (j-markets.jcampos.dev → Tsuru domain, buckets, `seo.json siteUrl`, admin CTA URLs, theme/template ID data migrations) | **Won't do (now)** — explicitly deferred | Decision 2026-06-11; rebrand plan §4.5, §5 R4 | Tracked as a future infra workstream; resolves the `seo.json` vs `tsuru.jcampos.dev` drift then. |
+| TSR-045 | Tier 2 Bribri cultural identity (lexicon IA, Ú-sure/cacao logo mark, etnogeometric patterns) | **Won't do (gated)** | Rebrand plan §1.3 | **Blocked until real RIBCA/Bribri consultation/partnership exists.** Tier 0/1 (name + story + palette) ship with R1. |
+| TSR-046 | Re-aim landing Login/Register CTAs from the legacy dashboard (`admin.j-markets.jcampos.dev`) to the POS app | Planned | C6, Top-10 #5; reconciliation §3.5 | `landing-client/src/components/layout/navbar.tsx:130-137`; rebrand plan keeps admin URLs out of the content wave (infra), so this needs its own small change — pair with TSR-091. |
+| TSR-047 | Real contact-form delivery (SES path exists in 3 backends, or a jbiller API-key-scoped endpoint) | Planned | C6, O4; P#18 | Rebrand R1 removes the false 24h promise NOW; this item restores a working form later. `landing-client/src/pages/Contact.tsx:24-38` fakes submit today. |
+| TSR-048 | Full legal-pages rewrite with counsel (privacy/cookies/terms describing actual practice; cookie banner only if analytics ever ship) | Planned | P#21/22/23; rebrand plan §2.4 | R1 does the minimal de-claim pass; this is the follow-through. |
+| TSR-049 | Remove landing dead auth code (~290-line `useAuth.ts`, `auth-navbar.tsx`, multi-tenant `apiUtils.ts` dragging aws-amplify into the static bundle) | Not started | T8 | Note: Amplify is now legitimately used by the admin RBAC gate (TSR-025) — scope this to the *public* bundle only. |
+| TSR-050 | Auto-translate setting (scaffolded, no implementation) — implement or remove the setting | Not started | Inventory §6 (Scaffolded) | `settings.json autoTranslate {enabled:false}`. |
+
+### 2.D — Fairs & community / trueque (Strategy pillar P5: the staged greenfield that justifies the brand)
+
+| ID | Item | Status | Source | Evidence / next step |
+|---|---|---|---|---|
+| TSR-060 | Fairs product specification (concept, lifecycle, participation, 4 stand types, POS Ferias section, admin management, trueque MVP, journeys, MVP cut, risks) | **Done** (document) | Decision 2026-06-11; S1, P#12/13 | `docs/roadmap/tsuru_fairs_spec.md`. Converts the landing's worst honesty row (Fairs 1/10) into a real build. |
+| TSR-061 | Fairs technical architecture (new `fairs-be` FastAPI service, `fairs_*` tables + shared-DB ownership contract, 3-tier API, theme inheritance, preview modal, S3 assets, build order M1–M6, security checklist) | **Done** (document) | Decision 2026-06-11 | `docs/roadmap/tsuru_fairs_architecture.md`. Own backend per decision; shared Postgres; cross-app-be house pattern via `be-builder` + companion skills. |
+| TSR-062 | Fairs M1 — `fairs-be` skeleton + schema (`fairs_*` tables, read-only Organization/Product mappings, `alembic_version_fairs`, `DB_CONTRACT.md`, local run + lambda-local tests) | Not started | Fairs arch §11 M1 | First implementation milestone. Repo: `chepelcr/tsuru-fairs-be` (or incubate in monorepo per `monorepo-folder-split`). |
+| TSR-063 | Fairs M2 — admin vertical: admin endpoints + Tsuru admin "Ferias (online)" pages (fairs CRUD, stand-type catalog, dev-mode Cognito login), seed 4 stand types + 1 permanent fair | Not started | Fairs arch §11 M2; spec §8 | **Dependency: the BE-connected admin pattern + PlatformAdminGate shipped in TSR-025 is the template** (manifest `online:true` rows, admin-api layering, Cognito gate). Server-side `platform_admin` enforcement in fairs-be per arch §4.3. |
+| TSR-064 | Fairs M3 — merchant vertical: org-scoped endpoints + POS Ferias section (join flow, master StandProfile + per-fair stand editor with sections/checklist, presigned uploads, publish gate, preview modal with two tabs + viewport toggle, theme inheritance) | Not started | Fairs arch §11 M3; spec §6-7 | POS conventions: `fairsApi` client + `fairsOrgPath`, `useFairs.ts`, NAV item, `fairs.*` i18n namespace (arch §8). Stand defaults to the org's store template theme (decision 2). |
+| TSR-065 | Fairs M4 — public vertical: fairs SPA (`tsuru-fairs-client`: directory/floor/stand, scoped theme tokens, WhatsApp CTA, metrics beacons) + S3/CloudFront deploy + api-gateway stack | Not started | Fairs arch §11 M4, §6 | Hostname `ferias.j-markets.jcampos.dev` for now (rename rides TSR-044). Mobile-first 2D card grid; no auth for visitors. |
+| TSR-066 | Fairs M5 — Trueque MVP: barter offers/proposals, two-sided accept, transactional WhatsApp handoff, trueque filter/badge, public reports + admin moderation queue, auto-expiry | Not started | Decision 2026-06-11 (trueque); spec §9; S2, P#11 | No ledger/credits in v1; `settlement_type` column reserved for the v2 mutual-credit path (spec §9.6). Report+moderate ships WITH the MVP, not after. |
+| TSR-067 | Fairs M6 — hardening + launch: metrics rollup, fair analytics, rate limiting on public POSTs, landing `/ferias` copy flip from "en construcción" to live links | Not started | Fairs arch §11 M6 | **Dependency: rebrand R1 (TSR-041) must land first** so the fairs launch messaging flips from honest-roadmap copy, never from the current false present tense. |
+| TSR-068 | Buyer/community-member identity (accounts for non-sellers) | Planned (Later) | S3, P#14 partial; Vision LATER | Deliberately NOT in fairs v1 (visitors stay anonymous; WhatsApp is the only conversion). Revisit after fairs ship. |
+| TSR-069 | Cross-org marketplace discovery directory | Planned (folded into fairs) | S4, O8, Top-10 #10 | The fairs directory + permanent fairs (spec §2: `fair.type='permanent'`) **is** the first credible discovery surface; a standalone "discover stores" page remains an option later. |
+| TSR-070 | Mutual support networks (mentors, collaborators) — promise P#14 | **Won't do (v1)** | Rebrand plan §2.4 ("Kill — no workstream exists") | Copy removed in R1; may return with the community layer post-fairs. |
+| TSR-071 | Mutual-credit / ledger trueque (platform currency) | **Won't do (v1)** — documented future path | Spec §9.6 | Argentine Red Global de Trueque lessons recorded; v1 schema (`settlement_type`) keeps the door open with zero migration cost. |
+| TSR-072 | Fair-trade "Garantizamos…" claim (P#10) | **Won't do (as a guarantee)** → Reword | Rebrand plan §2.4 | R1 rewords to "Trabajamos por condiciones justas…" until RBAC + marketplace rules can enforce anything. |
+| TSR-073 | Cultural preservation / fair-story archive surface (beyond the static blog) | Planned (Later) | S8; Vision LATER (provenance/story CMS components, `womenLed`/`cooperative` org badges) | After fairs v1; CMS component catalog is the natural substrate. |
+| TSR-074 | Canastas comunitarias (cross-org bundles), Jala-de-Piedra crowdfunding, cooperative org type + governance | Planned (Later) | S7; Vision LATER | Gated on enforced RBAC (TSR-027+) and fairs v1 traction. |
+
+### 2.E — Storefront / commerce (Strategy pillar P4: repair-then-maintain)
+
+| ID | Item | Status | Source | Evidence / next step |
+|---|---|---|---|---|
+| TSR-080 | Public read-only product/category endpoints for live orgs (unbreaks storefront browse; converts promises #1/#3/#5 toward Delivered) | Not started | C2, O5, Top-10 #7 | Storefronts call `/api/public/organizations/{id}/products|categories` which don't exist (`server/src/controllers/PublicOrgController.ts` vs `templates/jmarkets-demo/src/lib/api.ts:62-81`); products live in cross-app-be. Decide which backend serves the public read. |
+| TSR-081 | Minimal consumer-order record (grounds promise #6 "order tracking") OR formally relabel storefronts as catalog+WhatsApp brochures | Not started (decision pending) | C2, P#6, Top-10 #7 | Rebrand R1 already replaces the order-tracking feature card with a true one; the build-vs-relabel decision remains open — see §6. |
+| TSR-082 | Real CMS publish pipeline (today `DeploymentService.ts:58-88` uploads `config.json` and instantly records success — simulated) | Not started | C2; Inventory §6 (Partial/simulated) | Contradicts the Transparencia value; pairs with TSR-092 (one provisioner). |
+| TSR-083 | Collapse the 8 demo storefront apps to 1–2 maintained codebases with theme presets | Planned | T4, Strat §5.7; Vision NEXT | Cuts the build/deploy matrix ~8×; removes duplicated client-side CR geo data. Fairs theme work (TSR-064/065) reuses the same 28-token registry — coordinate. |
+| TSR-084 | Publish the solidarity pricing model BEFORE any Stripe activation (permanent free micro-seller tier; transparent paid tiers for custom domains/multi-branch) | Planned (decision) | S5, Strat §6; P#8/#9 guardrail | Stripe is schema-only today (`organizations.stripeCustomerId`, `plan`, no SDK). Rebrand R1 copy already leaves room (free tier + no commissions, not "everything free forever"). |
+| TSR-085 | Storefront gateway checkout / payments intermediation | **Won't do** | Strat §3 ("explicitly do NOT build gateway checkout until demanded"); P#25 | The ToS facilitator stance is the site's most honest claim and a real scope shield. WhatsApp handoff stays the model (storefronts AND fairs). |
+| TSR-086 | QR catalog as a public feature (today QR exists only inside the POS admin) | Not started | P#5 (Partial) | Becomes meaningful once TSR-080 makes the linked catalog real. |
+| TSR-087 | Pan-LatAm / multi-country fiscal expansion | **Won't do (deferred)** | S5, Strat §6 audience #4 | Only CR=188 seeded; placeholder personas removed in R1. Second country only after CR is consolidated. |
+
+### 2.F — Platform & infra debt (consolidation plan + ops posture)
+
+| ID | Item | Status | Source | Evidence / next step |
+|---|---|---|---|---|
+| TSR-090 | Finish the repo split: migrate CI off monorepo paths, untrack `templates/pos-system` + `landing-client`, kill the duplicate landing deploy path | In progress | T1, O10, Top-10 #8, Strat §5.1 | Both folders extracted to standalone repos but dual-tracked (root CLAUDE.md split rules); landing has two live deploy targets. `monorepo-folder-split` playbook defines remaining steps. |
+| TSR-091 | One admin surface: deprecate `dashboard/`, delete `client/`, redirect `admin.j-markets` to the POS app | In progress | T2, Strat §5.2 | POS already absorbed the dashboard domain (memory `project_pos_dashboard_migration.md`); `client/` formally deprecated; the deployed `dashboard/` retirement + redirect remain. Includes TSR-046. Note: the "Tsuru admin" future is the landing admin promoted (per `RBAC_ORG_MODULES_PORT.md` §goal-4) — TSR-025 started that promotion. |
+| TSR-092 | One infra provisioner + one templates store (winner: jbiller `infrastructure-service-provider`; retire `deploys/setup-template-bucket.js` provisioning + markets-api `templates` duplication) | Not started | T4, O7, Strat §5.3 | The strangler step is half-done (SNS-driven path live with self-healing re-emit). |
+| TSR-093 | Extract the Modas Laura cross-docking business out of cross-app-be (own service/repo; stop `_sync_organization` fabricating orgs with `owner_id='system'`) | Not started | Strat §5.4; T4; C5-org | Purifies the POS backend AND removes the dual-mastering of `organizations`. Candidate first consumer of the per-org "special module" assignment (TSR-031). |
+| TSR-094 | Decide markets-api's end-state + delete dead scaffolding (`HomePageContent`, `lambda.cts` SQS stubs, Stripe/PayPal keys without SDKs, stale CLAUDE.md claims of Product/Order controllers + `requireAuth`) | In progress (decision partially made) | T5, Strat §5.6 | **The RBAC decision commits markets-api as the P3 control plane short-term** (identity/org/RBAC now live there with real wiring). Dead-scaffolding cleanup + doc-truth pass still pending. |
+| TSR-095 | Tame data-services sprawl (34 Lambdas → few/one catalog service; delete all-TODO cache layer + localhost-only write surface or expose it properly) | Not started | T6, Strat §5.8 | |
+| TSR-096 | Merge the duplicated shared Python libs (`jbiller_common` vs `jmarkets_common`, identical `HaciendaApiClient` copies) | Not started | T4, Strat §5.5 | |
+| TSR-097 | Frontend test coverage (POS, landing, dashboard, storefronts currently at zero test files) | Not started | T7 | Server-side note: this session ADDED 51 passing RBAC tests (`permissions.test.ts` 29 + `RBACService.test.ts` 22). |
+| TSR-098 | Repair pre-existing broken server tests: `organizationContext.test.ts` imports a deleted middleware (suite fails to load); 5 Organization create tests assert pre-onboarding behavior; OrganizationService test mock needs `findModuleByName` + `orgModuleRepo` stubs | Not started | Verification report (pre-existing, proven at HEAD) | Fail identically without the RBAC diff. |
+| TSR-099 | Resolve the 139 pre-existing dashboard/ TypeScript errors (snake_case Product/Category typing drift from uncommitted user work) | Not started | Verification report (pre-existing) | server/, POS, landing all at 0 errors. Likely moot if TSR-091 retires `dashboard/`. |
+| TSR-100 | Mirror this session's POS + landing changes to the standalone repos (`chepelcr/tsuru-pos-system`, `chepelcr/tsuru-landing`) | Planned (manual; §7) | Root CLAUDE.md split rules | Monorepo copies are transitional. |
+| TSR-101 | Observability beyond the jbiller authorizer (structured logging, usage metrics for the new /api/admin + rbac surfaces) | Not started | T7; Inventory §9 (Partial) | RBAC denials are logged in `log` mode — a natural first metrics feed. |
+| TSR-102 | Migration journal hygiene: journal entry `0000_swift_prodigy` has no .sql on disk (older migrations were hand-applied via `scripts/run-migration.ts`) — reconcile the drizzle journal so `db:migrate` works cleanly | Not started | Verification report (pre-existing condition) | Workaround documented in §7 step 1. |
+| TSR-103 | Mobile wrapper (Capacitor/Ionic CORS origins allowed, no app exists) and real-time push | **Won't do (now)** — backlog | Inventory §9 (Scaffolded / Missing-not-promised) | Revisit only with a concrete product driver (e.g. fairs notifications). |
+
+---
+
+## 3. Broken-promise tracker (the 14 "Not built" verdicts)
+
+Per `tsuru_reconciliation_report.md` §1 (tally: 8 Delivered · 4 Partial · 1 Built differently · **14 Not built**). Rule from the rebrand plan §2.4: **kill, fix, or move to an honest public roadmap — nothing stays in false present tense.** Every row resolves to a tracked item.
+
+| Promise | Reconciliation verdict | Disposition | Tracked by |
+|---|---|---|---|
+| #6 Order tracking "at every step" | Not built | Replace feature card with a true one (R1); build a minimal order record OR relabel — open decision | TSR-041, TSR-081 |
+| #10 Fair-trade "Garantizamos…" | Not built | **Reword** (aspirational verb, no guarantee) until enforcement exists | TSR-072 → TSR-041 |
+| #11 Barter/trueque (present tense) | Not built | **Build (MVP)** in the fairs workstream; copy moves to "muy pronto" meanwhile | TSR-066; copy TSR-041 |
+| #12 Fairs (3 types) | Not built | **Build** — the fairs application | TSR-060..067; copy TSR-041 |
+| #13 Fair registration flow | Not built | **Build** — participation apply/approve in fairs spec §5 | TSR-062/063/064 |
+| #14 Mutual support networks | Not built | **Kill** (copy removed; may return with the community layer) | TSR-070 → TSR-041 |
+| #16 "miles de emprendedores" traction | Unsubstantiated | **Kill**; replace with the verifiable UCR origin credential | TSR-041 |
+| #17 Testimonials (placeholder personas) | Unsubstantiated | **Kill**; only real, consented CR merchant stories later | TSR-041 |
+| #18 24h contact response (fake form) | Contradicted | **Remove the promise now** (R1); wire SES delivery as its own fix | TSR-041, TSR-047 |
+| #19 Placeholder phone / brand emails | Placeholder | **Remove/replace** with working aliases (no dead `@tsuru.com` addresses) | TSR-041 |
+| #20 Newsletter promise | UI shell | **Remove** until a backend exists | TSR-041 |
+| #21 "Secure servers / encryption" | Contradicted | **Rewrite to actual practice** (R1 de-claim) + make it true (secrets/authz work) | TSR-041/048; truth: TSR-002, TSR-026..030 |
+| #22 GDPR + data-subject rights | Not built | **Remove the claim** (R1); full legal rewrite later | TSR-041, TSR-048 |
+| #23 Cookie consent banner | Not built | **Remove the description**; banner only if analytics ever ship | TSR-041, TSR-048 |
+
+Partial/last-mile verdicts (#1 store-in-minutes, #3 WhatsApp selling, #5 QR catalog) convert to Delivered via TSR-080 (+ TSR-086).
+
+## 4. Top-10 gap cross-reference (gap analysis §5)
+
+| Top-10 | Gap | Covered by | Status snapshot |
+|---|---|---|---|
+| #1 | Close the authorization gap (C1/C7/O1) | TSR-021/022/026/027 (Express — **implemented this session**), TSR-029, TSR-030, TSR-007, TSR-031 | Express side code-complete; gateway userId↔sub, lambda-authorizer, and Python services still open |
+| #2 | Fiscal credential + realm hardening (C4/O6) | TSR-002, TSR-003 | **Not started — no workstream owner (§6)** |
+| #3 | Unify fiscal sources of truth (C5) | TSR-004 | Not started — no workstream owner (§6) |
+| #4 | Unblock the cashier loop (C3/O2) | TSR-005 | Not started |
+| #5 | Fix funnel + trust breaches (C6/O4) | TSR-041, TSR-046, TSR-047 | Planned (rebrand R1) |
+| #6 | Decide the product thesis | **DECIDED 2026-06-11**: POS/e-invoicing core + honest staged community layer, fairs/trueque built for real | Resolved — encoded in the 4 workstreams + this doc |
+| #7 | Repair/de-scope storefront commerce (C2/O5) | TSR-080, TSR-081, TSR-082 | Not started (decision residue on TSR-081) |
+| #8 | Finish repo split + retire duplicate surfaces (T1/T2/T4/O7/O10) | TSR-090..094 | In progress |
+| #9 | Shared-DB contract hardening (T3) | TSR-032 (+ fairs-be born compliant via arch §3.1) | Not started |
+| #10 | Tsuru rebrand + first community surface (S6/S4/O8/O9) | TSR-040 (Done) → TSR-041..043; TSR-069/TSR-060.. | Spec done; execution planned |
+
+---
+
+## 5. Phase plan (Now / Next / Later) and dependencies
+
+### Dependency spine (load-bearing orderings)
+
+```
+RBAC code (TSR-020..025, DONE) ─▶ migrate+seed (TSR-026) ─▶ enforce flip (TSR-027) ─▶ Python-side enforcement (TSR-030/031)
+                              └─▶ platform_admin gate + BE-connected admin pattern (TSR-025)
+                                       └────────────────▶ fairs admin "Ferias (online)" (TSR-063)
+fairs-be skeleton (TSR-062) ─▶ admin vertical (TSR-063) ─▶ merchant vertical (TSR-064) ─▶ public SPA (TSR-065) ─▶ trueque (TSR-066) ─▶ launch (TSR-067)
+rebrand R1 content (TSR-041) ───────────────────────────────────────────────────────────────────────▶ fairs public launch messaging (TSR-067)
+API GW authorizer check (TSR-028) ─▶ any hosted landing-admin build (TSR-025 hosted, TSR-063)
+userId↔sub gateway mapping (TSR-029) ─▶ production trust in the whole O1–O15 surface
+repo split (TSR-090) ─▶ clean homes for POS/landing/fairs work; mirror step (TSR-100) interim
+```
+
+Key dependency statements:
+- **RBAC `platform_admin` gates the Tsuru admin.** The landing admin's BE-connected sections (RBAC today, fairs tomorrow) are only safe behind `requirePlatformAdmin` + the gateway authorizer (TSR-026/028 before any hosted admin build).
+- **The admin BE-connection pattern (TSR-025) gates the fairs admin (TSR-063).** TSR-025 established the layering (admin-api → repository → service hooks → gated pages, `online:true` manifest rows, tree-shake intact) that fairs admin pages replicate against `VITE_FAIRS_API_URL`.
+- **Rebrand content (TSR-041) gates fairs public launch messaging (TSR-067).** The `/ferias` page must already be honest-roadmap-framed so the launch flip is "en construcción → live", never "false present tense → live".
+- **Fairs reuses POS theme + catalog plumbing** (theme registry from `themes.ts`, product picker over the shared `products` table) — coordinate with the storefront collapse (TSR-083) so the 28-token registry stays single-sourced.
+- **Trueque (TSR-066) is inside fairs**, after the merchant + public verticals exist (offers need stands and a floor).
+
+### NOW (0–3 months) — finish what this session started; stop contradicting
+
+| Order | Items | Notes |
+|---|---|---|
+| 1 | TSR-026 (migrate + seed + backfill + platform_admin user) | Unblocks everything RBAC; §7 steps 1–3. |
+| 2 | TSR-028 (API GW /api/admin authorizer verify), TSR-029 (userId↔sub mapping) | Security preconditions for trusting the new surfaces in production. |
+| 3 | TSR-041/042/043 (rebrand execution R1→R3), TSR-046 | Content-first; the DXP was built for this. |
+| 4 | TSR-005, TSR-006, TSR-008, TSR-011, TSR-012 (POS quick wins — mostly unwired existing code) | Gap analysis O2/O3; S-effort. |
+| 5 | TSR-002, TSR-003 (fiscal secrets + realm) | Top-10 #2 — currently UNOWNED; assign before anything else ships publicly (§6). |
+| 6 | TSR-062, TSR-063 (fairs M1–M2) | Can start in parallel once TSR-026 lands (admin pattern proven). |
+| 7 | TSR-035, TSR-027 (admin-template grants, then enforce flip) | After the POS roles UI is in real use. |
+| 8 | TSR-100 (mirror to standalone repos) | Continuous during the split limbo. |
+
+### NEXT (3–9 months) — one product, one truth, one brand
+
+| Items | Notes |
+|---|---|
+| TSR-064, TSR-065, TSR-066, TSR-067 (fairs M3–M6 + launch) | The flagship community feature, launched honestly. |
+| TSR-004 (unify fiscal truth), TSR-007 (x-user-id), TSR-030/031 (authorization on the Python services) | Top-10 #1/#3 completion. |
+| TSR-080, TSR-082 (storefront last mile + real publish), decide TSR-081 | Converts Partial promises to Delivered. |
+| TSR-090, TSR-091, TSR-092, TSR-093, TSR-094 (split + consolidation: one admin, one provisioner, purified cross-app-be, markets-api cleanup) | Strat §5.1–5.6. |
+| TSR-032 (shared-DB hardening), TSR-096 (merge shared libs) | Governance debt. |
+| TSR-083 (collapse storefront apps), TSR-095 (data-services) | Shrink work. |
+| TSR-047, TSR-048 (contact delivery, legal rewrite) | Trust follow-through. |
+
+### LATER (9–24 months) — community layer depth (gated on fairs v1 traction)
+
+| Items | Notes |
+|---|---|
+| TSR-068 (buyer/community identity), TSR-073 (story/provenance + org badges), TSR-074 (bundles, crowdfunding, co-op governance) | Vision §5 LATER; each only after its actors/prereqs exist. |
+| TSR-084 (publish solidarity pricing before Stripe), then any monetization | Detonation guard for the "gratis" promise. |
+| TSR-044 (domain/infra rename wave), TSR-045 (Tier 2 cultural identity, RIBCA-gated) | Separate workstreams by explicit decision. |
+| TSR-071 revisit (mutual credit), TSR-087 revisit (second country), TSR-103 (mobile/push) | Only with concrete drivers. |
+
+---
+
+## 6. Open decisions & risks no workstream covers yet (anti-silent-drop list)
+
+Carried from the audit; **none of the four 2026-06-11 workstreams owns these.** Review this section on every roadmap update.
+
+| # | Risk / decision | Severity | Tracked as | Why it can't wait silently |
+|---|---|---|---|---|
+| R1 | **Plaintext fiscal credentials** (P12 certs, PINs, ATV passwords in Postgres, returned by GET) + staging-hardcoded Hacienda realm | Critical (legal) | TSR-002, TSR-003 | Combined with the remaining authz gaps, any authenticated user could read another org's tax-authority credentials. Top-10 #2 and still unowned. |
+| R2 | **Duplicated fiscal truth** — two consecutive allocators, two sale entities, three tax engines synchronized by convention | Critical (legal) | TSR-004 | Drift produces legally wrong invoices. Top-10 #3, unowned. |
+| R3 | **markets-api gateway lacks the documented userId↔sub check** — the new RBAC `attachUserId` trusts a gateway validation that doesn't exist yet | Critical (security) | TSR-029 | The entire O1–O15 surface assumes it in production. Cheap (gateway template change) but unassigned. |
+| R4 | **Authorization on the Python services** (sales-api/orders-api/data-api have no membership checks; lambda-authorizer TODO stub) | Critical (security) | TSR-030, TSR-031 | Explicitly out of scope of the Express RBAC contract; fiscal documents + ATV credentials are the exposed data. |
+| R5 | **Consumer-order build-vs-relabel decision** (promise #6) | High (product) | TSR-081 | R1 fixes the copy; the product decision is still open. |
+| R6 | **Monetization narrative before Stripe** | High (brand) | TSR-084 | Activating the dormant Stripe scaffold without the published solidarity pricing model detonates the 4× "gratis, sin cargos ocultos" promise. |
+| R7 | **Cross-docking org fabrication** (`_sync_organization`, `owner_id='system'`) keeps `organizations` dual-mastered until TSR-093 | High (data integrity) | TSR-093 | Every new fairs/RBAC feature that reads `organizations` inherits the polluted rows. |
+| R8 | **Hosted landing-admin exposure**: the admin shell has no auth of its own; safe only as dev-only/tree-shaken or a PRIVATE build (`VITE_ENABLE_ADMIN=true` never in the public Pages workflow) | High (security) | TSR-025 follow-ups, TSR-028 | The RBAC pages enforce server-side, but a leaked hosted admin build would still expose the shell + other dev-only sections. |
+| R9 | **Fairs spec open questions** (spec §13): public hostname timing; one-side vs two-side barter "completed" confirmation; per-fair vs global category taxonomy; stand slug collision policy | Medium | TSR-062 inputs | Must be answered in the fairs M1 implementation workflow; defaults are written in the spec. |
+| R10 | **Repo-split limbo divergence** — every monorepo edit (including this session's POS + landing changes) risks silent drift until TSR-090/TSR-100 | Medium | TSR-090, TSR-100 | Guardrail is a CLAUDE.md convention only. |
+| R11 | **Drizzle journal anomaly** (`0000_swift_prodigy` without a .sql file) can make `db:migrate` error | Medium (ops) | TSR-102 | Workaround documented (§7 step 1); reconcile properly before the next generated migration. |
+| R12 | **System `admin` role template can't reach the roles UI under enforce mode** (only `team:['read','invite']`) | Medium | TSR-035 | Flip TSR-027 without this and non-owner admins lose roles management. |
+| R13 | **Tier 2 Bribri cultural assets** must stay blocked without RIBCA partnership — a future contributor could "helpfully" ship the cacao logo | Medium (ethics/brand) | TSR-045 | The gate is documented in the rebrand plan §1.3; this row keeps it visible. |
+| R14 | **Email-verification + invitation UX holes** (decline no-op, dropped redirects) erode the funnel quietly | Low-Med | TSR-012 | |
+
+## 7. Pending manual steps (from the 2026-06-11 implementation + verification run)
+
+Nothing has been committed — HEAD is unchanged at `b7b3326`; all RBAC work sits in the working tree. In order:
+
+1. **Apply the DB migration**: review `migrations/0001_new_katie_power.sql`, then `npm run db:migrate`. **Caveat:** the journal's prior entry `0000_swift_prodigy` has no .sql file on disk (pre-existing — older migrations were hand-applied via `scripts/run-migration.ts`), so drizzle-kit may error; fall back to applying `0001_new_katie_power.sql` via `npm run db:run-migration`. The `verification_token` statement is already `IF NOT EXISTS` (live-DB drift safe). **Never `npm run db:push`.**
+2. **Seed**: `npm run db:seed` (adds the `upload` action + `submodule_actions` matrix; idempotent), then `npm run db:seed:org-modules` ONCE (backfills default `organization_modules` for existing orgs).
+3. **Bootstrap an admin**: set at least one user's `users.role = 'platform_admin'` in Postgres (gates `/api/admin` and the landing RBAC admin).
+4. **`RBAC_ENFORCEMENT` env var**: leave unset/`log` during rollout (denials logged, requests pass); flip to `enforce` after the POS roles UI is in use (TSR-027, with TSR-035 first). `requireMembership`/`requirePlatformAdmin` are hard gates regardless.
+5. **API Gateway**: verify `cloudformation/api-gateway.yml` proxies `/api/admin/*` WITH the Cognito authorizer attached BEFORE exposing any hosted landing-admin build (TSR-028); confirm the org-scoped `/rbac/*` sub-routes ride the existing proxy with the JWT authorizer.
+6. **Landing admin env (private builds only)**: `VITE_API_URL` (`http://localhost:5000` locally / `https://markets-api.jcampos.dev` hosted), `VITE_AWS_COGNITO_USER_POOL_ID`, `VITE_AWS_COGNITO_CLIENT_ID`, `VITE_AWS_REGION`, `VITE_ENABLE_ADMIN=true` — never in the public GitHub Pages workflow.
+7. **Swagger**: `npm run generate:swagger` when packaging the Lambda so the new endpoint JSDoc is picked up.
+8. **Repo-split mirroring** (TSR-100): mirror `templates/pos-system` changes to `chepelcr/tsuru-pos-system` and `landing-client` changes to `chepelcr/tsuru-landing`.
+9. **Review + commit**: the working tree holds the RBAC implementation plus the user's pre-existing changes; review and commit deliberately (nothing was committed by automation).
+
+## 8. Changelog
+
+| Date | Change |
+|---|---|
+| 2026-06-11 | Document created. Encoded the four owner decisions (rebrand spec, fairs spec+architecture, RBAC implemented in Express, trueque MVP in fairs). Marked TSR-020..025 Done per the implementation + verification reports (code complete, 51/51 RBAC tests, builds clean, migration generated-not-applied). Top-10 #6 (product thesis) recorded as DECIDED. |

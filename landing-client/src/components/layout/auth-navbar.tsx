@@ -27,7 +27,7 @@ export function AuthNavbar({ showLogout = false }: AuthNavbarProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 left-4 z-50 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+          className="absolute top-4 left-4 z-50 text-muted-foreground hover:text-foreground"
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4 mr-2" />
@@ -37,7 +37,7 @@ export function AuthNavbar({ showLogout = false }: AuthNavbarProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 left-4 z-50 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+          className="absolute top-4 left-4 z-50 text-muted-foreground hover:text-foreground"
           onClick={() => navigate("/")}
         >
           <Home className="w-4 h-4 mr-2" />

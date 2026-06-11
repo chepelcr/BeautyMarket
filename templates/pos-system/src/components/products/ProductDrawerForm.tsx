@@ -3,8 +3,9 @@ import { Drawer, Button, Spinner } from "@/components/ui";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAllProductTypes, useAllMeasurementUnits, useAllTaxes, useAllTaxRates } from "@/hooks/useDataApi";
+import { useAccordionSections } from "@/hooks/useAccordionSections";
 import { TaxCalculationService, type LineTax, type LineDiscount } from "@/services/taxCalculationService";
-import { CountryISO } from "@/lib/enums";
+import { CountryISO, TaxTypeCode } from "@/lib/enums";
 import type { Product, Category } from "@/types";
 import type { CabysItem } from "@/services/data-api";
 
@@ -21,6 +22,12 @@ import { CodesSection } from "./sections/CodesSection";
 
 import type { ProductFormState, TaxFormEntry, DiscountFormEntry, CodeFormEntry } from "@/types/productForm";
 export type { ProductFormState, TaxFormEntry, DiscountFormEntry, CodeFormEntry };
+
+const IVA_CODES: readonly string[] = [
+  TaxTypeCode.IVA,
+  TaxTypeCode.IVACE,
+  TaxTypeCode.IVARBU,
+];
 
 export const EMPTY_FORM: ProductFormState = {
   name: "",
@@ -50,11 +57,11 @@ interface ProductDrawerFormProps {
   form: ProductFormState;
   categories: Category[];
   saving: boolean;
-  imageFile: File | null;
+  imageUrl: string;
   unitsPerBox: string;
   onClose: () => void;
   onFormChange: (patch: Partial<ProductFormState>) => void;
-  onImageChange: (file: File | null) => void;
+  onImageChange: (url: string) => void;
   onUnitsPerBoxChange: (value: string) => void;
   onSave: () => void;
   onDelete: () => void;
@@ -79,6 +86,7 @@ export function ProductDrawerForm({
   form,
   categories,
   saving,
+  imageUrl,
   unitsPerBox,
   onClose,
   onFormChange,
@@ -113,7 +121,7 @@ export function ProductDrawerForm({
     }
   }, [open, dataReady]);
 
-  const [expanded, setExpanded] = useState<SectionExpanded>({
+  const { expanded, setExpanded, toggle } = useAccordionSections<keyof SectionExpanded>({
     general: true,
     image: false,
     packaging: false,
@@ -137,15 +145,13 @@ export function ProductDrawerForm({
       inventory: editing && !!(drawerProduct as Product).track_inventory,
       codes: false,
       fiscal: editing && !!((drawerProduct as Product).cabys || ((drawerProduct as Product).taxes ?? []).length > 0),
-      ivaTax: editing && ((drawerProduct as Product).taxes ?? []).some(t => ["01","07","08"].includes(t.tax_code ?? "")),
-      otherTax: editing && ((drawerProduct as Product).taxes ?? []).some(t => !["01","07","08"].includes(t.tax_code ?? "")),
+      ivaTax: editing && ((drawerProduct as Product).taxes ?? []).some(t => IVA_CODES.includes(t.tax_code ?? "")),
+      otherTax: editing && ((drawerProduct as Product).taxes ?? []).some(t => !IVA_CODES.includes(t.tax_code ?? "")),
       discounts: editing && ((drawerProduct as Product).discounts ?? []).length > 0,
       commercial: editing,
     });
   }, [open, drawerProduct]);
 
-  const toggle = (key: keyof SectionExpanded) =>
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   // Derived unlock conditions
   const generalStarted = form.name.trim().length >= 1;
@@ -198,7 +204,7 @@ export function ProductDrawerForm({
     const allRates = ratesData ?? [];
     const suggestedPct = item.tax_rate?.percentage ?? 13;
 
-    const ivaTaxType = allTaxes.find((t: { code?: string }) => t.code === "01");
+    const ivaTaxType = allTaxes.find((t: { code?: string }) => t.code === TaxTypeCode.IVA);
     if (!ivaTaxType) return;
 
     const matchingRate = allRates.find(
@@ -206,15 +212,14 @@ export function ProductDrawerForm({
     ) ?? allRates[0];
 
     const ivaEntry: TaxFormEntry = {
-      taxCode: ivaTaxType.code ?? "01",
-      taxDescription: ivaTaxType.description,
+      taxCode: ivaTaxType.code ?? TaxTypeCode.IVA,
       rate: (matchingRate as { percentage: number })?.percentage ?? suggestedPct,
       taxRateId: matchingRate?.id,
     };
 
-    const existingIva = form.taxes.find((t) => ["01", "07", "08"].includes(t.taxCode));
+    const existingIva = form.taxes.find((t) => IVA_CODES.includes(t.taxCode));
     const nextTaxes = existingIva
-      ? form.taxes.map((t) => (["01", "07", "08"].includes(t.taxCode) ? ivaEntry : t))
+      ? form.taxes.map((t) => (IVA_CODES.includes(t.taxCode) ? ivaEntry : t))
       : [...form.taxes, ivaEntry];
 
     onFormChange({ taxes: nextTaxes });
@@ -262,7 +267,7 @@ export function ProductDrawerForm({
     if ("cabys" in patch && patch.cabys === "" && "productTypeId" in patch) {
       onFormChange({
         ...patch,
-        taxes: form.taxes.filter((t) => !["01", "07", "08"].includes(t.taxCode)),
+        taxes: form.taxes.filter((t) => !IVA_CODES.includes(t.taxCode)),
       });
       return;
     }
@@ -307,13 +312,21 @@ export function ProductDrawerForm({
     onFormChange({ factoryTaxChargeId: chargeId, hasFactoryTax });
   };
 
-  const canSave = form.name.trim().length > 0 && Number(form.price) > 0;
+  // Aggregated validation errors from child sections (discount cascade,
+  // special_fields per code, etc.). Mirrors the LineDetailDrawer pattern.
+  const [commercialErrors, setCommercialErrors] = useState<string[]>([]);
+  const validationErrors = commercialErrors;
+  const canSave =
+    form.name.trim().length > 0 &&
+    Number(form.price) > 0 &&
+    validationErrors.length === 0;
 
   // Compute base amount for IVA calculation (after discounts + special taxes)
   const price = Number(form.price) || 0;
   const baseAmountForIva = price > 0 && form.taxes.length > 0
     ? TaxCalculationService.getLineAmounts({
         subtotal: price,
+        monto_total_original: price,
         taxes: form.taxes.map((tx) => ({
           code: tx.taxCode,
           rate: tx.rate,
@@ -398,10 +411,10 @@ export function ProductDrawerForm({
 
             {/* 2. Image Upload */}
             <ImageUploadSection
-              currentUrl={!isNew && drawerProduct ? ((drawerProduct as Product).image_url ?? undefined) : undefined}
+              value={imageUrl}
               isExpanded={expanded.image}
               onToggle={() => toggle("image")}
-              onFileChange={onImageChange}
+              onChange={onImageChange}
             />
 
             {/* 3. Codes */}
@@ -492,7 +505,18 @@ export function ProductDrawerForm({
               onToggle={() => toggle("commercial")}
               disabled={!generalStarted}
               onChange={onFormChange}
+              onValidationChange={setCommercialErrors}
             />
+
+            {validationErrors.length > 0 && (
+              <div className="mt-1 rounded-lg border border-destructive/30 bg-destructive/[0.06] px-3 py-2 flex flex-col gap-1">
+                {validationErrors.map((msg, i) => (
+                  <div key={i} className="text-xs text-destructive">
+                    {msg}
+                  </div>
+                ))}
+              </div>
+            )}
 
           </div>
         </FadeIn>

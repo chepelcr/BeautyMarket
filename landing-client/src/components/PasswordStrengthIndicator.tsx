@@ -27,9 +27,9 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
 
   const getStrengthColor = () => {
     if (strength === 0) return 'bg-muted';
-    if (strength <= 2) return 'bg-red-500';
-    if (strength <= 4) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (strength <= 2) return 'bg-destructive';
+    if (strength <= 4) return 'bg-warning';
+    return 'bg-success';
   };
 
   const getStrengthText = () => {
@@ -47,10 +47,10 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
           <span className="text-muted-foreground">{t('auth.register.passwordStrength.label')}</span>
           <span className={cn(
             "font-medium",
-            strength === 0 && "text-gray-500",
-            strength <= 2 && strength > 0 && "text-red-500",
-            strength <= 4 && strength > 2 && "text-yellow-600",
-            strength === 5 && "text-green-600"
+            strength === 0 && "text-muted-foreground",
+            strength <= 2 && strength > 0 && "text-destructive",
+            strength <= 4 && strength > 2 && "text-warning",
+            strength === 5 && "text-success"
           )}>
             {getStrengthText()}
           </span>
@@ -75,13 +75,13 @@ export function PasswordStrengthIndicator({ password, className }: PasswordStren
           return (
             <div key={index} className="flex items-center space-x-2 text-sm">
               {isValid ? (
-                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
               ) : (
-                <XCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <XCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               )}
               <span className={cn(
                 "transition-colors",
-                isValid ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                isValid ? "text-success" : "text-muted-foreground"
               )}>
                 {t(rule.messageKey)}
               </span>

@@ -9,3 +9,17 @@ logs/
 
 *.production
 lambda-package.zip
+
+# Repo split (in progress): templates/pos-system now lives in its own repo
+# → https://github.com/chepelcr/tsuru-pos-system
+# Files remain tracked here for now because CI/CD pipelines still reference these
+# paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
+# (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
+templates/pos-system/
+
+# Repo split (in progress): landing-client now lives in its own repo
+# → https://github.com/chepelcr/tsuru-landing
+# Files remain tracked here for now because CI/CD pipelines still reference these
+# paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
+# (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
+landing-client/

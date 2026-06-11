@@ -2,9 +2,10 @@ import { Tag } from 'lucide-react';
 import { SectionWrapper } from '@/components/common/SectionWrapper';
 import { FormLabel } from '@/components/ui';
 import { useAllDiscountTypes } from '@/hooks/useDataApi';
-import { CountryISO } from '@/lib/enums';
+import { CountryISO, DiscountTypeCode } from '@/lib/enums';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { LineDiscount } from '@/types/lineDetail';
+import type { DiscountTypeResponse } from '@/services/data-api/dtos';
 
 interface DiscountsTabProps {
   discounts: LineDiscount[];
@@ -17,23 +18,42 @@ interface DiscountsTabProps {
 
 export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpanded, onToggle }: DiscountsTabProps) {
   const { t } = useLanguage();
-  const { data: discountTypes } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
+  const { data: discountTypesData } = useAllDiscountTypes({ iso_code: CountryISO.COSTA_RICA });
+  const discountTypes: DiscountTypeResponse[] = discountTypesData ?? [];
 
   const add = () => {
-    const first = (discountTypes ?? [])[0];
-    onChange([...discounts, {
-      discount_type: first?.code ?? '01',
-      percentage: 0,
-    }]);
+    const first = discountTypes[0];
+    const code = first?.code ?? DiscountTypeCode.ROYALTY;
+    onChange([
+      ...discounts,
+      {
+        discount_type: code,
+        percentage: 0,
+        // Auto-fill `reason` from the catalog description for known codes.
+        // Code 99 (OTHER) requires manual entry, so leave it blank.
+        reason: code === DiscountTypeCode.OTHER ? '' : (first?.description ?? ''),
+      },
+    ]);
   };
   const remove = (i: number) => onChange(discounts.filter((_, idx) => idx !== i));
   const update = (i: number, patch: Partial<LineDiscount>) =>
     onChange(discounts.map((d, idx) => (idx === i ? { ...d, ...patch } : d)));
 
+  // On discount-type select: auto-fill `reason` for known codes; clear it on
+  // switch to 99 (OTHER) so the user enters their own Nota-20 nature text.
+  const onTypeChange = (i: number, newCode: string) => {
+    const picked = discountTypes.find((d) => d.code === newCode);
+    const isOther = newCode === DiscountTypeCode.OTHER;
+    update(i, {
+      discount_type: newCode,
+      reason: isOther ? '' : (picked?.description ?? ''),
+    });
+  };
+
   const total_pct = discounts.reduce((s, d) => s + (d.percentage || 0), 0);
   const total_amt = discounts.reduce(
     (s, d) => s + (netPrice * quantity * (d.percentage || 0)) / 100,
-    0
+    0,
   );
 
   return (
@@ -46,8 +66,10 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
     >
       <div className="flex flex-col gap-3">
         {discounts.map((disc, i) => {
-          const dt = (discountTypes ?? []).find((d: any) => d.code === disc.discount_type);
-          const needs_reason = disc.discount_type === '99';
+          const dt = discountTypes.find((d) => d.code === disc.discount_type);
+          const isOther = disc.discount_type === DiscountTypeCode.OTHER;
+          const reason_empty =
+            isOther && !(disc.reason && disc.reason.trim());
           const disc_amount = (netPrice * quantity * (disc.percentage || 0)) / 100;
 
           return (
@@ -62,15 +84,15 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
                 </button>
               </div>
 
-              <div className={`grid grid-cols-2 gap-2 ${needs_reason ? "mb-2" : ""}`}>
+              <div className="grid grid-cols-2 gap-2 mb-2">
                 <div>
                   <FormLabel required>{t('lineDetail.discountType')}</FormLabel>
                   <select
                     className="pp-input"
                     value={disc.discount_type ?? ''}
-                    onChange={(e) => update(i, { discount_type: e.target.value })}
+                    onChange={(e) => onTypeChange(i, e.target.value)}
                   >
-                    {(discountTypes ?? []).map((d: any) => (
+                    {discountTypes.map((d) => (
                       <option key={d.code ?? d.id} value={d.code}>{d.description}</option>
                     ))}
                   </select>
@@ -89,17 +111,21 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
                 </div>
               </div>
 
-              {needs_reason && (
-                <div>
-                  <FormLabel required>{t('lineDetail.discountReason')}</FormLabel>
-                  <input
-                    className="pp-input"
-                    value={disc.reason || ''}
-                    onChange={(e) => update(i, { reason: e.target.value })}
-                    placeholder={t('lineDetail.discountReasonPlaceholder')}
-                  />
-                </div>
-              )}
+              <div>
+                <FormLabel required={isOther}>{t('discount.reason.label')}</FormLabel>
+                <input
+                  className="pp-input"
+                  value={disc.reason ?? ''}
+                  onChange={(e) => update(i, { reason: e.target.value })}
+                  placeholder={t('discount.reason.placeholder')}
+                  required={isOther}
+                />
+                {reason_empty && (
+                  <div className="text-[11px] text-destructive mt-1">
+                    {t('discount.reason.required')}
+                  </div>
+                )}
+              </div>
 
               <div className="text-[11px] text-muted-foreground text-right mt-1">
                 ₡{disc_amount.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
@@ -126,7 +152,7 @@ export function DiscountsTab({ discounts, netPrice, quantity, onChange, isExpand
               <span className="font-mono">₡{total_amt.toLocaleString('es-CR', { minimumFractionDigits: 2 })}</span>
             </div>
             {total_pct > 100 && (
-              <div className="text-[11px] text-destructive">⚠ {t('products.discountExceeds')}</div>
+              <div className="text-[11px] text-destructive">{t('products.discountExceeds')}</div>
             )}
           </div>
         )}

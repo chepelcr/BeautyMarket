@@ -6,6 +6,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { crossAppApi, crossAppOrgPath } from "@/lib/api";
 import { Icon, Card, Button, Drawer, Modal, Pagination } from "@/components/ui";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionDetailDrawer } from "@/components/sessions/SessionDetailDrawer";
 import { SessionSkeletonCard } from "@/components/sessions/SessionSkeletonCard";
@@ -56,6 +57,11 @@ export default function SessionsPage() {
   const [endConfirmId, setEndConfirmId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(24);
+
+  usePageTitle([
+    t("shell.sessions"),
+    configOpen ? (editSession ? editSession.name : t("common.new")) : undefined,
+  ]);
 
   // Scroll to top when page changes
   useEffect(() => {

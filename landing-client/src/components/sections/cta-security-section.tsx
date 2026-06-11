@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Heart, Scale, Users, Building2 } from "lucide-react";
+import ctaSecurity from "@/content/cta-security.json";
 
 interface CTASecuritySectionProps {
   titleKey: string;
@@ -22,7 +23,8 @@ export function CTASecuritySection({
   onClick,
   variant = 'gradient'
 }: CTASecuritySectionProps) {
-  const { t } = useLanguage();
+  const { t, language: lang } = useLanguage();
+  const pick = (f: { es: string; en: string }) => f[lang] ?? f.es;
 
   const defaultIcon = buttonIcon === undefined ? <Building2 className="mr-2 h-5 w-5" /> : buttonIcon;
 
@@ -88,19 +90,19 @@ export function CTASecuritySection({
             <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-card'}`}>
               <div className="flex items-center gap-2">
                 <Heart className="h-4 w-4" />
-                {t('values.transparency.title')}
+                {pick(ctaSecurity.pills.transparency)}
               </div>
             </div>
             <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-card'}`}>
               <div className="flex items-center gap-2">
                 <Scale className="h-4 w-4" />
-                {t('values.fairTrade.title')}
+                {pick(ctaSecurity.pills.fairTrade)}
               </div>
             </div>
             <div className={`flex flex-col items-center justify-center px-4 py-3 rounded-lg ${isGradient ? 'bg-white/15 dark:bg-black/30' : 'bg-card'}`}>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                {t('values.local.title')}
+                {pick(ctaSecurity.pills.local)}
               </div>
             </div>
           </div>

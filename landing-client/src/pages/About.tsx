@@ -1,5 +1,6 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import about from "@/content/about.json";
 import {
   Scale,
   Leaf,
@@ -10,22 +11,11 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+const VALUE_ICONS = [Scale, Leaf, MapPin, Eye];
+
 export default function About() {
-  const { t } = useLanguage();
-
-  const valueItems = [
-    { icon: Scale, titleKey: 'about.values.fairTrade', descKey: 'about.values.fairTrade.description' },
-    { icon: Leaf, titleKey: 'about.values.conscious', descKey: 'about.values.conscious.description' },
-    { icon: MapPin, titleKey: 'about.values.local', descKey: 'about.values.local.description' },
-    { icon: Eye, titleKey: 'about.values.transparency', descKey: 'about.values.transparency.description' },
-  ];
-
-  const queEsPoints = [
-    'about.queEs.point1',
-    'about.queEs.point2',
-    'about.queEs.point3',
-    'about.queEs.point4',
-  ];
+  const { language: lang } = useLanguage();
+  const pick = (f: { es: string; en: string }) => f[lang] ?? f.es;
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,13 +26,13 @@ export default function About() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
             <Sprout className="h-3.5 w-3.5" />
-            {t('about.badge')}
+            {pick(about.badge)}
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
-            {t('about.title')}
+            {pick(about.title)}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {t('about.subtitle')}
+            {pick(about.subtitle)}
           </p>
         </div>
       </section>
@@ -53,19 +43,19 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-                {t('about.queEs.badge')}
+                {pick(about.queEs.badge)}
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                {t('about.queEs.title')}
+                {pick(about.queEs.title)}
               </h2>
               <p className="text-muted-foreground leading-relaxed text-lg mb-6">
-                {t('about.queEs.description')}
+                {pick(about.queEs.description)}
               </p>
               <ul className="flex flex-col gap-3">
-                {queEsPoints.map((key) => (
-                  <li key={key} className="flex items-center gap-3">
+                {about.queEs.points.map((point, i) => (
+                  <li key={i} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span className="text-foreground text-sm">{t(key)}</span>
+                    <span className="text-foreground text-sm">{pick(point)}</span>
                   </li>
                 ))}
               </ul>
@@ -78,11 +68,11 @@ export default function About() {
                     <Sprout className="h-10 w-10 text-primary" />
                   </div>
                   <p className="font-serif text-2xl font-bold text-foreground mb-2">JMarkets</p>
-                  <p className="text-sm text-muted-foreground">Economía comunitaria</p>
+                  <p className="text-sm text-muted-foreground">{pick(about.decorative.tagline)}</p>
                   <div className="flex flex-wrap gap-2 justify-center mt-4">
-                    {['Trueque', 'Ferias', 'WhatsApp', 'Local'].map((tag) => (
-                      <span key={tag} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                        {tag}
+                    {about.decorative.tags.map((tag, i) => (
+                      <span key={i} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                        {pick(tag)}
                       </span>
                     ))}
                   </div>
@@ -97,10 +87,10 @@ export default function About() {
       <section className="py-16 lg:py-20 bg-muted/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-5">
-            {t('about.mission.title')}
+            {pick(about.mission.title)}
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            {t('about.mission.description')}
+            {pick(about.mission.description)}
           </p>
         </div>
       </section>
@@ -109,12 +99,12 @@ export default function About() {
       <section className="py-16 lg:py-20 border-t border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-10 text-center">
-            {t('about.story.title')}
+            {pick(about.story.title)}
           </h2>
           <div className="flex flex-col gap-6">
-            {(['about.story.para1', 'about.story.para2', 'about.story.para3'] as const).map((key) => (
-              <p key={key} className="text-muted-foreground leading-relaxed text-lg">
-                {t(key)}
+            {about.story.paras.map((para, i) => (
+              <p key={i} className="text-muted-foreground leading-relaxed text-lg">
+                {pick(para)}
               </p>
             ))}
           </div>
@@ -126,19 +116,22 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground">
-              {t('about.values.title')}
+              {pick(about.valuesTitle)}
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {valueItems.map(({ icon: Icon, titleKey, descKey }) => (
-              <div key={titleKey} className="rounded-2xl p-6 bg-card border border-border hover:border-primary/20 transition-all">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Icon className="h-5 w-5 text-primary" />
+            {about.values.map((value, i) => {
+              const Icon = VALUE_ICONS[i];
+              return (
+                <div key={i} className="rounded-2xl p-6 bg-card border border-border hover:border-primary/20 transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">{pick(value.title)}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{pick(value.description)}</p>
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">{t(titleKey)}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{t(descKey)}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -147,14 +140,14 @@ export default function About() {
       <section className="py-16 border-t border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground mb-5">
-            {t('about.team.title')}
+            {pick(about.team.title)}
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-            {t('about.team.description')}
+            {pick(about.team.description)}
           </p>
           <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 gap-2">
-              {t('cta.community.button')}
+              {pick(about.team.button)}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </a>
