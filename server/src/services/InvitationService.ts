@@ -190,7 +190,7 @@ export class InvitationService implements IInvitationService {
   }
 
   private async sendInvitationEmail(invitation: OrganizationInvitation): Promise<void> {
-    const dashboardUrl = await appConfig.getKey('dashboard.url', 'https://admin.j-markets.jcampos.dev') ?? 'https://admin.j-markets.jcampos.dev';
+    const dashboardUrl = await appConfig.getKey('dashboard.url', 'https://pos.j-markets.jcampos.dev') ?? 'https://pos.j-markets.jcampos.dev';
     const inviteUrl = `${dashboardUrl}/join/${invitation.token}`;
 
     const org = await this.orgRepo.findById(invitation.organizationId);

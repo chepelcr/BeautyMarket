@@ -127,12 +127,12 @@ export default function LandingNavbar({ transitionStage = '' }: LandingNavbarPro
           <div className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
-            <a href="https://admin.j-markets.jcampos.dev" target="_blank" rel="noopener noreferrer">
+            <a href="https://pos.j-markets.jcampos.dev" target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
                 {pick(navbar.login)}
               </Button>
             </a>
-            <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
+            <a href="https://pos.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer">
               <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5">
                 {pick(navbar.register)}
               </Button>
@@ -223,12 +223,12 @@ export default function LandingNavbar({ transitionStage = '' }: LandingNavbarPro
               />
 
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                <a href="https://admin.j-markets.jcampos.dev" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
+                <a href="https://pos.j-markets.jcampos.dev" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
                     {pick(navbar.login)}
                   </Button>
                 </a>
-                <a href="https://admin.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
+                <a href="https://pos.j-markets.jcampos.dev/register" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                     {pick(navbar.register)}
                   </Button>

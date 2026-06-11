@@ -186,7 +186,7 @@ export default function Examples() {
         titleKey="examples.cta.title"
         subtitleKey="examples.cta.subtitle"
         buttonTextKey="examples.cta.button"
-        onClick={() => window.open('https://admin.j-markets.jcampos.dev/register', '_blank', 'noopener,noreferrer')}
+        onClick={() => window.open('https://pos.j-markets.jcampos.dev/register', '_blank', 'noopener,noreferrer')}
         buttonIcon={null}
         variant="light"
       />

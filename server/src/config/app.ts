@@ -33,8 +33,10 @@ export const APP_CONFIG = {
         'http://localhost:5000',
         'http://localhost:5173', // Vite dev server (dashboard)
         'http://localhost:9000',
-        'https://j-markets.jcampos.dev', // Landing page production
-        'https://admin.j-markets.jcampos.dev', // Dashboard production
+        'https://j-markets.jcampos.dev', // Landing page production (legacy domain)
+        'https://tsuru.jcampos.dev', // Tsuru landing production (GitHub Pages)
+        'https://admin.j-markets.jcampos.dev', // Dashboard production (legacy, being retired)
+        'https://pos.j-markets.jcampos.dev', // Tsuru POS production
         // Template organization domains
         'https://jmarkets-demo-example.j-markets.jcampos.dev',
         'https://tech-gadgets-example.j-markets.jcampos.dev',
