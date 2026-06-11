@@ -16,111 +16,104 @@ import {
 
 // Default module set assigned to every new organization
 // (hooked into OrganizationService.create + org-modules-backfill seed)
+//
+// The catalog mirrors the POS sidebar 1:1 (legacy facturacion model:
+// modules = sidebar sections / standalone items, submodules = section items).
+// See templates/pos-system DashboardSidebar.tsx SECTIONS.
 export const DEFAULT_ORG_MODULE_NAMES = [
-  'products',
-  'orders',
-  'customers',
-  'content',
-  'settings',
-  'team',
-  'analytics',
+  'panel',
+  'documents',
+  'commercial',
+  'admin',
+  'storefront',
+  'reports',
 ];
 
-// Default modules with lucide-react icons
+// Default modules with lucide-react icons — mirror of the POS sidebar
 const defaultModules: InsertModule[] = [
   {
-    name: 'products',
-    displayName: 'Products',
-    description: 'Manage product catalog, inventory, and variants',
-    icon: 'Package',
+    name: 'panel',
+    displayName: 'Panel',
+    description: 'Dashboard / panel general',
+    icon: 'BarChart3',
     isActive: true,
     sortOrder: 1,
   },
   {
-    name: 'orders',
-    displayName: 'Orders',
-    description: 'Process and manage customer orders',
-    icon: 'ShoppingCart',
+    name: 'documents',
+    displayName: 'Documentos',
+    description: 'Documentos electrónicos y punto de venta (facturación Hacienda)',
+    icon: 'FileText',
     isActive: true,
     sortOrder: 2,
   },
   {
-    name: 'customers',
-    displayName: 'Customers',
-    description: 'Manage customer profiles and segments',
-    icon: 'Users',
+    name: 'commercial',
+    displayName: 'Comercial',
+    description: 'Productos, categorías, clientes, órdenes y confirmaciones',
+    icon: 'ShoppingCart',
     isActive: true,
     sortOrder: 3,
   },
   {
-    name: 'content',
-    displayName: 'Content',
-    description: 'Manage pages, banners, and navigation',
-    icon: 'FileText',
+    name: 'admin',
+    displayName: 'Administración interna',
+    description: 'Organización, puestos, miembros, roles y sesiones',
+    icon: 'Users',
     isActive: true,
     sortOrder: 4,
   },
   {
-    name: 'settings',
-    displayName: 'Settings',
-    description: 'Configure general, payment, shipping, and tax settings',
-    icon: 'Settings',
+    name: 'storefront',
+    displayName: 'Storefront',
+    description: 'Contenido, galería, plantillas y despliegues de la tienda',
+    icon: 'Store',
     isActive: true,
     sortOrder: 5,
   },
   {
-    name: 'team',
-    displayName: 'Team',
-    description: 'Manage team members, roles, and invitations',
-    icon: 'UserPlus',
+    name: 'reports',
+    displayName: 'Reportes',
+    description: 'Reportería y analítica',
+    icon: 'TrendingUp',
     isActive: true,
     sortOrder: 6,
   },
-  {
-    name: 'analytics',
-    displayName: 'Analytics',
-    description: 'View dashboard and reports',
-    icon: 'BarChart3',
-    isActive: true,
-    sortOrder: 7,
-  },
 ];
 
-// Submodules for each module
+// Submodules for each module — mirror of the POS sidebar section items.
+// Standalone sidebar items get a single submodule so the role matrix can
+// always render at least one grantable row per module.
 const defaultSubmodules: Record<string, Omit<InsertSubmodule, 'moduleId'>[]> = {
-  products: [
-    { name: 'inventory', displayName: 'Inventory', description: 'Manage stock levels', sortOrder: 1 },
-    { name: 'pricing', displayName: 'Pricing', description: 'Manage product prices', sortOrder: 2 },
-    { name: 'variants', displayName: 'Variants', description: 'Manage product variants', sortOrder: 3 },
+  panel: [
+    { name: 'overview', displayName: 'Panel', description: 'Vista general', sortOrder: 1 },
   ],
-  orders: [
-    { name: 'processing', displayName: 'Processing', description: 'Process orders', sortOrder: 1 },
-    { name: 'shipping', displayName: 'Shipping', description: 'Manage shipping', sortOrder: 2 },
-    { name: 'returns', displayName: 'Returns', description: 'Handle returns', sortOrder: 3 },
+  documents: [
+    { name: 'emitted', displayName: 'Emitidos', description: 'Documentos emitidos', sortOrder: 1 },
+    { name: 'received', displayName: 'Recibidos', description: 'Documentos recibidos', sortOrder: 2 },
   ],
-  customers: [
-    { name: 'profiles', displayName: 'Profiles', description: 'Customer profiles', sortOrder: 1 },
-    { name: 'segments', displayName: 'Segments', description: 'Customer segments', sortOrder: 2 },
+  commercial: [
+    { name: 'products', displayName: 'Productos', description: 'Catálogo de productos', sortOrder: 1 },
+    { name: 'categories', displayName: 'Categorías', description: 'Categorías de productos', sortOrder: 2 },
+    { name: 'clients', displayName: 'Clientes', description: 'Clientes', sortOrder: 3 },
+    { name: 'orders', displayName: 'Órdenes', description: 'Órdenes / pedidos', sortOrder: 4 },
+    { name: 'confirmations', displayName: 'Confirmaciones', description: 'Confirmaciones', sortOrder: 5 },
   ],
-  content: [
-    { name: 'pages', displayName: 'Pages', description: 'Manage pages', sortOrder: 1 },
-    { name: 'banners', displayName: 'Banners', description: 'Manage banners', sortOrder: 2 },
-    { name: 'navigation', displayName: 'Navigation', description: 'Manage navigation', sortOrder: 3 },
+  admin: [
+    { name: 'organization', displayName: 'Organización', description: 'Configuración de la organización', sortOrder: 1 },
+    { name: 'stations', displayName: 'Puestos', description: 'Puestos / estaciones', sortOrder: 2 },
+    { name: 'members', displayName: 'Miembros', description: 'Miembros del equipo', sortOrder: 3 },
+    { name: 'roles', displayName: 'Roles', description: 'Gestión de roles y permisos', sortOrder: 4 },
+    { name: 'sessions', displayName: 'Sesiones', description: 'Sesiones de caja', sortOrder: 5 },
   ],
-  settings: [
-    { name: 'general', displayName: 'General', description: 'General settings', sortOrder: 1 },
-    { name: 'payments', displayName: 'Payments', description: 'Payment settings', sortOrder: 2 },
-    { name: 'shipping', displayName: 'Shipping', description: 'Shipping settings', sortOrder: 3 },
-    { name: 'taxes', displayName: 'Taxes', description: 'Tax settings', sortOrder: 4 },
+  storefront: [
+    { name: 'content', displayName: 'Contenido', description: 'Contenido de la tienda', sortOrder: 1 },
+    { name: 'gallery', displayName: 'Galería', description: 'Galería de imágenes', sortOrder: 2 },
+    { name: 'templates', displayName: 'Plantillas', description: 'Plantillas de la tienda', sortOrder: 3 },
+    { name: 'deployments', displayName: 'Despliegues', description: 'Publicaciones de la tienda', sortOrder: 4 },
   ],
-  team: [
-    { name: 'members', displayName: 'Members', description: 'Team members', sortOrder: 1 },
-    { name: 'roles', displayName: 'Roles', description: 'Role management', sortOrder: 2 },
-    { name: 'invitations', displayName: 'Invitations', description: 'Manage invitations', sortOrder: 3 },
-  ],
-  analytics: [
-    { name: 'dashboard', displayName: 'Dashboard', description: 'Analytics dashboard', sortOrder: 1 },
-    { name: 'reports', displayName: 'Reports', description: 'Generate reports', sortOrder: 2 },
+  reports: [
+    { name: 'general', displayName: 'Reportes', description: 'Reportes y analítica', sortOrder: 1 },
   ],
 };
 
@@ -146,24 +139,22 @@ const BASELINE_SUBMODULE_ACTIONS = ['create', 'read', 'update', 'delete'];
 
 const submoduleActionMatrix: Record<string, string[]> = {
   // Extras on top of baseline CRUD
-  'orders/processing': [...BASELINE_SUBMODULE_ACTIONS, 'refund', 'cancel', 'export'],
-  'orders/shipping': [...BASELINE_SUBMODULE_ACTIONS, 'export'],
-  'orders/returns': [...BASELINE_SUBMODULE_ACTIONS, 'refund'],
-  'products/inventory': [...BASELINE_SUBMODULE_ACTIONS, 'upload', 'export'],
-  'products/pricing': [...BASELINE_SUBMODULE_ACTIONS, 'export'],
-  'customers/profiles': [...BASELINE_SUBMODULE_ACTIONS, 'export', 'upload'],
-  'customers/segments': [...BASELINE_SUBMODULE_ACTIONS, 'export'],
-  'content/pages': [...BASELINE_SUBMODULE_ACTIONS, 'publish'],
-  'content/banners': [...BASELINE_SUBMODULE_ACTIONS, 'publish', 'upload'],
-  'team/members': [...BASELINE_SUBMODULE_ACTIONS, 'invite', 'remove'],
-  'team/invitations': [...BASELINE_SUBMODULE_ACTIONS, 'invite'],
+  'commercial/products': [...BASELINE_SUBMODULE_ACTIONS, 'upload', 'export'],
+  'commercial/clients': [...BASELINE_SUBMODULE_ACTIONS, 'upload', 'export'],
+  'commercial/orders': [...BASELINE_SUBMODULE_ACTIONS, 'cancel', 'export'],
+  'admin/members': [...BASELINE_SUBMODULE_ACTIONS, 'invite', 'remove'],
+  'storefront/content': [...BASELINE_SUBMODULE_ACTIONS, 'publish'],
+  'storefront/gallery': [...BASELINE_SUBMODULE_ACTIONS, 'upload'],
   // Restricted sets (override the baseline entirely)
-  'analytics/dashboard': ['read'],
-  'analytics/reports': ['read', 'export'],
-  'settings/general': ['read', 'update'],
-  'settings/payments': ['read', 'update'],
-  'settings/shipping': ['read', 'update'],
-  'settings/taxes': ['read', 'update'],
+  'panel/overview': ['read'],
+  'documents/emitted': ['create', 'read', 'update', 'cancel', 'export', 'upload'],
+  'documents/received': ['read', 'export'],
+  'commercial/confirmations': ['read', 'update'],
+  'admin/organization': ['read', 'update'],
+  'admin/sessions': ['create', 'read', 'update'],
+  'storefront/templates': ['read', 'update'],
+  'storefront/deployments': ['create', 'read'],
+  'reports/general': ['read', 'export'],
 };
 
 // System roles
@@ -211,44 +202,41 @@ type PermissionMatrix = Record<string, string[]>;
 
 const rolePermissionMatrix: Record<string, PermissionMatrix> = {
   platform_admin: {
-    products: ['create', 'read', 'update', 'delete', 'export', 'publish'],
-    orders: ['create', 'read', 'update', 'delete', 'export', 'refund', 'cancel'],
-    customers: ['create', 'read', 'update', 'delete', 'export'],
-    content: ['create', 'read', 'update', 'delete', 'publish'],
-    settings: ['create', 'read', 'update', 'delete'],
-    team: ['create', 'read', 'update', 'delete', 'invite', 'remove'],
-    analytics: ['read', 'export'],
+    panel: ['read'],
+    documents: ['create', 'read', 'update', 'cancel', 'export', 'upload'],
+    commercial: ['create', 'read', 'update', 'delete', 'cancel', 'export', 'upload'],
+    admin: ['create', 'read', 'update', 'delete', 'invite', 'remove'],
+    storefront: ['create', 'read', 'update', 'delete', 'publish', 'upload'],
+    reports: ['read', 'export'],
   },
   owner: {
-    products: ['create', 'read', 'update', 'delete', 'export', 'publish'],
-    orders: ['create', 'read', 'update', 'delete', 'export', 'refund', 'cancel'],
-    customers: ['create', 'read', 'update', 'delete', 'export'],
-    content: ['create', 'read', 'update', 'delete', 'publish'],
-    settings: ['create', 'read', 'update', 'delete'],
-    team: ['create', 'read', 'update', 'delete', 'invite', 'remove'],
-    analytics: ['read', 'export'],
+    panel: ['read'],
+    documents: ['create', 'read', 'update', 'cancel', 'export', 'upload'],
+    commercial: ['create', 'read', 'update', 'delete', 'cancel', 'export', 'upload'],
+    admin: ['create', 'read', 'update', 'delete', 'invite', 'remove'],
+    storefront: ['create', 'read', 'update', 'delete', 'publish', 'upload'],
+    reports: ['read', 'export'],
   },
   admin: {
-    products: ['create', 'read', 'update', 'delete', 'export', 'publish'],
-    orders: ['create', 'read', 'update', 'delete', 'export', 'refund', 'cancel'],
-    customers: ['create', 'read', 'update', 'delete', 'export'],
-    content: ['create', 'read', 'update', 'delete', 'publish'],
-    settings: ['read', 'update'], // Limited settings access
-    team: ['read', 'invite'], // Limited team access
-    analytics: ['read', 'export'],
+    panel: ['read'],
+    documents: ['create', 'read', 'update', 'cancel', 'export', 'upload'],
+    commercial: ['create', 'read', 'update', 'delete', 'cancel', 'export', 'upload'],
+    admin: ['create', 'read', 'update', 'invite'], // no delete (roles/members), no remove
+    storefront: ['create', 'read', 'update', 'delete', 'publish', 'upload'],
+    reports: ['read', 'export'],
   },
   manager: {
-    products: ['create', 'read', 'update', 'delete'],
-    orders: ['read', 'update'],
-    customers: ['read'],
-    content: ['create', 'read', 'update', 'delete', 'publish'],
-    analytics: ['read'],
+    panel: ['read'],
+    documents: ['create', 'read', 'update'],
+    commercial: ['create', 'read', 'update', 'delete'],
+    storefront: ['create', 'read', 'update', 'publish'],
+    reports: ['read'],
   },
   staff: {
-    products: ['read'],
-    orders: ['read'],
-    customers: ['read'],
-    analytics: ['read'],
+    panel: ['read'],
+    documents: ['create', 'read'], // cashier sells via POS -> emitted documents
+    commercial: ['read'],
+    reports: ['read'],
   },
 };
 

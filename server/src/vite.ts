@@ -22,11 +22,14 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  let createViteServer: typeof import("vite").createServer;
-  let createLogger: typeof import("vite").createLogger;
+  // Fully dynamic so the standalone repo neither bundles nor type-resolves
+  // vite — the SPA dev middleware only exists in the monorepo checkout.
+  let createViteServer: any;
+  let createLogger: any;
   let viteConfig: Record<string, unknown>;
   try {
-    ({ createServer: createViteServer, createLogger } = await import("vite"));
+    const viteSpecifier = "vite";
+    ({ createServer: createViteServer, createLogger } = await import(/* @vite-ignore */ viteSpecifier));
     viteConfig = (await import(/* @vite-ignore */ MONOREPO_VITE_CONFIG)).default;
   } catch {
     log("vite / monorepo vite.config not available — running in API-only mode");
@@ -45,7 +48,7 @@ export async function setupVite(app: Express, server: Server) {
     configFile: false,
     customLogger: {
       ...viteLogger,
-      error: (msg, options) => {
+      error: (msg: string, options: unknown) => {
         viteLogger.error(msg, options);
         process.exit(1);
       },

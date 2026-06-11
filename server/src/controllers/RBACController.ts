@@ -16,7 +16,7 @@ export class RBACController {
   getRouter(): Router {
     const router = Router({ mergeParams: true });
 
-    const readRoles = this.guards.requirePermission('team', 'read', 'roles');
+    const readRoles = this.guards.requirePermission('admin', 'read', 'roles');
     const membership = this.guards.requireMembership();
 
     // Organization-scoped RBAC routes
@@ -30,9 +30,9 @@ export class RBACController {
     router.get('/roles', readRoles, this.getSystemRoles.bind(this));
     router.get('/roles/organization', readRoles, this.getOrganizationRoles.bind(this));
     router.get('/roles/:id', readRoles, this.getRoleById.bind(this));
-    router.post('/roles', this.guards.requirePermission('team', 'create', 'roles'), this.createRole.bind(this));
-    router.put('/roles/:id', this.guards.requirePermission('team', 'update', 'roles'), this.updateRole.bind(this));
-    router.delete('/roles/:id', this.guards.requirePermission('team', 'delete', 'roles'), this.deleteRole.bind(this));
+    router.post('/roles', this.guards.requirePermission('admin', 'create', 'roles'), this.createRole.bind(this));
+    router.put('/roles/:id', this.guards.requirePermission('admin', 'update', 'roles'), this.updateRole.bind(this));
+    router.delete('/roles/:id', this.guards.requirePermission('admin', 'delete', 'roles'), this.deleteRole.bind(this));
 
     // Modules and Actions (O12, O13 — global catalogs, back-compat; POS uses O2)
     router.get('/modules', readRoles, this.getAllModules.bind(this));
@@ -40,10 +40,10 @@ export class RBACController {
 
     // Permissions (O9, O10)
     router.get('/roles/:id/permissions', readRoles, this.getRolePermissions.bind(this));
-    router.put('/roles/:id/permissions', this.guards.requirePermission('team', 'update', 'roles'), this.setRolePermissions.bind(this));
+    router.put('/roles/:id/permissions', this.guards.requirePermission('admin', 'update', 'roles'), this.setRolePermissions.bind(this));
 
     // Member role assignment (O11)
-    router.put('/members/:memberId/role', this.guards.requirePermission('team', 'update', 'members'), this.assignMemberRole.bind(this));
+    router.put('/members/:memberId/role', this.guards.requirePermission('admin', 'update', 'members'), this.assignMemberRole.bind(this));
 
     // Permission checks (O14, O15 — membership-only self checks)
     router.post('/check-permission', membership, this.checkPermission.bind(this));
