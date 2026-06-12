@@ -104,6 +104,14 @@ const defaultSubmodules: Record<string, Omit<InsertSubmodule, 'moduleId'>[]> = {
   documents: [
     { name: 'emitted', displayName: 'Emitidos', description: 'Documentos emitidos', sortOrder: 1 },
     { name: 'received', displayName: 'Recibidos', description: 'Documentos recibidos', sortOrder: 2 },
+    // Per-doc-type create gates (mirror POS DOCUMENT_TYPES; submodule name =
+    // short code lowercase). Sensitive types (NC/ND) are NOT granted to staff.
+    { name: 'fe', displayName: 'Factura Electrónica', description: 'Crear facturas electrónicas (01)', sortOrder: 3 },
+    { name: 'te', displayName: 'Tiquete Electrónico', description: 'Crear tiquetes electrónicos (04)', sortOrder: 4 },
+    { name: 'nc', displayName: 'Nota de Crédito', description: 'Crear notas de crédito (03)', sortOrder: 5 },
+    { name: 'nd', displayName: 'Nota de Débito', description: 'Crear notas de débito (02)', sortOrder: 6 },
+    { name: 'fc', displayName: 'Factura de Compra', description: 'Crear facturas de compra (08)', sortOrder: 7 },
+    { name: 'fexp', displayName: 'Factura Exportación', description: 'Crear facturas de exportación (09)', sortOrder: 8 },
   ],
   commercial: [
     { name: 'products', displayName: 'Productos', description: 'Catálogo de productos', sortOrder: 1 },
@@ -174,6 +182,13 @@ const submoduleActionMatrix: Record<string, string[]> = {
   'panel/overview': ['read'],
   'documents/emitted': ['create', 'read', 'update', 'cancel', 'export', 'upload'],
   'documents/received': ['read', 'export'],
+  // Doc-type submodules are pure create-gates (viewing happens via emitted)
+  'documents/fe': ['create'],
+  'documents/te': ['create'],
+  'documents/nc': ['create'],
+  'documents/nd': ['create'],
+  'documents/fc': ['create'],
+  'documents/fexp': ['create'],
   'commercial/confirmations': ['read', 'update'],
   'admin/organization': ['read', 'update'],
   'admin/sessions': ['create', 'read', 'update'],
@@ -232,7 +247,11 @@ const systemRoles: InsertRole[] = [
 ];
 
 // Permission matrix for each role
-// Format: { moduleName: [actionNames] }
+// Format: { moduleName: [actionNames] } — module-wide grant (submodule_id NULL,
+// expands to every submodule where the action is grantable), or
+// { 'moduleName/submoduleName': [actionNames] } — submodule-specific grant
+// (used to restrict sensitive submodules, e.g. staff can create FE/TE but not
+// NC/ND credit/debit notes).
 type PermissionMatrix = Record<string, string[]>;
 
 const rolePermissionMatrix: Record<string, PermissionMatrix> = {
@@ -272,7 +291,12 @@ const rolePermissionMatrix: Record<string, PermissionMatrix> = {
   },
   staff: {
     panel: ['read'],
-    documents: ['create', 'read'], // cashier sells via POS -> emitted documents
+    // Cashier: sells via POS (emitted documents) and may only create the
+    // non-sensitive doc types — invoices and tickets. NO credit/debit notes
+    // (nc/nd), purchase (fc) or export (fexp) invoices.
+    'documents/emitted': ['create', 'read'],
+    'documents/fe': ['create'],
+    'documents/te': ['create'],
     commercial: ['read'],
     reports: ['read'],
   },
@@ -463,6 +487,16 @@ export async function seedRolePermissions(
   moduleIdMap: Map<string, string>,
   actionIdMap: Map<string, string>
 ): Promise<void> {
+  // 'module/submodule' lookup for submodule-specific matrix keys
+  const allSubmodules = await db.select().from(submodules);
+  const moduleNameById = new Map<string, string>();
+  moduleIdMap.forEach((id, name) => moduleNameById.set(id, name));
+  const submoduleIdByPath = new Map<string, string>();
+  for (const sub of allSubmodules) {
+    const moduleName = moduleNameById.get(sub.moduleId);
+    if (moduleName) submoduleIdByPath.set(`${moduleName}/${sub.name}`, sub.id);
+  }
+
   for (const [roleName, permissions] of Object.entries(rolePermissionMatrix)) {
     const roleId = roleIdMap.get(roleName);
     if (!roleId) {
@@ -485,11 +519,22 @@ export async function seedRolePermissions(
     // Create permissions for this role
     const permissionsToInsert: InsertRolePermission[] = [];
 
-    for (const [moduleName, actionNames] of Object.entries(permissions)) {
+    for (const [matrixKey, actionNames] of Object.entries(permissions)) {
+      // 'module' → module-wide grant; 'module/submodule' → specific grant
+      const [moduleName, submoduleName] = matrixKey.split('/');
       const moduleId = moduleIdMap.get(moduleName);
       if (!moduleId) {
         console.warn(`Module '${moduleName}' not found, skipping...`);
         continue;
+      }
+
+      let submoduleId: string | null = null;
+      if (submoduleName) {
+        submoduleId = submoduleIdByPath.get(matrixKey) ?? null;
+        if (!submoduleId) {
+          console.warn(`Submodule '${matrixKey}' not found, skipping...`);
+          continue;
+        }
       }
 
       for (const actionName of actionNames) {
@@ -503,7 +548,7 @@ export async function seedRolePermissions(
           roleId,
           moduleId,
           actionId,
-          submoduleId: null, // Applies to all submodules
+          submoduleId, // null = applies to all submodules of the module
         });
       }
     }
