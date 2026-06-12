@@ -16,20 +16,20 @@ Evidence cells in §2, refresh §7 manual steps, and append a dated line to the 
 changelog (rules in §1). New work gets a new TSR ID; never renumber or delete rows.
 The audit corpus in `docs/audit/tsuru/` is a historical record — do not edit it.
 
-## 🚧 Repository Split (in progress)
+## 🚧 Repository Split
 
-This monorepo is being split into separate repositories. **Status of extracted components:**
+This monorepo has been split into separate repositories. **Status of extracted components:**
 
 | Component | New repo | Status |
 |---|---|---|
-| `templates/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted to its own public repo. Develop it there. |
-| `landing-client` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted to its own public repo. Develop it there. |
-| `server` (Tsuru platform API — users, orgs, RBAC, CMS, multi-tenant backend; Express on Lambda) | [`chepelcr/tsuru-platform-api`](https://github.com/chepelcr/tsuru-platform-api) | Extracted to its own **private** repo. Develop it there. |
+| `templates/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
+| `landing-client` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
+| `server` (Tsuru platform API — users, orgs, RBAC, CMS, multi-tenant backend; Express on Lambda) | [`chepelcr/tsuru-platform-api`](https://github.com/chepelcr/tsuru-platform-api) | Extracted to its own **private** repo; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
 
-**Rules during the split:**
-- `templates/pos-system/`, `landing-client/`, and `server/` are listed in this repo's `.gitignore` and should be treated as **owned by their standalone repos**, not the monorepo.
-- Their files are **intentionally still tracked here** — do **NOT** `git rm` / untrack them yet. The CI/CD pipelines still reference these paths; removal happens only after pipelines are migrated.
-- New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing`; new work on the Express platform API belongs in `chepelcr/tsuru-platform-api` — not here.
+**Rules after the split:**
+- `templates/pos-system/`, `landing-client/`, and `server/` are gitignored and **no longer tracked** in this repo (untracked 2026-06-12; deploys moved to each repo's GH Actions). The folders may still exist locally as working copies of the standalone repos — never `git add -f` them back.
+- The monorepo CodePipeline stages / buildspecs that referenced these paths are obsolete — do not re-point them at the folders; disable/remove them instead (roadmap TSR-090).
+- New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing`; new work on the Express platform API belongs in `chepelcr/tsuru-platform-api` — not here. Mirror commits to the monorepo are no longer needed.
 
 ## ⚠️ Security Guidelines
 

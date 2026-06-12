@@ -10,22 +10,14 @@ logs/
 *.production
 lambda-package.zip
 
-# Repo split (in progress): templates/pos-system now lives in its own repo
-# → https://github.com/chepelcr/tsuru-pos-system
-# Files remain tracked here for now because CI/CD pipelines still reference these
-# paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
-# (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
+# Repo split (DONE 2026-06-12 — folders untracked): each lives in its own repo
+# with its own GH Actions deploy. Local folders are standalone working copies.
+# Never `git add -f` these back into the monorepo.
+# templates/pos-system → https://github.com/chepelcr/tsuru-pos-system
 templates/pos-system/
 
-# Repo split (in progress): landing-client now lives in its own repo
-# → https://github.com/chepelcr/tsuru-landing
-# Files remain tracked here for now because CI/CD pipelines still reference these
-# paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
-# (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
+# landing-client → https://github.com/chepelcr/tsuru-landing
 landing-client/
-# Repo split (in progress): server now lives in its own repo
-# → https://github.com/chepelcr/tsuru-platform-api (private)
-# Files remain tracked here for now because CI/CD pipelines still reference these
-# paths. Do NOT `git rm` them yet — removal happens after pipelines are migrated.
-# (This entry only affects newly-untracked changes; already-tracked files stay tracked.)
+
+# server → https://github.com/chepelcr/tsuru-platform-api (private)
 server/
