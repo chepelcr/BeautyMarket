@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📍 Ecosystem roadmap — single source of truth (keep it updated)
+
+**`docs/roadmap/tsuru_roadmap.md` is the living tracking document for the entire Tsuru
+ecosystem** (TSR-### status board, broken-promise tracker, phase plan, pending manual
+steps, changelog). On a fresh session, read it (at minimum §2 boards + §7 pending manual
+steps) before planning ecosystem-level work.
+
+**Upkeep is mandatory:** whenever work is completed, started, or newly decided — in this
+monorepo OR in any of the split repos (`tsuru-platform-api`, `tsuru-pos-system`,
+`tsuru-landing`) — update the roadmap in the same session: change the item's Status +
+Evidence cells in §2, refresh §7 manual steps, and append a dated line to the §8
+changelog (rules in §1). New work gets a new TSR ID; never renumber or delete rows.
+The audit corpus in `docs/audit/tsuru/` is a historical record — do not edit it.
+
 ## 🚧 Repository Split (in progress)
 
 This monorepo is being split into separate repositories. **Status of extracted components:**
@@ -13,7 +27,7 @@ This monorepo is being split into separate repositories. **Status of extracted c
 | `server` (Tsuru platform API — users, orgs, RBAC, CMS, multi-tenant backend; Express on Lambda) | [`chepelcr/tsuru-platform-api`](https://github.com/chepelcr/tsuru-platform-api) | Extracted to its own **private** repo. Develop it there. |
 
 **Rules during the split:**
-- `templates/pos-system/` and `landing-client/` are listed in this repo's `.gitignore` and should be treated as **owned by their standalone repos**, not the monorepo.
+- `templates/pos-system/`, `landing-client/`, and `server/` are listed in this repo's `.gitignore` and should be treated as **owned by their standalone repos**, not the monorepo.
 - Their files are **intentionally still tracked here** — do **NOT** `git rm` / untrack them yet. The CI/CD pipelines still reference these paths; removal happens only after pipelines are migrated.
 - New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing`; new work on the Express platform API belongs in `chepelcr/tsuru-platform-api` — not here.
 
