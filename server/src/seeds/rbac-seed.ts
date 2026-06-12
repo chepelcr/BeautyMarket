@@ -189,7 +189,7 @@ const submoduleActionMatrix: Record<string, string[]> = {
   'documents/nd': ['create'],
   'documents/fc': ['create'],
   'documents/fexp': ['create'],
-  'commercial/confirmations': ['read', 'update'],
+  'commercial/confirmations': ['create', 'read', 'update'], // create: POS CreateConfirmationDialog
   'admin/organization': ['read', 'update'],
   'admin/sessions': ['create', 'read', 'update'],
   // Org config sections are read/update-only (config pages — nothing to create/delete)
