@@ -11,6 +11,16 @@ export const organizations = pgTable("organizations", {
   domainVerified: boolean("domain_verified").default(false),
   verificationToken: varchar("verification_token", { length: 64 }),
 
+  // General info (org-settings "General" section; also feeds receipts/header)
+  description: text("description"),
+  email: text("email"),
+  phone: varchar("phone", { length: 50 }),
+  address: text("address"),
+
+  // POS admin-shell UI theme id (scalar) — DISTINCT from settings.theme,
+  // which is the storefront branding object (colors/logo)
+  theme: varchar("theme", { length: 100 }),
+
   // Settings (JSON for theme, logo, colors, payment config, shipping config)
   // NOTE: This will be deprecated and removed after migration to normalized tables
   settings: jsonb("settings"),

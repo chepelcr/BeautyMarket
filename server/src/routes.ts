@@ -20,9 +20,21 @@ import {
   componentController,
   publicOrgController,
   platformAdminController,
+  permissionMiddleware,
   requirePlatformAdmin,
   attachUserId
 } from './dependency_injection';
+import type { Request, Response, NextFunction } from 'express';
+
+// Method-aware guard for the org-settings sections: GET needs read, writes
+// need update on the matching `organization/<section>` submodule (the catalog
+// twin of the POS org-settings cards — see seeds/rbac-seed.ts).
+function orgSettingsGuard(section: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const action = req.method === 'GET' ? 'read' : 'update';
+    return permissionMiddleware.requirePermission('organization', action, section)(req, res, next);
+  };
+}
 
 export function setupRoutes(app: Express): void {
   // ============================================
@@ -44,11 +56,19 @@ export function setupRoutes(app: Express): void {
   orgScopedRouter.use('/invitations', invitationController.getRouter());
   orgScopedRouter.use('/rbac', rbacController.getRouter());
 
-  // Settings routes
-  orgScopedRouter.use('/settings/theme', themeSettingsController.getRouter());
-  orgScopedRouter.use('/settings/contact', contactSettingsController.getRouter());
-  orgScopedRouter.use('/settings/payment', paymentSettingsController.getRouter());
-  orgScopedRouter.use('/settings/shipping', shippingSettingsController.getRouter());
+  // Settings routes — each section is gated by its `organization/<section>`
+  // submodule. NOTE: settings/theme stores the STOREFRONT BRANDING object
+  // (colors/logo), hence the `branding` section; the POS shell theme scalar
+  // lives on the organization row (PATCH /organizations/:id + `theme`).
+  orgScopedRouter.use('/settings/theme', orgSettingsGuard('branding'), themeSettingsController.getRouter());
+  orgScopedRouter.use('/settings/contact', orgSettingsGuard('contact'), contactSettingsController.getRouter());
+  orgScopedRouter.use('/settings/payment', orgSettingsGuard('payment'), paymentSettingsController.getRouter());
+  orgScopedRouter.use('/settings/shipping', orgSettingsGuard('shipping'), shippingSettingsController.getRouter());
+  orgScopedRouter.patch(
+    '/settings/general',
+    orgSettingsGuard('general'),
+    (req, res) => organizationController.updateGeneral(req, res)
+  );
 
   // Page management routes with nested section routes
   const pageRouter = Router({ mergeParams: true });

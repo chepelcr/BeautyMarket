@@ -25,6 +25,7 @@ export const DEFAULT_ORG_MODULE_NAMES = [
   'documents',
   'commercial',
   'admin',
+  'organization',
   'storefront',
   'reports',
 ];
@@ -64,12 +65,24 @@ const defaultModules: InsertModule[] = [
     sortOrder: 4,
   },
   {
+    // Fine-grained twin of the `admin/organization` sidebar item: the org
+    // settings page hosts 9 config sections (cards), each a submodule here so
+    // roles can grant per-section read/update. The sidebar item itself stays
+    // gated by admin/organization.
+    name: 'organization',
+    displayName: 'Organización (configuración)',
+    description: 'Secciones de configuración de la organización (fiscal, Hacienda, tema, contacto, pagos, envíos…)',
+    icon: 'Settings',
+    isActive: true,
+    sortOrder: 5,
+  },
+  {
     name: 'storefront',
     displayName: 'Storefront',
     description: 'Contenido, galería, plantillas y despliegues de la tienda',
     icon: 'Store',
     isActive: true,
-    sortOrder: 5,
+    sortOrder: 6,
   },
   {
     name: 'reports',
@@ -77,7 +90,7 @@ const defaultModules: InsertModule[] = [
     description: 'Reportería y analítica',
     icon: 'TrendingUp',
     isActive: true,
-    sortOrder: 6,
+    sortOrder: 7,
   },
 ];
 
@@ -105,6 +118,18 @@ const defaultSubmodules: Record<string, Omit<InsertSubmodule, 'moduleId'>[]> = {
     { name: 'members', displayName: 'Miembros', description: 'Miembros del equipo', sortOrder: 3 },
     { name: 'roles', displayName: 'Roles', description: 'Gestión de roles y permisos', sortOrder: 4 },
     { name: 'sessions', displayName: 'Sesiones', description: 'Sesiones de caja', sortOrder: 5 },
+  ],
+  // Mirrors the OrgSettingsPage card grid 1:1 (card ids in tsuru-pos-system).
+  organization: [
+    { name: 'fiscal-info', displayName: 'Información fiscal', description: 'Identidad fiscal registrada (Hacienda)', sortOrder: 1 },
+    { name: 'hacienda', displayName: 'Hacienda', description: 'Credenciales y conexión con Hacienda (ATV)', sortOrder: 2 },
+    { name: 'notifications', displayName: 'Notificaciones', description: 'Notificaciones de la organización', sortOrder: 3 },
+    { name: 'theme', displayName: 'Tema', description: 'Tema del panel POS', sortOrder: 4 },
+    { name: 'general', displayName: 'General', description: 'Información general de la organización', sortOrder: 5 },
+    { name: 'branding', displayName: 'Branding', description: 'Identidad visual de la tienda', sortOrder: 6 },
+    { name: 'contact', displayName: 'Contacto', description: 'Datos de contacto y redes', sortOrder: 7 },
+    { name: 'payment', displayName: 'Pagos', description: 'Configuración de métodos de pago', sortOrder: 8 },
+    { name: 'shipping', displayName: 'Envíos', description: 'Configuración de envíos', sortOrder: 9 },
   ],
   storefront: [
     { name: 'content', displayName: 'Contenido', description: 'Contenido de la tienda', sortOrder: 1 },
@@ -152,6 +177,16 @@ const submoduleActionMatrix: Record<string, string[]> = {
   'commercial/confirmations': ['read', 'update'],
   'admin/organization': ['read', 'update'],
   'admin/sessions': ['create', 'read', 'update'],
+  // Org config sections are read/update-only (config pages — nothing to create/delete)
+  'organization/fiscal-info': ['read', 'update'],
+  'organization/hacienda': ['read', 'update'],
+  'organization/notifications': ['read', 'update'],
+  'organization/theme': ['read', 'update'],
+  'organization/general': ['read', 'update'],
+  'organization/branding': ['read', 'update'],
+  'organization/contact': ['read', 'update'],
+  'organization/payment': ['read', 'update'],
+  'organization/shipping': ['read', 'update'],
   'storefront/templates': ['read', 'update'],
   'storefront/deployments': ['create', 'read'],
   'reports/general': ['read', 'export'],
@@ -206,6 +241,7 @@ const rolePermissionMatrix: Record<string, PermissionMatrix> = {
     documents: ['create', 'read', 'update', 'cancel', 'export', 'upload'],
     commercial: ['create', 'read', 'update', 'delete', 'cancel', 'export', 'upload'],
     admin: ['create', 'read', 'update', 'delete', 'invite', 'remove'],
+    organization: ['read', 'update'],
     storefront: ['create', 'read', 'update', 'delete', 'publish', 'upload'],
     reports: ['read', 'export'],
   },
@@ -214,6 +250,7 @@ const rolePermissionMatrix: Record<string, PermissionMatrix> = {
     documents: ['create', 'read', 'update', 'cancel', 'export', 'upload'],
     commercial: ['create', 'read', 'update', 'delete', 'cancel', 'export', 'upload'],
     admin: ['create', 'read', 'update', 'delete', 'invite', 'remove'],
+    organization: ['read', 'update'],
     storefront: ['create', 'read', 'update', 'delete', 'publish', 'upload'],
     reports: ['read', 'export'],
   },
@@ -222,6 +259,7 @@ const rolePermissionMatrix: Record<string, PermissionMatrix> = {
     documents: ['create', 'read', 'update', 'cancel', 'export', 'upload'],
     commercial: ['create', 'read', 'update', 'delete', 'cancel', 'export', 'upload'],
     admin: ['create', 'read', 'update', 'invite'], // no delete (roles/members), no remove
+    organization: ['read', 'update'],
     storefront: ['create', 'read', 'update', 'delete', 'publish', 'upload'],
     reports: ['read', 'export'],
   },

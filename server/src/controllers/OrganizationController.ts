@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import type { InsertOrganization } from '../entities/Organization';
 import type { IOrganizationService } from '../services/OrganizationService';
 import type { IRBACService } from '../services/RBACService';
 import type { TemplateCloneService } from '../services/TemplateCloneService';
@@ -26,6 +27,7 @@ export class OrganizationController {
     router.get('/:id', this.getById.bind(this));
     router.post('/', this.create.bind(this));
     router.put('/:id', this.update.bind(this));
+    router.patch('/:id', this.update.bind(this)); // partial updates (POS theme/general fields)
     router.put('/:id/settings', this.updateSettings.bind(this));
     router.delete('/:id', this.delete.bind(this));
 
@@ -332,6 +334,40 @@ export class OrganizationController {
    *                 type: string
    *               subdomain:
    *                 type: string
+   *               theme:
+   *                 type: string
+   *                 description: POS admin-shell UI theme id
+   *               description:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *               address:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Organization updated
+   *       404:
+   *         description: Organization not found
+   *   patch:
+   *     summary: Partially update an organization (same fields as PUT)
+   *     tags: [Organizations]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               theme:
+   *                 type: string
    *     responses:
    *       200:
    *         description: Organization updated
@@ -341,7 +377,13 @@ export class OrganizationController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const data = req.body;
+      // Whitelist updatable fields — never pass req.body through (ownerId,
+      // plan, onboardingStep etc. must not be client-assignable here)
+      const allowed = ['name', 'slug', 'subdomain', 'theme', 'description', 'email', 'phone', 'address'] as const;
+      const data: Partial<InsertOrganization> = {};
+      for (const field of allowed) {
+        if (field in req.body) data[field] = req.body[field];
+      }
 
       const organization = await this.organizationService.update(id, data);
 
@@ -353,6 +395,69 @@ export class OrganizationController {
     } catch (error: any) {
       console.error('Error updating organization:', error);
       res.status(400).json({ error: error.message || 'Failed to update organization' });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/users/{userId}/organization/{orgId}/settings/general:
+   *   patch:
+   *     summary: Update the organization's general info section (org-settings "General")
+   *     tags: [Settings]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - in: path
+   *         name: orgId
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               description:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *               address:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: General settings updated
+   *       404:
+   *         description: Organization not found
+   */
+  async updateGeneral(req: Request, res: Response) {
+    try {
+      const { orgId } = req.params;
+      // General section only — identity fields (slug/subdomain) stay on PUT /:id
+      const allowed = ['name', 'description', 'email', 'phone', 'address'] as const;
+      const data: Partial<InsertOrganization> = {};
+      for (const field of allowed) {
+        if (field in req.body) data[field] = req.body[field];
+      }
+
+      const organization = await this.organizationService.update(orgId, data);
+
+      if (!organization) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+
+      res.json(organization);
+    } catch (error: any) {
+      console.error('Error updating general settings:', error);
+      res.status(400).json({ error: error.message || 'Failed to update general settings' });
     }
   }
 
