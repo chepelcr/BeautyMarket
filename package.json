@@ -5,15 +5,15 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/src/index.ts",
-    "dev:landing": "cd landing-client && npm run dev",
-    "dev:dashboard": "cd dashboard && npm run dev",
-    "dev:pos": "cd templates/pos-system && npm run dev",
+    "dev:landing": "cd fe/landing && npm run dev",
+    "dev:dashboard": "cd fe/dashboard && npm run dev",
+    "dev:pos": "cd fe/pos-system && npm run dev",
     "dev:all": "concurrently -n \"server,landing,dashboard\" -c \"blue,green,yellow\" \"npm run dev\" \"npm run dev:landing\" \"npm run dev:dashboard\"",
     "dev:all:pos": "concurrently -n \"server,landing,dashboard,pos\" -c \"blue,green,yellow,magenta\" \"npm run dev\" \"npm run dev:landing\" \"npm run dev:dashboard\" \"npm run dev:pos\"",
     "dev:all:full": "concurrently -n \"server,landing,dashboard,pos,pos-landing\" -c \"blue,green,yellow,magenta,cyan\" \"npm run dev\" \"npm run dev:landing\" \"npm run dev:dashboard\" \"npm run dev:pos\" \"npm run dev:template:pos-landing\"",
     "build": "npm run build:store && npm run build:landing && npm run build:server",
     "build:store": "vite build",
-    "build:landing": "cd landing-client && npm run build",
+    "build:landing": "cd fe/landing && npm run build",
     "build:server": "esbuild server/src/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:lambda": "esbuild server/lambda.cts --platform=node --bundle --format=cjs --outfile=dist/lambda.js --external:@aws-sdk/* --external:pg-native --external:@babel/* --external:lightningcss --external:vite",
     "generate:swagger": "node scripts/generate-swagger-spec.cjs",
@@ -50,7 +50,7 @@
     "dev:template:pos-landing": "cd templates/pos-landing && npm run dev",
     "build:template:pos-landing": "cd templates/pos-landing && npm install && npm run build",
     "build:templates": "npm run build:template:jmarkets-demo && npm run build:template:tech-gadgets && npm run build:template:vintage-fashion && npm run build:template:artisan-crafts && npm run build:template:gourmet-foods && npm run build:template:fitness-hub && npm run build:template:pet-care && npm run build:template:beauty-essentials && npm run build:template:pollo-porteno && npm run build:template:pos-landing",
-    "build:dashboard": "cd dashboard && npm run build",
+    "build:dashboard": "cd fe/dashboard && npm run build",
     "deploy:all-frontend": "npm run build:templates && npm run build:dashboard && node setup-template-bucket.js"
   },
   "dependencies": {

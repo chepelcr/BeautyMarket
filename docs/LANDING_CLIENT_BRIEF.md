@@ -1,8 +1,8 @@
-# JMarkets Landing Client - Executive Design Brief
+# Tsuru (formerly JMarkets) Landing Client - Executive Design Brief
 
 ## Project Overview
 
-**Product Name:** JMarkets  
+**Product Name:** Tsuru  
 **Product Type:** Multi-Tenant SaaS E-commerce Platform  
 **Target Audience:** Small to medium businesses wanting to launch online stores  
 **Industry:** E-commerce Technology / SaaS  
@@ -11,7 +11,7 @@
 ## Brand Essence
 
 ### Core Value Proposition
-JMarkets empowers businesses to launch professional online stores in minutes without technical knowledge. A complete e-commerce solution with custom domains, beautiful templates, and enterprise-grade infrastructure.
+Tsuru empowers businesses to launch professional online stores in minutes without technical knowledge. A complete e-commerce solution with custom domains, beautiful templates, and enterprise-grade infrastructure.
 
 ### Brand Personality
 - **Professional** - Enterprise-quality platform accessible to everyone
@@ -143,7 +143,7 @@ JMarkets empowers businesses to launch professional online stores in minutes wit
 - BigCommerce (enterprise-focused)
 - Wix/Squarespace (website builders with e-commerce)
 
-### JMarkets Positioning
+### Tsuru Positioning
 **"The AWS-powered Shopify alternative for modern businesses"**
 - More affordable than Shopify
 - Easier than WooCommerce
@@ -253,7 +253,7 @@ JMarkets empowers businesses to launch professional online stores in minutes wit
 
 ## Summary for AI Designer
 
-**Create a modern, professional logo for JMarkets** - a multi-tenant SaaS e-commerce platform that helps small businesses launch online stores instantly. The brand should feel trustworthy, innovative, and accessible. Think "Shopify meets AWS" - enterprise-grade technology made simple for everyone.
+**Create a modern, professional logo for Tsuru** - a multi-tenant SaaS e-commerce platform that helps small businesses launch online stores instantly. The brand should feel trustworthy, innovative, and accessible. Think "Shopify meets AWS" - enterprise-grade technology made simple for everyone.
 
 **Key Requirements:**
 - Works in light and dark modes

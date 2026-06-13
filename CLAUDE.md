@@ -20,16 +20,27 @@ The audit corpus in `docs/audit/tsuru/` is a historical record — do not edit i
 
 This monorepo has been split into separate repositories. **Status of extracted components:**
 
+**Frontend grouping (`fe/`, mirrors `be/`):** the split frontends were relocated under `fe/`
+on 2026-06-12 (roadmap TSR-112), parallel to the `be/` backend grouping — `fe/landing`,
+`fe/pos-system`, and `fe/dashboard`. Names strip the `tsuru-` repo prefix, like `be/`.
+
 | Component | New repo | Status |
 |---|---|---|
-| `templates/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
-| `landing-client` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
+| `fe/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted; **untracked here** (2026-06-12); relocated to `fe/pos-system` (2026-06-12). Deploys via its own GH Actions. Develop it there. |
+| `fe/landing` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted; **untracked here** (2026-06-12); relocated to `fe/landing` (2026-06-12). Deploys via its own GH Actions. Develop it there. |
+| `fe/dashboard` (admin SPA — being retired into the POS, TSR-091) | — (still tracked in this monorepo) | **Tracked here**; relocated from `dashboard/` to `fe/dashboard/` (2026-06-12). Deployed by the monorepo CodePipeline (`buildspec-frontend-dashboard.yml` → `dist/dashboard`). |
 | `server` (Tsuru platform API — users, orgs, RBAC, CMS, multi-tenant backend; Express on Lambda) | [`chepelcr/tsuru-platform-api`](https://github.com/chepelcr/tsuru-platform-api) | Extracted to its own **private** repo; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
 
 **Rules after the split:**
-- `templates/pos-system/`, `landing-client/`, and `server/` are gitignored and **no longer tracked** in this repo (untracked 2026-06-12; deploys moved to each repo's GH Actions). The folders may still exist locally as working copies of the standalone repos — never `git add -f` them back.
-- The monorepo CodePipeline stages / buildspecs that referenced these paths are obsolete — do not re-point them at the folders; disable/remove them instead (roadmap TSR-090).
+- `fe/pos-system/`, `fe/landing/`, and `server/` are gitignored and **no longer tracked** in this repo (untracked 2026-06-12; deploys moved to each repo's GH Actions). The folders may still exist locally as working copies of the standalone repos — never `git add -f` them back. `fe/dashboard/` IS still tracked here.
+- The monorepo CodePipeline stages / buildspecs that referenced the split paths are obsolete — do not re-point them at the folders; disable/remove them instead (roadmap TSR-090). The **dashboard** buildspec is still live and now points at `fe/dashboard`.
 - New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing`; new work on the Express platform API belongs in `chepelcr/tsuru-platform-api` — not here. Mirror commits to the monorepo are no longer needed.
+
+**Brand: Tsuru.** The public brand is **Tsuru** (formerly JMarkets). Do not write new
+"JMarkets" brand text on any user-facing surface. Infra identifiers are NOT the brand and
+stay as-is: domains (`j-markets.jcampos.dev`), buckets (`jmarkets-template-market`), template
+id `jmarkets-demo`, POS theme ids `jmarkets`/`jmarkets-demo`, the `jmarkets_common` lib.
+See `docs/roadmap/tsuru_rebrand_plan.md` for scope.
 
 ## ⚠️ Security Guidelines
 
@@ -417,7 +428,7 @@ This project has **three separate React applications**:
    - Build output: `dist/landing/`
    - **NO authentication flows** (moved to dashboard)
 
-2. **dashboard/** - Complete admin application
+2. **fe/dashboard/** - Complete admin application
    - Port: 5173 in development (Vite default)
    - Deployment: `admin.j-markets.jcampos.dev` and organization subdomains
    - Routes:
@@ -485,7 +496,7 @@ All three apps use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix 
 
 ### State Management
 
-**Server State**: TanStack React Query (`dashboard/src/lib/queryClient.ts`)
+**Server State**: TanStack React Query (`fe/dashboard/src/lib/queryClient.ts`)
 - 5-minute stale time for queries
 - Automatic AWS Cognito token injection via custom `queryFn`
 - Mutations invalidate related queries on success
@@ -496,19 +507,19 @@ All three apps use the same tech stack (React 18, Vite, Wouter, Tailwind, Radix 
 
 ### Custom Hooks
 
-- `useAuth()` (`dashboard/src/hooks/useAuth.ts`) - Authentication lifecycle with AWS Cognito
+- `useAuth()` (`fe/dashboard/src/hooks/useAuth.ts`) - Authentication lifecycle with AWS Cognito
   - **📘 See [AUTH_FLOW.md](./docs/app/AUTH_FLOW.md)** for complete authentication flow documentation
   - Handles login, registration, email verification, and user profile management
   - Automatic user sync from Cognito to database
   - Email verification validation on every profile fetch
-- `useOrganization()` (`dashboard/src/hooks/useOrganization.ts`) - Organization CRUD, members, invitations
+- `useOrganization()` (`fe/dashboard/src/hooks/useOrganization.ts`) - Organization CRUD, members, invitations
   - Includes `completeOnboardingStep2` and `completeOnboardingStep3` mutations
-- `useCmsContent()` (`dashboard/src/hooks/use-cms-content.tsx`) - Dynamic CMS content loading
+- `useCmsContent()` (`fe/dashboard/src/hooks/use-cms-content.tsx`) - Dynamic CMS content loading
 - `useSubdomainContext()` - Access current tenant organization from context
 
 ### API Integration Pattern
 
-URL builders in `dashboard/src/lib/apiUtils.ts` construct the three-tier API structure:
+URL builders in `fe/dashboard/src/lib/apiUtils.ts` construct the three-tier API structure:
 
 ```typescript
 buildOrgApiUrl(userId, orgId, '/products')
@@ -721,7 +732,7 @@ Organization → HomePageContent
 **Master orchestrator**: `./deploys/deploy-all.sh` runs backend stacks sequentially with validation.
 
 **IAM Policy Management**:
-- IAM policies are managed in the shared infra repo (`biller-apps/Infrastructure/policies/jcampos-iam-policies.yaml`)
+- IAM policies are managed in the shared infra repo (`Infrastructure/policies/jcampos-iam-policies.yaml`)
 - Lambda function imports the same managed policy ARN (shared permissions)
 - Policy includes: Cognito (with `ListUsers`), S3, SES, CloudFront, Route53, Secrets Manager
 - See `cloudformation/IAM_DEPLOYMENT.md` for detailed deployment guide

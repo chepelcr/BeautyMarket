@@ -20,7 +20,7 @@ set -e
 #
 # Values default to the corresponding .env variables:
 #   AWS_S3_BUCKET_NAME, FROM_EMAIL, FRONTEND_URL, DASHBOARD_URL, CLOUDFRONT_DOMAIN
-#   VITE_API_URL (from dashboard/.env), VITE_ORDERS_API_URL (from dashboard/.env)
+#   VITE_API_URL (from fe/dashboard/.env), VITE_ORDERS_API_URL (from fe/dashboard/.env)
 # CLI flags override those defaults.
 # ---------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ FRONTEND_URL_VAL="${FRONTEND_URL:-}"
 DASHBOARD_URL_VAL="${DASHBOARD_URL:-}"
 CLOUDFRONT_DOMAIN_VAL="${CLOUDFRONT_DOMAIN:-}"
 
-# API URLs default from dashboard/.env (VITE_ vars live there, not root .env)
-DASHBOARD_ENV="$REPO_ROOT/dashboard/.env"
+# API URLs default from fe/dashboard/.env (VITE_ vars live there, not root .env)
+DASHBOARD_ENV="$REPO_ROOT/fe/dashboard/.env"
 API_URL_VAL=""
 ORDERS_API_URL_VAL=""
 if [ -f "$DASHBOARD_ENV" ]; then
@@ -97,11 +97,11 @@ if [ -z "$CLOUDFRONT_DOMAIN_VAL" ]; then
   exit 1
 fi
 if [ -z "$API_URL_VAL" ]; then
-  echo "ERROR: --api-url is required (or set VITE_API_URL in dashboard/.env)"
+  echo "ERROR: --api-url is required (or set VITE_API_URL in fe/dashboard/.env)"
   exit 1
 fi
 if [ -z "$ORDERS_API_URL_VAL" ]; then
-  echo "ERROR: --orders-api-url is required (or set VITE_ORDERS_API_URL in dashboard/.env)"
+  echo "ERROR: --orders-api-url is required (or set VITE_ORDERS_API_URL in fe/dashboard/.env)"
   exit 1
 fi
 

@@ -93,7 +93,7 @@ BeautyMarket/
 
 ## Template Design Specifications
 
-### 1. JMarkets Demo Example (General Marketplace)
+### 1. Tsuru (formerly JMarkets) Demo Example (General Marketplace)
 **Live URL:** https://jmarkets-demo-example.j-markets.jcampos.dev
 
 **Visual Identity:**

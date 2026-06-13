@@ -12,13 +12,13 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      - cd dashboard && npm ci && cd ..
+      - cd fe/dashboard && npm ci && cd ../..
 
   pre_build:
     commands:
       - |
         SSM_PATH="/jcampos/${ENVIRONMENT}/jmarkets"
-        cat > dashboard/.env << EOF
+        cat > fe/dashboard/.env << EOF
         VITE_AWS_REGION=$(aws ssm get-parameter --name "${SSM_PATH}/aws/region" --query 'Parameter.Value' --output text --region ${REGION})
         VITE_AWS_COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/user-pool-id" --query 'Parameter.Value' --output text --region ${REGION})
         VITE_AWS_COGNITO_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_PATH}/cognito/client-id" --query 'Parameter.Value' --output text --region ${REGION})
@@ -29,8 +29,8 @@ phases:
         VITE_APP_URL=https://admin.${FRONTEND_DOMAIN}
         VITE_HACIENDA_API_URL=https://api.hacienda.go.cr
         EOF
-      - echo "dashboard/.env written:"
-      - cat dashboard/.env
+      - echo "fe/dashboard/.env written:"
+      - cat fe/dashboard/.env
 
   build:
     commands:

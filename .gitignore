@@ -13,11 +13,20 @@ lambda-package.zip
 # Repo split (DONE 2026-06-12 — folders untracked): each lives in its own repo
 # with its own GH Actions deploy. Local folders are standalone working copies.
 # Never `git add -f` these back into the monorepo.
-# templates/pos-system → https://github.com/chepelcr/tsuru-pos-system
-templates/pos-system/
+# fe/ — frontend grouping (mirrors be/); relocated under fe/ 2026-06-12.
+# fe/pos-system → https://github.com/chepelcr/tsuru-pos-system
+fe/pos-system/
 
-# landing-client → https://github.com/chepelcr/tsuru-landing
-landing-client/
+# fe/landing → https://github.com/chepelcr/tsuru-landing
+fe/landing/
 
-# server → https://github.com/chepelcr/tsuru-platform-api (private)
-server/
+# NOTE: fe/dashboard is NOT ignored — it stays tracked in the monorepo (being retired, TSR-091).
+
+# be/ — each subfolder is its own standalone git repo
+be/management-be/
+be/store-be/
+be/sales-be/
+be/data-be/
+
+# Infrastructure — own git repo
+Infrastructure/
