@@ -2,9 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   JMarkets Backend Services - SSM Parameters.
   Single resource per parameter; environment encoded in the path via !Sub.
-  Path prefix: /jcampos/{env}/jmarkets  (matches server/settings.cfg ssmpath).
+  Path prefix: /tsuru/{env}/platform  (matches server/settings.cfg ssmpath).
   DB credentials are NOT here — they live in Secrets Manager under
-  jcampos/{env}/database, shared with other services.
+  tsuru/{env}/database, shared with other services.
 
 # ---------------------------------------------------------------------------
 # Parameters
@@ -23,15 +23,15 @@ Parameters:
 
   FromEmail:
     Type: String
-    Description: SES verified sender address (e.g. noreply@j-markets.jcampos.dev)
+    Description: SES verified sender address (e.g. noreply@jcampos.dev)
 
   FrontendUrl:
     Type: String
-    Description: Landing page / frontend URL (e.g. https://j-markets.jcampos.dev)
+    Description: Landing page / frontend URL (e.g. https://tsuru.jcampos.dev)
 
   DashboardUrl:
     Type: String
-    Description: Dashboard / admin URL (e.g. https://admin.j-markets.jcampos.dev)
+    Description: Dashboard / admin URL (e.g. https://admin.tsuru.jcampos.dev)
 
   CloudfrontDomain:
     Type: String
@@ -39,134 +39,134 @@ Parameters:
 
   ApiUrl:
     Type: String
-    Description: Backend API URL (e.g. https://markets-api.jcampos.dev)
+    Description: Backend API URL (e.g. https://api.tsuru.jcampos.dev)
 
   OrdersApiUrl:
     Type: String
-    Description: Orders service API URL (e.g. https://orders-api.jcampos.dev)
+    Description: Orders service API URL (e.g. https://orders-api.tsuru.jcampos.dev)
 
 # ---------------------------------------------------------------------------
 # Resources  — one SSM parameter per entry
 # ---------------------------------------------------------------------------
 Resources:
 
-  # /jcampos/{env}/jmarkets/aws/stage
+  # /tsuru/{env}/platform/aws/stage
   AwsStage:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/aws/stage"
+      Name: !Sub "/tsuru/${Environment}/platform/aws/stage"
       Type: String
       Value: !Ref Environment
       Description: !Sub "Deployment stage for JMarkets Backend (${Environment})"
 
-  # /jcampos/{env}/jmarkets/aws/region
+  # /tsuru/{env}/platform/aws/region
   AwsRegion:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/aws/region"
+      Name: !Sub "/tsuru/${Environment}/platform/aws/region"
       Type: String
       Value: !Ref AWS::Region
       Description: AWS region
 
-  # /jcampos/{env}/jmarkets/aws/database
+  # /tsuru/{env}/platform/aws/database
   # Points to the shared Secrets Manager secret name (same secret used by other services)
   AwsDatabase:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/aws/database"
+      Name: !Sub "/tsuru/${Environment}/platform/aws/database"
       Type: String
-      Value: !Sub "jcampos/${Environment}/database"
+      Value: !Sub "tsuru/${Environment}/database"
       Description: Shared Secrets Manager secret name for database credentials
 
-  # /jcampos/{env}/jmarkets/cognito/user-pool-id
+  # /tsuru/{env}/platform/cognito/user-pool-id
   CognitoUserPoolId:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/cognito/user-pool-id"
+      Name: !Sub "/tsuru/${Environment}/platform/cognito/user-pool-id"
       Type: String
       Value:
-        Fn::ImportValue: "jmarkets-cognito-UserPoolId"
-      Description: Cognito User Pool ID (imported from jmarkets-cognito stack)
+        Fn::ImportValue: "tsuru-cognito-UserPoolId"
+      Description: Cognito User Pool ID (imported from tsuru-cognito stack)
 
-  # /jcampos/{env}/jmarkets/cognito/client-id
+  # /tsuru/{env}/platform/cognito/client-id
   CognitoClientId:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/cognito/client-id"
+      Name: !Sub "/tsuru/${Environment}/platform/cognito/client-id"
       Type: String
       Value:
-        Fn::ImportValue: "jmarkets-cognito-UserPoolClientId"
-      Description: Cognito User Pool Client ID (imported from jmarkets-cognito stack)
+        Fn::ImportValue: "tsuru-cognito-UserPoolClientId"
+      Description: Cognito User Pool Client ID (imported from tsuru-cognito stack)
 
-  # /jcampos/{env}/jmarkets/sns/organization-topic-arn
+  # /tsuru/{env}/platform/sns/organization-topic-arn
   SnsOrganizationTopicArn:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/sns/organization-topic-arn"
+      Name: !Sub "/tsuru/${Environment}/platform/sns/organization-topic-arn"
       Type: String
       Value:
-        Fn::ImportValue: !Sub "jmarkets-${Environment}-organization-events-topic-arn"
+        Fn::ImportValue: !Sub "tsuru-${Environment}-organization-events-topic-arn"
       Description: SNS topic ARN for organization events (imported from organization-publish-topic stack)
 
-  # /jcampos/{env}/jmarkets/s3/bucket
+  # /tsuru/{env}/platform/s3/bucket
   S3BucketParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/s3/bucket"
+      Name: !Sub "/tsuru/${Environment}/platform/s3/bucket"
       Type: String
       Value: !Ref S3Bucket
       Description: S3 bucket for file uploads
 
-  # /jcampos/{env}/jmarkets/email/from
+  # /tsuru/{env}/platform/email/from
   EmailFromParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/email/from"
+      Name: !Sub "/tsuru/${Environment}/platform/email/from"
       Type: String
       Value: !Ref FromEmail
       Description: SES verified sender address
 
-  # /jcampos/{env}/jmarkets/frontend/url
+  # /tsuru/{env}/platform/frontend/url
   FrontendUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/frontend/url"
+      Name: !Sub "/tsuru/${Environment}/platform/frontend/url"
       Type: String
       Value: !Ref FrontendUrl
       Description: Landing page / frontend URL
 
-  # /jcampos/{env}/jmarkets/dashboard/url
+  # /tsuru/{env}/platform/dashboard/url
   DashboardUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/dashboard/url"
+      Name: !Sub "/tsuru/${Environment}/platform/dashboard/url"
       Type: String
       Value: !Ref DashboardUrl
       Description: Dashboard / admin URL
 
-  # /jcampos/{env}/jmarkets/cloudfront/domain
+  # /tsuru/{env}/platform/cloudfront/domain
   CloudfrontDomainParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/cloudfront/domain"
+      Name: !Sub "/tsuru/${Environment}/platform/cloudfront/domain"
       Type: String
       Value: !Ref CloudfrontDomain
       Description: CloudFront distribution domain for cache invalidation and asset URLs
 
-  # /jcampos/{env}/jmarkets/api/url
+  # /tsuru/{env}/platform/api/url
   ApiUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/api/url"
+      Name: !Sub "/tsuru/${Environment}/platform/api/url"
       Type: String
       Value: !Ref ApiUrl
       Description: Backend API URL
 
-  # /jcampos/{env}/jmarkets/api/orders-url
+  # /tsuru/{env}/platform/api/orders-url
   OrdersApiUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/jmarkets/api/orders-url"
+      Name: !Sub "/tsuru/${Environment}/platform/api/orders-url"
       Type: String
       Value: !Ref OrdersApiUrl
       Description: Orders service API URL
@@ -177,6 +177,6 @@ Resources:
 Outputs:
   SsmBasePath:
     Description: SSM base path for all JMarkets Backend parameters
-    Value: !Sub "/jcampos/${Environment}/jmarkets"
+    Value: !Sub "/tsuru/${Environment}/platform"
     Export:
-      Name: !Sub "jcampos-${Environment}-jmarkets-ssm-base-path"
+      Name: !Sub "tsuru-${Environment}-platform-ssm-base-path"
