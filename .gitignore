@@ -30,3 +30,15 @@ be/data-be/
 
 # Infrastructure — own git repo
 Infrastructure/
+
+# ── Split out to their own public repos (GH-Pages examples at *.examples.tsuru.jcampos.dev) ──
+# Each storefront template now lives in chepelcr/template-<name>; files remain tracked here
+# for now (provisioner clones the repos). New work belongs in the standalone repos.
+templates/artisan-crafts/
+templates/beauty-essentials/
+templates/fitness-hub/
+templates/gourmet-foods/
+templates/jmarkets-demo/
+templates/pet-care/
+templates/tech-gadgets/
+templates/vintage-fashion/

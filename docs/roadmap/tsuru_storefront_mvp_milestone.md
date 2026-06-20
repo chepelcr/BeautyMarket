@@ -106,16 +106,25 @@ align the called paths to the EXISTING public paths W1 exposes (products/categor
 paths; content from management-be `/api/public/...`); add **Amplify guest auth** to sign requests
 (W7). `.env.example` updated. Demo mode (`/api/templates/{id}/...`) kept for the GH-Pages examples.
 
-## W5 — Per-template repos (monorepo-split skill)
+## W5 — Per-template repos (monorepo-split skill) ✅ DONE (2026-06-20)
 
-Split each `templates/{name}` → `chepelcr/template-{name}` (clean snapshot, gitignore marker).
-Keep a **base/starter** template for user-personalized generation. The provisioner (W2) clones these.
+8 storefront templates snapshotted into their existing public repos `chepelcr/template-{artisan-crafts,
+beauty-essentials,fitness-hub,gourmet-foods,jmarkets-demo,pet-care,tech-gadgets,vintage-fashion}`
+(clean snapshot; repos flipped **public** so Pages is allowed; monorepo `.gitignore` split markers
+added, files still tracked). All converted to **pnpm** (packageManager pin + `pnpm-lock.yaml` +
+`preinstall only-allow pnpm`). `pos-landing` (POS marketing) + `pollo-porteno` (no repo) deferred.
+A base/starter for user-personalized generation is still TODO.
 
-## W8 — GH-Pages examples for the template repos
+## W8 — GH-Pages examples for the template repos ✅ DONE (2026-06-20)
 
-Each `template-{name}` repo gets a **GitHub Pages** deploy workflow (mirror landing/POS) building
-in **demo mode** (`VITE_TEMPLATE_NAME={name}`, public-api base) → visible online again as examples
-(github.io project pages for MVP; custom `*.examples.tsuru.jcampos.dev` later if wanted).
+Each repo has a pnpm **GitHub Pages** workflow (demo mode via bundled `public/config.json`
+`{mode:demo,templateId}`, build env `VITE_API_URL=https://api.tsuru.jcampos.dev` +
+`VITE_BASE_DOMAIN=examples.tsuru.jcampos.dev`, SPA 404 fallback). **All 8 live + HTTPS 200 at
+`{name}.examples.tsuru.jcampos.dev`** (Route53 CNAME → chepelcr.github.io; per-repo Pages cname set;
+LE cert auto-provisioned — the github.io-inherited CAA permits Let's Encrypt). Demo data served by
+management-be public `/api/templates/{id}/...`.
+**Pending:** account-level GitHub domain verification — ONE TXT for `examples.tsuru.jcampos.dev`
+(covers all subdomains); needs the GitHub-generated challenge value (Settings→Pages→Add a domain).
 
 ## W9 — Structured cart address in all templates
 
