@@ -134,14 +134,76 @@ hero subtitle + how-it-works step 3 + community-spotlight section + values; `fea
 
 ---
 
+## W10 — Product types (product/service/offer/program) + offer flag + filtering
+
+**Current (store-be `app/models/product.py`):** has `type` (string, default `"product"`),
+`is_service` (bool), `on_sale`/`original_price`/`discount`, `duration`, `difficulty`. **No
+`is_offer`; no `type`/offer filters; "program" not a first-class kind.** Search is a single
+`?search=field:value,...` param parsed via `app/enums/product_search_filters.py` (NAME, CODE,
+CATEGORY_ID, STATUS, PRICE, SALE_PRICE, ORDER_BY — **no type/offer**).
+
+**Map:**
+1. **Model** — formalize `type` as an enum `product | service | program`; add **`is_offer`**
+   boolean (an offer is a product/service on promotion — the "check"). Reconcile with the
+   existing `is_service`/`on_sale` (migrate `is_service→type='service'`, keep `on_sale` for the
+   discounted-price mechanics; `is_offer` is the storefront "Oferta" flag). store-be migration
+   (the `sale` model already has structured-address fields — no change there).
+2. **Filters** — add `TYPE` (`type:product|service|program`) and `IS_OFFER` (`isOffer:true`)
+   to `ProductSearchFilters` + repository/service handling.
+3. **Dashboard product form** — add the "Es oferta" checkbox + a type selector (product/
+   service/program) in POS `ProductDrawerForm`/sections.
+4. **Templates (W4)** — filter via the existing search-param approach, e.g.
+   `?search=type:product,isOffer:true,orderBy>name`; an "Ofertas" view/section keys off `isOffer`.
+
+## W11 — Finish a pedido → tracked order in the BE (not just WhatsApp)
+
+**Current:** template checkout (`templates/*/src/components/cart/checkout-modal.tsx`) only
+builds a `wa.me/...?text=` link — **no order persisted**. store-be `orders_controller.py` has
+list/get/parse(Excel)/status but **no simple storefront order-create**.
+
+**Map (this is the ONE required new public WRITE endpoint):**
+1. **store-be** — add `POST /api/organizations/{orgId}/orders` (storefront create): body =
+   customer name/phone + **structured address (W9)** + delivery method + line items
+   `[{product_id, quantity}]`; creates an order/pedido row (`order_status='pending'`), returns
+   id + tracking number. Anonymous (storefront) — protected by the W7 guest creds at the gateway.
+2. **public API (W1)** — expose this POST path → store-be lambda (writes allowed for the
+   `orders` create path under the anonymous identity-pool role).
+3. **templates** — checkout POSTs the order FIRST, then opens WhatsApp with the order id/tracking
+   in the message (on failure: keep the cart, show error). Grounds promise #6 / **TSR-081**.
+
+## W12 — `programs` as a template-gated dashboard submodule
+
+**Map:** add a `programs` module/submodule to `rbac-seed.ts` (`DEFAULT_ORG_MODULE_NAMES`,
+`defaultModules`, `defaultSubmodules`, `submoduleActionMatrix`, `rolePermissionMatrix`) →
+`db:reseed-rbac`; add the POS sidebar item + `NAV_PERMISSION` entry + `ProgramsPage` + route.
+**Template-gated visibility:** the section appears only when the org's selected template
+includes a programs section — detect via the org's cloned `template_page_sections`
+(`sectionType==='programs'`, `isActive`) or a `programs_enabled` flag set at clone time
+(`TemplateCloneService`); the sidebar/page gate combines `can('programs','read',...)` AND
+"template includes programs" (mirrors the existing `storefront/templates` conditional pattern).
+Programs are then a product `type='program'` (W10) surfaced in their own dashboard section.
+
+## W13 — Landing blog posts open (`fe/landing`)
+
+**Current:** `Blog.tsx` "Ver/Read more" buttons have **no onClick/href**; there's only a `/blog`
+list route (no `/blog/:slug`); `blog.json` articles have `id`+`excerpt` but **no `slug`/`content`**.
+**Map:** add `slug` + bilingual `content` to `blog.json`; create `BlogDetail.tsx`; add
+`/blog/:slug` route in `Router.tsx`; wire the list buttons to `navigate(/blog/${slug})`; add the
+detail route to `prerender.mjs` + `seo.json`. (Part of the W6 landing area; tracked separately.)
+
+---
+
 ## Sequencing
 W3 ✅ → W2. W7 (anon cognito) → W1 (authorizer) → W4 (templates sign + repoint). W1 → W2
-(inject public-api base). W5 (repos) → W8 (gh-pages) + W2 (clone). W9 needs W1's location routes.
-W6 independent.
+(inject public-api base) + W11 (public order POST path). W5 (repos) → W8 (gh-pages) + W2 (clone).
+W9 (cart address) → W11 (order body). W10 (types/offer) → W4 (template filtering). W6 + W13
+(landing) independent. W12 (programs) independent of the API track (RBAC + POS + template-gate).
 
 **MVP cut:** W1 + W7 + W3(✅) + W2(re-enable/repoint/inject) + W4 + one W5 base template +
-W9 cart address = a real org gets a live signed-API storefront at `{slug}.stores.tsuru.jcampos.dev`.
-W8 (examples) + W6 (landing) in parallel.
+W9 cart address + W10 product types/offers + W11 tracked pedido = a real org gets a live
+signed-API storefront at `{slug}.stores.tsuru.jcampos.dev` where visitors filter
+products/services/offers, place a tracked order, and hand off to WhatsApp.
+W8 (examples), W12 (programs), W6+W13 (landing) in parallel.
 
 ## Verification
 1. Public API: `public-api.tsuru.jcampos.dev` returns org theme/contact/pages (management-be),
