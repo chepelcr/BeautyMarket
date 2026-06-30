@@ -9,7 +9,7 @@
  */
 
 // Base domain configuration
-const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
+const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || 'stores.tsuru.jcampos.dev';
 
 /**
  * Get the current subdomain from the hostname

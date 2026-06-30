@@ -9,6 +9,13 @@ online as GH-Pages examples, and their cart captures a **structured CR address**
 cantón / distrito / barrio / dirección exacta). Plus a landing rebalance (POS · store ·
 community harmony). Account **PACIFIC-PROD** (`947999370977`), zone `Z08953202H0791MTWJHTP`.
 
+> **▶ Authoring status (2026-06-30):** W1, W4, W6, W7, W9, W10, W11, W12, W13 **authored +
+> statically verified** (typecheck/py-compile/YAML-lint green), pending **manual supervised
+> rollout** (DB migrations, SAM/Cognito deploys, repo pushes). W2 (org-site provisioner) and
+> the W4 guest-SigV4 signing completion (depends on W7's identity-pool id) remain TODO.
+> W1 IaC: `Infrastructure/public-api/{gen_public_api.py,public_api_config.json,template.yml,samconfig.toml,deploy.sh}`
+> (20 public paths → 3 lambdas). W7 IaC: `Infrastructure/cognito/tsuru-public-identity-pool.yml`.
+>
 > Roadmap row **TSR-118** (§2.F). Resolves TSR-080; relates TSR-083/092.
 > **Locked decisions (owner):**
 > - Public API = **NOT a new service**. A **generator** (like the per-backend

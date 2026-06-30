@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -40,5 +41,6 @@
     "postcss": "^8.4.47",
     "tailwindcss-animate": "^1.0.7",
     "@tailwindcss/typography": "^0.5.15"
-  }
+  },
+  "packageManager": "pnpm@10.33.2"
 }

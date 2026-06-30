@@ -14,6 +14,7 @@ interface Delivery {
   provincia: string;
   canton: string;
   distrito: string;
+  barrio: string;
   address: string;
   method: string;
 }
@@ -46,6 +47,7 @@ export function generateWhatsAppMessage(data: OrderData): string {
   message += `Provincia: ${delivery.provincia}\n`;
   message += `Cantón: ${delivery.canton}\n`;
   message += `Distrito: ${delivery.distrito}\n`;
+  if (delivery.barrio) message += `Barrio: ${delivery.barrio}\n`;
   message += `Dirección: ${delivery.address}\n`;
 
   return message;

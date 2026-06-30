@@ -39,7 +39,7 @@ export function buildUserApiUrl(userId: string, endpoint: string): string {
  */
 export function buildPublicApiUrl(endpoint: string): string {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://markets-api.jcampos.dev';
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://public-api.tsuru.jcampos.dev';
   return `${apiBaseUrl}/api${cleanEndpoint}`;
 }
 
