@@ -51,7 +51,7 @@ Domain Settings Page (new)
 2. Organization domain configuration is extracted (customDomain, domainVerified, subdomain)
 3. Site URL is constructed using priority logic:
    - If customDomain exists AND domainVerified is true: `https://{customDomain}`
-   - Otherwise: `https://{subdomain}.j-markets.jcampos.dev`
+   - Otherwise: `https://{subdomain}.tsuru.jcampos.dev`
    - If both unavailable: null
 4. QuickActionsGrid receives actions with disabled state based on Site URL availability
 5. QR code action opens dialog and generates QR code on mount using Site URL
@@ -107,7 +107,7 @@ function constructSiteUrl(config: DomainConfig): string | null {
   
   // Priority 2: Subdomain fallback
   if (config.subdomain) {
-    return `https://${config.subdomain}.j-markets.jcampos.dev`;
+    return `https://${config.subdomain}.tsuru.jcampos.dev`;
   }
   
   // No valid domain configuration
@@ -417,13 +417,13 @@ interface QRCodeOptions {
 
 **Priority Logic**:
 1. If `customDomain` exists AND `domainVerified` is true: `https://{customDomain}`
-2. Otherwise, if `subdomain` exists: `https://{subdomain}.j-markets.jcampos.dev`
+2. Otherwise, if `subdomain` exists: `https://{subdomain}.tsuru.jcampos.dev`
 3. Otherwise: `null`
 
 **Examples**:
 - Verified custom domain: `https://shop.example.com`
-- Unverified custom domain (falls back): `https://mystore.j-markets.jcampos.dev`
-- Subdomain only: `https://demo-shop.j-markets.jcampos.dev`
+- Unverified custom domain (falls back): `https://mystore.tsuru.jcampos.dev`
+- Subdomain only: `https://demo-shop.tsuru.jcampos.dev`
 
 **Validation**: 
 - Custom domain must match domain format regex
@@ -453,7 +453,7 @@ _j-markets-verification.shop.example.com TXT "a1b2c3d4e5f6...xyz"
 
 ### Property 2: URL Priority Logic - Subdomain Fallback
 
-*For any* domain configuration where customDomain is null OR domainVerified is false, AND subdomain is non-empty, the constructed Site_URL should equal `https://{subdomain}.j-markets.jcampos.dev`
+*For any* domain configuration where customDomain is null OR domainVerified is false, AND subdomain is non-empty, the constructed Site_URL should equal `https://{subdomain}.tsuru.jcampos.dev`
 
 **Validates: Requirements 1.2**
 
@@ -759,7 +759,7 @@ Property tests will verify universal behaviors across all inputs using **fast-ch
 2. **URL Construction Format** (Property 2)
    - Generate random valid subdomains
    - Construct URL using component logic
-   - Assert URL matches regex: `^https://[a-z0-9-]+\.j-markets\.jcampos\.dev$`
+   - Assert URL matches regex: `^https://[a-z0-9-]+\.j-markets\.tsuru\.dev$`
    - Assert subdomain portion matches input exactly
 
 3. **Dialog URL Display** (Property 3)
@@ -842,7 +842,7 @@ Integration tests will verify the complete user workflows:
    - Generate random subdomains and custom domains
    - Set domainVerified to false OR customDomain to null
    - Construct URL using utility
-   - Assert URL equals `https://{subdomain}.j-markets.jcampos.dev`
+   - Assert URL equals `https://{subdomain}.tsuru.jcampos.dev`
 
 3. **URL Construction Reactivity** (Property 3)
    - Generate sequence of organization context updates

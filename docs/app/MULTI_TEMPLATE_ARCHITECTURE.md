@@ -79,22 +79,22 @@ BeautyMarket/
 ## Deployed Template URLs
 
 **Live Templates:**
-1. **jmarkets-demo-example** → https://jmarkets-demo-example.j-markets.jcampos.dev
-2. **tech-gadgets-example** → https://tech-gadgets-example.j-markets.jcampos.dev
-3. **vintage-fashion-example** → https://vintage-fashion-example.j-markets.jcampos.dev
-4. **artisan-crafts-example** → https://artisan-crafts-example.j-markets.jcampos.dev
-5. **gourmet-foods-example** → https://gourmet-foods-example.j-markets.jcampos.dev
-6. **fitness-hub-example** → https://fitness-hub-example.j-markets.jcampos.dev
-7. **pet-care-example** → https://pet-care-example.j-markets.jcampos.dev
+1. **jmarkets-demo-example** → https://jmarkets-demo-example.tsuru.jcampos.dev
+2. **tech-gadgets-example** → https://tech-gadgets-example.tsuru.jcampos.dev
+3. **vintage-fashion-example** → https://vintage-fashion-example.tsuru.jcampos.dev
+4. **artisan-crafts-example** → https://artisan-crafts-example.tsuru.jcampos.dev
+5. **gourmet-foods-example** → https://gourmet-foods-example.tsuru.jcampos.dev
+6. **fitness-hub-example** → https://fitness-hub-example.tsuru.jcampos.dev
+7. **pet-care-example** → https://pet-care-example.tsuru.jcampos.dev
 
-**SSL Certificate:** Wildcard cert `*.j-markets.jcampos.dev` (ARN: `arn:aws:acm:us-east-1:938590657428:certificate/a18f46b0-b2b1-46d0-80c1-233ad9addf91`)
+**SSL Certificate:** Wildcard cert `*.tsuru.jcampos.dev` (ARN: `arn:aws:acm:us-east-1:938590657428:certificate/a18f46b0-b2b1-46d0-80c1-233ad9addf91`)
 
 ---
 
 ## Template Design Specifications
 
 ### 1. Tsuru (formerly JMarkets) Demo Example (General Marketplace)
-**Live URL:** https://jmarkets-demo-example.j-markets.jcampos.dev
+**Live URL:** https://jmarkets-demo-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Pink `#ec4899` primary, Light Pink `#f472b6` secondary
@@ -112,7 +112,7 @@ BeautyMarket/
 ---
 
 ### 2. Tech Gadgets Example (Technology & Electronics)
-**Live URL:** https://tech-gadgets-example.j-markets.jcampos.dev
+**Live URL:** https://tech-gadgets-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Blue `#3b82f6` primary, Cyan `#06b6d4` secondary, Slate `#64748b` accent
@@ -131,7 +131,7 @@ BeautyMarket/
 ---
 
 ### 3. Vintage Fashion Example (Vintage Clothing & Fashion)
-**Live URL:** https://vintage-fashion-example.j-markets.jcampos.dev
+**Live URL:** https://vintage-fashion-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Sepia Brown `#92400e` primary, Cream `#fef3c7` secondary, Gold `#d97706` accent
@@ -150,7 +150,7 @@ BeautyMarket/
 ---
 
 ### 4. Artisan Crafts Example (Handmade & Crafts)
-**Live URL:** https://artisan-crafts-example.j-markets.jcampos.dev
+**Live URL:** https://artisan-crafts-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Terracotta `#c2410c` primary, Sage Green `#84cc16` secondary, Natural Beige `#d4a373` accent
@@ -169,7 +169,7 @@ BeautyMarket/
 ---
 
 ### 5. Gourmet Foods Example (Specialty Foods & Gourmet)
-**Live URL:** https://gourmet-foods-example.j-markets.jcampos.dev
+**Live URL:** https://gourmet-foods-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Deep Red `#b91c1c` primary, Golden Yellow `#fbbf24` secondary, Forest Green `#166534` accent
@@ -188,7 +188,7 @@ BeautyMarket/
 ---
 
 ### 6. Fitness Hub Example (Fitness & Wellness)
-**Live URL:** https://fitness-hub-example.j-markets.jcampos.dev
+**Live URL:** https://fitness-hub-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Energetic Orange `#ea580c` primary, Lime Green `#84cc16` secondary, Dark Gray `#1f2937` accent
@@ -207,7 +207,7 @@ BeautyMarket/
 ---
 
 ### 7. Pet Care Example (Pet Products & Services)
-**Live URL:** https://pet-care-example.j-markets.jcampos.dev
+**Live URL:** https://pet-care-example.tsuru.jcampos.dev
 
 **Visual Identity:**
 - **Colors:** Playful Purple `#8b5cf6` primary, Bright Blue `#3b82f6` secondary, Coral `#fb923c` accent
@@ -277,7 +277,7 @@ templates/glam-studio/dist/   → Deploy to glam-studio-example S3
 1. **ACM Certificate Request** (for HTTPS)
 ```javascript
 async function requestWildcardCertificate() {
-  // Request *.j-markets.jcampos.dev certificate
+  // Request *.tsuru.jcampos.dev certificate
   // Return certificate ARN
   // Output DNS validation records for user to add
 }
@@ -447,8 +447,8 @@ import { theme } from './theme';
 ### Step 1: Request Certificate
 ```bash
 aws acm request-certificate \
-  --domain-name "*.j-markets.jcampos.dev" \
-  --subject-alternative-names "j-markets.jcampos.dev" \
+  --domain-name "*.tsuru.jcampos.dev" \
+  --subject-alternative-names "tsuru.jcampos.dev" \
   --validation-method DNS \
   --region us-east-1
 ```
@@ -456,7 +456,7 @@ aws acm request-certificate \
 ### Step 2: Add DNS Validation Records
 AWS will provide CNAME records to add to Route53:
 ```
-Name: _abc123.j-markets.jcampos.dev
+Name: _abc123.tsuru.jcampos.dev
 Type: CNAME
 Value: _xyz456.acm-validations.aws.
 ```
@@ -587,7 +587,7 @@ Before implementing, please confirm:
 ## Success Criteria
 
 ✅ Seven visually distinct templates deployed
-✅ Each accessible at `{name}-example.j-markets.jcampos.dev` with HTTPS
+✅ Each accessible at `{name}-example.tsuru.jcampos.dev` with HTTPS
 ✅ Each template has unique design language
 ✅ Shared components reduce code duplication
 ✅ Build system supports all templates efficiently

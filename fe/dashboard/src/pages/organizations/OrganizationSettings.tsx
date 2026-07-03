@@ -516,7 +516,7 @@ export default function OrganizationSettings() {
                 <Label>{t('organizations.settings.subdomain')}</Label>
                 <div className="flex items-center gap-2">
                   <Input value={organization.subdomain || ''} disabled />
-                  <span className="text-muted-foreground">.j-markets.jcampos.dev</span>
+                  <span className="text-muted-foreground">.tsuru.jcampos.dev</span>
                 </div>
                 {organization.subdomain && (
                   <p className="text-sm text-muted-foreground">

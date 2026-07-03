@@ -44,7 +44,7 @@ fi
 
 # Deploy lambda stack
 # Note: no DatabaseURLParam — DB credentials are resolved at runtime via
-# SSM (/jcampos/{env}/jmarkets/aws/database) → Secrets Manager (jcampos/{env}/database)
+# SSM (/tsuru/{env}/jmarkets/aws/database) → Secrets Manager (tsuru/{env}/database)
 echo "🚀 Deploying $STACK_NAME..."
 aws cloudformation deploy \
     --template-file cloudformation/lambda.yml \

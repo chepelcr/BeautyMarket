@@ -9,7 +9,7 @@ config();
 
 const AWS_PROFILE = 'J-CAMPOS';
 const REGION = process.env.AWS_REGION || 'us-east-1';
-const BASE_DOMAIN = 'j-markets.jcampos.dev';
+const BASE_DOMAIN = 'tsuru.jcampos.dev';
 
 const s3Client = new S3Client({
   region: REGION,

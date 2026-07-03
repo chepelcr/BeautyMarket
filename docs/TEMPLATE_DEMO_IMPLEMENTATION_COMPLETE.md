@@ -29,7 +29,7 @@
 
 5. **Seed Data** - Updated with preview URLs
    - `server/src/seeds/template-seed.ts`
-   - Preview URLs: `https://{template-name}-example.j-markets.jcampos.dev`
+   - Preview URLs: `https://{template-name}-example.tsuru.jcampos.dev`
 
 ### Frontend (Template Apps)
 
@@ -89,11 +89,11 @@ const { data: theme, isLoading } = useTheme();
 ### 4. Test
 
 **Demo Mode:**
-- URL: `https://beauty-essentials-example.j-markets.jcampos.dev`
+- URL: `https://beauty-essentials-example.tsuru.jcampos.dev`
 - Fetches from: `/api/templates/:id/theme`
 
 **Org Mode:**
-- URL: `https://mystore.j-markets.jcampos.dev`
+- URL: `https://mystore.tsuru.jcampos.dev`
 - Fetches from: `/api/users/:userId/organization/:orgId/settings/theme`
 
 ## API Endpoints
@@ -121,18 +121,18 @@ GET /api/users/:userId/organization/:orgId/products
 ## DNS Pattern
 
 Templates use `-example` suffix:
-- `jmarkets-demo-example.j-markets.jcampos.dev`
-- `beauty-essentials-example.j-markets.jcampos.dev`
-- `tech-gadgets-example.j-markets.jcampos.dev`
-- `vintage-fashion-example.j-markets.jcampos.dev`
-- `artisan-crafts-example.j-markets.jcampos.dev`
-- `gourmet-foods-example.j-markets.jcampos.dev`
-- `fitness-hub-example.j-markets.jcampos.dev`
-- `pet-care-example.j-markets.jcampos.dev`
+- `jmarkets-demo-example.tsuru.jcampos.dev`
+- `beauty-essentials-example.tsuru.jcampos.dev`
+- `tech-gadgets-example.tsuru.jcampos.dev`
+- `vintage-fashion-example.tsuru.jcampos.dev`
+- `artisan-crafts-example.tsuru.jcampos.dev`
+- `gourmet-foods-example.tsuru.jcampos.dev`
+- `fitness-hub-example.tsuru.jcampos.dev`
+- `pet-care-example.tsuru.jcampos.dev`
 
 Organizations use regular subdomains:
-- `mystore.j-markets.jcampos.dev`
-- `shop123.j-markets.jcampos.dev`
+- `mystore.tsuru.jcampos.dev`
+- `shop123.tsuru.jcampos.dev`
 
 ## Files Modified/Created
 

@@ -7,13 +7,13 @@
 # Environment variables (set by CodeBuild project or calling buildspec):
 #   POS_LANDING_S3_BUCKET       — S3 bucket name (required)
 #   POS_LANDING_CF_DIST_ID      — CloudFront distribution ID (optional; skips invalidation if empty)
-#   POS_LANDING_DOMAIN          — Site domain for display (default: pos-landing.jcampos.dev)
+#   POS_LANDING_DOMAIN          — Site domain for display (default: pos-landing.tsuru.jcampos.dev)
 #   REGION                      — AWS region (default: us-east-1)
 set -euo pipefail
 
 S3_BUCKET="${POS_LANDING_S3_BUCKET:-}"
 CF_DIST_ID="${POS_LANDING_CF_DIST_ID:-}"
-SITE_DOMAIN="${POS_LANDING_DOMAIN:-pos-landing.jcampos.dev}"
+SITE_DOMAIN="${POS_LANDING_DOMAIN:-pos-landing.tsuru.jcampos.dev}"
 REGION="${REGION:-us-east-1}"
 
 if [ -z "$S3_BUCKET" ]; then

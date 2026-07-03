@@ -30,7 +30,7 @@ Cleaned up the multi-app architecture to establish clear boundaries between land
 
 #### landing-client/ (Marketing Site)
 **Purpose**: Public-facing marketing website
-**Deployment**: `j-markets.jcampos.dev`
+**Deployment**: `tsuru.jcampos.dev`
 **Pages**:
 - Landing.tsx - Homepage with hero, features, pricing
 - Examples.tsx - Template gallery
@@ -43,7 +43,7 @@ Cleaned up the multi-app architecture to establish clear boundaries between land
 
 #### dashboard/ (Admin Application)
 **Purpose**: Store management and administration
-**Deployment**: `admin.j-markets.jcampos.dev` and organization subdomains
+**Deployment**: `admin.tsuru.jcampos.dev` and organization subdomains
 **Pages**:
 
 **Auth Routes:**

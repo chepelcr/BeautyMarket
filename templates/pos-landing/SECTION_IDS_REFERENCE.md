@@ -52,7 +52,7 @@ function MyComponent() {
 ### In HTML / External Links
 ```html
 <!-- Direct link to section -->
-<a href="https://pos-landing.jcampos.dev/#precios">Ver precios</a>
+<a href="https://pos-landing.tsuru.jcampos.dev/#precios">Ver precios</a>
 
 <!-- Link from another page -->
 <a href="/#caracteristicas">Ver características</a>

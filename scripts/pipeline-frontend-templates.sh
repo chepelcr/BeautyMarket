@@ -4,8 +4,8 @@ set -euo pipefail
 
 ENVIRONMENT="${ENVIRONMENT:-dev}"
 REGION="${REGION:-us-east-1}"
-FRONTEND_DOMAIN="${FRONTEND_DOMAIN:-j-markets.jcampos.dev}"
-ROOT_DOMAIN="${ROOT_DOMAIN:-jcampos.dev}"
+FRONTEND_DOMAIN="${FRONTEND_DOMAIN:-tsuru.jcampos.dev}"
+ROOT_DOMAIN="${ROOT_DOMAIN:-tsuru.jcampos.dev}"
 
 # Template slugs (must match templates/ folder names)
 TEMPLATES=(

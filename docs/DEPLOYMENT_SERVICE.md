@@ -76,7 +76,7 @@ pre_deployments
    - S3 key: `config.json`
    - Cache-Control: `no-cache`
 6. Marks pre-deployment `status: 'published'`, sets `publishedAt` and `buildId`
-7. Marks deployment history `status: 'success'`, sets `completedAt`, `deployUrl: https://{subdomain}.j-markets.jcampos.dev`
+7. Marks deployment history `status: 'success'`, sets `completedAt`, `deployUrl: https://{subdomain}.tsuru.jcampos.dev`
 
 ### Deployment history table schema
 
@@ -89,7 +89,7 @@ deployment_history
 ├── message           TEXT (description of deployment)
 ├── startedAt         TIMESTAMP
 ├── completedAt       TIMESTAMP (nullable)
-├── deployUrl         TEXT (nullable) — https://{subdomain}.j-markets.jcampos.dev
+├── deployUrl         TEXT (nullable) — https://{subdomain}.tsuru.jcampos.dev
 ├── errorDetails      TEXT (nullable)
 ├── filesUploaded     INTEGER (default 0)
 └── buildSizeKb       INTEGER (nullable)
@@ -171,7 +171,7 @@ CREATE TABLE organization_settings (
    - Must be configured for static website hosting or read by CloudFront
 4. **Provision CloudFront distribution** pointing at the S3 bucket
    - Store as `cloudfront_distribution_id` and `cloudfront_domain`
-5. **Create Route53 DNS** record: `{subdomain}.j-markets.jcampos.dev` → CloudFront
+5. **Create Route53 DNS** record: `{subdomain}.tsuru.jcampos.dev` → CloudFront
    - Store as `route53_record_id`
 6. Set `infrastructure_status = 'active'` on success; `'failed'` on error
 7. Write all resource identifiers to `organization_settings`

@@ -28,7 +28,7 @@ export function TemplatePreview({
   };
 
   const handleViewDemo = () => {
-    const demoUrl = `https://${template.name}-example.j-markets.jcampos.dev`;
+    const demoUrl = `https://${template.name}-example.tsuru.jcampos.dev`;
     window.open(demoUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -86,7 +86,7 @@ export function TemplatePreview({
             <div className="flex items-center gap-2 p-4 rounded-lg border bg-muted/50">
               <ExternalLink className="h-5 w-5 text-muted-foreground" />
               <code className="text-sm flex-1">
-                {`https://${template.name}-example.j-markets.jcampos.dev`}
+                {`https://${template.name}-example.tsuru.jcampos.dev`}
               </code>
               <Button
                 onClick={handleViewDemo}

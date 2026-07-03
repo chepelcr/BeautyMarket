@@ -25,12 +25,12 @@ const options = {
       description: 'Multi-tenant marketplace platform API with CMS, authentication, RBAC, and auto-deployment',
       contact: {
         name: 'JMarkets Support',
-        url: 'https://j-markets.jcampos.dev'
+        url: 'https://tsuru.jcampos.dev'
       }
     },
     servers: [
       {
-        url: 'https://markets-api.jcampos.dev',
+        url: 'https://api.tsuru.jcampos.dev',
         description: 'Production API'
       },
       {

@@ -28,18 +28,18 @@ The single route table for the whole POS product is `templates/pos-system/src/Ro
 
 ### Steps as built
 1. Visitor lands on the static marketing SPA (tsuru.jcampos.dev, GitHub Pages; 15 public routes in `landing-client/src/components/Router.tsx` with ES+EN slug aliases).
-2. Explores Features / Fairs / Community / Blog / Examples. The Examples page is the only runtime API call in the whole site (`GET {VITE_API_URL}/api/templates?activeOnly=true`, `landing-client/src/pages/Examples.tsx:106-110`), and preview URLs are convention-derived client-side: `https://{name}-example.j-markets.jcampos.dev` (`Examples.tsx:117`).
-3. Clicks **Login / Register** in the navbar → hard-coded external links to `https://admin.j-markets.jcampos.dev[/register]` (`landing-client/src/components/layout/navbar.tsx:130-137`, repeated at 226-233 for mobile).
+2. Explores Features / Fairs / Community / Blog / Examples. The Examples page is the only runtime API call in the whole site (`GET {VITE_API_URL}/api/templates?activeOnly=true`, `landing-client/src/pages/Examples.tsx:106-110`), and preview URLs are convention-derived client-side: `https://{name}-example.tsuru.jcampos.dev` (`Examples.tsx:117`).
+3. Clicks **Login / Register** in the navbar → hard-coded external links to `https://admin.tsuru.jcampos.dev[/register]` (`landing-client/src/components/layout/navbar.tsx:130-137`, repeated at 226-233 for mobile).
 4. Alternatively submits the Contact form.
 
 ### Systems touched
 Landing SPA (static) → markets-api (templates list only) → **legacy** dashboard app (admin subdomain).
 
 ### Friction & dead ends
-- **The funnel hands prospects to the wrong app.** Auth/registration was migrated to the POS app (`pos.j-markets.jcampos.dev`, `templates/pos-system/src/pages/Register.tsx` etc.; see memory `project_pos_dashboard_migration.md`), but the landing still routes signups to the old dashboard at `admin.j-markets.jcampos.dev`. Two divergent signup experiences exist depending on entry point.
+- **The funnel hands prospects to the wrong app.** Auth/registration was migrated to the POS app (`pos.tsuru.jcampos.dev`, `templates/pos-system/src/pages/Register.tsx` etc.; see memory `project_pos_dashboard_migration.md`), but the landing still routes signups to the old dashboard at `admin.tsuru.jcampos.dev`. Two divergent signup experiences exist depending on entry point.
 - The links are hardcoded despite `VITE_APP_URL` being passed as a build secret in `landing-client/.github/workflows/deploy.yml` and read by nothing — config exists, code ignores it.
 - **The Contact form sends nothing.** `handleSubmit` awaits a 1-second `setTimeout` then shows success (`landing-client/src/pages/Contact.tsx:24-38`); `settings.json` honestly records `contact.delivery='none'`. A prospect who "contacted sales" was silently dropped.
-- Brand confusion in the journey: site is "Tsuru" at tsuru.jcampos.dev, but `src/content/seo.json` still titles pages "JMarkets" at `j-markets.jcampos.dev`, and the app the CTA leads to is branded J-Markets. Three names in one funnel.
+- Brand confusion in the journey: site is "Tsuru" at tsuru.jcampos.dev, but `src/content/seo.json` still titles pages "JMarkets" at `tsuru.jcampos.dev`, and the app the CTA leads to is branded J-Markets. Three names in one funnel.
 
 ---
 
@@ -50,7 +50,7 @@ Landing SPA (static) → markets-api (templates list only) → **legacy** dashbo
 2. On `needsVerification`, the form stashes **email, username, names, and the plaintext password** in `sessionStorage` (`Register.tsx:139-145`) and navigates to `/verify-email`.
 3. **Verify** (`src/pages/VerifyEmail.tsx`): 6-digit OTP, 60-s resend cooldown, specific error handling for `CodeMismatchException`/`ExpiredCodeException`. On success it **auto-logs-in with the stashed password** (`VerifyEmail.tsx:70-73`), calls `completeVerification` to sync the user into markets-api, clears the stash, and navigates straight to `/organizations/new`.
 4. **Create organization** (`/organizations/new`, `src/pages/CreateOrganization.tsx`): 3-step wizard.
-   - Step 1 (name/slug/subdomain): slug auto-generated from name, debounced availability check (`checkSlugAvailable`), subdomain preview `{slug}.j-markets.jcampos.dev`. "Next" **creates the org immediately** (markets-api `POST /organizations`) — the org exists as a draft from step 1.
+   - Step 1 (name/slug/subdomain): slug auto-generated from name, debounced availability check (`checkSlugAvailable`), subdomain preview `{slug}.tsuru.jcampos.dev`. "Next" **creates the org immediately** (markets-api `POST /organizations`) — the org exists as a draft from step 1.
    - Step 2 (contact email/phone/address, all optional) → `onboarding/step2`.
    - Step 3 (theme/template gallery from local `THEME_LIST`) → confirm modal → `onboarding/step3` (clones template content, `includeCategories: true`) + `useUpdateOrgTheme` + live `setThemeId` so the shell repaints (`CreateOrganization.tsx:202-228`).
 5. **Resume path:** `SelectOrganization` shows incomplete orgs (`onboarding_step < 3`) with a "Draft / continue setup" badge; clicking stores `resumeOrgId` and the wizard re-hydrates name/slug/contact/theme and jumps to the right step (`CreateOrganization.tsx:79-108`, `SelectOrganization.tsx:41-47`). Well-executed.
@@ -154,7 +154,7 @@ markets-api (org, settings categories, members/invitations/RBAC, SES invite emai
 ## J7 — Customer-facing store journey (legacy storefronts)
 
 ### Steps as built
-1. Consumer reaches a storefront — either a demo (`{template}-example.j-markets.jcampos.dev`, 8-9 Vite template apps under `templates/`) or, in theory, an org's own subdomain provisioned by the infra microservice.
+1. Consumer reaches a storefront — either a demo (`{template}-example.tsuru.jcampos.dev`, 8-9 Vite template apps under `templates/`) or, in theory, an org's own subdomain provisioned by the infra microservice.
 2. Browses Home/Products/ProductDetail/Deals (e.g. `templates/jmarkets-demo/src/pages/`), adds to a zustand cart.
 3. **Checkout** (`templates/jmarkets-demo/src/components/cart/checkout-modal.tsx`): name, phone, CR province/canton/district cascade **from a client-side static dataset** (`@/data/locations`), delivery method → builds a WhatsApp message and `window.open("https://wa.me/{phone}?text=…")` (`checkout-modal.tsx:144-145`). Cart cleared, done.
 
@@ -182,7 +182,7 @@ Two unrelated journeys share the word "CMS":
 2. Edits bilingual JSON entities (Zustand slices, dirty-tracking) → saves via Vite dev middleware `POST /__local/content` → **Publish = `git add/commit/push`** (`landing-client/plugins/local-cms.ts`) → GitHub Pages deploy.
 3. Friction: developer-only journey by design (a non-technical marketer cannot publish); prerender route list and inventory graph require manual sync (`scripts/prerender.mjs:26-42`).
 
-The third CMS copy — the old dashboard app's content editor — still exists at `admin.j-markets.jcampos.dev` (J1 sends users there), making **three content-editing surfaces** with different storage models.
+The third CMS copy — the old dashboard app's content editor — still exists at `admin.tsuru.jcampos.dev` (J1 sends users there), making **three content-editing surfaces** with different storage models.
 
 ---
 

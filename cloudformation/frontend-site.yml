@@ -12,8 +12,8 @@ Parameters:
   DomainName:
     Type: String
     Description: >
-      Full custom domain for this site (e.g. j-markets.jcampos.dev or
-      jmarkets-demo-example.j-markets.jcampos.dev)
+      Full custom domain for this site (e.g. tsuru.jcampos.dev or
+      jmarkets-demo-example.tsuru.jcampos.dev)
 
   HostedZoneId:
     Type: String

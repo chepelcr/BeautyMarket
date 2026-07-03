@@ -54,7 +54,7 @@ const TEMPLATE_BUCKET = process.env.TEMPLATE_SOURCE_BUCKET || 'j-markets-templat
 const CLIENT_DIST_FOLDER = './dist/public';
 const LANDING_DIST_FOLDER = './dist/landing';
 const DASHBOARD_DIST_FOLDER = './dist/dashboard'; // Fixed: dashboard builds to dist/dashboard, not dashboard/dist
-const BASE_DOMAIN = process.env.BASE_DOMAIN || 'j-markets.jcampos.dev';
+const BASE_DOMAIN = process.env.BASE_DOMAIN || 'tsuru.jcampos.dev';
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN || BASE_DOMAIN.split('.').slice(-2).join('.');
 let HOSTED_ZONE_ID = process.env.HOSTED_ZONE_ID; // Auto-resolved from ROOT_DOMAIN if not set
 
@@ -255,7 +255,7 @@ async function cleanupResources() {
 }
 
 /**
- * Request or get existing wildcard certificate for *.j-markets.jcampos.dev
+ * Request or get existing wildcard certificate for *.tsuru.jcampos.dev
  */
 async function requestOrGetWildcardCertificate() {
   const wildcardDomain = `*.${BASE_DOMAIN}`;
@@ -1367,7 +1367,7 @@ async function setupLandingPage(certificateArn = null) {
 }
 
 /**
- * Setup infrastructure for the dashboard at admin.j-markets.jcampos.dev
+ * Setup infrastructure for the dashboard at admin.tsuru.jcampos.dev
  */
 async function setupDashboard(certificateArn = null) {
   console.log(`\n🎛️  Setting up dashboard infrastructure for: admin.${BASE_DOMAIN}`);
@@ -1696,7 +1696,7 @@ async function setup() {
     // Get AWS Account ID from profile
     AWS_ACCOUNT_ID = await getAwsAccountId();
 
-    // Resolve Hosted Zone ID for jcampos.dev (auto-lookup if not in env)
+    // Resolve Hosted Zone ID for tsuru.jcampos.dev (auto-lookup if not in env)
     await resolveHostedZoneId();
 
     // Validate that all builds completed successfully

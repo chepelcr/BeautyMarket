@@ -5,7 +5,7 @@ Successfully implemented the Team Members page for the dashboard admin panel, re
 
 ## Files Created
 
-### 1. `/Users/jcampos/WebstormProjects/BeautyMarket/dashboard/src/pages/TeamMembersPage.tsx`
+### 1. `/Users/tsuru/WebstormProjects/BeautyMarket/dashboard/src/pages/TeamMembersPage.tsx`
 **Purpose**: Main team members management page component
 
 **Features Implemented**:
@@ -56,7 +56,7 @@ Successfully implemented the Team Members page for the dashboard admin panel, re
 
 ## Files Modified
 
-### 2. `/Users/jcampos/WebstormProjects/BeautyMarket/dashboard/src/contexts/LanguageContext.tsx`
+### 2. `/Users/tsuru/WebstormProjects/BeautyMarket/dashboard/src/contexts/LanguageContext.tsx`
 **Changes**: Added complete translation keys for members feature
 
 **English Translations Added** (line 937-969):
@@ -77,7 +77,7 @@ members.inviteComingSoon.title, members.inviteComingSoon.description
 **Spanish Translations Added** (line 1949-1981):
 All corresponding Spanish translations for the above keys.
 
-### 3. `/Users/jcampos/WebstormProjects/BeautyMarket/dashboard/src/components/Router.tsx`
+### 3. `/Users/tsuru/WebstormProjects/BeautyMarket/dashboard/src/components/Router.tsx`
 **Changes**:
 - Added lazy import for TeamMembersPage component (line 30)
 - Replaced `<PlaceholderPage title="Team Members" />` with `component={TeamMembersPage}` (line 90)

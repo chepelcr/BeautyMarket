@@ -1,5 +1,5 @@
 {
-  "base_url": "https://markets-api.jcampos.dev",
+  "base_url": "https://api.tsuru.jcampos.dev",
   "auth": "Authorization: Bearer <cognito-id-token>",
   "cognito_pool_arn_export": "jmarkets-cognito-UserPoolArn",
   "public_prefixes": [

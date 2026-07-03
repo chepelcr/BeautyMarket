@@ -104,7 +104,7 @@ npm run build:templates
 npm run dev:server
 
 # 4. Visit any template
-# Example: https://beauty-essentials-example.j-markets.jcampos.dev
+# Example: https://beauty-essentials-example.tsuru.jcampos.dev
 ```
 
 ## Next Steps (Dashboard)

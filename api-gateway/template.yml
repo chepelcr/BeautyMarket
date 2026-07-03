@@ -17,7 +17,7 @@ Parameters:
 
   DomainName:
     Type: String
-    Default: markets-api.jcampos.dev
+    Default: api.tsuru.jcampos.dev
     Description: Custom domain for the API (loaded from .env API_DOMAIN)
 
 Resources:
@@ -32,7 +32,7 @@ Resources:
     Type: AWS::ApiGateway::Account
     Properties:
       CloudWatchRoleArn:
-        Fn::ImportValue: !Sub "jcampos-${Environment}-apigateway-cloudwatch-role-arn"
+        Fn::ImportValue: !Sub "tsuru-${Environment}-apigateway-cloudwatch-role-arn"
 
   ApiGatewayRestApi:
     Type: AWS::Serverless::Api

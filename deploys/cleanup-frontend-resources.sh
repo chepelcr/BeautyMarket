@@ -8,14 +8,14 @@
 #   - Route53 A alias records for all 10 domains
 #   - CloudFront distributions (disable → wait → delete) in parallel
 #   - S3 buckets (empty then delete)
-#   - ACM certificates for each domain + the old wildcard *.j-markets.jcampos.dev
+#   - ACM certificates for each domain + the old wildcard *.tsuru.jcampos.dev
 #   - CloudFront OAC: j-markets-template-oac
 set -euo pipefail
 
 PROFILE="${AWS_PROFILE:-J-CAMPOS}"
 REGION="${REGION:-us-east-1}"
-BASE_DOMAIN="${BASE_DOMAIN:-j-markets.jcampos.dev}"
-ROOT_DOMAIN="${ROOT_DOMAIN:-jcampos.dev}"
+BASE_DOMAIN="${BASE_DOMAIN:-tsuru.jcampos.dev}"
+ROOT_DOMAIN="${ROOT_DOMAIN:-tsuru.jcampos.dev}"
 DRY_RUN=false
 
 for arg in "$@"; do
@@ -50,7 +50,7 @@ TEMPLATE_SUBDOMAINS=(
   pollo-porteno-example
 )
 
-DOMAIN_DASHES="${BASE_DOMAIN//./-}"   # j-markets-jcampos-dev
+DOMAIN_DASHES="${BASE_DOMAIN//./-}"   # j-markets-tsuru-dev
 
 # All 10 domains
 declare -A DOMAIN_TO_BUCKET

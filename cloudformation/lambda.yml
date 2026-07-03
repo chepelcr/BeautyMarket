@@ -36,7 +36,7 @@ Resources:
       Environment:
         Variables:
           NODE_ENV: production
-          SSM_BASE_PATH: !Sub "/jcampos/${Environment}/jmarkets"
+          SSM_BASE_PATH: !Sub "/tsuru/${Environment}/jmarkets"
 
   LambdaRole:
     Type: AWS::IAM::Role
@@ -54,14 +54,14 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-cognito-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-s3-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-ses-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-sns-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-sqs-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-ssm-parameter-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-secrets-manager-policy-arn"
-        - Fn::ImportValue: !Sub "jcampos-${Environment}-decrypt-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-cognito-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-s3-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-ses-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-sns-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-sqs-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-ssm-parameter-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-secrets-manager-policy-arn"
+        - Fn::ImportValue: !Sub "tsuru-${Environment}-decrypt-policy-arn"
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup

@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { fetchAuthSession } from 'aws-amplify/auth';
 
-const ORDERS_API_BASE_URL = import.meta.env.VITE_ORDERS_API_URL || 'https://orders-api.jcampos.dev';
+const ORDERS_API_BASE_URL = import.meta.env.VITE_ORDERS_API_URL || 'https://orders-api.tsuru.jcampos.dev';
 
 async function throwIfResNotOk(res: Response) {
     if (!res.ok) {

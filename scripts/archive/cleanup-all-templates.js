@@ -47,13 +47,13 @@ const route53Client = new Route53Client({
 
 // Old beauty-themed buckets to delete
 const OLD_BUCKETS = [
-  'beauty-demo-example-jmarkets-jcampos-dev',
-  'bella-natural-example-jmarkets-jcampos-dev',
-  'glam-studio-example-jmarkets-jcampos-dev',
-  'royal-hair-example-jmarkets-jcampos-dev',
-  'skin-love-example-jmarkets-jcampos-dev',
-  'pro-nails-example-jmarkets-jcampos-dev',
-  'beauty-salon-example-jmarkets-jcampos-dev',
+  'beauty-demo-example-jmarkets-tsuru-dev',
+  'bella-natural-example-jmarkets-tsuru-dev',
+  'glam-studio-example-jmarkets-tsuru-dev',
+  'royal-hair-example-jmarkets-tsuru-dev',
+  'skin-love-example-jmarkets-tsuru-dev',
+  'pro-nails-example-jmarkets-tsuru-dev',
+  'beauty-salon-example-jmarkets-tsuru-dev',
 ];
 
 // New template subdomains (to delete CloudFront and Route53)
@@ -150,7 +150,7 @@ async function deleteDistribution(distributionId) {
  */
 async function deleteDNSRecord(subdomain, cloudFrontDomain) {
   try {
-    const domainName = `${subdomain}.j-markets.jcampos.dev.`;
+    const domainName = `${subdomain}.tsuru.jcampos.dev.`;
     console.log(`  Deleting DNS record: ${domainName}...`);
 
     await route53Client.send(
@@ -218,7 +218,7 @@ async function cleanup() {
       for (const record of recordsResp.ResourceRecordSets || []) {
         if (record.Type === 'A' && record.AliasTarget) {
           for (const subdomain of NEW_TEMPLATES) {
-            if (record.Name === `${subdomain}.j-markets.jcampos.dev.`) {
+            if (record.Name === `${subdomain}.tsuru.jcampos.dev.`) {
               dnsRecords[subdomain] = record.AliasTarget.DNSName;
               await deleteDNSRecord(subdomain, record.AliasTarget.DNSName);
             }
@@ -246,7 +246,7 @@ async function cleanup() {
     for (const dist of allDistributions) {
       // Check if this distribution is for one of the new templates
       const isNewTemplate = NEW_TEMPLATES.some(subdomain =>
-        dist.Comment?.includes(`${subdomain}.j-markets.jcampos.dev`)
+        dist.Comment?.includes(`${subdomain}.tsuru.jcampos.dev`)
       );
 
       if (isNewTemplate) {

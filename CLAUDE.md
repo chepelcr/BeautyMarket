@@ -38,7 +38,7 @@ on 2026-06-12 (roadmap TSR-112), parallel to the `be/` backend grouping — `fe/
 
 **Brand: Tsuru.** The public brand is **Tsuru** (formerly JMarkets). Do not write new
 "JMarkets" brand text on any user-facing surface. Infra identifiers are NOT the brand and
-stay as-is: domains (`j-markets.jcampos.dev`), buckets (`jmarkets-template-market`), template
+stay as-is: domains (`tsuru.jcampos.dev`), buckets (`jmarkets-template-market`), template
 id `jmarkets-demo`, POS theme ids `jmarkets`/`jmarkets-demo`, the `jmarkets_common` lib.
 See `docs/roadmap/tsuru_rebrand_plan.md` for scope.
 
@@ -178,7 +178,7 @@ node deploys/setup-template-bucket.js        # Build & deploy all frontend apps 
    - Builds store client (`npm run build:store`)
 
 2. **SSL Certificate Management**:
-   - Requests or retrieves wildcard SSL certificate for `*.j-markets.jcampos.dev`
+   - Requests or retrieves wildcard SSL certificate for `*.tsuru.jcampos.dev`
    - Automatically adds DNS validation records to Route53
    - Waits for certificate validation (max 10 minutes)
    - Reuses existing validated certificates
@@ -194,17 +194,17 @@ node deploys/setup-template-bucket.js        # Build & deploy all frontend apps 
    - Creates CloudFront invalidation to clear cache (immediate updates)
 
 4. **Deployments Created**:
-   - **Landing page**: `j-markets.jcampos.dev`
-   - **Dashboard**: `admin.j-markets.jcampos.dev`
+   - **Landing page**: `tsuru.jcampos.dev`
+   - **Dashboard**: `admin.tsuru.jcampos.dev`
    - **8 Template Organizations**:
-     - `jmarkets-demo-example.j-markets.jcampos.dev`
-     - `tech-gadgets-example.j-markets.jcampos.dev`
-     - `vintage-fashion-example.j-markets.jcampos.dev`
-     - `artisan-crafts-example.j-markets.jcampos.dev`
-     - `gourmet-foods-example.j-markets.jcampos.dev`
-     - `fitness-hub-example.j-markets.jcampos.dev`
-     - `pet-care-example.j-markets.jcampos.dev`
-     - `beauty-essentials-example.j-markets.jcampos.dev`
+     - `jmarkets-demo-example.tsuru.jcampos.dev`
+     - `tech-gadgets-example.tsuru.jcampos.dev`
+     - `vintage-fashion-example.tsuru.jcampos.dev`
+     - `artisan-crafts-example.tsuru.jcampos.dev`
+     - `gourmet-foods-example.tsuru.jcampos.dev`
+     - `fitness-hub-example.tsuru.jcampos.dev`
+     - `pet-care-example.tsuru.jcampos.dev`
+     - `beauty-essentials-example.tsuru.jcampos.dev`
 
 **Configuration** (environment variables in `.env`):
 ```bash
@@ -241,15 +241,15 @@ node deploys/setup-template-bucket.js
 ```
 ✅ Main template bucket: jmarkets-template-market
 ✅ Template organizations processed: 8/8
-✅ Landing page deployed: https://j-markets.jcampos.dev
-✅ Dashboard deployed: https://admin.j-markets.jcampos.dev
+✅ Landing page deployed: https://tsuru.jcampos.dev
+✅ Dashboard deployed: https://admin.tsuru.jcampos.dev
 
 🏠 LANDING PAGE:
-  j-markets.jcampos.dev
-    S3 Bucket:        jmarkets-jcampos-dev-landing
+  tsuru.jcampos.dev
+    S3 Bucket:        jmarkets-tsuru-dev-landing
     Distribution ID:  E1ABC23DEF4GHI
     CloudFront URL:   https://d1abc2def3ghi.cloudfront.net
-    Custom Domain:    https://j-markets.jcampos.dev
+    Custom Domain:    https://tsuru.jcampos.dev
 
 [... similar output for dashboard and 8 template organizations ...]
 ```
@@ -288,7 +288,7 @@ The `organizationContext` middleware (`server/src/middleware/organizationContext
 
 1. **Route parameters**: `/api/user/:userId/organization/:orgId` → Direct orgId lookup
 2. **X-Organization-ID header**: Explicit organization selection
-3. **Subdomain**: `storename.j-markets.jcampos.dev` → Organization lookup by subdomain
+3. **Subdomain**: `storename.tsuru.jcampos.dev` → Organization lookup by subdomain
 4. **Custom domain**: `www.customstore.com` → Organization lookup by custom domain
 5. **Query parameter**: `?organizationId=xyz` → For testing/development only
 
@@ -422,7 +422,7 @@ This project has **three separate React applications**:
 
 1. **landing-client/** - Pure marketing website
    - Port: 3001 in development
-   - Deployment: `j-markets.jcampos.dev`
+   - Deployment: `tsuru.jcampos.dev`
    - Routes: Landing, Examples, About, Blog, Contact, Terms, Privacy, Cookies
    - Purpose: Public-facing marketing site
    - Build output: `dist/landing/`
@@ -430,7 +430,7 @@ This project has **three separate React applications**:
 
 2. **fe/dashboard/** - Complete admin application
    - Port: 5173 in development (Vite default)
-   - Deployment: `admin.j-markets.jcampos.dev` and organization subdomains
+   - Deployment: `admin.tsuru.jcampos.dev` and organization subdomains
    - Routes:
      - **Auth**: Login, Register, VerifyEmail, ForgotPassword, ResetPassword
      - **Organizations**: CreateOrganization (3-step onboarding), SelectOrganization, OrganizationSettings, AcceptInvitation
@@ -441,7 +441,7 @@ This project has **three separate React applications**:
 
 3. **templates/** - Individual store frontends (public-facing stores)
    - Multiple independent Vite apps (jmarkets-demo, tech-gadgets, vintage-fashion, artisan-crafts, gourmet-foods, fitness-hub, pet-care, beauty-essentials)
-   - Deployment: Organization subdomains (`{org-slug}.j-markets.jcampos.dev`)
+   - Deployment: Organization subdomains (`{org-slug}.tsuru.jcampos.dev`)
    - Purpose: Customer-facing e-commerce stores
    - Each template has unique design, colors, and components
    - See "Template System" section below for details
@@ -555,7 +555,7 @@ The platform supports **multiple template designs** for customer-facing stores. 
 7. **pet-care** - Pet supplies (Playful Purple `#a855f7`, friendly, fun)
 8. **beauty-essentials** - Beauty & cosmetics (Soft Rose `#f43f5e`, elegant, luxurious)
 
-All templates deployed to: `{template-name}-example.j-markets.jcampos.dev`
+All templates deployed to: `{template-name}-example.tsuru.jcampos.dev`
 
 ### Template Structure
 
@@ -714,7 +714,7 @@ Organization → HomePageContent
 5. **API Gateway** (`cloudformation/api-gateway.yml`)
    - REST API with Lambda proxy integration
    - JWT authorizer validates Cognito tokens
-   - ACM certificate + custom domain (markets-api.jcampos.dev)
+   - ACM certificate + custom domain (api.tsuru.jcampos.dev)
    - Route53 DNS records
 
 6. **Frontend Deployment** (`setup-template-bucket.js`)
@@ -732,7 +732,7 @@ Organization → HomePageContent
 **Master orchestrator**: `./deploys/deploy-all.sh` runs backend stacks sequentially with validation.
 
 **IAM Policy Management**:
-- IAM policies are managed in the shared infra repo (`Infrastructure/policies/jcampos-iam-policies.yaml`)
+- IAM policies are managed in the shared infra repo (`Infrastructure/policies/tsuru-iam-policies.yaml`)
 - Lambda function imports the same managed policy ARN (shared permissions)
 - Policy includes: Cognito (with `ListUsers`), S3, SES, CloudFront, Route53, Secrets Manager
 - See `cloudformation/IAM_DEPLOYMENT.md` for detailed deployment guide

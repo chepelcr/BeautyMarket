@@ -2,13 +2,13 @@
 
 Master checklist for gap analysis. Systems referenced:
 
-- **markets-api** — BeautyMarket `/server` (Express/Lambda, markets-api.jcampos.dev): platform control plane
-- **dashboard** — BeautyMarket `/dashboard` (admin SPA, admin.j-markets.jcampos.dev)
+- **markets-api** — BeautyMarket `/server` (Express/Lambda, api.tsuru.jcampos.dev): platform control plane
+- **dashboard** — BeautyMarket `/dashboard` (admin SPA, admin.tsuru.jcampos.dev)
 - **storefronts** — BeautyMarket `/templates/{jmarkets-demo, tech-gadgets, ...}` (9+ themed store SPAs)
-- **POS** — `templates/pos-system` / `chepelcr/tsuru-pos-system` (Tsuru POS SPA, pos.j-markets.jcampos.dev)
-- **cross-app-be** — `E:/dev/cross-app-be` (FastAPI Lambda, orders-api.jcampos.dev): cross-docking + POS backend
-- **jbiller** — `biller-apps/auth` (multi-Lambda Python, sales-api.jcampos.dev): Hacienda e-invoicing core + lambda-authorizer + infra provisioner
-- **data-api** — `biller-apps/data-services` (34 FastAPI Lambdas, data-api.jcampos.dev): fiscal reference catalogs
+- **POS** — `templates/pos-system` / `chepelcr/tsuru-pos-system` (Tsuru POS SPA, pos.tsuru.jcampos.dev)
+- **cross-app-be** — `E:/dev/cross-app-be` (FastAPI Lambda, orders-api.tsuru.jcampos.dev): cross-docking + POS backend
+- **jbiller** — `biller-apps/auth` (multi-Lambda Python, sales-api.tsuru.jcampos.dev): Hacienda e-invoicing core + lambda-authorizer + infra provisioner
+- **data-api** — `biller-apps/data-services` (34 FastAPI Lambdas, data-api.tsuru.jcampos.dev): fiscal reference catalogs
 - **landing** — `landing-client` / `chepelcr/tsuru-landing` (static marketing SPA, tsuru.jcampos.dev)
 
 **Status legend:** Live = implemented and in production use · Partial = works with material gaps · Scaffolded = code/schema exists, not functional/wired · Deprecated = superseded or dead · Missing-but-promised = claimed in docs/marketing/UI but absent in code.
@@ -19,7 +19,7 @@ Master checklist for gap analysis. Systems referenced:
 
 | Capability | System(s) | Status | Evidence |
 |---|---|---|---|
-| Themed storefront SPAs (9 templates: demo, tech, fashion, crafts, foods, fitness, pet, beauty, pollo-porteno) | storefronts | Live | `templates/*` folders; deployed via `deploys/setup-template-bucket.js` to `{slug}.j-markets.jcampos.dev`; `server/src/seeds/template-seed.ts` (9 templates) |
+| Themed storefront SPAs (9 templates: demo, tech, fashion, crafts, foods, fitness, pet, beauty, pollo-porteno) | storefronts | Live | `templates/*` folders; deployed via `deploys/setup-template-bucket.js` to `{slug}.tsuru.jcampos.dev`; `server/src/seeds/template-seed.ts` (9 templates) |
 | Template demo-mode content serving (theme/contact/pages/categories/products from `template_*` sample tables) | markets-api, storefronts | Live | `server/src/controllers/TemplateController.ts` (`/api/templates/{id}/theme|contact|pages|categories|products`); `templates/jmarkets-demo/src/lib/api.ts:7-22` |
 | Org-mode storefront content (theme/contact/pages by live org) | markets-api, storefronts | Live | `server/src/controllers/PublicOrgController.ts:10-14` (`/:orgId`, `/theme`, `/contact`, `/pages`, `/pages/:slug`); consumed via `fetchOrgContent` in `templates/jmarkets-demo/src/lib/api.ts:27-41` |
 | Org-mode storefront product & category browsing | markets-api, storefronts | Missing-but-promised | Storefronts call `/api/public/organizations/{id}/products` and `/categories` (`templates/jmarkets-demo/src/lib/api.ts:62-81`, `useContent.ts useProducts/useCategories`), but `PublicOrgController.ts` has NO products/categories routes — live-org product browsing 404s; real products live in cross-app-be, which has no public unauthenticated endpoint |
@@ -31,7 +31,7 @@ Master checklist for gap analysis. Systems referenced:
 | Product price-bounds / range filters | cross-app-be, POS | Live | `/products/price-bounds` (POS `src/lib/api.ts` ordersOrgPath); POS `components/common/RangeSlider.tsx` |
 | Inventory management | POS, markets-api | Partial | POS local inventory store `src/store/inventory.ts` (Dexie InventoryRecord) + markets-api `/inventory/opening` endpoint (POS `orgPath`); no full stock-control backend domain |
 | Dual product write path (same `products` table) | markets-api (template seeds), cross-app-be | Live (debt) | cross-app-be `app/models/product.py` + alembic `b1c2d3e4f5a6_add_cabys_and_product_fiscal_fields.py` extends the shared BeautyMarket table; both this service and the Node backend historically expose product writes over the same tables |
-| Template gallery showcase (public Examples page) | landing, markets-api | Live | `landing-client/src/pages/Examples.tsx:106-117` → `GET /api/templates?activeOnly=true`; preview URLs convention-derived client-side (`{name}-example.j-markets.jcampos.dev`) |
+| Template gallery showcase (public Examples page) | landing, markets-api | Live | `landing-client/src/pages/Examples.tsx:106-117` → `GET /api/templates?activeOnly=true`; preview URLs convention-derived client-side (`{name}-example.tsuru.jcampos.dev`) |
 
 ## 2. POS (point of sale)
 
@@ -63,7 +63,7 @@ Master checklist for gap analysis. Systems referenced:
 | ATV submission + OAuth token brokerage | jbiller | Live (prod-cutover risk) | `hacienda_submission_service.py`; `GET /organizations/{o}/hacienda-token`; OAuth realm hardcoded to **staging** `rut-stag` in shared code |
 | Validation polling & status reconciliation (SQS chain) | jbiller (document-validator) | Live | `app/document-validator/src/services/validator_pipeline.py` (SAVE_DOCUMENT/REVALIDATE with attempt escalation); `cloudformation/hacienda-messaging.yml` FIFO mesh |
 | Receiver invoice validation (accept/partial/reject) | jbiller, POS | Live | sales-api `.../invoice-validation` routes; POS `useInvoiceValidation.ts` |
-| Document PDF rendering (incl. rejection PDFs) | jbiller (document-pdf-generator) | Live | `app/document-pdf-generator/src/services/pdf_pipeline.py`; artifacts at sales-artifacts.jcampos.dev |
+| Document PDF rendering (incl. rejection PDFs) | jbiller (document-pdf-generator) | Live | `app/document-pdf-generator/src/services/pdf_pipeline.py`; artifacts at sales-artifacts.tsuru.jcampos.dev |
 | Document delivery — email with XML/PDF + customer webhooks | jbiller (document-notification) | Live | `notification_pipeline.py`; `notification_email_service.py` (SES raw MIME); `notification_callback_service.py` (per-org callback_url) |
 | Notification resend | jbiller | Scaffolded | `POST .../notifications/resend` is an acknowledged stub (`sale_controller.py`) |
 | XML regenerate | jbiller | Scaffolded | `POST .../xml/regenerate` — "v1: stub" (`sale_controller.py`) |
@@ -124,7 +124,7 @@ Master checklist for gap analysis. Systems referenced:
 | Media library (presigned upload, gallery) | jbiller (org-configurations), POS; markets-api S3 presign | Live | auth media endpoints via `authOrgPath` (root-mounted, no /api prefix — POS `src/lib/api.ts:269`); POS `useMediaLibrary.ts`, `GalleryPage.tsx`; `server/src/services/S3UploadService.ts` |
 | Landing JSON-driven DXP (22 bilingual content files, git as database) | landing | Live | `src/content/*.json`, `src/lib/admin-store.ts` (22 slices), `src/admin/manifest.ts` (single source of truth for sidebar/router/versions) |
 | Landing local admin CMS (dev-only, tree-shaken from prod) | landing | Live (dev-only by design) | `src/admin/*` (26 pages), `plugins/local-cms.ts` (localhost-only `/__local/content|asset|publish` → git commit+push), gate `src/lib/admin-enabled.ts`, CI grep for `__local` leakage (`deploy.yml`); no authentication — safe only while the gate holds |
-| Landing prerender / SEO / sitemap | landing | Live (drift) | `scripts/prerender.mjs`, `src/lib/seo.ts`; `seo.json` still says siteUrl `j-markets.jcampos.dev` / "JMarkets" titles while deploy targets tsuru.jcampos.dev; prerender ROUTES manually synced with `Router.tsx` |
+| Landing prerender / SEO / sitemap | landing | Live (drift) | `scripts/prerender.mjs`, `src/lib/seo.ts`; `seo.json` still says siteUrl `tsuru.jcampos.dev` / "JMarkets" titles while deploy targets tsuru.jcampos.dev; prerender ROUTES manually synced with `Router.tsx` |
 | Landing contact form delivery | landing | Scaffolded (fake) | `src/pages/Contact.tsx:24-38` — 1s `setTimeout` then success toast; `settings.json contact.delivery='none'` |
 | Auto-translate | landing | Scaffolded | `settings.json autoTranslate {enabled:false}`, no implementation |
 | Blog (static JSON articles, featured/order) | landing | Live | `src/repositories/blog.repository.ts`, `src/services/blog.service.ts`, `src/pages/Blog.tsx` |
@@ -166,9 +166,9 @@ Master checklist for gap analysis. Systems referenced:
 | Async event mesh (SNS+SQS FIFO: validate → PDF → notify) | jbiller | Live | `cloudformation/hacienda-messaging.yml`; `app/*/src/services/event_publisher.py`; idempotent ownership rules documented in `validator_pipeline.py` |
 | SQS/SNS handling in markets-api Lambda | markets-api | Scaffolded | `server/lambda.cts:18-37` — empty stubs ("Add SQS processing logic here") |
 | CI/CD — CodePipeline two-phase container builds | cross-app-be, data-api, markets-api | Live | `buildspec-build.yml`/`buildspec-update.yml`/`buildspec-api.yml` + `cloudformation/codepipeline.yml` in each repo |
-| CI/CD — GitHub Actions OIDC deploys | POS, landing, jbiller (migrating) | Live / Partial | POS `.github/workflows/deploy.yml` + `scripts/deploy.sh` (SSM config, OIDC role `jcampos-{repo}-gha-deploy`); landing `deploy.yml` → GitHub Pages with `__local` leak gate; jbiller GH Actions added while CodePipeline templates remain (commits e6404e8, 3412375) |
-| Dual deploy paths during repo split (monorepo vs standalone) | landing, POS, BeautyMarket | Partial (split limbo) | landing: monorepo `setup-template-bucket.js` → j-markets.jcampos.dev vs standalone Pages → tsuru.jcampos.dev (nested `.git` in `landing-client/`); POS gitignored-yet-tracked per root CLAUDE.md split rules — drift risk between copies |
-| Shared config plumbing (SSM Parameter Store + Secrets Manager secret `jcampos/{env}/database`) | all backends | Live (coupling) | `server/src/config/appConfig.ts`; `cross-app-be/app/configuration/app_config.py`; `jbiller_common/configuration/`; `jmarkets_common/configuration/` — jbiller reads data-services' SSM namespace `/jcampos/{env}/commondata/*` (cross-repo DB coupling) |
+| CI/CD — GitHub Actions OIDC deploys | POS, landing, jbiller (migrating) | Live / Partial | POS `.github/workflows/deploy.yml` + `scripts/deploy.sh` (SSM config, OIDC role `tsuru-{repo}-gha-deploy`); landing `deploy.yml` → GitHub Pages with `__local` leak gate; jbiller GH Actions added while CodePipeline templates remain (commits e6404e8, 3412375) |
+| Dual deploy paths during repo split (monorepo vs standalone) | landing, POS, BeautyMarket | Partial (split limbo) | landing: monorepo `setup-template-bucket.js` → tsuru.jcampos.dev vs standalone Pages → tsuru.jcampos.dev (nested `.git` in `landing-client/`); POS gitignored-yet-tracked per root CLAUDE.md split rules — drift risk between copies |
+| Shared config plumbing (SSM Parameter Store + Secrets Manager secret `tsuru/{env}/database`) | all backends | Live (coupling) | `server/src/config/appConfig.ts`; `cross-app-be/app/configuration/app_config.py`; `jbiller_common/configuration/`; `jmarkets_common/configuration/` — jbiller reads data-services' SSM namespace `/tsuru/{env}/commondata/*` (cross-repo DB coupling) |
 | Redis/ElastiCache caching | jbiller (used), data-api (dead) | Partial | jbiller org-config caches + eviction endpoints (`shared/jbiller_common/configuration/redis_config.py`, PATCH cache routes); data-api ships CacheController in all 34 services but `jmarkets_common/utils/cache_utils.py` is all TODO no-ops, Redis provisioned in SSM and unused |
 | API Gateway swagger sync (endpoints catalog → gateway) | cross-app-be, jbiller, data-api | Live (manual) | `cross-app-be/api-gateway/endpoints.json` (1574 lines), `data-services/api-gateway/endpoints.md` (1355 lines), `auth/api-gateway/endpoints.json` — manually kept in sync with app routes |
 | Local dev environments | all backends + frontends | Live | `cross-app-be` docker-compose; `data-services` Dockerfile.local (34 services, ports 8001-8034); `auth/run/start_all_services.py`; Vite dev servers + `reboot-server.sh` in monorepo |

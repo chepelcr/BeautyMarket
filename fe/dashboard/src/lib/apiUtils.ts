@@ -7,7 +7,7 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const ORDERS_API_BASE_URL = import.meta.env.VITE_ORDERS_API_URL || 'http://localhost:8000';
-const DATA_API_BASE_URL = import.meta.env.VITE_DATA_API_URL || 'https://data-api.jcampos.dev';
+const DATA_API_BASE_URL = import.meta.env.VITE_DATA_API_URL || 'https://data-api.tsuru.jcampos.dev';
 
 /**
  * Build a URL for organization-scoped API endpoints

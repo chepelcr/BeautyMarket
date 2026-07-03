@@ -13,13 +13,13 @@ const swaggerOptions = {
       description: 'AI-powered video transcription service with freemium model, user authentication, and payment integration',
       contact: {
         name: 'Video Transcript Support',
-        url: 'https://video-transcript.jcampos.dev'
+        url: 'https://video-transcript.tsuru.jcampos.dev'
       }
     },
     servers: [
       {
         url: APP_CONFIG.NODE_ENV === 'production' 
-          ? 'https://api-video-transcript.jcampos.dev' 
+          ? 'https://api-video-transcript.tsuru.jcampos.dev' 
           : process.env.REPLIT_DOMAINS 
             ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
             : 'http://localhost:5000',

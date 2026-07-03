@@ -368,7 +368,7 @@ Documented so v1 schema decisions don't block it: `settlementType` column from d
 
 ## 13. Open questions (for the implementation workflow)
 
-1. Public hostname: `ferias.j-markets.jcampos.dev` now vs waiting for the Tsuru domain workstream (architecture doc recommends deploying under the current domain and treating the rename as the existing separate infra workstream).
+1. Public hostname: `ferias.tsuru.jcampos.dev` now vs waiting for the Tsuru domain workstream (architecture doc recommends deploying under the current domain and treating the rename as the existing separate infra workstream).
 2. Whether `completed` barter trades require both parties to confirm or one-side mark (spec default: one-side mark, counter visible to both).
 3. Per-fair vs global category taxonomy (spec default: global list curated in admin, fairs select a subset).
 4. Stand slug collision policy across fairs (default: org slug reused per fair, `/feria/:fairSlug/:orgSlug`).

@@ -7,7 +7,7 @@ Successfully built the **Tech Gadgets** template following the multi-template ar
 ## Template Details
 
 **Name:** tech-gadgets
-**Live URL:** https://tech-gadgets-example.j-markets.jcampos.dev
+**Live URL:** https://tech-gadgets-example.tsuru.jcampos.dev
 **Build Output:** `dist/templates/tech-gadgets`
 **Dev Port:** 3002
 
@@ -345,17 +345,17 @@ npm run preview
 - Ready for S3 + CloudFront deployment
 
 ### Deployment URL
-**Live:** https://tech-gadgets-example.j-markets.jcampos.dev
+**Live:** https://tech-gadgets-example.tsuru.jcampos.dev
 
 ### S3 Bucket
-- Bucket name: `tech-gadgets-example.j-markets.jcampos.dev`
+- Bucket name: `tech-gadgets-example.tsuru.jcampos.dev`
 - Region: us-east-1
 - CloudFront distribution required for SSL
 
 ### DNS Configuration
-- CNAME: tech-gadgets-example.j-markets.jcampos.dev
+- CNAME: tech-gadgets-example.tsuru.jcampos.dev
 - Points to CloudFront distribution
-- Uses wildcard SSL cert: `*.j-markets.jcampos.dev`
+- Uses wildcard SSL cert: `*.tsuru.jcampos.dev`
 
 ## Technical Notes
 

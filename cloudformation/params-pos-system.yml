@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   Pollos Porteños Sales — SSM Parameters.
-  Path prefix: /jcampos/{env}/pollos-sales
+  Path prefix: /tsuru/{env}/pollos-sales
   Shares Cognito pool with jmarkets (same user base).
 
 Parameters:
@@ -18,54 +18,54 @@ Parameters:
 
   FrontendDomain:
     Type: String
-    Description: Base domain for all frontend apps (e.g. j-markets.jcampos.dev)
+    Description: Base domain for all frontend apps (e.g. tsuru.jcampos.dev)
 
 Resources:
 
-  # /jcampos/{env}/pollos-sales/aws/region
+  # /tsuru/{env}/pollos-sales/aws/region
   AwsRegion:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/pollos-sales/aws/region"
+      Name: !Sub "/tsuru/${Environment}/pollos-sales/aws/region"
       Type: String
       Value: !Ref AWS::Region
 
-  # /jcampos/{env}/pollos-sales/cognito/user-pool-id  (shared with jmarkets)
+  # /tsuru/{env}/pollos-sales/cognito/user-pool-id  (shared with jmarkets)
   CognitoUserPoolId:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/pollos-sales/cognito/user-pool-id"
+      Name: !Sub "/tsuru/${Environment}/pollos-sales/cognito/user-pool-id"
       Type: String
       Value:
         Fn::ImportValue: "jmarkets-cognito-UserPoolId"
 
-  # /jcampos/{env}/pollos-sales/cognito/client-id  (shared with jmarkets)
+  # /tsuru/{env}/pollos-sales/cognito/client-id  (shared with jmarkets)
   CognitoClientId:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/pollos-sales/cognito/client-id"
+      Name: !Sub "/tsuru/${Environment}/pollos-sales/cognito/client-id"
       Type: String
       Value:
         Fn::ImportValue: "jmarkets-cognito-UserPoolClientId"
 
-  # /jcampos/{env}/pollos-sales/api/url  (same backend)
+  # /tsuru/{env}/pollos-sales/api/url  (same backend)
   ApiUrl:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/pollos-sales/api/url"
+      Name: !Sub "/tsuru/${Environment}/pollos-sales/api/url"
       Type: String
       Value: !Sub "https://markets-api.${FrontendDomain}"
 
-  # /jcampos/{env}/pollos-sales/sinpe/number
+  # /tsuru/{env}/pollos-sales/sinpe/number
   SinpeNumberParam:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/jcampos/${Environment}/pollos-sales/sinpe/number"
+      Name: !Sub "/tsuru/${Environment}/pollos-sales/sinpe/number"
       Type: String
       Value: !Ref SinpeNumber
 
 Outputs:
   SsmBasePath:
-    Value: !Sub "/jcampos/${Environment}/pollos-sales"
+    Value: !Sub "/tsuru/${Environment}/pollos-sales"
     Export:
-      Name: !Sub "jcampos-${Environment}-pollos-sales-ssm-base-path"
+      Name: !Sub "tsuru-${Environment}-pollos-sales-ssm-base-path"

@@ -123,7 +123,7 @@ const response = await apiRequest('GET', url);
 Leverages existing `apiUtils.ts` infrastructure:
 ```typescript
 const url = buildDataApiUrl('/countries/188/document-versions', { status: '1' });
-// Returns: https://data-api.jcampos.dev/countries/188/document-versions?status=1
+// Returns: https://data-api.tsuru.jcampos.dev/countries/188/document-versions?status=1
 ```
 
 ### 5. Type Safety
@@ -159,7 +159,7 @@ const taxes = await dataApiClient.getAllTaxes({ isoCode: '188', documentVersionI
 
 Add to `.env`:
 ```env
-VITE_DATA_API_URL=https://data-api.jcampos.dev
+VITE_DATA_API_URL=https://data-api.tsuru.jcampos.dev
 ```
 
 ## What's NOT Implemented

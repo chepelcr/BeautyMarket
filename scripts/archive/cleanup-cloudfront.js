@@ -28,9 +28,9 @@ async function cleanupTemplateDistributions() {
     const listResponse = await cloudFrontClient.send(new ListDistributionsCommand({}));
     const allDistributions = listResponse.DistributionList?.Items || [];
 
-    // Filter template distributions (those with "example.j-markets.jcampos.dev" in comment)
+    // Filter template distributions (those with "example.tsuru.jcampos.dev" in comment)
     const templateDistributions = allDistributions.filter((dist) =>
-      dist.Comment?.includes('example.j-markets.jcampos.dev')
+      dist.Comment?.includes('example.tsuru.jcampos.dev')
     );
 
     console.log(`Found ${templateDistributions.length} template distributions to delete:\n`);

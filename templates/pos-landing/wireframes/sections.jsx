@@ -201,7 +201,7 @@ function PosScreenshotDesktop({ products, sub, iva, total, cartCount, fmt, grid 
         {/* Browser chrome */}
         <div className="h-9 bg-muted/60 border-b border-border flex items-center gap-2 px-4">
           <div className="flex gap-1.5"><span className="w-3 h-3 rounded-full bg-destructive/70"/><span className="w-3 h-3 rounded-full bg-warning/80"/><span className="w-3 h-3 rounded-full bg-success/80"/></div>
-          <div className="flex-1 flex justify-center"><span className="px-3 py-0.5 rounded text-[11px] font-mono text-muted-foreground bg-background/60 border border-border">pos.j-markets.jcampos.dev</span></div>
+          <div className="flex-1 flex justify-center"><span className="px-3 py-0.5 rounded text-[11px] font-mono text-muted-foreground bg-background/60 border border-border">pos.tsuru.jcampos.dev</span></div>
           <span className="hidden md:inline text-[11px] font-mono text-muted-foreground">v4.4</span>
         </div>
 

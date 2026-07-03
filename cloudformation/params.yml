@@ -23,7 +23,7 @@ Parameters:
 
   FromEmail:
     Type: String
-    Description: SES verified sender address (e.g. noreply@jcampos.dev)
+    Description: SES verified sender address (e.g. noreply@tsuru.jcampos.dev)
 
   FrontendUrl:
     Type: String

@@ -19,15 +19,15 @@ The JMarkets platform consists of multiple AWS components:
 
 ### Backend Infrastructure
 - **Lambda Function**: Node.js 20.x serverless Express app (`server/`)
-- **API Gateway**: REST API with custom domain (`markets-api.jcampos.dev`)
+- **API Gateway**: REST API with custom domain (`api.tsuru.jcampos.dev`)
 - **Cognito**: User authentication and management
 - **RDS/Supabase**: PostgreSQL database
 - **SES**: Email service for notifications
 
 ### Frontend Infrastructure
-- **Dashboard** (Admin Panel): React SPA at `admin.j-markets.jcampos.dev`
-- **Landing Page**: Marketing site at `j-markets.jcampos.dev`
-- **Template Sites**: Multiple tenant sites at `{subdomain}.j-markets.jcampos.dev`
+- **Dashboard** (Admin Panel): React SPA at `admin.tsuru.jcampos.dev`
+- **Landing Page**: Marketing site at `tsuru.jcampos.dev`
+- **Template Sites**: Multiple tenant sites at `{subdomain}.tsuru.jcampos.dev`
 
 ### Infrastructure Pattern (Similar to JCampos-Biller)
 ```
@@ -37,9 +37,9 @@ CloudFormation Templates (this repo):
 ├── codepipeline.yml        # CI/CD pipeline
 └── organization-publish-topic.yml  # SNS topic for org events
 
-Managed in infra repo (biller-apps/Infrastructure):
+Managed in infra repo (Infrastructure/):
 ├── cognito/jmarkets-cognito.yml    # User authentication
-└── policies/jcampos-iam-policies.yaml  # IAM policies
+└── policies/tsuru-iam-policies.yaml  # IAM policies
 
 Frontend deployment (no CloudFormation):
 └── setup-template-bucket.js  # S3 + CloudFront for all sites
@@ -176,7 +176,7 @@ brew install awscli
 **What it does:**
 - Creates REST API Gateway
 - Configures Lambda proxy integration
-- Sets up custom domain (`markets-api.jcampos.dev`)
+- Sets up custom domain (`api.tsuru.jcampos.dev`)
 - Creates ACM SSL certificate
 - Adds Route53 DNS records
 
@@ -200,14 +200,14 @@ node setup-template-bucket.js
 - Creates CloudFront distributions with SSL
 - Uploads built files for all frontends
 - Creates Route53 DNS records
-- Dashboard: `admin.j-markets.jcampos.dev`
-- Landing: `j-markets.jcampos.dev`
-- Templates: `{subdomain}.j-markets.jcampos.dev`
+- Dashboard: `admin.tsuru.jcampos.dev`
+- Landing: `tsuru.jcampos.dev`
+- Templates: `{subdomain}.tsuru.jcampos.dev`
 
 **Outputs:**
-- Landing page URL: `https://j-markets.jcampos.dev`
-- Dashboard URL: `https://admin.j-markets.jcampos.dev`
-- Template URLs: `https://{subdomain}.j-markets.jcampos.dev`
+- Landing page URL: `https://tsuru.jcampos.dev`
+- Dashboard URL: `https://admin.tsuru.jcampos.dev`
+- Template URLs: `https://{subdomain}.tsuru.jcampos.dev`
 
 **Quick command:**
 ```bash
@@ -264,20 +264,20 @@ aws cloudformation describe-stacks \
 curl https://[api-id].execute-api.us-east-1.amazonaws.com/prod/api/health
 
 # Test with custom domain
-curl https://markets-api.jcampos.dev/api/health
+curl https://api.tsuru.jcampos.dev/api/health
 ```
 
 ### 4. Test with Authentication
 
 ```bash
 # Login and get JWT token
-TOKEN=$(curl -X POST https://markets-api.jcampos.dev/api/login \
+TOKEN=$(curl -X POST https://api.tsuru.jcampos.dev/api/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"Password123!"}' \
   | jq -r '.token')
 
 # Use token in authenticated request
-curl https://markets-api.jcampos.dev/api/users/[userId]/profile \
+curl https://api.tsuru.jcampos.dev/api/users/[userId]/profile \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -345,7 +345,7 @@ node setup-template-bucket.js
 Update `dashboard/.env.production`:
 
 ```bash
-VITE_API_URL=https://markets-api.jcampos.dev
+VITE_API_URL=https://api.tsuru.jcampos.dev
 VITE_AWS_REGION=us-east-1
 VITE_AWS_COGNITO_USER_POOL_ID=us-east-1_xxxxxxx
 VITE_AWS_COGNITO_CLIENT_ID=your_client_id_here
@@ -405,7 +405,7 @@ node setup-template-bucket.js
 
 **Error: "No wildcard certificate found"**
 ```bash
-# The setup script automatically creates wildcard cert for *.j-markets.jcampos.dev
+# The setup script automatically creates wildcard cert for *.tsuru.jcampos.dev
 # Just run the script and it will handle certificate creation/validation
 node setup-template-bucket.js
 ```
@@ -420,8 +420,8 @@ node setup-template-bucket.js
 **Domain not resolving:**
 ```bash
 # Check DNS propagation
-dig admin.j-markets.jcampos.dev
-dig markets-api.jcampos.dev
+dig admin.tsuru.jcampos.dev
+dig api.tsuru.jcampos.dev
 
 # Verify Route53 records
 aws route53 list-resource-record-sets \
@@ -501,6 +501,6 @@ Before going live:
 
 **🎉 Your JMarkets platform is now deployed to AWS!**
 
-Dashboard: `https://admin.j-markets.jcampos.dev`
-API: `https://markets-api.jcampos.dev`
-Landing: `https://j-markets.jcampos.dev`
+Dashboard: `https://admin.tsuru.jcampos.dev`
+API: `https://api.tsuru.jcampos.dev`
+Landing: `https://tsuru.jcampos.dev`

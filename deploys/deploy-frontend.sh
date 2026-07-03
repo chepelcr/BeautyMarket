@@ -12,7 +12,7 @@ AWS_PROFILE=${AWS_PROFILE:-"J-CAMPOS"}
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  J-Markets Frontend Deploy${NC}"
-echo -e "${GREEN}  Base domain: j-markets.jcampos.dev${NC}"
+echo -e "${GREEN}  Base domain: tsuru.jcampos.dev${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
@@ -45,13 +45,13 @@ echo ""
 # Resolve hosted zone ID (same approach as deploy-api-gateway.sh)
 echo -e "${YELLOW}Fetching Route53 Hosted Zone ID...${NC}"
 HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name \
-  --dns-name "jcampos.dev" \
+  --dns-name "tsuru.jcampos.dev" \
   --query "HostedZones[0].Id" \
   --output text \
   --profile $AWS_PROFILE | cut -d'/' -f3)
 
 if [ -z "$HOSTED_ZONE_ID" ] || [ "$HOSTED_ZONE_ID" = "None" ]; then
-  echo -e "${RED}❌ Could not find hosted zone for jcampos.dev${NC}"
+  echo -e "${RED}❌ Could not find hosted zone for tsuru.jcampos.dev${NC}"
   echo "   Set HOSTED_ZONE_ID manually in .env and re-run"
   exit 1
 fi

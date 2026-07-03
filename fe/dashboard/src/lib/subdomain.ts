@@ -2,14 +2,14 @@
  * Subdomain detection utility for multi-tenant SaaS
  *
  * Examples:
- * - j-markets.jcampos.dev -> null (main domain)
- * - mi-tienda.j-markets.jcampos.dev -> "mi-tienda"
+ * - tsuru.jcampos.dev -> null (main domain)
+ * - mi-tienda.tsuru.jcampos.dev -> "mi-tienda"
  * - localhost:3000 -> null
  * - mi-tienda.localhost:3000 -> "mi-tienda"
  */
 
 // Base domain configuration
-const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
+const BASE_DOMAIN = import.meta.env.VITE_BASE_DOMAIN || 'tsuru.jcampos.dev';
 
 /**
  * Get the current subdomain from the hostname

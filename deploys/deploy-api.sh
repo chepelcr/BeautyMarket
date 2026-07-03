@@ -9,8 +9,8 @@ SKIP_REFRESH=false
 # Load domain config from .env
 ROOT_DOMAIN=$(grep '^ROOT_DOMAIN=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
 API_DOMAIN=$(grep '^API_DOMAIN=' .env | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-ROOT_DOMAIN=${ROOT_DOMAIN:-"jcampos.dev"}
-API_DOMAIN=${API_DOMAIN:-"markets-api.jcampos.dev"}
+ROOT_DOMAIN=${ROOT_DOMAIN:-"tsuru.jcampos.dev"}
+API_DOMAIN=${API_DOMAIN:-"api.tsuru.jcampos.dev"}
 
 for arg in "$@"; do
   [ "$arg" = "--skip-refresh" ] && SKIP_REFRESH=true

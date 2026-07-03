@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-11
 **Status:** Approved direction (user decision 2026-06-11). **Spec only — no content changes applied in this workflow.**
-**Scope:** All user-facing surfaces — landing content JSONs, POS strings, docs. **Explicitly OUT of scope:** domains, buckets, repos, package names, template/theme IDs, infra (`j-markets.jcampos.dev`, `admin.j-markets.jcampos.dev`, `jmarkets-template-market`, `jmarkets-demo`, Cognito, CI/CD paths). Those stay until a separate infra-rename workstream.
+**Scope:** All user-facing surfaces — landing content JSONs, POS strings, docs. **Explicitly OUT of scope:** domains, buckets, repos, package names, template/theme IDs, infra (`tsuru.jcampos.dev`, `admin.tsuru.jcampos.dev`, `jmarkets-template-market`, `jmarkets-demo`, Cognito, CI/CD paths). Those stay until a separate infra-rename workstream.
 **Inputs:** `docs/audit/tsuru/tsuru_landing_audit.md`, `tsuru_reconciliation_report.md`, `tsuru_product_strategy.md`, `tsuru_research_reconciliation.md`, `tsuru_executive_vision.md`, `docs/Rebranding Web_ Economía Indígena Solidaria.txt`, plus a fresh grep inventory of `landing-client/src` and `templates/pos-system/src` (2026-06-11).
 
 **Related approved workstreams (context for copy decisions):**
@@ -271,10 +271,10 @@ Grep basis: `JMarkets|J-Markets|jmarkets|J Markets` across `landing-client/src` 
 
 | File | Refs | What it becomes |
 |---|---|---|
-| `branding.json` | 3 | `companyName: "Tsuru"`; tagline ES/EN name-swapped (§3.6). **Keep** `adminLoginUrl`/`adminRegisterUrl` domains (`admin.j-markets.jcampos.dev`) — infra, out of scope (separate known issue: they point at the legacy dashboard). Fill `logoUrl`/`faviconUrl` when wordmark assets exist. |
+| `branding.json` | 3 | `companyName: "Tsuru"`; tagline ES/EN name-swapped (§3.6). **Keep** `adminLoginUrl`/`adminRegisterUrl` domains (`admin.tsuru.jcampos.dev`) — infra, out of scope (separate known issue: they point at the legacy dashboard). Fill `logoUrl`/`faviconUrl` when wordmark assets exist. |
 | `navbar.json` | 1 | `brand: {es:"Tsuru", en:"Tsuru"}` |
 | `footer.json` | 3 | `brand` → Tsuru; copyright ES/EN → "© 2026 Tsuru. …"; description stays (no name in it). |
-| `seo.json` | 4 | `defaultTitle` → "Tsuru - Tu comunidad, tu mercado" (or new hero line "Tsuru — Vende legal, vende fácil"); `defaultDescription` rewritten per §2 (mention facturación electrónica gratuita). **Keep `siteUrl: https://j-markets.jcampos.dev`** — domain out of scope (note: repo CLAUDE.md says GitHub Pages deploy is `tsuru.jcampos.dev`; resolving that drift is the infra workstream). |
+| `seo.json` | 4 | `defaultTitle` → "Tsuru - Tu comunidad, tu mercado" (or new hero line "Tsuru — Vende legal, vende fácil"); `defaultDescription` rewritten per §2 (mention facturación electrónica gratuita). **Keep `siteUrl: https://tsuru.jcampos.dev`** — domain out of scope (note: repo CLAUDE.md says GitHub Pages deploy is `tsuru.jcampos.dev`; resolving that drift is the infra workstream). |
 | `landing.json` | 2 | `values.subtitle` ES/EN name swap; plus the §3.1/§3.4 copy rework and new billing/roadmap blocks. |
 | `features.json` | 1 | `useCasesSection.title` → "¿Quién usa Tsuru?"; plus §3.2 feature-card rework (replaces not-built order tracking, kills "miles de emprendedores"). |
 | `fairs.json` | 5 | Name swaps + entire page reframed to "en construcción" roadmap framing (§3.5); remove "Active fairs" present-tense framing. |
@@ -319,13 +319,13 @@ Note: POS work belongs in the standalone repo `chepelcr/tsuru-pos-system` per th
 
 | Class | Files (examples) | What it becomes |
 |---|---|---|
-| Living guidance docs | root `CLAUDE.md` (12 refs incl. "J-Markets storefront SaaS" phrasing), `docs/README.md`, `docs/LANDING_CLIENT_BRIEF.md`, `docs/app/MULTI_TEMPLATE_ARCHITECTURE.md`, `docs/DEPLOYMENT*.md` | Replace **brand** usages with "Tsuru (formerly JMarkets)" on first mention, then "Tsuru". **Leave untouched:** domains (`j-markets.jcampos.dev`), bucket names (`jmarkets-template-market`), template IDs (`jmarkets-demo`), env values — these are real infra identifiers. |
+| Living guidance docs | root `CLAUDE.md` (12 refs incl. "J-Markets storefront SaaS" phrasing), `docs/README.md`, `docs/LANDING_CLIENT_BRIEF.md`, `docs/app/MULTI_TEMPLATE_ARCHITECTURE.md`, `docs/DEPLOYMENT*.md` | Replace **brand** usages with "Tsuru (formerly JMarkets)" on first mention, then "Tsuru". **Leave untouched:** domains (`tsuru.jcampos.dev`), bucket names (`jmarkets-template-market`), template IDs (`jmarkets-demo`), env values — these are real infra identifiers. |
 | Audit corpus | `docs/audit/tsuru/*.md` (14 files) | **Do not edit** — historical record; they intentionally document the JMarkets era. |
 | Status/implementation archives | `docs/IMPLEMENTATION_*.md`, `docs/TEMPLATE_*.md`, `docs/HOMEPAGE_CMS_*.md`, etc. | Low priority; sweep opportunistically or mark archived. |
 
 ### 4.5 Explicitly NOT changed (out of scope, restated)
 
-- Domains/DNS: `j-markets.jcampos.dev`, `admin.j-markets.jcampos.dev`, `markets-api.jcampos.dev`, `{slug}.j-markets.jcampos.dev`; `seo.json.siteUrl`; `branding.json` admin URLs.
+- Domains/DNS: `tsuru.jcampos.dev`, `admin.tsuru.jcampos.dev`, `api.tsuru.jcampos.dev`, `{slug}.tsuru.jcampos.dev`; `seo.json.siteUrl`; `branding.json` admin URLs.
 - AWS resources: `jmarkets-template-market` bucket, CloudFront, Route53, Cognito, pipelines (`deploys/setup-template-bucket.js` references).
 - Identifiers: template names/IDs (`jmarkets-demo` in DB seeds, `Examples.tsx`, POS theme IDs), package names, repo names, `jmarkets_common` Python lib.
 - The 8 storefront template apps' internal branding (their fate is the §5.7 consolidation decision in `tsuru_product_strategy.md`, not this rebrand).
@@ -365,7 +365,7 @@ Note: POS work belongs in the standalone repo `chepelcr/tsuru-pos-system` per th
 
 ### Phase R4 — explicitly deferred (tracked, not in this rebrand)
 
-- Domain/infra renames (`j-markets.jcampos.dev` → tsuru domain, bucket, SEO `siteUrl`, admin CTA URLs — which also need re-aiming at the POS app per `tsuru_reconciliation_report.md` §3.5).
+- Domain/infra renames (`tsuru.jcampos.dev` → tsuru domain, bucket, SEO `siteUrl`, admin CTA URLs — which also need re-aiming at the POS app per `tsuru_reconciliation_report.md` §3.5).
 - Tier 2 cultural identity (Bribri lexicon IA, Ú-sure/cacao logo, etnogeometric patterns) — **gated on RIBCA/Bribri partnership** (§1.3).
 - Contact-form SES delivery, real publish status, legal-pages full rewrite with counsel — trust fixes that pair with, but exceed, the rebrand.
 - Theme-ID/template-ID/data migrations (`jmarkets` theme id, `jmarkets-demo` template rows).

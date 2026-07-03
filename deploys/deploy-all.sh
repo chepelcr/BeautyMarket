@@ -38,7 +38,7 @@ echo "✓ AWS CLI configured with appropriate credentials"
 echo "✓ Permissions to create CloudFormation stacks"
 echo "✓ Permissions to create IAM roles and policies"
 echo "✓ GitHub CodeStar connection already created in AWS Console"
-echo "✓ Route53 hosted zone configured for j-markets.jcampos.dev"
+echo "✓ Route53 hosted zone configured for tsuru.jcampos.dev"
 echo ""
 
 # Confirmation
@@ -191,7 +191,7 @@ cat << 'EOF'
 │                    ┌──────────────────┴──────────────────┐     │
 │                    ↓                                    ↓      │
 │              [API Gateway]                     [Supabase]      │
-│          markets-api.jcampos.dev           PostgreSQL         │
+│          api.tsuru.jcampos.dev           PostgreSQL         │
 │                    ↓                                           │
 │        REST API for Client & Organizations                     │
 │                                                                │
@@ -200,7 +200,7 @@ cat << 'EOF'
 │         [CloudFront] ↔ [CDN for orgs]                          │
 │                                                                │
 │                      [Static Website]                         │
-│                 www.j-markets.jcampos.dev                       │
+│                 tsuru.jcampos.dev                       │
 │                   [S3 + CloudFront]                           │
 │                      React App                                │
 │                                                                │
@@ -212,8 +212,8 @@ echo -e "${GREEN}=== Success! ===${NC}"
 echo ""
 echo "Your AWS infrastructure is ready. You can now:"
 echo "1. Push code to GitHub main branch to trigger deployments"
-echo "2. Access your API at: https://markets-api.jcampos.dev/api/*"
-echo "3. Access your website at: https://www.j-markets.jcampos.dev"
+echo "2. Access your API at: https://api.tsuru.jcampos.dev/api/*"
+echo "3. Access your website at: https://tsuru.jcampos.dev"
 echo "4. Manage organizations with automatic infrastructure provisioning"
 echo ""
 echo "For troubleshooting, see: docs/DEPLOYMENT.md"

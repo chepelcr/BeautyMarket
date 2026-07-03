@@ -1,7 +1,7 @@
 # Tsuru Storefront-Deploy MVP — Milestone Map (TSR-118)
 
 **Created:** 2026-06-20 · **Revised:** 2026-06-20 (owner reshaped the public-API approach).
-**Owner:** jcampos. **Goal:** a new organization gets a working, HTTPS storefront
+**Owner:** tsuru. **Goal:** a new organization gets a working, HTTPS storefront
 auto-deployed at `{slug}.stores.tsuru.jcampos.dev`, consuming **one shared public API**
 (a generated API-Gateway that routes to the existing lambdas — no new service), protected by
 an **anonymous Cognito** pool; the storefront templates live in their own repos, are visible
@@ -106,8 +106,8 @@ anonymous Identity Pool.)*
 
 ## W4 — Template contract audit + repoint
 
-Per `templates/{name}` (≈9): base URL `markets-api.jcampos.dev` → `public-api.tsuru.jcampos.dev`
-(`apiUtils.ts`); base domain `j-markets.jcampos.dev` → `stores.tsuru.jcampos.dev` (`subdomain.ts`);
+Per `templates/{name}` (≈9): base URL `api.tsuru.jcampos.dev` → `public-api.tsuru.jcampos.dev`
+(`apiUtils.ts`); base domain `tsuru.jcampos.dev` → `stores.tsuru.jcampos.dev` (`subdomain.ts`);
 **org id from injected `VITE_ORG_ID`** (org mode) — don't rely on subdomain lookup alone;
 align the called paths to the EXISTING public paths W1 exposes (products/categories from store-be
 paths; content from management-be `/api/public/...`); add **Amplify guest auth** to sign requests

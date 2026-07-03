@@ -12,7 +12,7 @@ export interface DomainConfig {
  * 
  * Priority:
  * 1. If customDomain exists AND domainVerified is true: return https://{customDomain}
- * 2. Otherwise, if subdomain exists: return https://{subdomain}.j-markets.jcampos.dev
+ * 2. Otherwise, if subdomain exists: return https://{subdomain}.tsuru.jcampos.dev
  * 3. Otherwise: return null
  * 
  * @param config - Domain configuration object
@@ -26,7 +26,7 @@ export function constructSiteUrl(config: DomainConfig): string | null {
   
   // Priority 2: Subdomain fallback
   if (config.subdomain) {
-    return `https://${config.subdomain}.j-markets.jcampos.dev`;
+    return `https://${config.subdomain}.tsuru.jcampos.dev`;
   }
   
   // No valid domain configuration

@@ -6,7 +6,7 @@
 **Product Type:** Multi-Tenant SaaS E-commerce Platform  
 **Target Audience:** Small to medium businesses wanting to launch online stores  
 **Industry:** E-commerce Technology / SaaS  
-**Website:** j-markets.jcampos.dev
+**Website:** tsuru.jcampos.dev
 
 ## Brand Essence
 
@@ -22,7 +22,7 @@ Tsuru empowers businesses to launch professional online stores in minutes withou
 
 ### Key Differentiators
 1. **Instant Deployment** - Launch your store in minutes, not weeks
-2. **Custom Subdomains** - Professional branded URLs (yourstore.j-markets.jcampos.dev)
+2. **Custom Subdomains** - Professional branded URLs (yourstore.tsuru.jcampos.dev)
 3. **Multi-Tenant Architecture** - Isolated, secure environments per organization
 4. **AWS Infrastructure** - Enterprise-grade reliability and performance
 5. **Beautiful Templates** - 8+ pre-designed industry-specific themes
@@ -162,9 +162,9 @@ Tsuru empowers businesses to launch professional online stores in minutes withou
 7. **Mobile Apps** - Future iOS/Android applications
 
 ### Brand Touchpoints:
-- Landing page (j-markets.jcampos.dev)
-- Admin dashboard (admin.j-markets.jcampos.dev)
-- Customer stores (*.j-markets.jcampos.dev)
+- Landing page (tsuru.jcampos.dev)
+- Admin dashboard (admin.tsuru.jcampos.dev)
+- Customer stores (*.tsuru.jcampos.dev)
 - Social media profiles
 - Email signatures
 - Support documentation

@@ -8,7 +8,7 @@
 
 ## 1. Service decision: a new standalone FastAPI service (`fairs-be`)
 
-**Recommendation: a new standalone FastAPI + Mangum Lambda service following `E:/dev/cross-app-be` conventions exactly**, deployed behind its own API Gateway (`fairs-api.jcampos.dev`), reading/writing the shared Postgres.
+**Recommendation: a new standalone FastAPI + Mangum Lambda service following `E:/dev/cross-app-be` conventions exactly**, deployed behind its own API Gateway (`fairs-api.tsuru.jcampos.dev`), reading/writing the shared Postgres.
 
 Why this and not the Express server or cross-app-be:
 
@@ -18,7 +18,7 @@ Why this and not the Express server or cross-app-be:
 - **Why not Express (`E:/dev/BeautyMarket/server`):** that server owns identity/org/RBAC (per `docs/roadmap/rbac_express_contract.md`) and is the legacy markets-api; growing a new product domain there deepens the legacy-vs-new duplication the audit flags (`tsuru_architecture_audit.md` finding: "Legacy markets-api still owns identity/org/CMS… without a declared end-state owner per domain, three systems will keep drifting"). Fairs gets a declared owner from day one.
 - **Why not cross-app-be:** it is the POS/commerce domain (sessions, sales, Hacienda). Fairs is a different bounded context with a public read surface; mixing them couples deploy cadence and blast radius.
 
-Repo: new `chepelcr/tsuru-fairs-be` (or `fairs-be` folder pending the user's repo-split conventions — `monorepo-folder-split` skill applies if incubated in BeautyMarket first). Naming below assumes service name **`fairs-be`**, API host **`fairs-api.jcampos.dev`**.
+Repo: new `chepelcr/tsuru-fairs-be` (or `fairs-be` folder pending the user's repo-split conventions — `monorepo-folder-split` skill applies if incubated in BeautyMarket first). Naming below assumes service name **`fairs-be`**, API host **`fairs-api.tsuru.jcampos.dev`**.
 
 ---
 
@@ -39,7 +39,7 @@ Repo: new `chepelcr/tsuru-fairs-be` (or `fairs-be` folder pending the user's rep
 │  POS app (merchant) │ org-scoped  ┌──────────────────────┐   admin endpoints  ┌─────────────────────────┐
 │ pos.j-markets..     │────────────▶│      FAIRS BE        │◀──────────────────│  TSURU ADMIN            │
 │ new "Ferias" section│  JWT +      │  FastAPI + Mangum    │  Cognito JWT      │  (landing-client/src/   │
-│ fairsApi client     │  x-user-id  │  fairs-api.jcampos.. │  platform-admin   │  admin, BE-connected    │
+│ fairsApi client     │  x-user-id  │  fairs-api.tsuru.. │  platform-admin   │  admin, BE-connected    │
 └─────────┬───────────┘             └──────┬───────┬───────┘  group claim      │  "Ferias (online)" grp) │
           │                                │       │                           └─────────────────────────┘
           │ existing APIs                  │       │ presigned uploads
@@ -195,7 +195,7 @@ Effective stand content = `profile ⊕ overrides`, resolved in the service layer
 
 ---
 
-## 4. API surface (`fairs-api.jcampos.dev`)
+## 4. API surface (`fairs-api.tsuru.jcampos.dev`)
 
 Three tiers, mirroring the ecosystem's path conventions (org-scoped `/api/organizations/{organization_id}/…` + `x-user-id` header exactly like cross-app-be controllers, e.g. `branches_controller.py`).
 
@@ -299,7 +299,7 @@ Key service rules:
 
 ## 6. Public fairs frontend: a new small Vite SPA
 
-**Recommendation: a separate Vite SPA (`tsuru-fairs-client`) deployed to S3 + CloudFront at `ferias.j-markets.jcampos.dev`** (rename to a Tsuru domain rides the existing separate domain workstream — no infra renames now, per the rebrand plan scope).
+**Recommendation: a separate Vite SPA (`tsuru-fairs-client`) deployed to S3 + CloudFront at `ferias.tsuru.jcampos.dev`** (rename to a Tsuru domain rides the existing separate domain workstream — no infra renames now, per the rebrand plan scope).
 
 Why not embed in the landing:
 - The landing is contractually **100% static with NO runtime backend** (`landing-client/CLAUDE.md`: "driven entirely by bundled JSON content files with NO runtime backend — it deploys 100% static", deployed on GitHub Pages). A live fairs hall is runtime-API-driven by definition; embedding it breaks the landing's core architectural guarantee and its prerender/SEO model.
@@ -358,13 +358,13 @@ This satisfies the decision's "preview modal" + "defaults to the org's store tem
 
 ### POS client wiring
 
-Per POS conventions (`templates/pos-system/CLAUDE.md` §2): add a fourth API helper in `src/lib/api.ts` — `fairsApi` with base `VITE_FAIRS_API_URL` (default `https://fairs-api.jcampos.dev`) and `fairsOrgPath(orgId, endpoint)` → `/api/organizations/{o}{e}`, injecting the same Bearer token + `x-user-id` header as `crossAppApi`. Hooks in `src/hooks/useFairs.ts` (query keys `["fairs", orgId, ...]`), services-free (thin fetch hooks like `useClients`), pages per spec §7.1, nav item in `DashboardSidebar.tsx` `NAV_ITEMS`, all strings through `t()` (ES+EN) in `LanguageContext.tsx` under a new `fairs.*` namespace.
+Per POS conventions (`templates/pos-system/CLAUDE.md` §2): add a fourth API helper in `src/lib/api.ts` — `fairsApi` with base `VITE_FAIRS_API_URL` (default `https://fairs-api.tsuru.jcampos.dev`) and `fairsOrgPath(orgId, endpoint)` → `/api/organizations/{o}{e}`, injecting the same Bearer token + `x-user-id` header as `crossAppApi`. Hooks in `src/hooks/useFairs.ts` (query keys `["fairs", orgId, ...]`), services-free (thin fetch hooks like `useClients`), pages per spec §7.1, nav item in `DashboardSidebar.tsx` `NAV_ITEMS`, all strings through `t()` (ES+EN) in `LanguageContext.tsx` under a new `fairs.*` namespace.
 
 ---
 
 ## 9. Assets: S3 for stand images
 
-- Dedicated bucket `jcampos-{env}-fairs-assets` via the `s3-uploads.yaml` pattern already in cross-app-be (`E:/dev/cross-app-be/cloudformation/s3-uploads.yaml`), fronted by CloudFront, long-cache immutable keys (`stand-assets/{org_id}/{uuid}.webp`).
+- Dedicated bucket `tsuru-{env}-fairs-assets` via the `s3-uploads.yaml` pattern already in cross-app-be (`E:/dev/cross-app-be/cloudformation/s3-uploads.yaml`), fronted by CloudFront, long-cache immutable keys (`stand-assets/{org_id}/{uuid}.webp`).
 - Upload flow: POS asks `POST /stand-assets/presign` → fairs-be validates kind/size/content-type + per-type caps → presigned PUT → client uploads (after client-side crop to slot spec: logo 200×200, banner 1200×400, gallery 4:3) → `POST /stand-assets` registers the row. The BE never proxies bytes (Lambda payload limits + cost).
 - Frame/skin assets (`stand_types.frame_assets`) are admin-uploaded to the same bucket under `frames/`.
 
@@ -417,6 +417,6 @@ Cron/rollup: offers past expires_at → expired
 - Org-scoped routes verify membership server-side — not just JWT validity (audit "membership-free authorizers").
 - Admin routes verify the `platform_admin` group claim in the service, not the gateway alone.
 - Public POSTs (`/metrics`, `/reports`) rate-limited per fingerprint + API Gateway throttling; bodies size-capped.
-- No secrets in repo; DB creds via the shared Secrets Manager secret `jcampos/{env}/database` + SSM params (`shared-db-secrets` pattern), per CLAUDE.md security rules.
+- No secrets in repo; DB creds via the shared Secrets Manager secret `tsuru/{env}/database` + SSM params (`shared-db-secrets` pattern), per CLAUDE.md security rules.
 - fairs-be never writes platform tables (contract §3.1) — reviewed per migration.
 - wa.me links are server-built from validated E.164 numbers; user text URL-encoded (no injection into the prefilled message).

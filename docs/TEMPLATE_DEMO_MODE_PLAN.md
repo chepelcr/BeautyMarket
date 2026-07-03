@@ -139,7 +139,7 @@ export function useTheme() {
 // server/src/seeds/template-seed.ts
 {
   name: 'beauty-essentials',
-  previewUrl: 'https://demo-beauty-essentials.j-markets.jcampos.dev',
+  previewUrl: 'https://demo-beauty-essentials.tsuru.jcampos.dev',
   // ...
 }
 ```

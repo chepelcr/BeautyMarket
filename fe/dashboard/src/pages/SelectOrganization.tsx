@@ -30,7 +30,7 @@ export default function SelectOrganization() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'tsuru.jcampos.dev';
 
   // Fetch user's organizations
   const { data: organizations, isLoading: orgsLoading, error } = useUserOrganizations(user?.id);

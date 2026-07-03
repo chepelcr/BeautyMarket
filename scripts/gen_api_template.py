@@ -90,7 +90,7 @@ args = parser.parse_args()
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env_path = os.path.join(root_dir, ".env")
-CUSTOM_DOMAIN = _read_env_var(env_path, "API_DOMAIN", "markets-api.jcampos.dev")
+CUSTOM_DOMAIN = _read_env_var(env_path, "API_DOMAIN", "api.tsuru.jcampos.dev")
 print(f"API domain   : {CUSTOM_DOMAIN}  (from .env API_DOMAIN)")
 spec_path = os.path.join(root_dir, SWAGGER_SOURCE)
 
@@ -160,7 +160,7 @@ L(I[1] + "ApiGatewayAccount:")
 L(I[2] + "Type: AWS::ApiGateway::Account")
 L(I[2] + "Properties:")
 L(I[3] + "CloudWatchRoleArn:")
-L(I[4] + 'Fn::ImportValue: !Sub "jcampos-${Environment}-apigateway-cloudwatch-role-arn"')
+L(I[4] + 'Fn::ImportValue: !Sub "tsuru-${Environment}-apigateway-cloudwatch-role-arn"')
 L()
 
 # ── API ───────────────────────────────────────────────────────────────────────

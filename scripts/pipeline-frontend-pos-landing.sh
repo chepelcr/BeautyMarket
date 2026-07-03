@@ -4,8 +4,8 @@ set -euo pipefail
 
 ENVIRONMENT="${ENVIRONMENT:-dev}"
 REGION="${REGION:-us-east-1}"
-ROOT_DOMAIN="${ROOT_DOMAIN:-jcampos.dev}"
-POS_LANDING_DOMAIN="${POS_LANDING_DOMAIN:-pos-landing.jcampos.dev}"
+ROOT_DOMAIN="${ROOT_DOMAIN:-tsuru.jcampos.dev}"
+POS_LANDING_DOMAIN="${POS_LANDING_DOMAIN:-pos-landing.tsuru.jcampos.dev}"
 
 STACK_NAME="jmarkets-${ENVIRONMENT}-frontend-pos-landing"
 BUCKET_NAME="jmarkets-${ENVIRONMENT}-pos-landing"

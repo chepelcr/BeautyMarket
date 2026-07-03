@@ -35,4 +35,4 @@ fi
 
 echo ""
 echo "🎉 Artisan Crafts template is ready for deployment!"
-echo "Live URL: https://artisan-crafts-example.j-markets.jcampos.dev"
+echo "Live URL: https://artisan-crafts-example.tsuru.jcampos.dev"

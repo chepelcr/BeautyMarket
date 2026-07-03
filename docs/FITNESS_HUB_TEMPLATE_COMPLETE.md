@@ -10,7 +10,7 @@ Successfully built the **Fitness Hub** template for the BeautyMarket/JMarkets mu
 
 - **Name**: Fitness Hub
 - **Category**: Fitness Equipment & Wellness
-- **Live URL**: https://fitness-hub-example.j-markets.jcampos.dev
+- **Live URL**: https://fitness-hub-example.tsuru.jcampos.dev
 - **Build Output**: `dist/templates/fitness-hub`
 
 ### Visual Identity
@@ -223,7 +223,7 @@ node setup-template-bucket.js
 
 ## Deployment Target
 
-- **URL**: https://fitness-hub-example.j-markets.jcampos.dev
+- **URL**: https://fitness-hub-example.tsuru.jcampos.dev
 - **S3 Bucket**: fitness-hub-example
 - **CloudFront**: Configured with wildcard SSL cert
 - **DNS**: Route53 A record pointing to CloudFront
@@ -278,7 +278,7 @@ Build output will be in `../../dist/templates/fitness-hub/`
 1. Ensure AWS credentials are configured
 2. Run `npm run build:template:fitness-hub` from root
 3. Run `node setup-template-bucket.js` to deploy all templates
-4. Visit https://fitness-hub-example.j-markets.jcampos.dev
+4. Visit https://fitness-hub-example.tsuru.jcampos.dev
 
 ## Testing Checklist
 

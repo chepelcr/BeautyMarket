@@ -12,7 +12,7 @@ import { fetchAuthSession } from 'aws-amplify/auth';
  *    silently falls back to anonymous fetch when no guest credentials are issued.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://markets-api.jcampos.dev';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.tsuru.jcampos.dev';
 
 export interface AnonymousAuthHeaders {
   Authorization?: string;

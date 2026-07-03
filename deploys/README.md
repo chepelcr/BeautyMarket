@@ -202,7 +202,7 @@ Scripts create these files:
    - CodeBuild (create projects)
 
 3. **Route53 Hosted Zone**
-   - Domain: `jcampos.dev`
+   - Domain: `tsuru.jcampos.dev`
    - Get Hosted Zone ID from Route53 console
 
 4. **GitHub CodeStar Connection**
@@ -352,7 +352,7 @@ aws lambda get-function-configuration --function-name jmarkets-api-handler --pro
 
 ### Test API Gateway
 ```bash
-curl https://markets-api.jcampos.dev/api/health
+curl https://api.tsuru.jcampos.dev/api/health
 ```
 
 ## Support

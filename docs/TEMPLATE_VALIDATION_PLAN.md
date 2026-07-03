@@ -59,7 +59,7 @@ All templates have these pages that use hooks:
 ## Testing Checklist
 - [ ] Run `npm run db:seed` to create/update template data
 - [ ] Run `node scripts/generate-bucket-configs.js` to create config files
-- [ ] Test demo template: `https://beauty-essentials-example.j-markets.jcampos.dev`
+- [ ] Test demo template: `https://beauty-essentials-example.tsuru.jcampos.dev`
 - [ ] Verify products load from API
 - [ ] Verify deals/services/programs pages work
 - [ ] Test production org deployment

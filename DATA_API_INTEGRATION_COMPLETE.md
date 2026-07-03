@@ -122,7 +122,7 @@ docs/
 
 Add to `.env`:
 ```env
-VITE_DATA_API_URL=https://data-api.jcampos.dev
+VITE_DATA_API_URL=https://data-api.tsuru.jcampos.dev
 ```
 
 ## Architecture Benefits

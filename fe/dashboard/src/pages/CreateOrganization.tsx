@@ -191,7 +191,7 @@ export default function CreateOrganization() {
     }
   };
 
-  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'j-markets.jcampos.dev';
+  const baseDomain = import.meta.env.VITE_BASE_DOMAIN || 'tsuru.jcampos.dev';
 
   const steps = [
     { id: 'info', title: 'Información Básica', description: 'Nombre y identificador' },

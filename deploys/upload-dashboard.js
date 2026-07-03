@@ -33,7 +33,7 @@ const cloudFrontClient = new CloudFrontClient({
   credentials: fromIni({ profile: AWS_PROFILE }),
 });
 
-const DASHBOARD_BUCKET = 'admin-jmarkets-jcampos-dev';
+const DASHBOARD_BUCKET = 'admin-jmarkets-tsuru-dev';
 const DASHBOARD_DISTRIBUTION_ID = 'E32CF99EJB1AO2';
 const BUILD_DIR = join(__dirname, 'dist', 'dashboard');
 
@@ -105,7 +105,7 @@ async function main() {
   console.log(`   ⏱️  Invalidation will complete in 1-5 minutes\n`);
 
   console.log('✅ Dashboard deployed successfully!');
-  console.log(`   URL: https://admin.j-markets.jcampos.dev\n`);
+  console.log(`   URL: https://admin.tsuru.jcampos.dev\n`);
 }
 
 main().catch((error) => {

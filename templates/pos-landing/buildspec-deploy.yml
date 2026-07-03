@@ -5,7 +5,7 @@ env:
     ENVIRONMENT: "dev"
     S3_BUCKET: ""
     CLOUDFRONT_DISTRIBUTION_ID: ""
-    SITE_DOMAIN: "pos-landing.jcampos.dev"
+    SITE_DOMAIN: "pos-landing.tsuru.jcampos.dev"
 
 phases:
   build:

@@ -119,7 +119,7 @@ class MarketsApiClient:
 ```
 
 **Configuration**:
-- Environment variable: `MARKETS_API_URL` (e.g., `https://api.jcampos.dev`)
+- Environment variable: `MARKETS_API_URL` (e.g., `https://api.tsuru.jcampos.dev`)
 - Timeout: 10 seconds (configurable)
 - Retry strategy: Use `tenacity` library (already in requirements.txt) for transient failures
 
@@ -426,7 +426,7 @@ GET    /api/users/{userId}/organization/{orgId}/dashboard
 DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/dbname
 
 # Markets API Integration
-MARKETS_API_URL=https://api.jcampos.dev
+MARKETS_API_URL=https://api.tsuru.jcampos.dev
 
 # AWS Cognito
 COGNITO_USER_POOL_ID=us-east-1_xxxxx

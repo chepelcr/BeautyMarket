@@ -35,7 +35,7 @@ This guide covers the complete setup and deployment of the JMarkets AWS infrastr
 │                    ┌──────────────────┴──────────────────┐     │
 │                    ↓                                    ↓      │
 │              [API Gateway]                     [Supabase]      │
-│          markets-api.jcampos.dev           PostgreSQL         │
+│          api.tsuru.jcampos.dev           PostgreSQL         │
 │                    ↓                                           │
 │        REST API for Client & Organizations                     │
 │                                                                │
@@ -44,7 +44,7 @@ This guide covers the complete setup and deployment of the JMarkets AWS infrastr
 │         [CloudFront] ↔ [CDN for orgs]                          │
 │                                                                │
 │                      [Static Website]                         │
-│                 www.j-markets.jcampos.dev                       │
+│                 tsuru.jcampos.dev                       │
 │                   [S3 + CloudFront]                           │
 │                      React App                                │
 │                                                                │
@@ -82,7 +82,7 @@ aws configure --profile J-CAMPOS
 ```
 
 ### 2. Domain & Hosted Zone
-- Domain registered (e.g., j-markets.jcampos.dev)
+- Domain registered (e.g., tsuru.jcampos.dev)
 - Route53 hosted zone created
 - Hosted Zone ID available (format: Z1234567890ABC)
 
@@ -119,7 +119,7 @@ brew install jq
 ### Automated Deployment (Recommended)
 
 ```bash
-cd /Users/jcampos/WebstormProjects/BeautyMarket
+cd /Users/tsuru/WebstormProjects/BeautyMarket
 
 # Run complete deployment
 ./deploys/deploy-all.sh
@@ -241,7 +241,7 @@ Stack: `jmarkets-api-gateway`
 
 **Interactive Prompts:**
 - Lambda ARN (auto-loaded)
-- API domain name (default: markets-api.jcampos.dev)
+- API domain name (default: api.tsuru.jcampos.dev)
 - Route53 hosted zone ID
 - API Gateway name
 
@@ -313,12 +313,12 @@ LAMBDA_FUNCTION_ARN=arn:aws:lambda:us-east-1:123456789:function:...
 # API Gateway
 API_GATEWAY_ID=abcdef1234
 API_GATEWAY_URL=https://abcdef1234.execute-api.us-east-1.amazonaws.com/dev
-API_DOMAIN_NAME=https://markets-api.jcampos.dev
+API_DOMAIN_NAME=https://api.tsuru.jcampos.dev
 
 # Static Website
 CLIENT_BUCKET_NAME=jmarkets-website-dev-123456789
 CLIENT_CLOUDFRONT_ID=E1234ABCD
-CLIENT_CLOUDFRONT_URL=https://www.j-markets.jcampos.dev
+CLIENT_CLOUDFRONT_URL=https://tsuru.jcampos.dev
 
 # CodePipeline
 CODEPIPELINE_NAME=jmarkets-pipeline
@@ -363,10 +363,10 @@ aws cloudfront create-invalidation \
 
 ```bash
 # Test API
-curl https://markets-api.jcampos.dev/api/health
+curl https://api.tsuru.jcampos.dev/api/health
 
 # Test Website
-curl https://www.j-markets.jcampos.dev
+curl https://tsuru.jcampos.dev
 ```
 
 ### 4. Verify GitHub CodeStar Connection

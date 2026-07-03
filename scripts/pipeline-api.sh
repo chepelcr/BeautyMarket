@@ -4,8 +4,8 @@ set -euo pipefail
 
 ENVIRONMENT="${ENVIRONMENT:-dev}"
 REGION="${REGION:-us-east-1}"
-API_DOMAIN="${API_DOMAIN:-markets-api.jcampos.dev}"
-ROOT_DOMAIN="${ROOT_DOMAIN:-jcampos.dev}"
+API_DOMAIN="${API_DOMAIN:-api.tsuru.jcampos.dev}"
+ROOT_DOMAIN="${ROOT_DOMAIN:-tsuru.jcampos.dev}"
 
 echo "=== JMarkets API Gateway Update ==="
 echo "  Environment : $ENVIRONMENT"

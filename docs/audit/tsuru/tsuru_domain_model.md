@@ -8,10 +8,10 @@ Audit deliverable. Sources: code in `E:/dev/BeautyMarket` (TS control-plane serv
 
 | System | Language/DB access | Primary persistence | Public endpoint |
 |---|---|---|---|
-| BeautyMarket/server (J-Markets control plane) | TS, Drizzle ORM (`server/src/config/database.ts`) | PostgreSQL (own connection, `NEW_DATABASE_URL`/SSM) | `markets-api.jcampos.dev` |
+| BeautyMarket/server (J-Markets control plane) | TS, Drizzle ORM (`server/src/config/database.ts`) | PostgreSQL (own connection, `NEW_DATABASE_URL`/SSM) | `api.tsuru.jcampos.dev` |
 | cross-app-be (POS backend) | Python, SQLAlchemy 2.0 | **Shared** PostgreSQL (with biller-apps) | (POS data API) |
-| biller-apps/auth (e-invoicing core, multi-Lambda) | Python, SQLAlchemy 2.0 + central Alembic | **Same shared** PostgreSQL as cross-app-be (`biller-apps/auth/alembic/env.py` excludes cross-app-be-owned tables) | `sales-api.jcampos.dev` |
-| biller-apps/data-services (fiscal catalogs) | Python, SQLAlchemy 2.0 | **Same shared** PostgreSQL (cross-app-be reads its `cabys` table directly — `cross-app-be/app/services/cabys_service.py` lines 3–6) | `data-api.jcampos.dev` |
+| biller-apps/auth (e-invoicing core, multi-Lambda) | Python, SQLAlchemy 2.0 + central Alembic | **Same shared** PostgreSQL as cross-app-be (`biller-apps/auth/alembic/env.py` excludes cross-app-be-owned tables) | `sales-api.tsuru.jcampos.dev` |
+| biller-apps/data-services (fiscal catalogs) | Python, SQLAlchemy 2.0 | **Same shared** PostgreSQL (cross-app-be reads its `cabys` table directly — `cross-app-be/app/services/cabys_service.py` lines 3–6) | `data-api.tsuru.jcampos.dev` |
 | landing-client (tsuru-landing) | TS/React, no DB | **Git is the database** — bundled JSON in `src/content/*.json`, published via `plugins/local-cms.ts` git commit+push | GitHub Pages `tsuru.jcampos.dev` |
 
 Key topology fact: cross-app-be, biller-apps/auth, and data-services share **one Postgres database**; table ownership is enforced only by convention (Alembic `include_object` filters + code comments), not by schema/permissions. The BeautyMarket Drizzle DB is configured independently; whether it is the same physical Postgres is **unverified** — but the `organizations` table shape is replicated across both stacks (see §6).
@@ -189,7 +189,7 @@ erDiagram
 
 ## 3. Fiscal Catalogs Domain (biller-apps/data-services)
 
-**Owner:** data-services (~30 CRUD micro-Lambdas + 4 `consumer-*` Hacienda-proxy Lambdas) at `data-api.jcampos.dev`. **No tenancy** — zero `organization_id` columns; scope keys are `country_code` (numeric ISO, 188 = CR) and `document_version_id` (Hacienda spec version, 1 = v4.4). Canonical shape from the 4-level base-model hierarchy `SimpleBase→GlobalCatalog→Catalog→CodedCatalog→Hacienda` in `shared/jmarkets_common/models/hacienda_base_model.py`: `id, code, description, country_code, status (1/2/3), deleted_on, document_version_id`.
+**Owner:** data-services (~30 CRUD micro-Lambdas + 4 `consumer-*` Hacienda-proxy Lambdas) at `data-api.tsuru.jcampos.dev`. **No tenancy** — zero `organization_id` columns; scope keys are `country_code` (numeric ISO, 188 = CR) and `document_version_id` (Hacienda spec version, 1 = v4.4). Canonical shape from the 4-level base-model hierarchy `SimpleBase→GlobalCatalog→Catalog→CodedCatalog→Hacienda` in `shared/jmarkets_common/models/hacienda_base_model.py`: `id, code, description, country_code, status (1/2/3), deleted_on, document_version_id`.
 
 | Entity group | Tables/services | Owner / notes |
 |---|---|---|
@@ -345,10 +345,10 @@ cross-app-be exposes full CRUD on a `consecutives` table keyed `(terminal, docum
 ### 6.2 `Sale` — two competing sale entities in the same shared DB
 - cross-app-be `sales` (`app/models/sale.py`): POS sale with flattened receiver, payments JSON, totals.
 - biller-apps/auth `billing_sales` + 13 child tables (`jbiller_common/models/sale.py`): the Hacienda document of record (clave, ATV status, attachments).
-Both model "a sale with a receiver and payments"; the POS FE talks to `sales-api.jcampos.dev` (billing_sales) while cross-app-be keeps its own table. Overlap/ownership of "the sale" is the largest entity-duplication risk in the ecosystem.
+Both model "a sale with a receiver and payments"; the POS FE talks to `sales-api.tsuru.jcampos.dev` (billing_sales) while cross-app-be keeps its own table. Overlap/ownership of "the sale" is the largest entity-duplication risk in the ecosystem.
 
 ### 6.3 `Template` — three definitions
-BeautyMarket `server/src/entities/Template.ts` (gallery + clone source, seeded with GitHub repo URLs), biller-apps `infrastructure-service-provider/src/models/template.py` (repository_url for deployment), and the landing site as a read-only consumer of `GET /api/templates?activeOnly=true` that **derives preview URLs by convention** client-side (`landing-client/src/pages/Examples.tsx:117`, `https://{name}-example.j-markets.jcampos.dev`).
+BeautyMarket `server/src/entities/Template.ts` (gallery + clone source, seeded with GitHub repo URLs), biller-apps `infrastructure-service-provider/src/models/template.py` (repository_url for deployment), and the landing site as a read-only consumer of `GET /api/templates?activeOnly=true` that **derives preview URLs by convention** client-side (`landing-client/src/pages/Examples.tsx:117`, `https://{name}-example.tsuru.jcampos.dev`).
 
 ### 6.4 Infrastructure provisioning — duplicated three ways
 (1) BeautyMarket Node script `deploys/setup-template-bucket.js` (S3+CloudFront+Route53+ACM), (2) BeautyMarket TS `aws-daos/{CloudFrontDao,Route53Dao,AcmDao}.ts` (**largely superseded/dead**), (3) biller-apps `infrastructure-service-provider` Python lambdas (the active SNS-driven consumer that writes `organization_settings`). The TS server's read-only contract on `organization_settings` is the strangler-fig boundary (`entities/OrganizationSettings.ts`).

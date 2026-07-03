@@ -9,7 +9,7 @@ Updated BeautyMarket AWS deployment infrastructure based on best practices from 
 ### 1. CloudFormation Templates Updated
 
 #### `cloudformation/lambda.yml`
-- ✅ Updated default function name: `jcampos-biller-lambda` → `jmarkets-api-handler`
+- ✅ Updated default function name: `tsuru-biller-lambda` → `jmarkets-api-handler`
 - ✅ Updated description: "JCampos Biller API" → "JMarkets Beauty Market API"
 - ✅ Fixed environment variable names to match project:
   - `DATABASE_URL` → `NEW_DATABASE_URL`
@@ -264,11 +264,11 @@ After deployment, verify:
 
 1. **API Gateway**
    ```bash
-   curl https://markets-api.jcampos.dev/api/health
+   curl https://api.tsuru.jcampos.dev/api/health
    ```
 
 2. **Static Website**
-   - Visit: https://www.j-markets.jcampos.dev
+   - Visit: https://tsuru.jcampos.dev
    - Check console for errors
 
 3. **Cognito**

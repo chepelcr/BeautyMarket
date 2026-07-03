@@ -252,7 +252,7 @@ All seed changes go in `server/src/seeds/rbac-seed.ts` (idempotent check-then-in
 
 ### POS (`templates/pos-system` → repo `chepelcr/tsuru-pos-system`) — org-scoped side
 
-- **Client + auth**: use the existing `api` helper (`templates/pos-system/src/lib/api.ts:106`), markets-api base (`VITE_API_URL` → `https://markets-api.jcampos.dev`), Cognito ID token auto-injected by `getToken()` (`api.ts:20-23`). No `x-user-id` header for markets-api.
+- **Client + auth**: use the existing `api` helper (`templates/pos-system/src/lib/api.ts:106`), markets-api base (`VITE_API_URL` → `https://api.tsuru.jcampos.dev`), Cognito ID token auto-injected by `getToken()` (`api.ts:20-23`). No `x-user-id` header for markets-api.
 - **Path builder**: add `orgRbacPath(userId, orgId, endpoint)` returning `` `/api/users/${userId}/organization/${orgId}/rbac${endpoint}` `` next to `orgSettingsPath`/`orgContentPath` (`api.ts:172-202`). **Do NOT reuse `orgPath`** — it injects `/memberships/` and will 404 against the `routes.ts:64` mount.
 - **Hooks**: new `src/hooks/useRbac.ts` following the React Query conventions (keys `["rbac","my-permissions",orgId]`, `["rbac","matrix",orgId]`, `["rbac","roles",orgId]`, `["rbac","role-permissions",orgId,roleId]`; mutations invalidate those keys). `userId` from `useAuthContext()`, `orgId` from `OrgContext`.
 - **Nav/action gating**: fetch O1 `my-permissions` once at dashboard mount; filter `DashboardSidebar` `NAV_ITEMS` by `MyPermissionsDto.modules`; expose a `can(module, action, submodule?)` helper over the flattened `permissions` strings (`"module:submodule:action"`).

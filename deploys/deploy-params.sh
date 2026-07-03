@@ -111,7 +111,7 @@ if [ "$USE_PROFILE" = true ]; then
   PROFILE_ARG="--profile $PROFILE"
 fi
 
-PARAMS_STACK="jcampos-${ENVIRONMENT}-jmarkets-ssm-params"
+PARAMS_STACK="tsuru-${ENVIRONMENT}-jmarkets-ssm-params"
 TEMPLATE_FILE="$REPO_ROOT/cloudformation/params.yml"
 
 echo "======================================================"
@@ -127,7 +127,7 @@ echo " Dashboard URL:    $DASHBOARD_URL_VAL"
 echo " CloudFront Domain: $CLOUDFRONT_DOMAIN_VAL"
 echo " API URL:          $API_URL_VAL"
 echo " Orders API URL:   $ORDERS_API_URL_VAL"
-echo " SSM Base Path:    /jcampos/${ENVIRONMENT}/jmarkets"
+echo " SSM Base Path:    /tsuru/${ENVIRONMENT}/jmarkets"
 echo "======================================================"
 
 # shellcheck disable=SC2086
@@ -149,19 +149,19 @@ aws cloudformation deploy \
 
 echo ""
 echo "✅ SSM parameters deployed successfully."
-echo "   Base path: /jcampos/${ENVIRONMENT}/jmarkets"
+echo "   Base path: /tsuru/${ENVIRONMENT}/jmarkets"
 echo ""
 echo "   Parameters created/updated:"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/aws/stage"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/aws/region"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/aws/database  → jcampos/${ENVIRONMENT}/database"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/cognito/user-pool-id   (from jmarkets-cognito stack)"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/cognito/client-id      (from jmarkets-cognito stack)"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/sns/organization-topic-arn  (from organization-publish-topic stack)"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/dashboard/url          → ${DASHBOARD_URL_VAL}"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/s3/bucket              → ${S3_BUCKET}"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/email/from             → ${FROM_EMAIL_VAL}"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/frontend/url           → ${FRONTEND_URL_VAL}"
-echo "   - /jcampos/${ENVIRONMENT}/jmarkets/cloudfront/domain      → ${CLOUDFRONT_DOMAIN_VAL}
-   - /jcampos/${ENVIRONMENT}/jmarkets/api/url               → ${API_URL_VAL}
-   - /jcampos/${ENVIRONMENT}/jmarkets/api/orders-url        → ${ORDERS_API_URL_VAL}"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/aws/stage"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/aws/region"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/aws/database  → tsuru/${ENVIRONMENT}/database"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/cognito/user-pool-id   (from jmarkets-cognito stack)"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/cognito/client-id      (from jmarkets-cognito stack)"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/sns/organization-topic-arn  (from organization-publish-topic stack)"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/dashboard/url          → ${DASHBOARD_URL_VAL}"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/s3/bucket              → ${S3_BUCKET}"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/email/from             → ${FROM_EMAIL_VAL}"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/frontend/url           → ${FRONTEND_URL_VAL}"
+echo "   - /tsuru/${ENVIRONMENT}/jmarkets/cloudfront/domain      → ${CLOUDFRONT_DOMAIN_VAL}
+   - /tsuru/${ENVIRONMENT}/jmarkets/api/url               → ${API_URL_VAL}
+   - /tsuru/${ENVIRONMENT}/jmarkets/api/orders-url        → ${ORDERS_API_URL_VAL}"

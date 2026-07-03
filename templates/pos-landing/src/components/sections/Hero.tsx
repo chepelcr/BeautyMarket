@@ -215,7 +215,7 @@ function PosScreenshotDesktop({ products, sub, iva, total, cartCount, grid = [] 
         </div>
         <div className="flex-1 flex justify-center">
           <span className="px-3 py-0.5 rounded text-[11px] font-mono text-muted-foreground bg-background/60 border border-border">
-            pos.j-markets.jcampos.dev
+            pos.tsuru.jcampos.dev
           </span>
         </div>
         <span className="hidden md:inline text-[11px] font-mono text-muted-foreground">v4.4</span>

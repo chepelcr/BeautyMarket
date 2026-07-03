@@ -26,7 +26,7 @@ export function MetaTab() {
           type="url"
           value={meta.appUrl}
           onChange={val => set('appUrl', val)}
-          placeholder="https://pos-system.j-markets.jcampos.dev"
+          placeholder="https://pos-system.tsuru.jcampos.dev"
           hint="Hacia dónde apuntan los botones 'Iniciar sesión' — tanto en el nav como en la sección CTA."
         />
 

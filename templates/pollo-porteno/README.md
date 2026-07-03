@@ -36,7 +36,7 @@ storefront and the POS share the same product/menu contract.
 See `.env.example`:
 
 ```env
-VITE_API_URL=https://markets-api.jcampos.dev
+VITE_API_URL=https://api.tsuru.jcampos.dev
 VITE_AWS_REGION=us-east-1
 VITE_AWS_COGNITO_USER_POOL_ID=
 VITE_AWS_COGNITO_CLIENT_ID=
