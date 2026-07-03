@@ -20,6 +20,11 @@ fe/pos-system/
 # fe/landing → https://github.com/chepelcr/tsuru-landing
 fe/landing/
 
+# fe/storefront-sdk → https://github.com/chepelcr/tsuru-storefront-sdk
+# Shared storefront data-layer package (published to GitHub Packages, consumed by the
+# templates). Own repo; local folder is a standalone working copy.
+fe/storefront-sdk/
+
 # NOTE: fe/dashboard is NOT ignored — it stays tracked in the monorepo (being retired, TSR-091).
 
 # be/ — each subfolder is its own standalone git repo
@@ -31,7 +36,7 @@ be/data-be/
 # Infrastructure — own git repo
 Infrastructure/
 
-# ── Split out to their own public repos (GH-Pages examples at *.examples.tsuru.jcampos.dev) ──
+# ── Split out to their own public repos (GH-Pages examples at *.examples.tsuru.tsuru.dev) ──
 # Each storefront template now lives in chepelcr/template-<name>; files remain tracked here
 # for now (provisioner clones the repos). New work belongs in the standalone repos.
 templates/artisan-crafts/
