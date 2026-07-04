@@ -39,7 +39,7 @@ on 2026-06-12 (roadmap TSR-112), parallel to the `be/` backend grouping — `fe/
 **Brand: Tsuru.** The public brand is **Tsuru** (formerly JMarkets). Do not write new
 "JMarkets" brand text on any user-facing surface. Infra identifiers are NOT the brand and
 stay as-is: domains (`tsuru.jcampos.dev`), buckets (`jmarkets-template-market`), template
-id `jmarkets-demo`, POS theme ids `jmarkets`/`jmarkets-demo`, the `jmarkets_common` lib.
+POS theme ids `jmarkets`/`jmarkets-demo`, and the `jmarkets_common` lib. (The demo template was rebranded: `jmarkets-demo` -> `tsuru-demo` / repo `template-tsuru-demo`, 2026-07-03, Bribri content.)
 See `docs/roadmap/tsuru_rebrand_plan.md` for scope.
 
 ## ⚠️ Security Guidelines
@@ -123,7 +123,7 @@ npm run dev                   # Start backend server (port 5000)
 npm run dev:landing           # Start landing-client (port 3001)
 npm run dev:dashboard         # Start dashboard (port 5173)
 npm run dev:all               # Start backend + landing + dashboard concurrently
-npm run dev:template:NAME     # Start specific template dev server (e.g., jmarkets-demo)
+npm run dev:template:NAME     # Start specific template dev server (e.g., tsuru-demo)
 
 # Building
 npm run build                 # Build all: dashboard, landing, server
@@ -197,7 +197,7 @@ node deploys/setup-template-bucket.js        # Build & deploy all frontend apps 
    - **Landing page**: `tsuru.jcampos.dev`
    - **Dashboard**: `admin.tsuru.jcampos.dev`
    - **8 Template Organizations**:
-     - `jmarkets-demo-example.tsuru.jcampos.dev`
+     - `tsuru-demo-example.tsuru.jcampos.dev`
      - `tech-gadgets-example.tsuru.jcampos.dev`
      - `vintage-fashion-example.tsuru.jcampos.dev`
      - `artisan-crafts-example.tsuru.jcampos.dev`
@@ -440,7 +440,7 @@ This project has **three separate React applications**:
    - **Contains all authentication and organization management**
 
 3. **templates/** - Individual store frontends (public-facing stores)
-   - Multiple independent Vite apps (jmarkets-demo, tech-gadgets, vintage-fashion, artisan-crafts, gourmet-foods, fitness-hub, pet-care, beauty-essentials)
+   - Multiple independent Vite apps (tsuru-demo, tech-gadgets, vintage-fashion, artisan-crafts, gourmet-foods, fitness-hub, pet-care, beauty-essentials)
    - Deployment: Organization subdomains (`{org-slug}.tsuru.jcampos.dev`)
    - Purpose: Customer-facing e-commerce stores
    - Each template has unique design, colors, and components
@@ -546,7 +546,7 @@ The platform supports **multiple template designs** for customer-facing stores. 
 
 **8 live templates** with distinct designs:
 
-1. **jmarkets-demo** - General marketplace (Pink `#ec4899`, modern e-commerce)
+1. **tsuru-demo** - Tsuru example store in Bribri (Cacao brown `#6C2E25`, landing-aligned identity; formerly jmarkets-demo)
 2. **tech-gadgets** - Technology & electronics (Blue `#3b82f6`, futuristic, dark mode)
 3. **vintage-fashion** - Vintage clothing (Sepia Brown `#92400e`, retro, elegant)
 4. **artisan-crafts** - Handmade crafts (Warm Orange `#f59e0b`, rustic, earthy)
@@ -561,7 +561,7 @@ All templates deployed to: `{template-name}-example.tsuru.jcampos.dev`
 
 ```
 templates/
-├── jmarkets-demo/          # Individual template folder
+├── tsuru-demo/             # Individual template folder
 │   ├── src/
 │   │   ├── pages/          # Template-specific pages
 │   │   ├── components/     # Template-specific components
@@ -611,10 +611,10 @@ templates table (metadata)
 
 ```bash
 # Development
-npm run dev:template:jmarkets-demo    # Start specific template dev server
+npm run dev:template:tsuru-demo       # Start specific template dev server
 
 # Building
-npm run build:template:jmarkets-demo  # Build specific template
+npm run build:template:tsuru-demo     # Build specific template
 npm run build:templates               # Build all templates
 
 # Deployment
@@ -626,7 +626,7 @@ npm run deploy:all-frontend           # Build all templates + dashboard + deploy
 **Database**: `templates` table (`server/src/entities/Template.ts`)
 
 Fields:
-- `name` - Unique template identifier (e.g., 'jmarkets-demo')
+- `name` - Unique template identifier (e.g., 'tsuru-demo')
 - `displayName` - Human-readable name (e.g., 'JMarkets Demo')
 - `description` - Template description
 - `category` - Template category (demo, electronics, fashion, etc.)
