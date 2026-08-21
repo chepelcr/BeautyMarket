@@ -97,7 +97,7 @@ E:/dev/Tsuru/                         # monorepo (chepelcr/Tsuru-CR) — branch:
 │  └─ data-be/                        # chepelcr/tsuru-data-be                           [ignored]
 ├─ templates/
 │  ├─ gourmet-foods/  …               # chepelcr/template-<name> (×8)                   [ignored]
-├─ Infrastructure/                    # chepelcr infra repo (public-api gen, cognito, iam) [ignored]
+├─ Infrastructure/                    # chepelcr/tsuru-infrastructure (public-api gen, cognito, iam) [ignored]
 └─ (docs, cloudformation, deploys, fe/dashboard — tracked)
 ```
 
@@ -112,10 +112,11 @@ git clone https://github.com/chepelcr/tsuru-store-be.git         be/store-be
 git clone https://github.com/chepelcr/tsuru-sales-be.git         be/sales-be
 git clone https://github.com/chepelcr/tsuru-data-be.git          be/data-be
 for n in gourmet-foods artisan-crafts beauty-essentials fitness-hub \
-         jmarkets-demo pet-care tech-gadgets vintage-fashion; do
+         tsuru-demo pet-care tech-gadgets vintage-fashion; do
   git clone "https://github.com/chepelcr/template-$n.git" "templates/$n"
 done
-# Infrastructure repo (name per the owner) → Infrastructure/
+# (template-tsuru-demo is the former template-jmarkets-demo, rebranded 2026-07-03)
+git clone https://github.com/chepelcr/tsuru-infrastructure.git Infrastructure
 ```
 
 > `.gitignore` already lists all of these, so they never get committed into the

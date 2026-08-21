@@ -16,6 +16,13 @@ Evidence cells in §2, refresh §7 manual steps, and append a dated line to the 
 changelog (rules in §1). New work gets a new TSR ID; never renumber or delete rows.
 The audit corpus in `docs/audit/tsuru/` is a historical record — do not edit it.
 
+**QA analysis doc has an Excel twin — keep them in sync.** `docs/qa/POS_FE_QA_ANALYSIS.md`
+is the source of truth for the POS FE QA/product analysis and has a generated workbook
+`docs/qa/POS_FE_QA_ANALYSIS.xlsx` (one sheet per module, used by the QA team). Whenever the
+analysis changes (new findings, status changes, new modules), update the data tables in
+`docs/qa/generate_pos_qa_xlsx.py` to match the md and re-run it in the same session
+(`python3 docs/qa/generate_pos_qa_xlsx.py`, requires `openpyxl`) so the xlsx never drifts.
+
 ## 🚧 Repository Split
 
 This monorepo has been split into separate repositories. **Status of extracted components:**
