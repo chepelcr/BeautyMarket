@@ -117,8 +117,11 @@ export const plans = pgTable("plans", {
   id:            varchar("id").primaryKey(),            // 'semilla' | 'cosecha' | 'cooperativa' | 'feria'
   displayName:   varchar("display_name", { length: 100 }).notNull(),
   sortOrder:     integer("sort_order").notNull(),
-  // Whole colones. Tsuru prices in CRC only — no USD on any surface, and no
-  // stored exchange rate to go stale (see tsuru_pricing_market_research.md §7).
+  // Whole colones, IVA INCLUDED — the published price is the final price
+  // ("sin cargos ocultos"). Do not add tax on top at checkout; if IVA ever has
+  // to be broken out on an invoice, derive it from this gross figure.
+  // CRC only: no USD on any surface, no stored FX rate to go stale
+  // (see tsuru_pricing_market_research.md §7).
   priceMonthly:  integer("price_monthly").notNull(),
   priceAnnual:   integer("price_annual").notNull(),
   currency:      varchar("currency", { length: 3 }).default("CRC").notNull(),
@@ -606,13 +609,12 @@ the only thing missing is collecting money.
    Market research independently supports it: Hacienda's TicoFactura is free and
    uncapped, so a hard cap pushes merchants to a government product rather than to
    a paid Tsuru tier.
-2. ~~**Cooperativa's price**~~ — **Resolved 2026-08-24: ₡35.000/mes, ₡315.000/año.**
+2. ~~**Cooperativa's price / IVA treatment**~~ — **Resolved 2026-08-24: ₡35.000/mes,
+   ₡315.000/año, IVA included (final prices).**
    ₡45.000 sat above the ₡36.000 CR market ceiling (Alegra POS Plus, POSMOVI
    Premium). The annual discount also widened from 2 to 3 free months (25%),
-   making Cosecha ₡180.000/año. Still open: the page never states whether amounts
-   are **IVA-included**, and every CR competitor states it
-   (`tsuru_pricing_market_research.md` §7) — decide before `draftPricing` is
-   turned off.
+   making Cosecha ₡180.000/año. Prices are **IVA-inclusive**, stated beside the
+   amounts and in the FAQ. Nothing blocks turning off `draftPricing` now.
 
 3. **Terminals on Cosecha** — the landing comparison says `1 · 3` (1 branch, 3
    terminals) while the tier card says "1 sucursal · 1 terminal" for Semilla only.

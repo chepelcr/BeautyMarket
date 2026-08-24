@@ -191,12 +191,16 @@ predatory next to the market.
 
 ## 7. Two things the pricing page doesn't say yet
 
-**IVA.** Every CR competitor quoting to businesses states "+ IVA" explicitly
-(GTI does throughout). Tsuru's page shows bare colón amounts with no indication.
-Consumer-facing prices in Costa Rica are expected to be displayed IVA-included;
-B2B quoting "+ IVA" is the norm. **Decide and state it on the page** — a merchant
-discovering 13% at checkout is a trust problem for a brand built on "sin cargos
-ocultos." This is a `plans.json` copy change, not code.
+**IVA — decided 2026-08-24: prices are final, IVA included.** Stated on the
+pricing page next to the amounts (not buried in the FAQ) and answered directly in
+the FAQ. For a brand whose promise is "sin cargos ocultos," a 13% that appears
+later would be exactly the hidden charge we say we don't have.
+
+This also means the comparison tables above **understate** Tsuru's position against
+GTI, which quotes "+ IVA" throughout — their real cost to a merchant is 13% higher
+than listed (persona física ₡7.650 → **₡8.645** final; empresa ₡12.750 →
+**₡14.408** final). Alegra and POSMOVI publish USD list prices without stating tax
+treatment, so those rows are left as published.
 
 **A stale FX constant, and why colones-only avoids it.**
 `fe/pos-landing/public/config.json` carries `usdRateCRC: 600` — ~33% off the real
@@ -230,13 +234,13 @@ to be an obvious upgrade rather than a toll — which is what §5 and §6 are ab
 | 3 | Semilla's 30-doc cap stays **soft** (warn at 80%, never block) | ✅ spec'd — TSR-145 §5.6 |
 | 4 | Document packs **₡2.500/25**, **₡8.000/100**, non-expiring | ✅ spec'd — ships with TSR-146 |
 | 5 | **Colones only**, round figures, no USD on any public surface | ✅ applied — `formatCRC` renders CR-style ₡20.000 |
+| 6 | Prices are **final, IVA included** — stated beside the amounts + in the FAQ | ✅ applied |
 
 **Still open:**
 
 | # | Action | Why |
 |---|---|---|
-| 6 | State the **IVA** treatment on the pricing page | Every CR competitor states it; silence risks the "sin cargos ocultos" promise (§7). Copy change in `plans.json`. |
-| 7 | Turn off `config.draftPricing` | Once IVA is stated, the numbers are final. |
+| 7 | Turn off `config.draftPricing` | IVA is now stated, so the numbers are final — this is the last gate before the prices read as committed. |
 | 8 | Fix or drop `usdRateCRC: 600` in `fe/pos-landing` | ~33% off the real rate (§7). Simplest fix: drop USD display — same colones-only rule as the landing. |
 
 ## Sources
