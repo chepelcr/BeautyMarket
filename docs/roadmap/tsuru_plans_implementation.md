@@ -1,7 +1,8 @@
 # Tsuru Plans — Implementation Spec (BE, org creation, POS)
 
 **Status:** Design, not yet built. **Roadmap:** TSR-084 (published model), TSR-145 (this build-out).
-**Companion:** the published, customer-facing model lives in `fe/landing/src/content/plans.json`
+**Companion:** `docs/roadmap/tsuru_pricing_market_research.md` (what the CR market actually
+charges — read it before confirming any amount). The published, customer-facing model lives in `fe/landing/src/content/plans.json`
 and renders at <https://tsuru.jcampos.dev/planes>. This document is how we make that real.
 
 > **Read §1 before anything else.** Two of the four tiers' contents are legal
@@ -22,6 +23,7 @@ site. They are inputs to the design, not things to trade off during it.
 | **No commission on sales, on any tier** | Published 5× on the landing. | No revenue logic may read order totals. |
 | **Data export is free on every tier** | Published. Also the honest exit path. | Export endpoints must never consult entitlements. |
 | **The free tier never expires and needs no card** | Published. | No trial timer, no `trialEndsAt`, no card capture at signup. |
+| **Document volume never blocks emission** | Hacienda's own TicoFactura issues unlimited receipts free, so a hard cap sends a merchant to a *government* product, not to a Tsuru tier — and blocking emission would stop them invoicing legally. | `docs.perMonth` is a **soft cap**: warn, offer a pack, never 402 on emission (§5.6). |
 
 Anything **not** in this table is fair game to gate: volume, seats, branches,
 terminals, custom domain, advanced reports, premium templates, support tier.
@@ -375,6 +377,79 @@ manage products should not be able to commit the org to a bill.
 
 ---
 
+### 5.6 Soft caps, the 80% warning, and document packs
+
+`docs.perMonth` behaves differently from every other counter, and the difference is
+deliberate.
+
+**Hard counters** — `products`, `customers`, `branches`, `terminals`, `team.seats` —
+block the *create* action with 402 when full. Nothing legally required is lost by
+refusing a 51st product.
+
+**`docs.perMonth` is a soft cap.** It never blocks emission. Blocking would break
+the §1 guarantee, and commercially it pushes the merchant to free TicoFactura rather
+than to Cosecha (see `tsuru_pricing_market_research.md` §3).
+
+Behaviour:
+
+| Usage | What happens |
+|---|---|
+| < 80% | Nothing. No nagging. |
+| ≥ 80% | Warning banner + "comprar documentos" / "mejorar plan". One notification, not one per sale. |
+| ≥ 100%, packs available | Consume from the pack balance silently. |
+| ≥ 100%, no balance | **Emit anyway.** Record the overage, show a persistent (dismissible) notice. Never a 402. |
+
+Sustained overage is a **sales conversation**, not an enforcement action. Surface it
+on the platform admin side; do not let the runtime punish it.
+
+#### Document packs
+
+One-off, non-expiring, stacking on top of the monthly allowance.
+
+| Pack | Price | Per doc |
+|---|---|---|
+| 25 documentos | ₡2.500 | ₡100 |
+| 100 documentos | ₡8.000 | ₡80 |
+
+Priced as a **bridge, not a revenue line**: past roughly 250 documents of packs a
+merchant has spent what unlimited Cosecha costs, so upgrading becomes obviously
+correct on their own arithmetic — without anyone being blocked. Market anchors and
+the reasoning are in `tsuru_pricing_market_research.md` §6.
+
+```ts
+// src/entities/DocumentPack.ts
+export const documentPacks = pgTable("document_packs", {
+  id:             varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull()
+                    .references(() => organizations.id, { onDelete: "cascade" }),
+  documents:      integer("documents").notNull(),   // purchased
+  consumed:       integer("consumed").default(0).notNull(),
+  pricePaid:      integer("price_paid").notNull(),  // CRC, for the record
+  currency:       varchar("currency", { length: 3 }).default("CRC").notNull(),
+  purchasedAt:    timestamp("purchased_at").default(sql`now()`).notNull(),
+  // No expiresAt. Packs do not expire — an expiring pack is a hidden charge and
+  // the brand's whole claim is "sin cargos ocultos".
+});
+```
+
+**Consumption order:** monthly allowance first, then the oldest pack with remaining
+balance (FIFO). Never touch packs while the monthly allowance has room, or a
+merchant who buys a pack early loses it to a month they'd have covered anyway.
+
+`GET …/entitlements` gains the balance so the POS can render it:
+
+```json
+{
+  "limits": { "docs.perMonth": 30 },
+  "usage":  { "docs.perMonth": 27 },
+  "packs":  { "remaining": 100, "overageThisPeriod": 0 }
+}
+```
+
+**Packs need payment collection**, so they land with TSR-146, not before. Until
+then the soft cap simply warns and never blocks — which is already the correct
+behaviour and ships in TSR-145 on its own.
+
 ## 6. POS app (`fe/pos-system`)
 
 ### 6.1 `useEntitlements()` — mirror `usePermissions()`
@@ -408,6 +483,8 @@ looks like the product is broken.)
 | **Sidebar** | Gated items combine RBAC *and* entitlement, exactly like the existing `programsEnabled && can(...)` pattern in `DashboardSidebar.tsx`. Entitlement-locked items stay **visible with a lock badge** rather than hidden — a hidden feature can't be sold. |
 | **Create buttons** | At limit → button stays enabled, opens the upgrade sheet instead of the form. Never a dead control. |
 | **Usage meters** | Products / customers / docs pages show "12 de 50" when a limit exists, nothing when unlimited. |
+| **80% warning** | Non-blocking banner on the documents surface once `docs.perMonth` usage ≥ 80%, offering a pack or an upgrade. Shown once per period, not per sale — a warning on every transaction is noise the cashier learns to ignore. |
+| **Overage state** | Past 100% with no pack balance: emission continues, a dismissible notice explains the overage. **Never** a blocked emit button. |
 | **402 handling** | Central interceptor in the API client maps 402 → upgrade sheet, using `requiredPlan` from the body. One place, not per-call. |
 | **Upgrade sheet** | Names the specific limit hit, the plan that lifts it, and the price. Links to `/planes` while self-serve checkout doesn't exist. |
 
@@ -512,7 +589,7 @@ identical in both, and in `plans.json.comparison.rows[].values`.
 | 7 | Review `log` denials, grandfather overages, flip to `enforce` | — |
 | 8 | `sales-be` integration for `docs.perMonth` (§5.4) | — |
 | 9 | Flip `plans.json.config.ctaComingSoon` → `false` in the admin | — |
-| 10 | Stripe (TSR-146) — separate milestone | — |
+| 10 | Stripe (TSR-146) — separate milestone, brings document packs (§5.6) with it | — |
 
 Steps 1–7 deliver a working, enforceable plan system with no payment integration at
 all. That is the useful checkpoint: at step 7 the product genuinely has tiers, and
@@ -522,14 +599,17 @@ the only thing missing is collecting money.
 
 ## 11. Open questions
 
-1. **`docs.perMonth: 30` on Semilla** — a volume cap on a legally required function
-   is the same *kind* of exposure §1 exists to prevent, just softer. A merchant who
-   hits 30 on the 20th cannot legally invoice for 10 days. Options: raise it, make
-   it a soft cap (warn, never block), or accept it. **Recommend soft-cap** — warn at
-   80%, never return 402 on emission. Needs an owner decision.
-2. **Cooperativa's ₡45.000 / ₡450.000 is invented.** Cosecha's numbers came from
-   `fe/pos-landing`'s real config; Cooperativa's did not. Confirm before
-   `draftPricing` is turned off.
+1. ~~**`docs.perMonth: 30` on Semilla**~~ — **Resolved 2026-08-24: soft cap.**
+   Warn at 80%, never block emission, sell document packs for the overflow (§5.6).
+   Market research independently supports it: Hacienda's TicoFactura is free and
+   uncapped, so a hard cap pushes merchants to a government product rather than to
+   a paid Tsuru tier.
+2. **Cooperativa's ₡45.000 / ₡450.000 is above the market ceiling.** At ₡452/USD
+   that is **$99.56/mo**, while Alegra POS Plus and POSMOVI Premium both stop at
+   $80. `tsuru_pricing_market_research.md` §5 recommends **₡35.000 / ₡350.000**.
+   Decide before `draftPricing` is turned off.
+   See also: whether prices are quoted **IVA-included** is not stated anywhere on
+   the page, and every CR competitor states it (research §7).
 3. **Terminals on Cosecha** — the landing comparison says `1 · 3` (1 branch, 3
    terminals) while the tier card says "1 sucursal · 1 terminal" for Semilla only.
    Confirm Cosecha's terminal count.
