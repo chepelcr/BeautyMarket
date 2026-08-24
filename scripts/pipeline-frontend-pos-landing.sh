@@ -9,7 +9,7 @@ POS_LANDING_DOMAIN="${POS_LANDING_DOMAIN:-pos-landing.tsuru.jcampos.dev}"
 
 STACK_NAME="jmarkets-${ENVIRONMENT}-frontend-pos-landing"
 BUCKET_NAME="jmarkets-${ENVIRONMENT}-pos-landing"
-DIST_DIR="dist/templates/pos-landing"
+DIST_DIR="dist/fe/pos-landing"
 
 echo "=== JMarkets Frontend Deploy: pos-landing ==="
 echo "  Environment : $ENVIRONMENT"

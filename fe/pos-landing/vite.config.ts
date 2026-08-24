@@ -66,7 +66,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, '../../dist/templates/pos-landing'),
+    outDir: path.resolve(__dirname, '../../dist/pos-landing'),
     emptyOutDir: true,
     rollupOptions: {
       output: {

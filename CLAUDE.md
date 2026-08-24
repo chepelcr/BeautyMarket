@@ -35,12 +35,14 @@ on 2026-06-12 (roadmap TSR-112), parallel to the `be/` backend grouping — `fe/
 |---|---|---|
 | `fe/pos-system` (Tsuru POS — standalone POS & Costa Rica/Hacienda e-invoicing system; **not** a store-front template) | [`chepelcr/tsuru-pos-system`](https://github.com/chepelcr/tsuru-pos-system) | Extracted; **untracked here** (2026-06-12); relocated to `fe/pos-system` (2026-06-12). Deploys via its own GH Actions. Develop it there. |
 | `fe/landing` (Tsuru landing — public marketing SPA + local JSON-driven content/admin DXP; deploys 100% static) | [`chepelcr/tsuru-landing`](https://github.com/chepelcr/tsuru-landing) | Extracted; **untracked here** (2026-06-12); relocated to `fe/landing` (2026-06-12). Deploys via its own GH Actions. Develop it there. |
+| `fe/pos-landing` (Tsuru POS **product marketing site** — pricing/plans, live POS demo, own config-driven dashboard; **not** a storefront template) | — (tracked in this monorepo) | **Tracked here**; relocated from `templates/pos-landing` to `fe/pos-landing` (2026-08-23, TSR-142). No standalone repo exists. Scripts: `npm run dev:pos-landing` / `build:pos-landing` → `dist/pos-landing`. |
 | `fe/dashboard` (admin SPA — being retired into the POS, TSR-091) | — (still tracked in this monorepo) | **Tracked here**; relocated from `dashboard/` to `fe/dashboard/` (2026-06-12). Deployed by the monorepo CodePipeline (`buildspec-frontend-dashboard.yml` → `dist/dashboard`). |
 | `server` (Tsuru platform API — users, orgs, RBAC, CMS, multi-tenant backend; Express on Lambda) | [`chepelcr/tsuru-platform-api`](https://github.com/chepelcr/tsuru-platform-api) | Extracted to its own **private** repo; **untracked here** (2026-06-12). Deploys via its own GH Actions. Develop it there. |
 
 **Rules after the split:**
 - `fe/pos-system/`, `fe/landing/`, and `server/` are gitignored and **no longer tracked** in this repo (untracked 2026-06-12; deploys moved to each repo's GH Actions). The folders may still exist locally as working copies of the standalone repos — never `git add -f` them back. `fe/dashboard/` IS still tracked here.
 - The monorepo CodePipeline stages / buildspecs that referenced the split paths are obsolete — do not re-point them at the folders; disable/remove them instead (roadmap TSR-090). The **dashboard** buildspec is still live and now points at `fe/dashboard`.
+- `fe/pos-landing` is **not** one of the 8 storefront templates — it is the POS *marketing* site and is deliberately excluded from `npm run build:templates`. Keep it out of the template matrix.
 - New work on the POS system belongs in `chepelcr/tsuru-pos-system`; new work on the landing site belongs in `chepelcr/tsuru-landing`; new work on the Express platform API belongs in `chepelcr/tsuru-platform-api` — not here. Mirror commits to the monorepo are no longer needed.
 
 **Brand: Tsuru.** The public brand is **Tsuru** (formerly JMarkets). Do not write new
@@ -430,8 +432,11 @@ This project has **three separate React applications**:
 1. **landing-client/** - Pure marketing website
    - Port: 3001 in development
    - Deployment: `tsuru.jcampos.dev`
-   - Routes: Landing, Examples, About, Blog, Contact, Terms, Privacy, Cookies
-   - Purpose: Public-facing marketing site
+   - Routes: Landing, Planes (`/planes` + `/pricing`), Examples, About, Blog, Contact, Terms, Privacy, Cookies
+   - Purpose: Public-facing marketing site **and the monetization surface** — the
+     four-tier solidarity pricing model (Semilla/Cosecha/Cooperativa/Feria) lives in
+     `src/content/plans.json`, edited at `/admin/plans` (TSR-084). Amounts stay behind
+     `config.draftPricing` until they are final.
    - Build output: `dist/landing/`
    - **NO authentication flows** (moved to dashboard)
 

@@ -10,7 +10,7 @@ phases:
       nodejs: 20
     commands:
       - echo "=== Installing pos-landing dependencies ==="
-      - cd templates/pos-landing
+      - cd fe/pos-landing
       - npm ci
 
   build:
@@ -25,5 +25,5 @@ phases:
 artifacts:
   files:
     - "**/*"
-  base-directory: dist/templates/pos-landing
+  base-directory: dist/fe/pos-landing
   discard-paths: no

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Deploy pos-landing static files to S3 + invalidate CloudFront.
 # Works in two modes:
-#   - Integrated (main pipeline): build output is at dist/templates/pos-landing/ (local)
+#   - Integrated (main pipeline): build output is at dist/fe/pos-landing/ (local)
 #   - Standalone (old pos-landing-pipeline): build output is in $CODEBUILD_SRC_DIR_BuildOutput
 #
 # Environment variables (set by CodeBuild project or calling buildspec):
@@ -22,13 +22,13 @@ if [ -z "$S3_BUCKET" ]; then
 fi
 
 # Resolve build directory:
-#   Integrated pipeline  → local dist/templates/pos-landing/
+#   Integrated pipeline  → local dist/fe/pos-landing/
 #   Standalone pipeline  → $CODEBUILD_SRC_DIR_BuildOutput (secondary artifact)
 if [ -n "${CODEBUILD_SRC_DIR_BuildOutput:-}" ] && [ -d "${CODEBUILD_SRC_DIR_BuildOutput}" ]; then
   BUILD_DIR="$CODEBUILD_SRC_DIR_BuildOutput"
   echo "Mode: standalone (secondary artifact)"
 else
-  BUILD_DIR="dist/templates/pos-landing"
+  BUILD_DIR="dist/fe/pos-landing"
   echo "Mode: integrated (local build output)"
 fi
 
