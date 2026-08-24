@@ -202,12 +202,30 @@ than listed (persona física ₡7.650 → **₡8.645** final; empresa ₡12.750 
 **₡14.408** final). Alegra and POSMOVI publish USD list prices without stating tax
 treatment, so those rows are left as published.
 
-**A stale FX constant, and why colones-only avoids it.**
-`fe/pos-landing/public/config.json` carries `usdRateCRC: 600` — ~33% off the real
-rate (~452) — so every USD figure that site renders is wrong today, and would go
-wrong again the next time the colón moves. The landing avoids this entirely by
-quoting colones and nothing else. `fe/pos-landing` should do the same: drop the USD
-display rather than maintain a constant that silently rots.
+**No USD anywhere — decided 2026-08-24.** Customer-facing surfaces quote colones
+and nothing else. The reasoning is about who the customer is, not about
+simplicity: **Tsuru is only usable by someone who files with Hacienda.** The whole
+product is Costa Rica-specific e-invoicing, so there is no foreign-currency buyer
+segment to serve — every customer thinks in colones.
+
+Card conversion is handled where it belongs. A merchant is charged ₡20.000; if
+their card is USD-denominated, the network converts at charge time and the issuer
+adds its own FX fee. That happens automatically, and **any USD figure we printed
+would be systematically low** against what actually posts to their statement — a
+number we could not stand behind. Printing one is worse than printing none.
+
+Two consequences:
+
+- The live exchange-rate service (`be/data-be/app/consumer-exchange-rate`, a
+  DB-cached passthrough of Hacienda's own rate) stays where it is genuinely
+  load-bearing: **the POS**, where Hacienda *requires* the BCCR rate on
+  USD-denominated invoices (`fe/pos-system/src/contexts/ExchangeRateContext.tsx`).
+  It is Cognito-protected today and needs no public exposure for the landing.
+- `fe/pos-landing`'s `usdRateCRC: 600` is not worth "fixing" with a live rate —
+  the USD display itself should go. That site carries a CRC|USD currency toggle
+  (`CurrencyKey`, `fmtUSD`, a rate field in its admin panel) across ~6 files. It
+  is not deployed, so this is parked until/unless the site is revived; the note
+  exists so nobody wires a live rate into a display that should be deleted.
 
 ---
 
@@ -241,7 +259,7 @@ to be an obvious upgrade rather than a toll — which is what §5 and §6 are ab
 | # | Action | Why |
 |---|---|---|
 | 7 | Turn off `config.draftPricing` | IVA is now stated, so the numbers are final — this is the last gate before the prices read as committed. |
-| 8 | Fix or drop `usdRateCRC: 600` in `fe/pos-landing` | ~33% off the real rate (§7). Simplest fix: drop USD display — same colones-only rule as the landing. |
+| 8 | Remove the CRC\|USD toggle from `fe/pos-landing` (not just the rate) | ✅ decided (§7) — **parked**, that site isn't deployed. Do it if it's ever revived; don't wire a live rate into a display that should be deleted. |
 
 ## Sources
 
