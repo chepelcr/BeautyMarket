@@ -436,7 +436,11 @@ This project has **three separate React applications**:
    - Purpose: Public-facing marketing site **and the monetization surface** — the
      four-tier solidarity pricing model (Semilla/Cosecha/Cooperativa/Feria) lives in
      `src/content/plans.json`, edited at `/admin/plans` (TSR-084). Amounts stay behind
-     `config.draftPricing` until they are final.
+     `config.draftPricing` and CTAs stay inert behind `config.ctaComingSoon` until the
+     backend lands. **Implementing plans in the BE/POS: read
+     `docs/roadmap/tsuru_plans_implementation.md` first** (TSR-145) — especially §1,
+     which lists the capabilities that are legally required and therefore can never be
+     gated by plan (all receipt types, ATV contingency mode, data export, no commission).
    - Build output: `dist/landing/`
    - **NO authentication flows** (moved to dashboard)
 
