@@ -4,9 +4,15 @@
 against what CR merchants can actually buy today, before `config.draftPricing` is
 turned off. **Roadmap:** TSR-084 / TSR-145.
 
-**FX used throughout: ₡452 = US$1** (BCCR window 2026-08-21 → 08-24: buy ₡443–449,
-sell ₡454–457). All competitor prices are list prices as published on their own
-sites in August 2026. Where a vendor quotes "+ IVA", that is noted — it matters
+**Everything below is in colones.** Tsuru is a Costa Rican product priced in
+colones, in round figures — no USD on any customer-facing surface, no amounts
+derived from an exchange rate that moves.
+
+Competitors are converted *into* colones so the comparison is like-for-like
+(several of them publish in USD, which is their choice, not ours). Conversions use
+**₡452 = US$1** (BCCR window 2026-08-21 → 08-24: buy ₡443–449, sell ₡454–457) and
+are **rounded to the nearest ₡1.000** — they are for orientation, not quotes, and
+will drift with the rate. Where a vendor quotes "+ IVA" that is noted; it matters
 (§7).
 
 ---
@@ -16,22 +22,24 @@ sites in August 2026. Where a vendor quotes "+ IVA", that is noted — it matter
 **Tsuru is not competing with invoicing tools. It is competing with POS suites,
 and that is a much better neighbourhood to be in.**
 
-| Category | Market range | What you get |
+| Category | Market range (₡/mes) | What you get |
 |---|---|---|
 | Free government invoicer | ₡0 | TicoFactura: invoicing only, no POS, no inventory, no reports, no support |
-| Pure e-invoicing SaaS | US$5–20/mo | Alegra Emprendedor/Pyme, GTI |
-| **POS + e-invoicing (Tsuru's category)** | **US$20–80/mo** | Alegra POS, POSMOVI, Wolk |
+| Pure e-invoicing SaaS | ₡2.500–9.000 | Alegra Emprendedor/Pyme, GTI |
+| **POS + e-invoicing (Tsuru's category)** | **₡9.000–36.000** | Alegra POS, POSMOVI, Wolk |
 
 Against that, the draft prices land like this:
 
-| Tsuru tier | Draft ₡/mo | US$/mo | Annual ₡ | US$/mo annual | Verdict |
-|---|---|---|---|---|---|
-| Semilla | 0 | $0 | — | — | **Unique.** Nobody else offers free POS + invoicing. |
-| Cosecha | 20.000 | **$44.25** | 200.000 | **$36.87** | **Defensible**, top of the mid-band. See §4. |
-| Cooperativa | 45.000 | **$99.56** | 450.000 | **$82.96** | **Too high — above the entire market ceiling.** See §5. |
-| Feria | custom | — | — | — | No comparable. Fine. |
+| Tsuru tier | ₡/mes | ₡/año | Efectivo ₡/mes | Verdict |
+|---|---|---|---|---|
+| Semilla | ₡0 | — | ₡0 | **Unique.** Nobody else gives away POS + invoicing. |
+| Cosecha | ₡20.000 | ₡180.000 | ₡15.000 | **Defensible** — mid-band, matches POSMOVI Básico. §4 |
+| Cooperativa | ₡35.000 | ₡315.000 | ₡26.250 | **In band** after the 2026-08-24 correction. §5 |
+| Feria | a convenir | — | — | No comparable. Fine. |
 
-One number needs changing before launch. The rest holds up.
+**The market ceiling is ₡36.000/mes** — Alegra POS Plus and POSMOVI Premium land
+there independently, which makes it a real ceiling rather than one vendor's quirk.
+Every Tsuru tier now sits at or under it.
 
 ---
 
@@ -39,32 +47,32 @@ One number needs changing before launch. The rest holds up.
 
 ### 2.1 POS + electronic invoicing — the real comparison
 
-| Product | Monthly | Annual (eff. /mo) | Users | Docs/mo | Branches |
-|---|---|---|---|---|---|
-| **Alegra POS Pyme** | $20 | $15 (−25%) | 2 + contador | 500 | 1 |
-| **Wolk PV PYME** | $35 | — | — | incl. | incl. inventory, AR/AP |
-| **POSMOVI Básico** | $45 | 10 mo = 2 free | 1 | — | — |
-| **Alegra POS Pro** | $50 | $38 (−25%) | 3 | 2.500 | 5 |
-| **POSMOVI Pro** | $65 | 10 mo = 2 free | 5 | — | — |
-| **Alegra POS Plus** | $80 | $60 (−25%) | 5 | 5.000 | 10 |
-| **POSMOVI Premium** | $80 | 10 mo = 2 free | ilimitados | — | — |
-| **Tsuru Cosecha** | **$44** | **$37** | 5 | ilimitados | 1 |
-| **Tsuru Cooperativa** | **$100** | **$83** | ilimitados | ilimitados | ilimitadas |
+| Product | ₡/mes | ₡/mes anual | (list) | Users | Docs/mes | Branches |
+|---|---|---|---|---|---|---|
+| **Alegra POS Pyme** | ₡9.000 | ₡7.000 | $20 / $15 | 2 + contador | 500 | 1 |
+| **Wolk PV PYME** | ₡16.000 | — | $35 | — | incl. | incl. inventory, AR/AP |
+| **POSMOVI Básico** | ₡20.000 | 10 mo = 2 free | $45 | 1 | — | — |
+| **Alegra POS Pro** | ₡23.000 | ₡17.000 | $50 / $38 | 3 | 2.500 | 5 |
+| **POSMOVI Pro** | ₡29.000 | 10 mo = 2 free | $65 | 5 | — | — |
+| **Alegra POS Plus** | **₡36.000** | ₡27.000 | $80 / $60 | 5 | 5.000 | 10 |
+| **POSMOVI Premium** | **₡36.000** | 10 mo = 2 free | $80 | ilimitados | — | — |
+| **Tsuru Cosecha** | **₡20.000** | **₡15.000** | — | 5 | ilimitados | 1 |
+| **Tsuru Cooperativa** | **₡35.000** | **₡26.250** | — | ilimitados | ilimitados | ilimitadas |
 
-**The market ceiling is $80/mo.** Both Alegra's top tier and POSMOVI's top tier
-land there independently, which makes it a real ceiling rather than one vendor's
-quirk.
+**₡36.000/mes is the ceiling.** Alegra's top tier and POSMOVI's top tier land there
+independently. Cooperativa now sits ₡1.000 under it with unlimited branches and
+seats — the strongest position on the board.
 
 ### 2.2 Pure e-invoicing — cheaper, and worth knowing
 
-| Product | Price | Docs |
+| Product | ₡/mes | Docs |
 |---|---|---|
-| **TicoFactura** (Hacienda, TRIBU-CR) | **₡0** | Unlimited |
-| GTI — régimen simplificado | ₡2.700 + IVA/mo | Unlimited |
-| Alegra Emprendedor | $5/mo | — |
-| GTI — persona física | ₡7.650 + IVA/mo (~$17) | Unlimited |
-| Alegra Pyme (invoicing) | $10/mo | — |
-| GTI — empresa | ₡12.750 + IVA/mo (~$28) | 250 |
+| **TicoFactura** (Hacienda, TRIBU-CR) | **₡0** | Ilimitados |
+| GTI — régimen simplificado | ₡2.700 + IVA | Ilimitados |
+| Alegra Emprendedor | ~₡2.000 | — |
+| GTI — persona física | ₡7.650 + IVA | Ilimitados |
+| Alegra Pyme (invoicing) | ~₡5.000 | — |
+| GTI — empresa | ₡12.750 + IVA | 250 |
 
 These are not Tsuru's competitors *feature-wise*, but they are the price a merchant
 has in their head when they hear "facturación electrónica." Anchoring matters even
@@ -100,50 +108,47 @@ Two consequences, and the second one is easy to miss:
 
 ## 4. Cosecha — defensible, with a caveat
 
-$44/mo monthly, $37/mo on annual.
+**₡20.000/mes**, **₡15.000/mes efectivo** on the annual plan (₡180.000/año).
 
 **In favour:**
-- Sits between Wolk ($35) and Alegra POS Pro ($50); essentially matches POSMOVI
-  Básico ($45) while giving 5 seats where POSMOVI gives 1.
-- Unlimited documents where Alegra Pyme caps at 500/mo.
+- Lands between Wolk (₡16.000) and Alegra POS Pro (₡23.000), and matches POSMOVI
+  Básico (₡20.000) almost exactly — while giving 5 seats where POSMOVI gives 1.
+- Unlimited documents where Alegra POS Pyme caps at 500/mes.
 - Includes a **public storefront, templates, QR catalog, and WhatsApp orders** —
   Alegra and POSMOVI do not ship a customer-facing store at all. That is a whole
   product category bundled in, and it justifies sitting above Alegra POS Pyme.
 
 **Against:**
-- **Alegra POS Pyme at $20/mo ($15 annual)** is the pressure point. For a small shop
-  that only needs a register and invoices, it is *less than half* the price and 500
-  docs/month is plenty. Tsuru's answer has to be the storefront — if a prospect
-  doesn't want a storefront, Cosecha is a hard sell at 2.2×.
-- The monthly/annual gap (17%) is narrower than Alegra's 25%.
+- **Alegra POS Pyme at ~₡9.000/mes** is the pressure point. For a shop that only
+  needs a register and invoices, that is *less than half* of Cosecha and 500
+  docs/mes is plenty. Tsuru's answer has to be the storefront — if a prospect
+  doesn't want one, Cosecha is a hard sell at 2.2×.
 
-**Recommendation:** keep ₡20.000/₡200.000, **but** consider widening the annual
-discount to 3 months free (25%, matching Alegra) → **₡180.000/año** (₡15.000/mo,
-$33). Better cash flow, better headline, and it closes the gap with Alegra Pro's
-annual ($38) exactly.
+**Decided 2026-08-24:** keep **₡20.000/mes**, and widen the annual discount from 2
+to **3 free months (25%, matching Alegra)** → **₡180.000/año = ₡15.000/mes
+efectivo**. That undercuts Alegra POS Pro's annual (₡17.000) while still bundling
+a storefront neither Alegra nor POSMOVI ships. Every line of copy that stated the
+old 10-for-12 ratio now reads "pagás 9 meses y te regalamos 3".
 
 ---
 
-## 5. Cooperativa — this is the one to change
+## 5. Cooperativa — corrected
 
-**$99.56/mo is above every competitor's top tier.** Alegra Plus and POSMOVI Premium
-both stop at $80, and POSMOVI Premium already includes *unlimited users*.
+**Was ₡45.000/mes, which was above every competitor's top tier.** Alegra POS Plus
+and POSMOVI Premium both stop at ~₡36.000, and POSMOVI Premium already includes
+unlimited users — so being 25% over the ceiling needed a reason a buyer would
+recognize, and "multi-branch + RBAC" wasn't it.
 
-Being 24% above the market ceiling needs a reason a buyer recognizes, and
-"multi-branch + RBAC" is not it — POSMOVI Premium gives unlimited users at $80 and
-Alegra Plus gives 10 warehouses at $80.
+**Decided 2026-08-24: ₡35.000/mes, ₡315.000/año (₡26.250/mes efectivo).**
 
-The annual price ($83/mo) is fine. It is the **monthly** price that is out of band.
-
-**Recommendation:** **₡35.000/mo, ₡350.000/año** ($77.4 / $64.5 per month). That
-lands just under both $80 ceilings on monthly and comfortably under Alegra Plus's
-annual ($60) — competitive without being a discount brand. If the 25% annual
-discount in §4 is adopted, ₡315.000/año ($58/mo).
-
-| | Draft | Recommended | vs market ceiling |
+| | Was | Now | vs ceiling (₡36.000) |
 |---|---|---|---|
-| Cooperativa monthly | ₡45.000 ($99.6) | **₡35.000 ($77.4)** | $80 → under |
-| Cooperativa annual | ₡450.000 ($83.0/mo) | **₡350.000 ($64.5/mo)** | $60–80 → in band |
+| Cooperativa mensual | ₡45.000 | **₡35.000** | ₡1.000 under |
+| Cooperativa anual | ₡450.000 (₡37.500/mes) | **₡315.000 (₡26.250/mes)** | well under |
+
+At ₡35.000 Cooperativa undercuts both ceiling products while offering unlimited
+branches, unlimited seats, and a storefront — the strongest value position of any
+tier on the board, and still 75% more revenue per account than Cosecha.
 
 ---
 
@@ -173,9 +178,9 @@ who needs a lot of documents finds *upgrading* cheaper, on their own arithmetic.
 | 25 documentos | ₡2.500 | ₡100 |
 | 100 documentos | ₡8.000 | ₡80 |
 
-**Why these numbers work:** at ₡80–100/doc, a merchant buying more than ~₡20.000 of
-packs in a month (roughly 250 docs) has spent what Cosecha costs — and Cosecha is
-unlimited. The upgrade becomes obviously correct at exactly the point where we want
+**Why these numbers work:** at ₡80–100/doc, a merchant buying more than ₡20.000 of
+packs in a month (roughly 250 documentos) has spent exactly what Cosecha costs —
+and Cosecha is unlimited. The upgrade becomes obviously correct at exactly the point where we want
 it to, without anyone being blocked or lectured. Below that, the pack is genuinely
 the cheaper answer and the merchant keeps selling.
 
@@ -193,10 +198,12 @@ B2B quoting "+ IVA" is the norm. **Decide and state it on the page** — a merch
 discovering 13% at checkout is a trust problem for a brand built on "sin cargos
 ocultos." This is a `plans.json` copy change, not code.
 
-**A stale FX constant.** `fe/pos-landing/public/config.json` carries
-`usdRateCRC: 600`, which is ~33% off the real rate (~452). Any USD figure that site
-renders is wrong today. Either fix it or drop USD display; it is another argument
-for §8.
+**A stale FX constant, and why colones-only avoids it.**
+`fe/pos-landing/public/config.json` carries `usdRateCRC: 600` — ~33% off the real
+rate (~452) — so every USD figure that site renders is wrong today, and would go
+wrong again the next time the colón moves. The landing avoids this entirely by
+quoting colones and nothing else. `fe/pos-landing` should do the same: drop the USD
+display rather than maintain a constant that silently rots.
 
 ---
 
@@ -206,26 +213,31 @@ for §8.
 
 Nobody else in Costa Rica gives away POS + storefront + unlimited receipt types +
 contingency mode. The competition either charges for the POS (Alegra, POSMOVI,
-Wolk, $20–80) or gives away only the invoicing with nothing around it
+Wolk — ₡9.000–36.000/mes) or gives away only the invoicing with nothing around it
 (TicoFactura). Tsuru's free tier is the wedge, and the paid tiers should be priced
 to be an obvious upgrade rather than a toll — which is what §5 and §6 are about.
 
 ---
 
-## 9. Recommended changes
+## 9. Decisions and remaining actions
 
-| # | Change | Where | Why |
-|---|---|---|---|
-| 1 | Cooperativa → **₡35.000 / ₡350.000** | `plans.json` | $99.6/mo is above the market's $80 ceiling (§5). |
-| 2 | Doc packs at **₡2.500/25** and **₡8.000/100** | TSR-145 build | Bridge, not revenue; makes upgrading obviously right at ~250 docs (§6). |
-| 3 | Keep Semilla's 30-doc cap **soft** (warn at 80%, never block) | TSR-145 | A hard cap sends people to free TicoFactura, not to Cosecha (§3). |
-| 4 | State the **IVA** treatment on the page | `plans.json` copy | Every competitor does; silence risks the "sin cargos ocultos" promise (§7). |
-| 5 | *Consider* 25% annual discount (3 months free) | `plans.json` | Matches Alegra; improves cash flow and the annual headline (§4). |
-| 6 | Fix or remove `usdRateCRC: 600` | `fe/pos-landing` | ~33% off the real rate (§7). |
+**Decided 2026-08-24 (applied to `plans.json`):**
 
-Items 1 and 4 should land before `draftPricing` is turned off.
+| # | Change | Status |
+|---|---|---|
+| 1 | Cooperativa ₡45.000 → **₡35.000 / ₡315.000** | ✅ applied |
+| 2 | Annual discount 2 → **3 free months (25%)**; Cosecha ₡180.000/año | ✅ applied, copy updated |
+| 3 | Semilla's 30-doc cap stays **soft** (warn at 80%, never block) | ✅ spec'd — TSR-145 §5.6 |
+| 4 | Document packs **₡2.500/25**, **₡8.000/100**, non-expiring | ✅ spec'd — ships with TSR-146 |
+| 5 | **Colones only**, round figures, no USD on any public surface | ✅ applied — `formatCRC` renders CR-style ₡20.000 |
 
----
+**Still open:**
+
+| # | Action | Why |
+|---|---|---|
+| 6 | State the **IVA** treatment on the pricing page | Every CR competitor states it; silence risks the "sin cargos ocultos" promise (§7). Copy change in `plans.json`. |
+| 7 | Turn off `config.draftPricing` | Once IVA is stated, the numbers are final. |
+| 8 | Fix or drop `usdRateCRC: 600` in `fe/pos-landing` | ~33% off the real rate (§7). Simplest fix: drop USD display — same colones-only rule as the landing. |
 
 ## Sources
 

@@ -42,11 +42,11 @@ Names are fixed (they carry the brand's harvest metaphor). Amounts are **prelimi
 | Tier | id | Price (draft) | Shape |
 |---|---|---|---|
 | **Semilla** | `semilla` | ₡0 — forever | The compliance floor. Everything legally required, capped on volume. |
-| **Cosecha** | `cosecha` | ₡20.000/mes · ₡200.000/año | The single business that outgrew the caps. Custom domain, 5 seats. |
-| **Cooperativa** | `cooperativa` | ₡45.000/mes · ₡450.000/año | Multi-branch, unlimited seats, fine-grained RBAC. |
+| **Cosecha** | `cosecha` | ₡20.000/mes · ₡180.000/año | The single business that outgrew the caps. Custom domain, 5 seats. |
+| **Cooperativa** | `cooperativa` | ₡35.000/mes · ₡315.000/año | Multi-branch, unlimited seats, fine-grained RBAC. |
 | **Feria** | `feria` | Custom ("a conversar") | Organizers of *other* sellers. Often ₡0 for community projects. |
 
-Annual = pay 10 months, get 12 (`annualDiscountMonths: 2`).
+Annual = pay 9 months, get 12 (`annualDiscountMonths: 3`, 25% — matches Alegra).
 
 `feria` has **no self-serve price**. It must not be purchasable; it routes to
 contact and is provisioned by a platform admin.
@@ -117,7 +117,9 @@ export const plans = pgTable("plans", {
   id:            varchar("id").primaryKey(),            // 'semilla' | 'cosecha' | 'cooperativa' | 'feria'
   displayName:   varchar("display_name", { length: 100 }).notNull(),
   sortOrder:     integer("sort_order").notNull(),
-  priceMonthly:  integer("price_monthly").notNull(),    // CRC minor-unit-free (colones have no cents)
+  // Whole colones. Tsuru prices in CRC only — no USD on any surface, and no
+  // stored exchange rate to go stale (see tsuru_pricing_market_research.md §7).
+  priceMonthly:  integer("price_monthly").notNull(),
   priceAnnual:   integer("price_annual").notNull(),
   currency:      varchar("currency", { length: 3 }).default("CRC").notNull(),
   isCustomPrice: boolean("is_custom_price").default(false).notNull(),  // feria
@@ -604,12 +606,14 @@ the only thing missing is collecting money.
    Market research independently supports it: Hacienda's TicoFactura is free and
    uncapped, so a hard cap pushes merchants to a government product rather than to
    a paid Tsuru tier.
-2. **Cooperativa's ₡45.000 / ₡450.000 is above the market ceiling.** At ₡452/USD
-   that is **$99.56/mo**, while Alegra POS Plus and POSMOVI Premium both stop at
-   $80. `tsuru_pricing_market_research.md` §5 recommends **₡35.000 / ₡350.000**.
-   Decide before `draftPricing` is turned off.
-   See also: whether prices are quoted **IVA-included** is not stated anywhere on
-   the page, and every CR competitor states it (research §7).
+2. ~~**Cooperativa's price**~~ — **Resolved 2026-08-24: ₡35.000/mes, ₡315.000/año.**
+   ₡45.000 sat above the ₡36.000 CR market ceiling (Alegra POS Plus, POSMOVI
+   Premium). The annual discount also widened from 2 to 3 free months (25%),
+   making Cosecha ₡180.000/año. Still open: the page never states whether amounts
+   are **IVA-included**, and every CR competitor states it
+   (`tsuru_pricing_market_research.md` §7) — decide before `draftPricing` is
+   turned off.
+
 3. **Terminals on Cosecha** — the landing comparison says `1 · 3` (1 branch, 3
    terminals) while the tier card says "1 sucursal · 1 terminal" for Semilla only.
    Confirm Cosecha's terminal count.
